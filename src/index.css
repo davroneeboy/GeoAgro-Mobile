@@ -1,0 +1,432 @@
+/* src/index.css */
+
+/* Подключаем Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet стили для корректного отображения карты */
+@import 'leaflet/dist/leaflet.css';
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* Пример глобальных стилей */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html, body {
+  height: 100%; /* Balandlikni butun ekran uchun belgilang */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Дополнительные стили для карты (если нужно) */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+.map-continer{
+
+  display: flex;
+  height: 100vh;
+}
+.map-continer .map-left{
+    width: 400px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.map-continer .map-left h4{
+  font-weight: 700;
+}
+.map-continer .map-left .cards-wrap{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-continer .map-left .cards-wrap .cards-item{
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+.map-continer .map-left .cards-wrap .cards-item h5{
+  font-weight: 600;
+}
+.map-continer .map-left .cards-wrap .cards-item:hover{
+  background-color:#e5e7eb;
+}
+.map-continer .map-right{
+    width: 400px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.map-continer .map-wrapper{
+  width: 100%;
+}
+.map-right{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  
+}
+.map-right > p{
+  color:#6c6e72;
+}
+.right-section{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.right-section > h4{
+  font-weight: 700;
+}
+.section-info{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.section-info div{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.section-info div p{
+  color: #6c6e72;
+}
+.section-info div span{
+  font-weight: 600;
+}
+.sections-main{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sections-main h5{
+  font-weight: 600;
+}
+.sections-imgs{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sections-imgs h5{
+  font-weight: 600;
+}
+.sections-img{
+  display: flex;
+  gap: 8px;
+}
+.img-wrap{
+  width: 100%;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-more{
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color:rgb(56, 56, 243);
+  color:#fff;
+}
+
+.wrapper-plantations{
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+.plan-maps{
+  flex-shrink: 0;
+  height: 400px;
+  min-height: 400px;
+  width: 100%;
+  background-color: lightcoral;
+}
+.wrapper-info{
+  flex: 1;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 400px);
+  overflow-y: auto; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.wrapper-info::-webkit-scrollbar {
+  display: none; 
+}
+
+.info-plantations{
+ 
+  width: 100%;
+  background-color: #e5e7eb;
+  padding: 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.info-plantations > h4{
+  font-size: 24px;
+  font-weight: 700;
+}
+.plats-main-info{
+  background-color: #fff;
+  border-radius: 16px;
+  width: 100%;
+  height: 400px;
+}
+.plant-acc{
+  background-color: #fff;
+}
+
+.stats-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.stats-triangle {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: #4CAF50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  transform-origin: center center;
+}
+
+.stats-content {
+  padding: 20px;
+}
+
+.stats-content h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.stats-content .value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.stats-content .percentage {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.left-triangle {
+  transform: translate(-50%, -50%) rotateY(30deg);
+  left: 30%;
+  top: 50%;
+}
+
+.center-triangle {
+  transform: translate(-50%, -50%) rotateY(0deg);
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+}
+
+.right-triangle {
+  transform: translate(-50%, -50%) rotateY(-30deg);
+  left: 70%;
+  top: 50%;
+}
+
+/* Add some depth effect */
+.stats-triangle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.stats-triangle:hover::after {
+  opacity: 1;
+}
+
+.radar-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar-grid {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transform-origin: center;
+}
+
+.grid-line:nth-child(1) { transform: rotate(0deg); }
+.grid-line:nth-child(2) { transform: rotate(45deg); }
+.grid-line:nth-child(3) { transform: rotate(90deg); }
+.grid-line:nth-child(4) { transform: rotate(135deg); }
+
+.radar-data-area {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  background: rgba(76, 175, 80, 0.3);
+  border: 2px solid #4CAF50;
+  transition: all 0.3s ease;
+}
+
+.data-point {
+  position: absolute;
+  color: #333;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.data-point .label {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.data-point .value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.data-point .percentage {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.data-point.top {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.data-point.right {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.data-point.bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Remove any previous radar-axis styles */
+.radar-axis {
+  display: none;
+}
+
+/* Remove the black background */
+.radar-chart {
+  background: transparent;
+}
+
+/* Add grid lines */
+.radar-chart::before {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transform: rotate(45deg);
+}
+
+.radar-chart::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Add these styles to your CSS file */
+.region-statistics-table {
+  .ant-table-cell-fix-left {
+    background-color: #fff !important;
+  }
+  
+  .ant-table-cell-fix-left-last {
+    box-shadow: 6px 0 6px -4px rgba(0,0,0,0.15);
+  }
+
+  .ant-table-row:hover .ant-table-cell {
+    background-color: #f5f5f5 !important;
+  }
+
+  .ant-table-row-level-0:last-child .ant-table-cell {
+    background-color: #fafafa !important;
+    font-weight: bold;
+  }
+
+  .total-row td {
+    background-color: #fafafa !important;
+    font-weight: bold;
+  }
+
+  .test-district-row td {
+    font-weight: normal;
+  }
+
+  /* Fix hover effect */
+  .ant-table-row:hover td {
+    background-color: #f5f5f5 !important;
+  }
+
+  .total-row:hover td {
+    background-color: #fafafa !important;
+  }
+}
