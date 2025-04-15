@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Card, Select, Input, Row, Col, Spin, Alert, Statistic, Button } from 'antd';
-import StatisticsLayout from '../../layouts/StatisticsLayout';
+import React, { useState, useEffect } from "react";
+import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
+import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
 const REGION_NAMES = {
-  1: 'Tashkent',
-  2: 'Andijan',
-  3: 'Bukhara',
-  4: 'Fergana',
-  5: 'Jizzakh',
-  6: 'Kashkadarya',
-  7: 'Navoi',
-  8: 'Namangan',
-  9: 'Samarkand',
-  10: 'Sirdarya',
-  11: 'Surkhandarya',
-  12: 'Karakalpakstan',
+  1: "Tashkent",
+  2: "Andijan",
+  3: "Bukhara",
+  4: "Fergana",
+  5: "Jizzakh",
+  6: "Kashkadarya",
+  7: "Navoi",
+  8: "Namangan",
+  9: "Samarkand",
+  10: "Sirdarya",
+  11: "Surkhandarya",
+  12: "Karakalpakstan",
 };
 
 const RegionsPage = () => {
@@ -34,36 +34,39 @@ const RegionsPage = () => {
 
   // Generate years from 1990 to current year
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
+  const years = Array.from(
+    { length: currentYear - 1989 },
+    (_, i) => currentYear - i
+  );
 
   // Fetch statistics data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Build URL with query parameters
         let url = `${API_BASE_URL1}api/statistics/regions/`;
         const queryParams = new URLSearchParams();
-        
+
         // Add est_date filter if year is selected
         if (filters.garden_established_year) {
-          queryParams.append('est_date', filters.garden_established_year);
+          queryParams.append("est_date", filters.garden_established_year);
         }
-        
+
         // Add query parameters to URL if any exist
         if (queryParams.toString()) {
           url += `?${queryParams.toString()}`;
         }
 
         const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch data');
+        if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
-        
+
         // Filter data based on selected regions
         if (filters.regions.length > 0) {
           const filteredData = {};
-          filters.regions.forEach(region => {
+          filters.regions.forEach((region) => {
             if (data[region]) {
               filteredData[region] = data[region];
             }
@@ -83,7 +86,7 @@ const RegionsPage = () => {
   }, [filters]); // Effect will run when filters change
 
   // Transform data for table with safe number handling
-  const safeNumber = (value) => (typeof value === 'number' ? value : 0);
+  const safeNumber = (value) => (typeof value === "number" ? value : 0);
 
   const tableData = Object.entries(statistics).map(([regionId, data]) => ({
     key: regionId,
@@ -104,8 +107,8 @@ const RegionsPage = () => {
 
   // Initialize totalRow with zeros to prevent undefined values
   const initialTotalRow = {
-    key: 'total',
-    region: 'Jami',
+    key: "total",
+    region: "Jami",
     total_area: 0,
     outdated_ga: 0,
     low_fertility_count: 0,
@@ -121,21 +124,31 @@ const RegionsPage = () => {
   };
 
   // Calculate totals for summary row with safe addition
-  const totalRow = tableData.reduce((acc, curr) => ({
-    ...acc,
-    total_area: acc.total_area + safeNumber(curr.total_area),
-    outdated_ga: acc.outdated_ga + safeNumber(curr.outdated_ga),
-    low_fertility_count: acc.low_fertility_count + safeNumber(curr.low_fertility_count),
-    low_fertility_area: acc.low_fertility_area + safeNumber(curr.low_fertility_area),
-    high_fertility_count: acc.high_fertility_count + safeNumber(curr.high_fertility_count),
-    high_fertility_area: acc.high_fertility_area + safeNumber(curr.high_fertility_area),
-    irrigation_area: acc.irrigation_area + safeNumber(curr.irrigation_area),
-    irrigation_count: acc.irrigation_count + safeNumber(curr.irrigation_count),
-    investment_local: acc.investment_local + safeNumber(curr.investment_local),
-    investment_foreign: acc.investment_foreign + safeNumber(curr.investment_foreign),
-    subsidy_count: acc.subsidy_count + safeNumber(curr.subsidy_count),
-    total_subsidy: acc.total_subsidy + safeNumber(curr.total_subsidy),
-  }), initialTotalRow);
+  const totalRow = tableData.reduce(
+    (acc, curr) => ({
+      ...acc,
+      total_area: acc.total_area + safeNumber(curr.total_area),
+      outdated_ga: acc.outdated_ga + safeNumber(curr.outdated_ga),
+      low_fertility_count:
+        acc.low_fertility_count + safeNumber(curr.low_fertility_count),
+      low_fertility_area:
+        acc.low_fertility_area + safeNumber(curr.low_fertility_area),
+      high_fertility_count:
+        acc.high_fertility_count + safeNumber(curr.high_fertility_count),
+      high_fertility_area:
+        acc.high_fertility_area + safeNumber(curr.high_fertility_area),
+      irrigation_area: acc.irrigation_area + safeNumber(curr.irrigation_area),
+      irrigation_count:
+        acc.irrigation_count + safeNumber(curr.irrigation_count),
+      investment_local:
+        acc.investment_local + safeNumber(curr.investment_local),
+      investment_foreign:
+        acc.investment_foreign + safeNumber(curr.investment_foreign),
+      subsidy_count: acc.subsidy_count + safeNumber(curr.subsidy_count),
+      total_subsidy: acc.total_subsidy + safeNumber(curr.total_subsidy),
+    }),
+    initialTotalRow
+  );
 
   // Add total row to table data
   const dataWithTotal = [...tableData, totalRow];
@@ -151,122 +164,123 @@ const RegionsPage = () => {
 
   // Add row click handler
   const handleRowClick = (record) => {
-    if (record.key !== 'total') { // Don't navigate for total row
+    if (record.key !== "total") {
+      // Don't navigate for total row
       navigate(`/statistics/regions/${record.key}`);
     }
   };
 
   const columns = [
     {
-      title: 'Viloyat',
-      dataIndex: 'region',
-      key: 'region',
-      fixed: 'left',
+      title: "Viloyat",
+      dataIndex: "region",
+      key: "region",
+      fixed: "left",
       onCell: (record) => ({
         onClick: () => handleRowClick(record),
-        style: { cursor: record.key !== 'total' ? 'pointer' : 'default' }
+        style: { cursor: record.key !== "total" ? "pointer" : "default" },
       }),
     },
     {
-      title: 'Umumiy maydon',
+      title: "Umumiy maydon",
       children: [
         {
-          title: 'Jami (GA)',
-          dataIndex: 'total_area',
-          key: 'total_area',
-          render: value => safeNumber(value).toFixed(1),
+          title: "Jami (GA)",
+          dataIndex: "total_area",
+          key: "total_area",
+          render: (value) => safeNumber(value).toFixed(1),
         },
         {
-          title: 'Eskirgan (GA)',
-          dataIndex: 'outdated_ga',
-          key: 'outdated_ga',
-          render: value => safeNumber(value).toFixed(1),
+          title: "Eskirgan (GA)",
+          dataIndex: "outdated_ga",
+          key: "outdated_ga",
+          render: (value) => safeNumber(value).toFixed(1),
         },
       ],
     },
     {
-      title: 'Hosildorlik',
+      title: "Hosildorlik",
       children: [
         {
-          title: 'Past',
+          title: "Past",
           children: [
             {
-              title: 'Soni',
-              dataIndex: 'low_fertility_count',
-              key: 'low_fertility_count',
+              title: "Soni",
+              dataIndex: "low_fertility_count",
+              key: "low_fertility_count",
             },
             {
-              title: 'Maydon',
-              dataIndex: 'low_fertility_area',
-              key: 'low_fertility_area',
-              render: value => safeNumber(value).toFixed(1),
+              title: "Maydon",
+              dataIndex: "low_fertility_area",
+              key: "low_fertility_area",
+              render: (value) => safeNumber(value).toFixed(1),
             },
           ],
         },
         {
-          title: 'Yuqori',
+          title: "Yuqori",
           children: [
             {
-              title: 'Soni',
-              dataIndex: 'high_fertility_count',
-              key: 'high_fertility_count',
+              title: "Soni",
+              dataIndex: "high_fertility_count",
+              key: "high_fertility_count",
             },
             {
-              title: 'Maydon',
-              dataIndex: 'high_fertility_area',
-              key: 'high_fertility_area',
-              render: value => safeNumber(value).toFixed(1),
+              title: "Maydon",
+              dataIndex: "high_fertility_area",
+              key: "high_fertility_area",
+              render: (value) => safeNumber(value).toFixed(1),
             },
           ],
         },
       ],
     },
     {
-      title: 'Sug\'orish',
+      title: "Sug'orish",
       children: [
         {
-          title: 'Maydon',
-          dataIndex: 'irrigation_area',
-          key: 'irrigation_area',
-          render: value => safeNumber(value).toFixed(1),
+          title: "Maydon",
+          dataIndex: "irrigation_area",
+          key: "irrigation_area",
+          render: (value) => safeNumber(value).toFixed(1),
         },
         {
-          title: 'Soni',
-          dataIndex: 'irrigation_count',
-          key: 'irrigation_count',
+          title: "Soni",
+          dataIndex: "irrigation_count",
+          key: "irrigation_count",
         },
       ],
     },
     {
-      title: 'Investitsiyalar',
+      title: "Investitsiyalar",
       children: [
         {
-          title: 'Mahalliy',
-          dataIndex: 'investment_local',
-          key: 'investment_local',
-          render: value => safeNumber(value).toLocaleString(),
+          title: "Mahalliy",
+          dataIndex: "investment_local",
+          key: "investment_local",
+          render: (value) => safeNumber(value).toLocaleString(),
         },
         {
-          title: 'Xorijiy',
-          dataIndex: 'investment_foreign',
-          key: 'investment_foreign',
-          render: value => safeNumber(value).toLocaleString(),
+          title: "Xorijiy",
+          dataIndex: "investment_foreign",
+          key: "investment_foreign",
+          render: (value) => safeNumber(value).toLocaleString(),
         },
       ],
     },
     {
-      title: 'Subsidiyalar',
+      title: "Subsidiyalar",
       children: [
         {
-          title: 'Soni',
-          dataIndex: 'subsidy_count',
-          key: 'subsidy_count',
+          title: "Soni",
+          dataIndex: "subsidy_count",
+          key: "subsidy_count",
         },
         {
-          title: 'Jami summa',
-          dataIndex: 'total_subsidy',
-          key: 'total_subsidy',
-          render: value => safeNumber(value).toLocaleString(),
+          title: "Jami summa",
+          dataIndex: "total_subsidy",
+          key: "total_subsidy",
+          render: (value) => safeNumber(value).toLocaleString(),
         },
       ],
     },
@@ -300,10 +314,12 @@ const RegionsPage = () => {
                 <label className="block mb-2">Plantatsiya turi</label>
                 <Select
                   mode="multiple"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Tanlang"
                   value={filters.plantation_type}
-                  onChange={value => setFilters({ ...filters, plantation_type: value })}
+                  onChange={(value) =>
+                    setFilters({ ...filters, plantation_type: value })
+                  }
                 >
                   <Option value="garden">Bog'</Option>
                   <Option value="vineyard">Uzumzor</Option>
@@ -315,14 +331,18 @@ const RegionsPage = () => {
               <div className="mb-4">
                 <label className="block mb-2">Bog' barpo etilgan yil</label>
                 <Select
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Yilni tanlang"
                   value={filters.garden_established_year}
-                  onChange={value => setFilters({ ...filters, garden_established_year: value })}
+                  onChange={(value) =>
+                    setFilters({ ...filters, garden_established_year: value })
+                  }
                   allowClear
                 >
-                  {years.map(year => (
-                    <Option key={year} value={year}>{year}</Option>
+                  {years.map((year) => (
+                    <Option key={year} value={year}>
+                      {year}
+                    </Option>
                   ))}
                 </Select>
               </div>
@@ -332,13 +352,17 @@ const RegionsPage = () => {
                 <label className="block mb-2">Viloyatlar</label>
                 <Select
                   mode="multiple"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Viloyatlarni tanlang"
                   value={filters.regions}
-                  onChange={value => setFilters({ ...filters, regions: value })}
+                  onChange={(value) =>
+                    setFilters({ ...filters, regions: value })
+                  }
                 >
                   {Object.entries(REGION_NAMES).map(([id, name]) => (
-                    <Option key={id} value={id}>{name}</Option>
+                    <Option key={id} value={id}>
+                      {name}
+                    </Option>
                   ))}
                 </Select>
               </div>
@@ -374,7 +398,7 @@ const RegionsPage = () => {
                 title="Jami investitsiyalar"
                 value={totalRow.investment_local + totalRow.investment_foreign}
                 precision={0}
-                formatter={value => `${value.toLocaleString()} UZS`}
+                formatter={(value) => `${value.toLocaleString()} UZS`}
               />
             </Card>
           </Col>
@@ -384,7 +408,7 @@ const RegionsPage = () => {
                 title="Jami subsidiyalar"
                 value={totalRow.total_subsidy}
                 precision={0}
-                formatter={value => `${value.toLocaleString()} UZS`}
+                formatter={(value) => `${value.toLocaleString()} UZS`}
               />
             </Card>
           </Col>
@@ -395,7 +419,7 @@ const RegionsPage = () => {
           loading={loading}
           columns={columns}
           dataSource={dataWithTotal}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: "max-content" }}
           bordered
           size="middle"
           pagination={false}
@@ -403,8 +427,8 @@ const RegionsPage = () => {
           onRow={(record) => ({
             onClick: () => handleRowClick(record),
             style: {
-              cursor: record.key !== 'total' ? 'pointer' : 'default'
-            }
+              cursor: record.key !== "total" ? "pointer" : "default",
+            },
           })}
           className="region-statistics-table"
         />
@@ -413,4 +437,4 @@ const RegionsPage = () => {
   );
 };
 
-export default RegionsPage; 
+export default RegionsPage;

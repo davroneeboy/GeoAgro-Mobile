@@ -1,30 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Card, Select, Row, Col, Spin, Alert, Statistic, Button } from 'antd';
-import StatisticsLayout from '../../layouts/StatisticsLayout';
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Card,
+  Select,
+  Row,
+  Col,
+  Spin,
+  Alert,
+  Statistic,
+  Button,
+} from "antd";
+import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
-import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
 const REGION_NAMES = {
-  1: 'Tashkent',
-  2: 'Andijan',
-  3: 'Bukhara',
-  4: 'Fergana',
-  5: 'Jizzakh',
-  6: 'Kashkadarya',
-  7: 'Navoi',
-  8: 'Namangan',
-  9: 'Samarkand',
-  10: 'Sirdarya',
-  11: 'Surkhandarya',
-  12: 'Karakalpakstan',
+  1: "Tashkent",
+  2: "Andijan",
+  3: "Bukhara",
+  4: "Fergana",
+  5: "Jizzakh",
+  6: "Kashkadarya",
+  7: "Navoi",
+  8: "Namangan",
+  9: "Samarkand",
+  10: "Sirdarya",
+  11: "Surkhandarya",
+  12: "Karakalpakstan",
 };
 
 const ControllersPage = () => {
-  console.log('ControllersPage component rendered'); // Debug log 1
+  console.log("ControllersPage component rendered"); // Debug log 1
 
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState({});
@@ -34,16 +42,16 @@ const ControllersPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('Fetching data...'); // Debug log 2
-      console.log('API URL:', `${API_BASE_URL1}api/statistics/users/detailed/`); // Debug log 3
+      console.log("Fetching data..."); // Debug log 2
+      console.log("API URL:", `${API_BASE_URL1}api/statistics/users/detailed/`); // Debug log 3
 
       try {
         setLoading(true);
         let url = `${API_BASE_URL1}api/statistics/users/detailed/`;
         const queryParams = new URLSearchParams();
-        
+
         if (filters.regions.length > 0) {
-          queryParams.append('regions', filters.regions.join(','));
+          queryParams.append("regions", filters.regions.join(","));
         }
 
         if (queryParams.toString()) {
@@ -51,19 +59,19 @@ const ControllersPage = () => {
         }
 
         const response = await fetch(url);
-        
-        console.log('Response status:', response.status); // Debug log 4
-        
+
+        console.log("Response status:", response.status); // Debug log 4
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        console.log('Received data:', data); // Debug log 5
-        
+        console.log("Received data:", data); // Debug log 5
+
         setStatistics(data);
       } catch (err) {
-        console.error('Error details:', err); // Debug log 6
+        console.error("Error details:", err); // Debug log 6
         setError(err.message);
       } finally {
         setLoading(false);
@@ -73,7 +81,7 @@ const ControllersPage = () => {
     fetchData();
   }, [filters]);
 
-  console.log('Current state:', { loading, error, statistics }); // Debug log 7
+  console.log("Current state:", { loading, error, statistics }); // Debug log 7
 
   const handleResetFilters = () => {
     setFilters({
@@ -97,84 +105,92 @@ const ControllersPage = () => {
   }));
 
   // Calculate totals
-  const totals = tableData.reduce((acc, curr) => ({
-    total_area: (acc.total_area || 0) + curr.total_area,
-    outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
-    low_fertility_count: (acc.low_fertility_count || 0) + curr.low_fertility_count,
-    low_fertility_area: (acc.low_fertility_area || 0) + curr.low_fertility_area,
-    high_fertility_count: (acc.high_fertility_count || 0) + curr.high_fertility_count,
-    high_fertility_area: (acc.high_fertility_area || 0) + curr.high_fertility_area,
-  }), {});
+  const totals = tableData.reduce(
+    (acc, curr) => ({
+      total_area: (acc.total_area || 0) + curr.total_area,
+      outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
+      low_fertility_count:
+        (acc.low_fertility_count || 0) + curr.low_fertility_count,
+      low_fertility_area:
+        (acc.low_fertility_area || 0) + curr.low_fertility_area,
+      high_fertility_count:
+        (acc.high_fertility_count || 0) + curr.high_fertility_count,
+      high_fertility_area:
+        (acc.high_fertility_area || 0) + curr.high_fertility_area,
+    }),
+    {}
+  );
 
   const columns = [
     {
-      title: 'F.I.Sh',
-      dataIndex: 'full_name',
-      key: 'full_name',
-      render: (_, record) => `${record.first_name || ''} ${record.last_name || ''}`,
+      title: "F.I.Sh",
+      dataIndex: "full_name",
+      key: "full_name",
+      render: (_, record) =>
+        `${record.first_name || ""} ${record.last_name || ""}`,
     },
     {
-      title: 'Login',
-      dataIndex: 'username',
-      key: 'username',
+      title: "Login",
+      dataIndex: "username",
+      key: "username",
     },
     {
-      title: 'Telefon raqami',
-      dataIndex: 'phone_number',
-      key: 'phone',
+      title: "Telefon raqami",
+      dataIndex: "phone_number",
+      key: "phone",
     },
     {
-      title: 'Plantatsiyalar',
+      title: "Plantatsiyalar",
       children: [
         {
-          title: 'Umumiy',
-          dataIndex: ['plantations_stats', 'total'],
-          key: 'total_plantations',
+          title: "Umumiy",
+          dataIndex: ["plantations_stats", "total"],
+          key: "total_plantations",
         },
         {
-          title: 'Tasdiqlangan',
-          dataIndex: ['plantations_stats', 'approved'],
-          key: 'approved_plantations',
+          title: "Tasdiqlangan",
+          dataIndex: ["plantations_stats", "approved"],
+          key: "approved_plantations",
         },
         {
-          title: 'Rad etilgan',
-          dataIndex: ['plantations_stats', 'rejected'],
-          key: 'rejected_plantations',
-        }
-      ]
+          title: "Rad etilgan",
+          dataIndex: ["plantations_stats", "rejected"],
+          key: "rejected_plantations",
+        },
+      ],
     },
     {
-      title: 'KPI',
+      title: "KPI",
       children: [
         {
-          title: 'Ballar',
-          dataIndex: ['kpi_current', 'points'],
-          key: 'kpi_points',
-          render: value => (value || 0).toFixed(1),
+          title: "Ballar",
+          dataIndex: ["kpi_current", "points"],
+          key: "kpi_points",
+          render: (value) => (value || 0).toFixed(1),
         },
         {
-          title: 'Summa',
-          dataIndex: ['kpi_current', 'amount'],
-          key: 'kpi_amount',
-          render: value => value?.toLocaleString() || 0,
-        }
-      ]
-    }
+          title: "Summa",
+          dataIndex: ["kpi_current", "amount"],
+          key: "kpi_amount",
+          render: (value) => value?.toLocaleString() || 0,
+        },
+      ],
+    },
   ];
 
   // Add total row
   const totalRow = {
-    key: 'total',
-    fruit: 'Jami',
+    key: "total",
+    fruit: "Jami",
     ...totals,
-    avg_fertility_score: '-',
+    avg_fertility_score: "-",
   };
 
   const dataWithTotal = [...tableData, totalRow];
 
   // Show loading state
   if (loading) {
-    console.log('Showing loading state'); // Debug log 8
+    console.log("Showing loading state"); // Debug log 8
     return (
       <StatisticsLayout>
         <div className="p-6">
@@ -184,13 +200,15 @@ const ControllersPage = () => {
     );
   }
 
-  console.log('Rendering table with data:', dataWithTotal); // Debug log 10
+  console.log("Rendering table with data:", dataWithTotal); // Debug log 10
 
   return (
     <StatisticsLayout>
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Nazoratchilar bo'yicha statistika</h1>
+          <h1 className="text-2xl font-bold">
+            Nazoratchilar bo'yicha statistika
+          </h1>
           <Button type="primary" danger onClick={handleResetFilters}>
             Filterni tozalash
           </Button>
@@ -203,13 +221,17 @@ const ControllersPage = () => {
                 <label className="block mb-2">Viloyatlar</label>
                 <Select
                   mode="multiple"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Viloyatlarni tanlang"
                   value={filters.regions}
-                  onChange={value => setFilters({ ...filters, regions: value })}
+                  onChange={(value) =>
+                    setFilters({ ...filters, regions: value })
+                  }
                 >
                   {Object.entries(REGION_NAMES).map(([id, name]) => (
-                    <Option key={id} value={id}>{name}</Option>
+                    <Option key={id} value={id}>
+                      {name}
+                    </Option>
                   ))}
                 </Select>
               </div>
@@ -266,7 +288,7 @@ const ControllersPage = () => {
           loading={loading}
           columns={columns}
           dataSource={dataWithTotal}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: "max-content" }}
           bordered
           size="middle"
           pagination={false}
@@ -277,4 +299,4 @@ const ControllersPage = () => {
   );
 };
 
-export default ControllersPage; 
+export default ControllersPage;

@@ -1,28 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Card, Select, Row, Col, Spin, Alert, Statistic, Button } from 'antd';
-import StatisticsLayout from '../../layouts/StatisticsLayout';
+import React, { useState, useEffect } from "react";
+import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
+import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
-import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
 const REGION_NAMES = {
-  1: 'Tashkent',
-  2: 'Andijan',
-  3: 'Bukhara',
-  4: 'Fergana',
-  5: 'Jizzakh',
-  6: 'Kashkadarya',
-  7: 'Navoi',
-  8: 'Namangan',
-  9: 'Samarkand',
-  10: 'Sirdarya',
-  11: 'Surkhandarya',
-  12: 'Karakalpakstan',
+  1: "Tashkent",
+  2: "Andijan",
+  3: "Bukhara",
+  4: "Fergana",
+  5: "Jizzakh",
+  6: "Kashkadarya",
+  7: "Navoi",
+  8: "Namangan",
+  9: "Samarkand",
+  10: "Sirdarya",
+  11: "Surkhandarya",
+  12: "Karakalpakstan",
 };
 
 const FruitsPage = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState({});
@@ -36,9 +34,9 @@ const FruitsPage = () => {
         setLoading(true);
         let url = `${API_BASE_URL1}api/statistics/fruits/`;
         const queryParams = new URLSearchParams();
-        
+
         if (filters.regions.length > 0) {
-          queryParams.append('regions', filters.regions.join(','));
+          queryParams.append("regions", filters.regions.join(","));
         }
 
         if (queryParams.toString()) {
@@ -46,7 +44,7 @@ const FruitsPage = () => {
         }
 
         const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch data');
+        if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
         setStatistics(data);
       } catch (err) {
@@ -81,46 +79,59 @@ const FruitsPage = () => {
   }));
 
   // Calculate totals
-  const totals = tableData.reduce((acc, curr) => ({
-    total_area: (acc.total_area || 0) + curr.total_area,
-    outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
-    low_fertility_count: (acc.low_fertility_count || 0) + curr.low_fertility_count,
-    low_fertility_area: (acc.low_fertility_area || 0) + curr.low_fertility_area,
-    high_fertility_count: (acc.high_fertility_count || 0) + curr.high_fertility_count,
-    high_fertility_area: (acc.high_fertility_area || 0) + curr.high_fertility_area,
-  }), {});
+  const totals = tableData.reduce(
+    (acc, curr) => ({
+      total_area: (acc.total_area || 0) + curr.total_area,
+      outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
+      low_fertility_count:
+        (acc.low_fertility_count || 0) + curr.low_fertility_count,
+      low_fertility_area:
+        (acc.low_fertility_area || 0) + curr.low_fertility_area,
+      high_fertility_count:
+        (acc.high_fertility_count || 0) + curr.high_fertility_count,
+      high_fertility_area:
+        (acc.high_fertility_area || 0) + curr.high_fertility_area,
+    }),
+    {}
+  );
 
   const columns = [
     {
-      title: 'Meva',
-      dataIndex: 'fruit',
-      key: 'fruit',
-      fixed: 'left',
+      title: "Meva",
+      dataIndex: "fruit",
+      key: "fruit",
+      fixed: "left",
       render: (text, record) => (
-        <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+        <span
+          style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
+        >
           {text}
         </span>
       ),
     },
     {
-      title: 'Umumiy maydon',
+      title: "Umumiy maydon",
       children: [
         {
-          title: 'Jami (GA)',
-          dataIndex: 'total_area',
-          key: 'total_area',
+          title: "Jami (GA)",
+          dataIndex: "total_area",
+          key: "total_area",
           render: (value, record) => (
-            <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+            <span
+              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
+            >
               {(value || 0).toFixed(1)}
             </span>
           ),
         },
         {
-          title: 'Eskirgan (GA)',
-          dataIndex: 'outdated_ga',
-          key: 'outdated_ga',
+          title: "Eskirgan (GA)",
+          dataIndex: "outdated_ga",
+          key: "outdated_ga",
           render: (value, record) => (
-            <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+            <span
+              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
+            >
               {(value || 0).toFixed(1)}
             </span>
           ),
@@ -128,27 +139,35 @@ const FruitsPage = () => {
       ],
     },
     {
-      title: 'Hosildorlik',
+      title: "Hosildorlik",
       children: [
         {
-          title: 'Past',
+          title: "Past",
           children: [
             {
-              title: 'Soni',
-              dataIndex: 'low_fertility_count',
-              key: 'low_fertility_count',
+              title: "Soni",
+              dataIndex: "low_fertility_count",
+              key: "low_fertility_count",
               render: (value, record) => (
-                <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+                <span
+                  style={{
+                    fontWeight: record.key === "total" ? "bold" : "normal",
+                  }}
+                >
                   {value}
                 </span>
               ),
             },
             {
-              title: 'Maydon',
-              dataIndex: 'low_fertility_area',
-              key: 'low_fertility_area',
+              title: "Maydon",
+              dataIndex: "low_fertility_area",
+              key: "low_fertility_area",
               render: (value, record) => (
-                <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+                <span
+                  style={{
+                    fontWeight: record.key === "total" ? "bold" : "normal",
+                  }}
+                >
                   {(value || 0).toFixed(1)}
                 </span>
               ),
@@ -156,24 +175,32 @@ const FruitsPage = () => {
           ],
         },
         {
-          title: 'Yuqori',
+          title: "Yuqori",
           children: [
             {
-              title: 'Soni',
-              dataIndex: 'high_fertility_count',
-              key: 'high_fertility_count',
+              title: "Soni",
+              dataIndex: "high_fertility_count",
+              key: "high_fertility_count",
               render: (value, record) => (
-                <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+                <span
+                  style={{
+                    fontWeight: record.key === "total" ? "bold" : "normal",
+                  }}
+                >
                   {value}
                 </span>
               ),
             },
             {
-              title: 'Maydon',
-              dataIndex: 'high_fertility_area',
-              key: 'high_fertility_area',
+              title: "Maydon",
+              dataIndex: "high_fertility_area",
+              key: "high_fertility_area",
               render: (value, record) => (
-                <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+                <span
+                  style={{
+                    fontWeight: record.key === "total" ? "bold" : "normal",
+                  }}
+                >
                   {(value || 0).toFixed(1)}
                 </span>
               ),
@@ -183,12 +210,14 @@ const FruitsPage = () => {
       ],
     },
     {
-      title: 'O\'rtacha Hosildorlik',
-      dataIndex: 'avg_fertility_score',
-      key: 'avg_fertility_score',
+      title: "O'rtacha Hosildorlik",
+      dataIndex: "avg_fertility_score",
+      key: "avg_fertility_score",
       render: (value, record) => (
-        <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
-          {record.key === 'total' ? '-' : (value || 0).toFixed(1)}
+        <span
+          style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
+        >
+          {record.key === "total" ? "-" : (value || 0).toFixed(1)}
         </span>
       ),
     },
@@ -196,10 +225,10 @@ const FruitsPage = () => {
 
   // Add total row
   const totalRow = {
-    key: 'total',
-    fruit: 'Jami',
+    key: "total",
+    fruit: "Jami",
     ...totals,
-    avg_fertility_score: '-',
+    avg_fertility_score: "-",
   };
 
   const dataWithTotal = [...tableData, totalRow];
@@ -221,13 +250,17 @@ const FruitsPage = () => {
                 <label className="block mb-2">Viloyatlar</label>
                 <Select
                   mode="multiple"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Viloyatlarni tanlang"
                   value={filters.regions}
-                  onChange={value => setFilters({ ...filters, regions: value })}
+                  onChange={(value) =>
+                    setFilters({ ...filters, regions: value })
+                  }
                 >
                   {Object.entries(REGION_NAMES).map(([id, name]) => (
-                    <Option key={id} value={id}>{name}</Option>
+                    <Option key={id} value={id}>
+                      {name}
+                    </Option>
                   ))}
                 </Select>
               </div>
@@ -284,7 +317,7 @@ const FruitsPage = () => {
           loading={loading}
           columns={columns}
           dataSource={dataWithTotal}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: "max-content" }}
           bordered
           size="middle"
           pagination={false}
@@ -295,4 +328,4 @@ const FruitsPage = () => {
   );
 };
 
-export default FruitsPage; 
+export default FruitsPage;

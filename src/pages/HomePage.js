@@ -1,13 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL1 } from "../config";
-import { API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [controllers, setControllers] = useState([]);
-  const [statistics, setStatistics] = useState(null); // Добавлено состояние для статистики
+  // const [statistics, setStatistics] = useState(null); // Добавлено состояние для статистики
 
   const handleLogout = () => {
     // Очистка сессии или токена (если необходимо)
@@ -34,25 +33,28 @@ const HomePage = () => {
       }
     };
 
-    const fetchStatistics = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL1}api/statistics/`);
-        const data = await response.json();
-        setStatistics(data); // Устанавливаем полученные данные
-      } catch (error) {
-        console.error("Ошибка при загрузке статистики:", error);
-      }
-    };
+    // const fetchStatistics = async () => {
+    //   try {
+    //     const response = await fetch(`${API_BASE_URL1}api/statistics/`);
+    //     const data = await response.json();
+    //     setStatistics(data); // Устанавливаем полученные данные
+    //   } catch (error) {
+    //     console.error("Ошибка при загрузке статистики:", error);
+    //   }
+    // };
 
     fetchControllers();
-    fetchStatistics();
+    // fetchStatistics();
   }, []);
 
-  const calculatePercentage = (value) => {
-    if (!statistics) return 0;
-    const total = statistics.total_issiqxonas + statistics.total_uzumzors + statistics.total_bogs;
-    return total > 0 ? Math.round((value / total) * 100) : 0;
-  };
+  // const calculatePercentage = (value) => {
+  //   if (!statistics) return 0;
+  //   const total =
+  //     statistics.total_issiqxonas +
+  //     statistics.total_uzumzors +
+  //     statistics.total_bogs;
+  //   return total > 0 ? Math.round((value / total) * 100) : 0;
+  // };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -69,7 +71,7 @@ const HomePage = () => {
             agentligi
           </p>
         </div>
-        
+
         {/* Добавляем ссылку на статистику */}
         <Link
           to="/statistics/regions"
