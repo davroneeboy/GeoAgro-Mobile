@@ -2,14 +2,32 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL1 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [controllers, setControllers] = useState([]);
-  // const [statistics, setStatistics] = useState(null); // Добавлено состояние для статистики
+  const [statistics, setStatistics] = useState(null);
 
   const handleLogout = () => {
-    // Очистка сессии или токена (если необходимо)
     navigate("/");
   };
 
@@ -18,43 +36,89 @@ const HomePage = () => {
       try {
         const response = await fetch(`${API_BASE_URL1}api/users/`);
         const data = await response.json();
-        // Фильтруем только тех, у кого есть last_login, и сортируем по времени
         const sortedControllers = data
-          .filter((user) => user.last_login) // Только те, кто заходил
+          .filter((user) => user.last_login)
           .sort(
             (a, b) =>
               new Date(b.last_login).getTime() -
               new Date(a.last_login).getTime()
           )
-          .slice(0, 5); // Берем только 5 самых активных
+          .slice(0, 5);
         setControllers(sortedControllers);
       } catch (error) {
         console.error("Ошибка при загрузке контроллеров:", error);
       }
     };
 
-    // const fetchStatistics = async () => {
-    //   try {
-    //     const response = await fetch(`${API_BASE_URL1}api/statistics/`);
-    //     const data = await response.json();
-    //     setStatistics(data); // Устанавливаем полученные данные
-    //   } catch (error) {
-    //     console.error("Ошибка при загрузке статистики:", error);
-    //   }
-    // };
+    const fetchStatistics = async () => {
+      try {
+        const response = await fetch("https://luxa.uz/api/statistics/");
+        const data = await response.json();
+        setStatistics(data);
+      } catch (error) {
+        console.error("Ошибка при загрузке статистики:", error);
+      }
+    };
 
     fetchControllers();
-    // fetchStatistics();
+    fetchStatistics();
   }, []);
 
-  // const calculatePercentage = (value) => {
-  //   if (!statistics) return 0;
-  //   const total =
-  //     statistics.total_issiqxonas +
-  //     statistics.total_uzumzors +
-  //     statistics.total_bogs;
-  //   return total > 0 ? Math.round((value / total) * 100) : 0;
-  // };
+  const chartData = {
+    labels: [
+      "Bog'lar",
+      "Uzumzorlar",
+      "Issiqxonalar",
+      "Umumiy maydon",
+      "Meva maydonlari",
+      "Fermerlar",
+    ],
+    datasets: [
+      {
+        label: "Statistika",
+        data: statistics
+          ? [
+              statistics.total_bogs,
+              statistics.total_uzumzors,
+              statistics.total_issiqxonas,
+              statistics.total_area,
+              statistics.total_fruit_areas,
+              statistics.total_farmers,
+            ]
+          : [],
+        backgroundColor: [
+          "rgba(75, 192, 192, 0.6)",
+          "rgba(54, 162, 235, 0.6)",
+          "rgba(255, 206, 86, 0.6)",
+          "rgba(255, 99, 132, 0.6)",
+          "rgba(153, 102, 255, 0.6)",
+          "rgba(255, 159, 64, 0.6)",
+        ],
+        borderColor: [
+          "rgba(75, 192, 192, 1)",
+          "rgba(54, 162, 235, 1)",
+          "rgba(255, 206, 86, 1)",
+          "rgba(255, 99, 132, 1)",
+          "rgba(153, 102, 255, 1)",
+          "rgba(255, 159, 64, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Qishloq xo'jaligi statistikasi",
+      },
+    },
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -72,19 +136,18 @@ const HomePage = () => {
           </p>
         </div>
 
-        {/* Добавляем ссылку на статистику */}
-        <Link
-          to="/statistics/regions"
-          className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium text-center mb-4 hover:bg-green-700"
-        >
-          Statistika
-        </Link>
-
         <Link
           to="/plantations/uz"
           className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center"
         >
           Bog'larga o'tish
+        </Link>
+
+        <Link
+          to="/statistics/regions"
+          className="block w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium text-center"
+        >
+          To'liq statistika
         </Link>
         <h2 className="mt-6 text-lg font-semibold text-gray-800">
           <Link to="/controllers">Nazoratchilar</Link>
@@ -119,12 +182,16 @@ const HomePage = () => {
 
       {/* Центральная панель */}
       <div className="flex-1 p-6 bg-gray-50 flex flex-col items-center justify-center">
-        <a
-          href="/statistics/regions"
-          className="text-3xl font-semibold text-gray-800 mb-6 text-center"
-        >
-          Statistika
-        </a>
+        <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+            Statistika
+          </h2>
+          {statistics ? (
+            <Bar data={chartData} options={chartOptions} />
+          ) : (
+            <div className="text-center text-gray-500">Yuklanmoqda...</div>
+          )}
+        </div>
       </div>
 
       {/* Правая панель */}
