@@ -149,6 +149,14 @@ const HomePage = () => {
         >
           To'liq statistika
         </Link>
+
+        <Link
+          to="/farmers"
+          className="block w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium text-center"
+        >
+          Fermerlar
+        </Link>
+
         <h2 className="mt-6 text-lg font-semibold text-gray-800">
           <Link to="/controllers">Nazoratchilar</Link>
         </h2>
