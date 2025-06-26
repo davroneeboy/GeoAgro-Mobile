@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 
 const Farmers = () => {
@@ -19,7 +20,7 @@ const Farmers = () => {
         setLoading(true);
         setError(null);
         const response = await axios.get(
-          `https://luxa.uz/api/farmers/?page=${page}&search=${debouncedSearch}`
+          `${API_BASE_URL2}api/farmers/?page=${page}&search=${debouncedSearch}`
         );
         setFarmers(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 20));
@@ -53,7 +54,7 @@ const Farmers = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this farmer?")) {
       try {
-        await axios.delete(`https://luxa.uz/api/farmers/${id}/`);
+        await axios.delete(`${API_BASE_URL2}api/farmers/${id}/`);
         fetchFarmers(currentPage);
       } catch (error) {
         console.error("Error deleting farmer:", error);

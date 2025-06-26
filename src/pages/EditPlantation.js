@@ -417,29 +417,14 @@ const EditPlantation = () => {
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                   <div className="bg-white p-6 rounded-md w-96">
-                    <h2 className="text-xl mb-4">Выберите причину</h2>
-                    <select
+                    <h2 className="text-xl mb-4">Bekor qilish sababi</h2>
+                    <textarea
                       className="w-full p-2 mb-4 border rounded-md"
-                      value={selectedReason}
-                      onChange={(e) => setSelectedReason(e.target.value)}
-                    >
-                      <option value="">Выберите причину</option>
-                      <option value="Не правильные координаты">
-                        Не правильные координаты
-                      </option>
-                      <option value="Фотография не соответствует">
-                        Фотография не соответствует
-                      </option>
-                      <option value="Своя причина">Своя причина</option>
-                    </select>
-                    {selectedReason === "Своя причина" && (
-                      <textarea
-                        className="w-full p-2 mb-4 border rounded-md"
-                        value={customReason}
-                        onChange={(e) => setCustomReason(e.target.value)}
-                        placeholder="Введите свою причину"
-                      />
-                    )}
+                      value={customReason}
+                      onChange={(e) => setCustomReason(e.target.value)}
+                      placeholder="Sababni kiriting"
+                      rows={4}
+                    />
                     <div className="flex justify-end space-x-4">
                       <button
                         className="bg-blue-500 text-white px-4 py-2 rounded-md"

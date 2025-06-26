@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { API_BASE_URL1 } from "../config";
+import { API_BASE_URL1, API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { Bar } from "react-chartjs-2";
 import {
@@ -52,7 +52,7 @@ const HomePage = () => {
 
     const fetchStatistics = async () => {
       try {
-        const response = await fetch("https://luxa.uz/api/statistics/");
+        const response = await fetch(`${API_BASE_URL2}api/statistics/`);
         const data = await response.json();
         setStatistics(data);
       } catch (error) {

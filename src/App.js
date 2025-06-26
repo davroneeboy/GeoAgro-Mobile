@@ -10,13 +10,11 @@ import MapContainer from "./pages/mapContainer";
 import PlantationDetail from "./pages/PlantationDetail";
 import EditPlantation from "./pages/EditPlantation";
 import UserInfo from "./pages/UserInfo";
-import RegionsPage from "./pages/statistics/RegionsPage";
-import RegionDetailPage from "./pages/statistics/RegionDetailPage";
-import FruitsPage from "./pages/statistics/FruitsPage";
-import FruitDetailPage from "./pages/statistics/FruitDetailPage";
-import ControllersPage from "./pages/statistics/ControllersPage";
-import Farmers from "./pages/Farmers";
-import FarmerEdit from "./pages/FarmerEdit";
+import RegionsPage from './pages/statistics/RegionsPage';
+import RegionDetailPage from './pages/statistics/RegionDetailPage';
+import FruitsPage from './pages/statistics/FruitsPage';
+import FruitDetailPage from './pages/statistics/FruitDetailPage';
+import ControllersPage from './pages/statistics/ControllersPage';
 
 const App = () => {
   return (
@@ -92,30 +90,6 @@ const App = () => {
         <Route path="/statistics/fruits" element={<FruitsPage />} />
         <Route path="/statistics/fruits/:id" element={<FruitDetailPage />} />
         <Route path="/statistics/controllers" element={<ControllersPage />} />
-        <Route
-          path="/farmers"
-          element={
-            <ProtectedRoute>
-              <Farmers />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/farmers/:id"
-          element={
-            <ProtectedRoute>
-              <FarmerEdit />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/farmers/new"
-          element={
-            <ProtectedRoute>
-              <FarmerEdit />
-            </ProtectedRoute>
-          }
-        />
       </Routes>
     </Router>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 
 const FarmerEdit = () => {
@@ -30,7 +31,7 @@ const FarmerEdit = () => {
     const fetchFarmer = async () => {
       try {
         setError(null);
-        const response = await axios.get(`https://luxa.uz/api/farmers/${id}/`);
+        const response = await axios.get(`${API_BASE_URL2}api/farmers/${id}/`);
         setFarmer(response.data);
       } catch (error) {
         console.error("Error fetching farmer:", error);
@@ -64,9 +65,9 @@ const FarmerEdit = () => {
       setLoading(true);
       setError(null);
       if (id === "new") {
-        await axios.post("https://luxa.uz/api/farmers/", farmer);
+        await axios.post(`${API_BASE_URL2}api/farmers/`, farmer);
       } else {
-        await axios.put(`https://luxa.uz/api/farmers/${id}/`, farmer);
+        await axios.put(`${API_BASE_URL2}api/farmers/${id}/`, farmer);
       }
       navigate("/farmers");
     } catch (error) {
