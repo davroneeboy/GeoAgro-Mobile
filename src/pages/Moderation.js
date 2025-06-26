@@ -13,6 +13,9 @@ const Moderation = () => {
     status: "All",
     type: "All",
   });
+  const [page, setPage] = useState(1);
+  const [next, setNext] = useState(null);
+  const [previous, setPrevious] = useState(null);
   const navigate = useNavigate();
   const { authState } = useContext(AuthContext);
 
@@ -39,7 +42,7 @@ const Moderation = () => {
     const fetchModerations = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL2}api/plantations/moderation/`
+          `${API_BASE_URL2}api/plantations/moderation/?page=${page}`
         );
         const formattedData = response.data.results.map((plantation) => {
           let action;
@@ -65,13 +68,15 @@ const Moderation = () => {
           };
         });
         setModerations(formattedData);
+        setNext(response.data.next);
+        setPrevious(response.data.previous);
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
       }
     };
 
     fetchModerations();
-  }, []);
+  }, [page]);
 
   const handleResetFilters = () => {
     setFilters({ action: "All", status: "All", type: "All" });
@@ -85,7 +90,7 @@ const Moderation = () => {
   });
 
   return (
-    <div className="h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div
         className="flex justify-start items-center mb-5 poiner cursor-pointer border-b-4 pb-5"
         onClick={() => navigate("/")}
@@ -215,6 +220,24 @@ const Moderation = () => {
             </div>
           </div>
         ))}
+      </div>
+      {/* Пагинация */}
+      <div className="flex justify-center items-center mt-8 space-x-4 pb-6">
+        <button
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={!previous}
+        >
+          Назад
+        </button>
+        <span>Страница {page}</span>
+        <button
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          onClick={() => setPage((prev) => prev + 1)}
+          disabled={!next}
+        >
+          Вперед
+        </button>
       </div>
     </div>
   );
