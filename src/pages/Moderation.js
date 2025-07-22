@@ -20,131 +20,61 @@ const Moderation = () => {
   const navigate = useNavigate();
   const { authState } = useContext(AuthContext);
 
-  // Функция для сохранения обновленных записей в localStorage
-  const saveUpdatedModerations = (updatedModerations) => {
-    try {
-      localStorage.setItem('updatedModerations', JSON.stringify(updatedModerations));
-      console.log("Обновленные записи сохранены в localStorage:", updatedModerations.length, "записей");
-      // Показываем детали обновленных записей
-      updatedModerations.forEach(item => {
-        if (item.is_checked) {
-          console.log(`  - Плантация ${item.id}: is_checked = ${item.is_checked}`);
-        }
-      });
-    } catch (error) {
-      console.error("Ошибка сохранения в localStorage:", error);
-    }
-  };
 
-  // Функция для загрузки обновленных записей из localStorage
-  const loadUpdatedModerations = () => {
-    try {
-      const saved = localStorage.getItem('updatedModerations');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        console.log("Загружены обновленные записи из localStorage:", parsed);
-        return parsed;
-      }
-    } catch (error) {
-      console.error("Ошибка загрузки из localStorage:", error);
-    }
-    return null;
-  };
 
-  const handleAccept = async (id) => {
-    console.log("=== handleAccept НАЧАЛО ===");
-    console.log("handleAccept вызван для ID:", id);
-    console.log("Тип ID:", typeof id);
-    console.log("Текущее состояние moderations:", moderations.length, "записей");
-    
-    // Сразу обновляем локальное состояние
-    setModerations(prevModerations => {
-      const updatedModerations = prevModerations.map((item) => 
-        item.id === id ? { ...item, is_checked: true } : item
-      );
-      console.log("Обновленные записи в handleAccept:", updatedModerations);
-      // Сохраняем в localStorage
-      saveUpdatedModerations(updatedModerations);
-      return updatedModerations;
-    });
-    
-    // Пытаемся обновить на сервере (но не ждем результата)
-    if (authState.accessToken) {
-      try {
-        const response = await axios.patch(
-          `${API_BASE_URL2}api/plantations/${id}/update/`,
-          {
-            is_checked: true,
+    const handleAccept = async (id) => {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL2}api/plantations/${id}/update/`,
+        {
+          is_checked: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authState.accessToken}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${authState.accessToken}`,
-            },
-          }
-        );
-        console.log("Ответ от сервера в handleAccept:", response.data);
-      } catch (error) {
-        console.error("Ошибка API в handleAccept:", error.response?.data || error.message);
-        // Если токен недействителен, показываем уведомление
-        if (error.response?.status === 401) {
-          console.log("Токен недействителен, но локальные изменения сохранены");
-          alert("Изменения сохранены локально. Для синхронизации с сервером необходимо войти в систему.");
         }
-      }
-    } else {
-      console.log("Токен авторизации отсутствует в handleAccept");
-      alert("Изменения сохранены локально. Для синхронизации с сервером необходимо войти в систему.");
+      );
+      
+      // Обновляем состояние только после успешного ответа от сервера
+      setModerations(prevModerations => 
+        prevModerations.map((item) => 
+          item.id === id ? { ...item, is_checked: true } : item
+        )
+      );
+      
+      console.log("Запись успешно обновлена:", response.data);
+    } catch (error) {
+      console.error("Ошибка при обновлении записи:", error.response?.data || error.message);
     }
-    console.log("=== handleAccept КОНЕЦ ===");
   };
 
-  // Функция для обновления статуса при просмотре
+    // Функция для обновления статуса при просмотре
   const handleView = async (id) => {
-    console.log("=== handleView НАЧАЛО ===");
-    console.log("handleView вызван для ID:", id);
-    console.log("Тип ID:", typeof id);
-    console.log("Текущее состояние moderations:", moderations.length, "записей");
-    
-    // Сразу обновляем локальное состояние
-    setModerations(prevModerations => {
-      const updatedModerations = prevModerations.map((item) => 
-        item.id === id ? { ...item, is_checked: true } : item
-      );
-      console.log("Обновленные записи в handleView:", updatedModerations);
-      // Сохраняем в localStorage
-      saveUpdatedModerations(updatedModerations);
-      return updatedModerations;
-    });
-    
-    // Пытаемся обновить на сервере (но не ждем результата)
-    if (authState.accessToken) {
-      try {
-        const response = await axios.patch(
-          `${API_BASE_URL2}api/plantations/${id}/update/`,
-          {
-            is_checked: true,
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL2}api/plantations/${id}/update/`,
+        {
+          is_checked: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authState.accessToken}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${authState.accessToken}`,
-            },
-          }
-        );
-        console.log("Ответ от сервера в handleView:", response.data);
-      } catch (error) {
-        console.error("Ошибка API в handleView:", error.response?.data || error.message);
-        // Если токен недействителен, показываем уведомление
-        if (error.response?.status === 401) {
-          console.log("Токен недействителен, но локальные изменения сохранены");
-          // Можно добавить уведомление пользователю
-          alert("Изменения сохранены локально. Для синхронизации с сервером необходимо войти в систему.");
         }
-      }
-    } else {
-      console.log("Токен авторизации отсутствует в handleView");
-      alert("Изменения сохранены локально. Для синхронизации с сервером необходимо войти в систему.");
+      );
+      
+      // Обновляем состояние только после успешного ответа от сервера
+      setModerations(prevModerations => 
+        prevModerations.map((item) => 
+          item.id === id ? { ...item, is_checked: true } : item
+        )
+      );
+      
+      console.log("Запись успешно обновлена при просмотре:", response.data);
+    } catch (error) {
+      console.error("Ошибка при обновлении записи при просмотре:", error.response?.data || error.message);
     }
-    console.log("=== handleView КОНЕЦ ===");
   };
 
   useEffect(() => {
@@ -184,29 +114,10 @@ const Moderation = () => {
             is_deleting: plantation.is_deleting,
           };
           
-          console.log(`Загружена плантация ${plantation.id}: is_checked = ${plantation.is_checked}`);
           return formattedPlantation;
         });
         
-        // Применяем сохраненные изменения из localStorage
-        const savedModerations = loadUpdatedModerations();
-        if (savedModerations) {
-          console.log("Найдены сохраненные изменения, применяем...");
-          // Объединяем загруженные данные с сохраненными изменениями
-          const mergedData = formattedData.map(plantation => {
-            const savedPlantation = savedModerations.find(saved => saved.id === plantation.id);
-            if (savedPlantation && savedPlantation.is_checked) {
-              console.log(`Применено сохраненное изменение для плантации ${plantation.id}: is_checked = ${plantation.is_checked} -> true`);
-              return { ...plantation, is_checked: true };
-            }
-            return plantation;
-          });
-          console.log("Данные после применения сохраненных изменений:", mergedData.length, "записей");
-          setModerations(mergedData);
-        } else {
-          console.log("Сохраненных изменений не найдено, используем исходные данные");
-          setModerations(formattedData);
-        }
+        setModerations(formattedData);
         
         setNext(response.data.next);
         setPrevious(response.data.previous);
@@ -310,26 +221,15 @@ const Moderation = () => {
               <div className="flex items-center mb-2">
                 <h3 
                   className="text-lg font-bold text-gray-900 mr-3 cursor-pointer hover:text-blue-600"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log("Название плантации кликнуто для ID:", plantation.id);
-                    console.log("Вызываем handleView из названия...");
-                    handleView(plantation.id);
-                    console.log("handleView из названия вызван");
-                  }}
+                  onClick={() => handleView(plantation.id)}
                 >
                   {plantation.name}
                 </h3>
-                {(() => {
-                  const shouldShow = !plantation.is_checked;
-                  console.log(`Плантация ${plantation.id}: is_checked = ${plantation.is_checked}, shouldShow = ${shouldShow}`);
-                  return shouldShow && (
-                    <span className="px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
-                      YANGI
-                    </span>
-                  );
-                })()}
+                {!plantation.is_checked && (
+                  <span className="px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                    YANGI
+                  </span>
+                )}
               </div>
               <p className="text-sm text-gray-700">
                 Plantatsiya turi: {landTypeMapping[plantation.type]}
@@ -374,26 +274,14 @@ const Moderation = () => {
             <div className="flex justify-end space-x-4">
               <button
                 className="py-2 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Кнопка Qabul qilish нажата для ID:", plantation.id);
-                  console.log("Вызываем handleAccept...");
-                  handleAccept(plantation.id);
-                  console.log("handleAccept вызван");
-                }}
+                onClick={() => handleAccept(plantation.id)}
               >
                 Qabul qilish
               </button>
               <button
                 className="py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Кнопка Tahrirlash нажата для ID:", plantation.id);
-                  console.log("Вызываем handleView...");
+                onClick={() => {
                   handleView(plantation.id);
-                  console.log("handleView вызван, переходим к редактированию...");
                   navigate(`/plantations/edit/${plantation.id}`);
                 }}
               >
