@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import AuthContext from "../context/AuthContext";
 import { landTypeMapping } from "../context/constants";
@@ -18,7 +18,24 @@ const Moderation = () => {
   const [previous, setPrevious] = useState(null);
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
   const navigate = useNavigate();
+  const location = useLocation();
   const { authState } = useContext(AuthContext);
+
+  // Читаем номер страницы из URL параметров при загрузке
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const pageFromUrl = urlParams.get('page');
+    if (pageFromUrl) {
+      const pageNumber = parseInt(pageFromUrl);
+      setPage(pageNumber);
+      localStorage.setItem('moderationPage', pageNumber);
+    }
+  }, [location.search]);
+
+  // Сохраняем номер страницы в localStorage при изменении
+  useEffect(() => {
+    localStorage.setItem('moderationPage', page);
+  }, [page]);
 
 
 

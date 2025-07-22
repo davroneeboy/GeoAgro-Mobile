@@ -228,8 +228,21 @@ const EditPlantation = () => {
           <div className="w-1/2 h-full p-4">
             <div id="map" className="w-full h-full border"></div>
           </div>
-          <div className="w-1/2 h-full overflow-y-auto p-6 bg-white shadow-lg">
-            <h1 className="text-3xl font-bold mb-4">
+          <div className="w-1/2 h-full overflow-y-auto p-6 bg-white shadow-lg relative">
+            {/* Кнопка закрытия */}
+            <button
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded-full transition-colors z-10"
+              onClick={() => {
+                console.log('Navigating to moderation...');
+                // Получаем номер страницы из URL или localStorage
+                const currentPage = localStorage.getItem('moderationPage') || 1;
+                window.location.href = `/moderation?page=${currentPage}`;
+              }}
+              title="Закрыть"
+            >
+              ✕
+            </button>
+            <h1 className="text-3xl font-bold mb-4 pr-12">
               {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
             </h1>
             <div className="grid grid-cols-2 gap-4 mb-6">
