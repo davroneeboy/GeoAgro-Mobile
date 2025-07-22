@@ -42,8 +42,15 @@ const Moderation = () => {
   useEffect(() => {
     const fetchModerations = async () => {
       try {
+        const params = {
+          page,
+          action: filters.action !== "All" ? filters.action : undefined,
+          status: filters.status !== "All" ? filters.status : undefined,
+          type: filters.type !== "All" ? filters.type : undefined,
+        };
         const response = await axios.get(
-          `${API_BASE_URL2}api/plantations/moderation/?page=${page}`
+          `${API_BASE_URL2}api/plantations/moderation/`,
+          { params }
         );
         const formattedData = response.data.results.map((plantation) => {
           let action;
@@ -71,25 +78,20 @@ const Moderation = () => {
         setModerations(formattedData);
         setNext(response.data.next);
         setPrevious(response.data.previous);
-        setCount(response.data.count || 0); // сохраняем общее количество записей
+        setCount(response.data.count || 0);
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
       }
     };
 
     fetchModerations();
-  }, [page]);
+  }, [page, filters]);
 
   const handleResetFilters = () => {
     setFilters({ action: "All", status: "All", type: "All" });
   };
 
-  const filteredModerations = moderations.filter((mod) => {
-    if (filters.action !== "All" && mod.action !== filters.action) return false;
-    if (filters.status !== "All" && mod.status !== filters.status) return false;
-    if (filters.type !== "All" && mod.type !== filters.type) return false;
-    return true;
-  });
+  // убираем фронтовую фильтрацию, используем только moderations
 
   // вычисляем pageSize и totalPages
   const pageSize = moderations.length > 0 ? moderations.length : 20; // если пусто, по умолчанию 20
@@ -129,7 +131,10 @@ const Moderation = () => {
         <select
           className="flex-1 border border-gray-300 rounded-lg p-2"
           value={filters.action}
-          onChange={(e) => setFilters({ ...filters, action: e.target.value })}
+          onChange={(e) => {
+            setFilters({ ...filters, action: e.target.value });
+            setPage(1);
+          }}
         >
           <option value="All">O'zgarishlar</option>
           <option value="Yangilangan">Yangilangan</option>
@@ -139,7 +144,10 @@ const Moderation = () => {
         <select
           className="flex-1 border border-gray-300 rounded-lg p-2"
           value={filters.status}
-          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+          onChange={(e) => {
+            setFilters({ ...filters, status: e.target.value });
+            setPage(1);
+          }}
         >
           <option value="All">Holati</option>
           <option value="Good">Yaxshi</option>
@@ -149,7 +157,10 @@ const Moderation = () => {
         <select
           className="flex-1 border border-gray-300 rounded-lg p-2"
           value={filters.type}
-          onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+          onChange={(e) => {
+            setFilters({ ...filters, type: e.target.value });
+            setPage(1);
+          }}
         >
           <option value="All">Turi</option>
           <option value="Bog'lar">Bog'lar</option>
@@ -160,7 +171,7 @@ const Moderation = () => {
 
       {/* Список карточек */}
       <div className="space-y-4">
-        {filteredModerations.map((plantation) => (
+        {moderations.map((plantation) => (
           <div
             key={plantation.id}
             className="p-6 border rounded-lg bg-white shadow-lg grid grid-cols-3 gap-4 items-center"
