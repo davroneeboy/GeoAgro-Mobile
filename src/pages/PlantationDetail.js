@@ -171,6 +171,7 @@ const PlantationDetail = () => {
                 </p>
                 <p>{plantation.irrigation_area} GA</p>
               </div>
+
             </div>
             {plantation.farmer && (
               <div className="mb-6">

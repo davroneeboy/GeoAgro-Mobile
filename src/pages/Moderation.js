@@ -25,17 +25,26 @@ const Moderation = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const pageFromUrl = urlParams.get('page');
+    console.log('URL page param:', pageFromUrl);
+    console.log('Current localStorage page:', localStorage.getItem('moderationPage'));
+    
     if (pageFromUrl) {
       const pageNumber = parseInt(pageFromUrl);
+      console.log('Setting page from URL:', pageNumber);
       setPage(pageNumber);
       localStorage.setItem('moderationPage', pageNumber);
+    } else {
+      // Если нет параметра в URL, используем localStorage
+      const savedPage = localStorage.getItem('moderationPage');
+      if (savedPage) {
+        const pageNumber = parseInt(savedPage);
+        console.log('Setting page from localStorage:', pageNumber);
+        setPage(pageNumber);
+      }
     }
   }, [location.search]);
 
-  // Сохраняем номер страницы в localStorage при изменении
-  useEffect(() => {
-    localStorage.setItem('moderationPage', page);
-  }, [page]);
+
 
 
 
@@ -308,7 +317,14 @@ const Moderation = () => {
       <div className="flex justify-center items-center mt-8 space-x-4 pb-6">
         <button
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          onClick={() => {
+            const newPage = Math.max(page - 1, 1);
+            console.log('Back button: setting page to', newPage);
+            setPage(newPage);
+            localStorage.setItem('moderationPage', newPage);
+            // Обновляем URL
+            navigate(`/moderation?page=${newPage}`, { replace: true });
+          }}
           disabled={!previous}
         >
           Назад
@@ -316,7 +332,14 @@ const Moderation = () => {
         <span>Страница {page} из {totalPages}</span>
         <button
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          onClick={() => setPage((prev) => prev + 1)}
+          onClick={() => {
+            const newPage = page + 1;
+            console.log('Forward button: setting page to', newPage);
+            setPage(newPage);
+            localStorage.setItem('moderationPage', newPage);
+            // Обновляем URL
+            navigate(`/moderation?page=${newPage}`, { replace: true });
+          }}
           disabled={!next}
         >
           Вперед

@@ -284,6 +284,7 @@ const EditPlantation = () => {
                 </p>
                 <p>{plantation.irrigation_area} GA</p>
               </div>
+
             </div>
 
             {plantation.farmer && (
