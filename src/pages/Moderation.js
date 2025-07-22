@@ -225,11 +225,6 @@ const Moderation = () => {
                 >
                   {plantation.name}
                 </h3>
-                {!plantation.is_checked && (
-                  <span className="px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
-                    YANGI
-                  </span>
-                )}
               </div>
               <p className="text-sm text-gray-700">
                 Plantatsiya turi: {landTypeMapping[plantation.type]}
