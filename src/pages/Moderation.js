@@ -16,6 +16,7 @@ const Moderation = () => {
   const [page, setPage] = useState(1);
   const [next, setNext] = useState(null);
   const [previous, setPrevious] = useState(null);
+  const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
   const navigate = useNavigate();
   const { authState } = useContext(AuthContext);
 
@@ -70,6 +71,7 @@ const Moderation = () => {
         setModerations(formattedData);
         setNext(response.data.next);
         setPrevious(response.data.previous);
+        setCount(response.data.count || 0); // сохраняем общее количество записей
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
       }
@@ -88,6 +90,10 @@ const Moderation = () => {
     if (filters.type !== "All" && mod.type !== filters.type) return false;
     return true;
   });
+
+  // вычисляем pageSize и totalPages
+  const pageSize = moderations.length > 0 ? moderations.length : 20; // если пусто, по умолчанию 20
+  const totalPages = Math.ceil(count / pageSize);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -230,7 +236,7 @@ const Moderation = () => {
         >
           Назад
         </button>
-        <span>Страница {page}</span>
+        <span>Страница {page} из {totalPages}</span>
         <button
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           onClick={() => setPage((prev) => prev + 1)}
