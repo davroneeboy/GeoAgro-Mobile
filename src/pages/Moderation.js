@@ -13,10 +13,20 @@ const Moderation = () => {
     status: "All",
     type: "All",
   });
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    // Проверяем localStorage при инициализации
+    const savedPage = localStorage.getItem('moderationPage');
+    if (savedPage) {
+      const pageNumber = parseInt(savedPage);
+      return pageNumber > 0 ? pageNumber : 1;
+    }
+    return 1;
+  });
   const [next, setNext] = useState(null);
   const [previous, setPrevious] = useState(null);
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
+  const [loading, setLoading] = useState(false); // добавляем состояние загрузки
+  const [error, setError] = useState(null); // добавляем состояние ошибки
   const navigate = useNavigate();
   const location = useLocation();
   const { authState } = useContext(AuthContext);
@@ -31,18 +41,31 @@ const Moderation = () => {
     if (pageFromUrl) {
       const pageNumber = parseInt(pageFromUrl);
       console.log('Setting page from URL:', pageNumber);
-      setPage(pageNumber);
-      localStorage.setItem('moderationPage', pageNumber);
+      // Проверяем, что номер страницы валидный
+      if (pageNumber > 0) {
+        setPage(pageNumber);
+        localStorage.setItem('moderationPage', pageNumber);
+      } else {
+        // Если номер страницы невалидный, сбрасываем на первую страницу
+        setPage(1);
+        localStorage.setItem('moderationPage', 1);
+        navigate('/moderation?page=1', { replace: true });
+      }
     } else {
       // Если нет параметра в URL, используем localStorage
       const savedPage = localStorage.getItem('moderationPage');
       if (savedPage) {
         const pageNumber = parseInt(savedPage);
         console.log('Setting page from localStorage:', pageNumber);
-        setPage(pageNumber);
+        if (pageNumber > 0) {
+          setPage(pageNumber);
+        } else {
+          setPage(1);
+          localStorage.setItem('moderationPage', 1);
+        }
       }
     }
-  }, [location.search]);
+  }, [location.search, navigate]);
 
 
 
@@ -105,6 +128,8 @@ const Moderation = () => {
 
   useEffect(() => {
     const fetchModerations = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const params = {
           page,
@@ -116,6 +141,16 @@ const Moderation = () => {
           `${API_BASE_URL2}api/plantations/moderation/`,
           { params }
         );
+        
+        // Проверяем, что response.data существует и содержит results
+        if (!response.data || !response.data.results) {
+          setModerations([]);
+          setNext(null);
+          setPrevious(null);
+          setCount(0);
+          return;
+        }
+        
         const formattedData = response.data.results.map((plantation) => {
           let action;
           if (plantation.is_deleting) {
@@ -150,6 +185,25 @@ const Moderation = () => {
         setCount(response.data.count || 0);
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
+        
+        // Если получили 404, значит страница не существует
+        if (error.response?.status === 404) {
+          console.log('Страница не найдена, возвращаемся на первую страницу');
+          setPage(1);
+          localStorage.setItem('moderationPage', 1);
+          navigate('/moderation?page=1', { replace: true });
+        }
+        
+        // Устанавливаем сообщение об ошибке
+        setError(error.response?.data?.message || 'Ошибка при загрузке данных');
+        
+        // Очищаем данные при ошибке
+        setModerations([]);
+        setNext(null);
+        setPrevious(null);
+        setCount(0);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -163,7 +217,7 @@ const Moderation = () => {
   // убираем фронтовую фильтрацию, используем только moderations
 
   // вычисляем pageSize и totalPages
-  const pageSize = moderations.length > 0 ? moderations.length : 20; // если пусто, по умолчанию 20
+  const pageSize = 20; // фиксированный размер страницы
   const totalPages = Math.ceil(count / pageSize);
 
   return (
@@ -235,8 +289,38 @@ const Moderation = () => {
         </select>
       </div>
 
+      {/* Сообщение об ошибке */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <strong>Ошибка:</strong> {error}
+          <button
+            className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={() => {
+              setPage(1);
+              localStorage.setItem('moderationPage', 1);
+              navigate('/moderation?page=1', { replace: true });
+            }}
+          >
+            Вернуться на первую страницу
+          </button>
+        </div>
+      )}
+
+      {/* Состояние загрузки */}
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-2">Загрузка...</span>
+        </div>
+      )}
+
       {/* Список карточек */}
       <div className="space-y-4">
+        {!loading && moderations.length === 0 && !error && (
+          <div className="text-center py-8 text-gray-500">
+            Нет данных для отображения
+          </div>
+        )}
         {moderations.map((plantation) => (
           <div
             key={plantation.id}
@@ -314,7 +398,8 @@ const Moderation = () => {
         ))}
       </div>
       {/* Пагинация */}
-      <div className="flex justify-center items-center mt-8 space-x-4 pb-6">
+      {!loading && !error && moderations.length > 0 && (
+        <div className="flex justify-center items-center mt-8 space-x-4 pb-6">
         <button
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           onClick={() => {
@@ -325,26 +410,30 @@ const Moderation = () => {
             // Обновляем URL
             navigate(`/moderation?page=${newPage}`, { replace: true });
           }}
-          disabled={!previous}
+          disabled={!previous || page <= 1}
         >
           Назад
         </button>
-        <span>Страница {page} из {totalPages}</span>
+        <span>Страница {page} из {totalPages || 1}</span>
         <button
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           onClick={() => {
             const newPage = page + 1;
             console.log('Forward button: setting page to', newPage);
-            setPage(newPage);
-            localStorage.setItem('moderationPage', newPage);
-            // Обновляем URL
-            navigate(`/moderation?page=${newPage}`, { replace: true });
+            // Проверяем, что новая страница не превышает общее количество страниц
+            if (totalPages && newPage <= totalPages) {
+              setPage(newPage);
+              localStorage.setItem('moderationPage', newPage);
+              // Обновляем URL
+              navigate(`/moderation?page=${newPage}`, { replace: true });
+            }
           }}
-          disabled={!next}
+          disabled={!next || (totalPages && page >= totalPages)}
         >
           Вперед
         </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
