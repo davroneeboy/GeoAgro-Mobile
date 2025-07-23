@@ -7,11 +7,6 @@ import AuthContext from "../context/AuthContext";
 import { landTypeMapping } from "../context/constants";
 
 const Moderation = () => {
-  // Принудительно очищаем localStorage при каждом рендере компонента
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('moderationPage');
-  }
-  
   const [moderations, setModerations] = useState([]);
   const [filters, setFilters] = useState({
     action: "All",
@@ -28,9 +23,6 @@ const Moderation = () => {
 
   // Читаем номер страницы из URL параметров при загрузке
   useEffect(() => {
-    // Полностью очищаем localStorage при каждой загрузке
-    localStorage.removeItem('moderationPage');
-    
     const urlParams = new URLSearchParams(location.search);
     const pageFromUrl = urlParams.get('page');
     console.log('URL page param:', pageFromUrl);
@@ -46,15 +38,14 @@ const Moderation = () => {
     const pageNumber = parseInt(pageFromUrl);
     console.log('Setting page from URL:', pageNumber);
     
-    // Проверяем, что номер страницы валидный и не слишком большой
+    // Проверяем, что номер страницы валидный
     if (pageNumber > 0 && pageNumber <= 50) {
       setPage(pageNumber);
     } else {
-      // Если номер страницы невалидный или слишком большой, сбрасываем на первую страницу
+      // Если номер страницы невалидный, сбрасываем на первую страницу
       console.log('Невалидный номер страницы в URL:', pageNumber, ', сбрасываем на первую');
       setPage(1);
       navigate('/moderation?page=1', { replace: true });
-      return; // Прерываем выполнение
     }
   }, [location.search, navigate]);
 
@@ -123,8 +114,8 @@ const Moderation = () => {
       setError(null);
       
       // Проверяем номер страницы перед каждым запросом
-      if (page > 50) {
-        console.log('Страница слишком большая:', page, ', сбрасываем на первую');
+      if (page <= 0 || page > 50) {
+        console.log('Невалидный номер страницы:', page, ', сбрасываем на первую');
         setPage(1);
         navigate('/moderation?page=1', { replace: true });
         return;
@@ -208,6 +199,8 @@ const Moderation = () => {
     setFilters({ action: "All", status: "All", type: "All" });
     setPage(1);
     navigate('/moderation?page=1', { replace: true });
+    // Очищаем localStorage при сбросе фильтров
+    localStorage.removeItem('moderationPage');
   };
 
   // убираем фронтовую фильтрацию, используем только moderations
@@ -420,18 +413,15 @@ const Moderation = () => {
             const newPage = page + 1;
             console.log('Forward button: setting page to', newPage);
             // Проверяем, что новая страница не превышает общее количество страниц
-            if (totalPages && newPage <= totalPages && newPage <= 50) {
+            if (newPage <= totalPages && newPage <= 50) {
               setPage(newPage);
               // Обновляем URL
               navigate(`/moderation?page=${newPage}`, { replace: true });
             } else {
               console.log('Попытка перейти на несуществующую страницу:', newPage);
-              // Если пытаемся перейти за пределы, сбрасываем на первую
-              setPage(1);
-              navigate('/moderation?page=1', { replace: true });
             }
           }}
-          disabled={totalPages ? page >= totalPages : false}
+          disabled={page >= totalPages || page >= 50}
         >
           Вперед
         </button>
