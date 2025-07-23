@@ -14,6 +14,26 @@ const Farmers = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const navigate = useNavigate();
 
+  // Функция для форматирования номера телефона
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return phone;
+    
+    // Убираем все пробелы и символы
+    let cleanPhone = phone.replace(/\D/g, '');
+    
+    // Если номер начинается с 998 и имеет больше 12 цифр, обрезаем
+    if (cleanPhone.startsWith('998') && cleanPhone.length > 12) {
+      cleanPhone = cleanPhone.substring(0, 12);
+    }
+    
+    // Форматируем в правильный формат
+    if (cleanPhone.length === 12 && cleanPhone.startsWith('998')) {
+      return `+${cleanPhone.substring(0, 3)} ${cleanPhone.substring(3, 5)} ${cleanPhone.substring(5, 8)} ${cleanPhone.substring(8, 10)} ${cleanPhone.substring(10, 12)}`;
+    }
+    
+    return phone; // Возвращаем как есть, если не можем отформатировать
+  };
+
   const fetchFarmers = useCallback(
     async (page = 1) => {
       try {
@@ -24,7 +44,14 @@ const Farmers = () => {
           `${API_BASE_URL2}api/farmers/?page=${page}&search=${debouncedSearch}`
         );
         console.log("Farmers response:", response.data);
-        setFarmers(response.data.results || []);
+        
+        // Форматируем номера телефонов в полученных данных
+        const formattedFarmers = (response.data.results || []).map(farmer => ({
+          ...farmer,
+          phone_number: formatPhoneNumber(farmer.phone_number)
+        }));
+        
+        setFarmers(formattedFarmers);
         setTotalPages(Math.ceil((response.data.count || 0) / 20));
       } catch (error) {
         console.error("Error fetching farmers:", error);
@@ -55,13 +82,13 @@ const Farmers = () => {
     const timeoutId = setTimeout(() => {
       if (loading && farmers.length === 0) {
         console.log("API timeout, loading test data");
-        setFarmers([
+        const testFarmers = [
           {
             id: 1,
             name: "Улугбек Музафар файз ф/х",
             founder_name: "Салимов Зокир",
             director_name: "Салимов Зокир",
-            phone_number: "+998998949427779",
+            phone_number: "+998 99 894 94 27",
             address: "БУСТОН КФЙ ЧОТКОЛ КИШЛОГИ",
             inn: "206045148",
             established_year: "2006"
@@ -71,7 +98,7 @@ const Farmers = () => {
             name: "Йулдош Хожиметов ф/х",
             founder_name: "Хожиметов Озод",
             director_name: "Хожиметов Озод",
-            phone_number: "+998998934266494",
+            phone_number: "+998 99 893 42 66",
             address: "Qirg`izovul MFY, Chavkanchak ko`chasi",
             inn: "304322079",
             established_year: "2006"
@@ -81,12 +108,40 @@ const Farmers = () => {
             name: "Азиз асил агро ф/х",
             founder_name: "Равшанов Карим",
             director_name: "Равшанов Карим",
-            phone_number: "+998998991761987",
+            phone_number: "+998 99 899 17 61",
             address: "БУСТОН КФЙ ЧОТКОЛ",
             inn: "206046984",
             established_year: "2019"
+          },
+          {
+            id: 4,
+            name: "Мирзаев Абдулла ф/х",
+            founder_name: "Мирзаев Абдулла",
+            director_name: "Мирзаев Абдулла",
+            phone_number: "+998 99 898 36 41",
+            address: "СИРДАРЁ КФЙ, ГУЛИСТОН",
+            inn: "206047123",
+            established_year: "2018"
+          },
+          {
+            id: 5,
+            name: "Хакимов Рашид ф/х",
+            founder_name: "Хакимов Рашид",
+            director_name: "Хакимов Рашид",
+            phone_number: "+998 99 894 41 03",
+            address: "ФАРГОНА КФЙ, КУВА",
+            inn: "206048456",
+            established_year: "2017"
           }
-        ]);
+        ];
+        
+        // Форматируем номера телефонов в тестовых данных
+        const formattedTestFarmers = testFarmers.map(farmer => ({
+          ...farmer,
+          phone_number: formatPhoneNumber(farmer.phone_number)
+        }));
+        
+        setFarmers(formattedTestFarmers);
         setTotalPages(1);
         setLoading(false);
       }
@@ -137,13 +192,13 @@ const Farmers = () => {
             <button
               onClick={() => {
                 setError(null);
-                setFarmers([
+                const testData = [
                   {
                     id: 1,
                     name: "Test Farmer 1",
                     founder_name: "Test Founder 1",
                     director_name: "Test Director 1",
-                    phone_number: "+998901234567",
+                    phone_number: "+998 99 123 45 67",
                     address: "Test Address 1",
                     inn: "123456789",
                     established_year: "2020"
@@ -153,12 +208,19 @@ const Farmers = () => {
                     name: "Test Farmer 2",
                     founder_name: "Test Founder 2",
                     director_name: "Test Director 2",
-                    phone_number: "+998901234568",
+                    phone_number: "+998 99 123 45 68",
                     address: "Test Address 2",
                     inn: "123456790",
                     established_year: "2021"
                   }
-                ]);
+                ];
+                
+                const formattedTestData = testData.map(farmer => ({
+                  ...farmer,
+                  phone_number: formatPhoneNumber(farmer.phone_number)
+                }));
+                
+                setFarmers(formattedTestData);
                 setTotalPages(1);
                 setLoading(false);
               }}
