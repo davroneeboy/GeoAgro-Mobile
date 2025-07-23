@@ -26,6 +26,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [controllers, setControllers] = useState([]);
   const [statistics, setStatistics] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     navigate("/");
@@ -87,157 +88,334 @@ const HomePage = () => {
             ]
           : [],
         backgroundColor: [
-          "rgba(75, 192, 192, 0.6)",
-          "rgba(54, 162, 235, 0.6)",
-          "rgba(255, 206, 86, 0.6)",
-          "rgba(255, 99, 132, 0.6)",
-          "rgba(153, 102, 255, 0.6)",
-          "rgba(255, 159, 64, 0.6)",
+          "rgba(34, 197, 94, 0.8)",
+          "rgba(59, 130, 246, 0.8)",
+          "rgba(245, 158, 11, 0.8)",
+          "rgba(239, 68, 68, 0.8)",
+          "rgba(168, 85, 247, 0.8)",
+          "rgba(6, 182, 212, 0.8)",
         ],
         borderColor: [
-          "rgba(75, 192, 192, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(255, 99, 132, 1)",
-          "rgba(153, 102, 255, 1)",
-          "rgba(255, 159, 64, 1)",
+          "rgba(34, 197, 94, 1)",
+          "rgba(59, 130, 246, 1)",
+          "rgba(245, 158, 11, 1)",
+          "rgba(239, 68, 68, 1)",
+          "rgba(168, 85, 247, 1)",
+          "rgba(6, 182, 212, 1)",
         ],
-        borderWidth: 1,
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
       },
     ],
   };
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "top",
+        labels: {
+          padding: 20,
+          font: {
+            size: window.innerWidth < 768 ? 12 : 14,
+            weight: 'bold'
+          },
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
       },
       title: {
         display: true,
         text: "Qishloq xo'jaligi statistikasi",
+        font: {
+          size: window.innerWidth < 768 ? 14 : 18,
+          weight: 'bold'
+        },
+        padding: {
+          top: 10,
+          bottom: 20
+        }
       },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += new Intl.NumberFormat('uz-UZ').format(context.parsed.y);
+            }
+            return label;
+          }
+        }
+      }
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+          drawBorder: false
+        },
+        ticks: {
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12
+          },
+          callback: function(value) {
+            return new Intl.NumberFormat('uz-UZ').format(value);
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+            weight: 'bold'
+          },
+          maxRotation: window.innerWidth < 768 ? 90 : 45,
+          minRotation: 0
+        }
+      }
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart'
+    }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Левая панель */}
-      <div className="w-1/4 p-4 border-r bg-white shadow-md">
-        <div className="flex justify-start items-center mb-5">
-          <img
-            className="h-20 w-auto mr-3"
-            src={uzbekistanEmblem}
-            alt="O'zbekiston gerbi"
-          />
-          <p className="text-start font-extrabold text-gray-900 max-w-64">
-            Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish
-            agentligi
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Мобильное меню */}
+      <div className="lg:hidden bg-white shadow-md p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <img
+              className="h-12 w-auto mr-3"
+              src={uzbekistanEmblem}
+              alt="O'zbekiston gerbi"
+            />
+            <p className="text-sm font-bold text-gray-900">
+              Agrosanoatni rivojlantirish agentligi
+            </p>
+          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Мобильное меню выпадающее */}
+        {isMobileMenuOpen && (
+          <div className="mt-4 space-y-2">
+            <Link
+              to="/plantations/uz"
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Bog'larga o'tish
+            </Link>
+            <Link
+              to="/statistics/regions"
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              To'liq statistika
+            </Link>
+            <Link
+              to="/farmers"
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Fermerlar
+            </Link>
+            <Link
+              to="/contacts"
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Kontaktlar
+            </Link>
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+            >
+              Chiqish
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Десктопная версия */}
+      <div className="hidden lg:flex h-screen">
+        {/* Левая панель */}
+        <div className="w-1/4 p-4 border-r bg-white shadow-md overflow-y-auto">
+          <div className="flex justify-start items-center mb-5">
+            <img
+              className="h-20 w-auto mr-3"
+              src={uzbekistanEmblem}
+              alt="O'zbekiston gerbi"
+            />
+            <p className="text-start font-extrabold text-gray-900 max-w-64">
+              Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish
+              agentligi
+            </p>
+          </div>
+
+          <Link
+            to="/plantations/uz"
+            className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+          >
+            Bog'larga o'tish
+          </Link>
+
+          <Link
+            to="/statistics/regions"
+            className="block w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+          >
+            To'liq statistika
+          </Link>
+
+          <Link
+            to="/farmers"
+            className="block w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+          >
+            Fermerlar
+          </Link>
+
+          <h2 className="mt-6 text-lg font-semibold text-gray-800">
+            <Link to="/controllers">Nazoratchilar</Link>
+          </h2>
+          <div className="mt-4 space-y-4 text-left">
+            {controllers.map((controller) => (
+              <Link
+                to="/controllers"
+                key={controller.id}
+                className="p-4 border rounded-lg flex items-center justify-between bg-gray-100 hover:shadow-lg transition"
+              >
+                <div>
+                  <h3 className="text-sm font-medium text-gray-800">
+                    {controller.first_name || controller.last_name
+                      ? `${controller.first_name} ${controller.last_name}`
+                      : controller.username}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {new Date(controller.last_login).toLocaleTimeString()}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {controller?.region && controller?.districts?.length > 0
+                      ? `${controller.region}, ${controller.districts.join(", ")}`
+                      : "No region/district assigned"}
+                  </p>
+                </div>
+                <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+              </Link>
+            ))}
+          </div>
         </div>
 
-        <Link
-          to="/plantations/uz"
-          className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center"
-        >
-          Bog'larga o'tish
-        </Link>
-
-        <Link
-          to="/statistics/regions"
-          className="block w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium text-center"
-        >
-          To'liq statistika
-        </Link>
-
-        <Link
-          to="/farmers"
-          className="block w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium text-center"
-        >
-          Fermerlar
-        </Link>
-
-        <h2 className="mt-6 text-lg font-semibold text-gray-800">
-          <Link to="/controllers">Nazoratchilar</Link>
-        </h2>
-        <div className="mt-4 space-y-4 text-left">
-          {controllers.map((controller) => (
-            <Link
-              to="/controllers"
-              key={controller.id}
-              className="p-4 border rounded-lg flex items-center justify-between bg-gray-100 hover:shadow-lg transition"
-            >
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">
-                  {controller.first_name || controller.last_name
-                    ? `${controller.first_name} ${controller.last_name}`
-                    : controller.username}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {new Date(controller.last_login).toLocaleTimeString()}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {controller?.region && controller?.districts?.length > 0
-                    ? `${controller.region}, ${controller.districts.join(", ")}`
-                    : "No region/district assigned"}
-                </p>
+        {/* Центральная панель */}
+        <div className="flex-1 p-6 bg-gray-50 flex flex-col">
+          <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md flex-1">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+              Statistika
+            </h2>
+            {statistics ? (
+              <div className="h-96 w-full">
+                <Bar data={chartData} options={chartOptions} />
               </div>
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+            ) : (
+              <div className="text-center text-gray-500 h-96 flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-2"></div>
+                  Yuklanmoqda...
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Правая панель */}
+        <div className="w-1/4 p-4 border-l bg-white shadow-md overflow-y-auto">
+          <div className="space-y-4">
+            <Link
+              to="/contacts"
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors"
+            >
+              Kontaktlar
             </Link>
-          ))}
+            <button
+              onClick={handleLogout}
+              className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+            >
+              Chiqish
+            </button>
+          </div>
+          <h2 className="mt-6 text-lg font-semibold text-gray-800">
+            <Link to="/moderation">Moderatsiya</Link>
+          </h2>
+          <div className="mt-4 space-y-4">
+            {Array(3)
+              .fill(null)
+              .map((_, idx) => (
+                <Link
+                  to="/moderation"
+                  key={idx}
+                  className="p-4 border rounded-lg flex items-center justify-between bg-gray-100 hover:shadow-lg transition"
+                >
+                  <p className="text-sm text-gray-800">
+                    Toshkent viloyati, Tashkent
+                  </p>
+                  <button className="py-1 px-3 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors">
+                    Ko'proq
+                  </button>
+                </Link>
+              ))}
+          </div>
         </div>
       </div>
 
-      {/* Центральная панель */}
-      <div className="flex-1 p-6 bg-gray-50 flex flex-col items-center justify-center">
-        <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+      {/* Мобильная версия контента */}
+      <div className="lg:hidden p-4">
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
             Statistika
           </h2>
           {statistics ? (
-            <Bar data={chartData} options={chartOptions} />
+            <div className="h-64 w-full">
+              <Bar data={chartData} options={chartOptions} />
+            </div>
           ) : (
-            <div className="text-center text-gray-500">Yuklanmoqda...</div>
+            <div className="text-center text-gray-500 h-64 flex items-center justify-center">
+              <div className="flex flex-col items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-2"></div>
+                Yuklanmoqda...
+              </div>
+            </div>
           )}
-        </div>
-      </div>
-
-      {/* Правая панель */}
-      <div className="w-1/4 p-4 border-l bg-white shadow-md">
-        <div className="space-y-4">
-          <Link
-            to="/contacts"
-            className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium text-center"
-          >
-            Kontaktlar
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="block w-full bg-green-600 text-white py-2 rounded-lg font-medium"
-          >
-            Chiqish
-          </button>
-        </div>
-        <h2 className="mt-6 text-lg font-semibold text-gray-800">
-          <Link to="/moderation">Moderatsiya</Link>
-        </h2>
-        <div className="mt-4 space-y-4">
-          {Array(3)
-            .fill(null)
-            .map((_, idx) => (
-              <Link
-                to="/moderation"
-                key={idx}
-                className="p-4 border rounded-lg flex items-center justify-between bg-gray-100 hover:shadow-lg transition"
-              >
-                <p className="text-sm text-gray-800">
-                  Toshkent viloyati, Tashkent
-                </p>
-                <button className="py-1 px-3 bg-blue-500 text-white rounded-md text-sm">
-                  Ko'proq
-                </button>
-              </Link>
-            ))}
         </div>
       </div>
     </div>
