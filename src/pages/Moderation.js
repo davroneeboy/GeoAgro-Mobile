@@ -145,8 +145,6 @@ const Moderation = () => {
         // Проверяем, что response.data существует и содержит results
         if (!response.data || !response.data.results) {
           setModerations([]);
-          setNext(null);
-          setPrevious(null);
           setCount(0);
           return;
         }
