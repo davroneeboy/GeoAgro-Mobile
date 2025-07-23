@@ -357,7 +357,7 @@ const Farmers = () => {
                         <div className="flex flex-col space-y-2">
                           <button
                             onClick={() => handleEdit(farmer.id)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors duration-200"
+                            className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
                           >
                             Tahrirlash
                           </button>

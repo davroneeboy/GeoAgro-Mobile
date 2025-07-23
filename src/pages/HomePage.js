@@ -26,6 +26,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [controllers, setControllers] = useState([]);
   const [statistics, setStatistics] = useState(null);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -60,6 +61,8 @@ const HomePage = () => {
         console.error("Ошибка при загрузке статистики:", error);
       }
     };
+
+
 
     fetchControllers();
     fetchStatistics();

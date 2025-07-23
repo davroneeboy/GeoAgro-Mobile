@@ -54,7 +54,7 @@ const PlantationDetail = () => {
       disableDefaultUI: true,
     });
 
-    if (plantation && plantation.coordinates) {
+    if (plantation && plantation.coordinates) { 
       const paths = plantation.coordinates.map((coord) => ({
         lat: coord.latitude,
         lng: coord.longitude,
