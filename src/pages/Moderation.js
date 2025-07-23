@@ -58,7 +58,7 @@ const Moderation = () => {
       navigate('/moderation?page=1', { replace: true });
       return; // Прерываем выполнение
     }
-  }, [location.search, navigate, setPage]);
+  }, [location.search, navigate]);
 
 
 
