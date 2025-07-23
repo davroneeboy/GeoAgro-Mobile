@@ -19,8 +19,6 @@ const Moderation = () => {
     type: "All",
   });
   const [page, setPage] = useState(1); // Всегда начинаем с первой страницы
-  const [next, setNext] = useState(null);
-  const [previous, setPrevious] = useState(null);
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
   const [loading, setLoading] = useState(false); // добавляем состояние загрузки
   const [error, setError] = useState(null); // добавляем состояние ошибки
@@ -182,8 +180,6 @@ const Moderation = () => {
         
         setModerations(formattedData);
         
-        setNext(response.data.next);
-        setPrevious(response.data.previous);
         setCount(response.data.count || 0);
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
@@ -201,8 +197,6 @@ const Moderation = () => {
         
         // Очищаем данные при ошибке
         setModerations([]);
-        setNext(null);
-        setPrevious(null);
         setCount(0);
       } finally {
         setLoading(false);
