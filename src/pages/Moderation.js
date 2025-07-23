@@ -210,7 +210,7 @@ const Moderation = () => {
     };
 
     fetchModerations();
-  }, [page, filters]);
+  }, [page, filters, navigate]);
 
   const handleResetFilters = () => {
     setFilters({ action: "All", status: "All", type: "All" });
