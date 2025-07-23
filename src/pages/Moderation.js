@@ -33,6 +33,17 @@ const Moderation = () => {
 
   // Читаем номер страницы из URL параметров при загрузке
   useEffect(() => {
+    // Принудительно очищаем localStorage при каждой загрузке страницы
+    const currentStoredPage = localStorage.getItem('moderationPage');
+    if (currentStoredPage) {
+      const storedPageNumber = parseInt(currentStoredPage);
+      // Если сохраненная страница больше 50, считаем её некорректной
+      if (storedPageNumber > 50) {
+        console.log('Очищаем localStorage с некорректным номером страницы:', storedPageNumber);
+        localStorage.removeItem('moderationPage');
+      }
+    }
+    
     const urlParams = new URLSearchParams(location.search);
     const pageFromUrl = urlParams.get('page');
     console.log('URL page param:', pageFromUrl);
@@ -50,15 +61,17 @@ const Moderation = () => {
     const pageNumber = parseInt(pageFromUrl);
     console.log('Setting page from URL:', pageNumber);
     
-    // Проверяем, что номер страницы валидный
-    if (pageNumber > 0) {
+    // Проверяем, что номер страницы валидный и не слишком большой
+    if (pageNumber > 0 && pageNumber <= 50) {
       setPage(pageNumber);
       localStorage.setItem('moderationPage', pageNumber);
     } else {
-      // Если номер страницы невалидный, сбрасываем на первую страницу
+      // Если номер страницы невалидный или слишком большой, сбрасываем на первую страницу
+      console.log('Невалидный номер страницы в URL:', pageNumber, ', сбрасываем на первую');
       setPage(1);
       localStorage.removeItem('moderationPage');
       navigate('/moderation?page=1', { replace: true });
+      return; // Прерываем выполнение
     }
   }, [location.search, navigate]);
 
@@ -125,6 +138,16 @@ const Moderation = () => {
     const fetchModerations = async () => {
       setLoading(true);
       setError(null);
+      
+      // Проверяем номер страницы перед каждым запросом
+      if (page > 50) {
+        console.log('Страница слишком большая:', page, ', сбрасываем на первую');
+        setPage(1);
+        localStorage.removeItem('moderationPage');
+        navigate('/moderation?page=1', { replace: true });
+        return;
+      }
+      
       try {
         const params = {
           page,
@@ -183,10 +206,11 @@ const Moderation = () => {
         
         // Если получили 404, значит страница не существует
         if (error.response?.status === 404) {
-          console.log('Страница не найдена, возвращаемся на первую страницу');
+          console.log('Страница не найдена (404), возвращаемся на первую страницу');
           setPage(1);
           localStorage.removeItem('moderationPage');
           navigate('/moderation?page=1', { replace: true });
+          return; // Прерываем выполнение, чтобы не устанавливать ошибку
         }
         
         // Устанавливаем сообщение об ошибке
@@ -438,14 +462,20 @@ const Moderation = () => {
             const newPage = page + 1;
             console.log('Forward button: setting page to', newPage);
             // Проверяем, что новая страница не превышает общее количество страниц
-            if (totalPages && newPage <= totalPages) {
+            if (totalPages && newPage <= totalPages && newPage <= 50) {
               setPage(newPage);
               localStorage.setItem('moderationPage', newPage);
               // Обновляем URL
               navigate(`/moderation?page=${newPage}`, { replace: true });
+            } else {
+              console.log('Попытка перейти на несуществующую страницу:', newPage);
+              // Если пытаемся перейти за пределы, сбрасываем на первую
+              setPage(1);
+              localStorage.removeItem('moderationPage');
+              navigate('/moderation?page=1', { replace: true });
             }
           }}
-          disabled={!next || (totalPages && page >= totalPages)}
+          disabled={!next || (totalPages && page >= totalPages) || page >= 50}
         >
           Вперед
         </button>
