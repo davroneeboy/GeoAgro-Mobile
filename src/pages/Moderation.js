@@ -38,32 +38,27 @@ const Moderation = () => {
     console.log('URL page param:', pageFromUrl);
     console.log('Current localStorage page:', localStorage.getItem('moderationPage'));
     
-    if (pageFromUrl) {
-      const pageNumber = parseInt(pageFromUrl);
-      console.log('Setting page from URL:', pageNumber);
-      // Проверяем, что номер страницы валидный
-      if (pageNumber > 0) {
-        setPage(pageNumber);
-        localStorage.setItem('moderationPage', pageNumber);
-      } else {
-        // Если номер страницы невалидный, сбрасываем на первую страницу
-        setPage(1);
-        localStorage.setItem('moderationPage', 1);
-        navigate('/moderation?page=1', { replace: true });
-      }
+    // Если нет параметра page в URL, очищаем localStorage и начинаем с первой страницы
+    if (!pageFromUrl) {
+      console.log('Нет параметра page в URL, очищаем localStorage и начинаем с первой страницы');
+      localStorage.removeItem('moderationPage');
+      setPage(1);
+      return;
+    }
+    
+    // Если есть параметр page в URL
+    const pageNumber = parseInt(pageFromUrl);
+    console.log('Setting page from URL:', pageNumber);
+    
+    // Проверяем, что номер страницы валидный
+    if (pageNumber > 0) {
+      setPage(pageNumber);
+      localStorage.setItem('moderationPage', pageNumber);
     } else {
-      // Если нет параметра в URL, используем localStorage
-      const savedPage = localStorage.getItem('moderationPage');
-      if (savedPage) {
-        const pageNumber = parseInt(savedPage);
-        console.log('Setting page from localStorage:', pageNumber);
-        if (pageNumber > 0) {
-          setPage(pageNumber);
-        } else {
-          setPage(1);
-          localStorage.setItem('moderationPage', 1);
-        }
-      }
+      // Если номер страницы невалидный, сбрасываем на первую страницу
+      setPage(1);
+      localStorage.removeItem('moderationPage');
+      navigate('/moderation?page=1', { replace: true });
     }
   }, [location.search, navigate]);
 
@@ -190,7 +185,7 @@ const Moderation = () => {
         if (error.response?.status === 404) {
           console.log('Страница не найдена, возвращаемся на первую страницу');
           setPage(1);
-          localStorage.setItem('moderationPage', 1);
+          localStorage.removeItem('moderationPage');
           navigate('/moderation?page=1', { replace: true });
         }
         
@@ -212,6 +207,10 @@ const Moderation = () => {
 
   const handleResetFilters = () => {
     setFilters({ action: "All", status: "All", type: "All" });
+    // Очищаем localStorage при сбросе фильтров
+    localStorage.removeItem('moderationPage');
+    setPage(1);
+    navigate('/moderation?page=1', { replace: true });
   };
 
   // убираем фронтовую фильтрацию, используем только moderations
@@ -224,7 +223,11 @@ const Moderation = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div
         className="flex justify-start items-center mb-5 poiner cursor-pointer border-b-4 pb-5"
-        onClick={() => navigate("/")}
+        onClick={() => {
+          // Очищаем localStorage при переходе на главную страницу
+          localStorage.removeItem('moderationPage');
+          navigate("/");
+        }}
       >
         <img
           className="h-20 w-auto mr-3"
@@ -253,7 +256,10 @@ const Moderation = () => {
           value={filters.action}
           onChange={(e) => {
             setFilters({ ...filters, action: e.target.value });
+            // Очищаем localStorage при изменении фильтров
+            localStorage.removeItem('moderationPage');
             setPage(1);
+            navigate('/moderation?page=1', { replace: true });
           }}
         >
           <option value="All">O'zgarishlar</option>
@@ -266,7 +272,10 @@ const Moderation = () => {
           value={filters.status}
           onChange={(e) => {
             setFilters({ ...filters, status: e.target.value });
+            // Очищаем localStorage при изменении фильтров
+            localStorage.removeItem('moderationPage');
             setPage(1);
+            navigate('/moderation?page=1', { replace: true });
           }}
         >
           <option value="All">Holati</option>
@@ -279,7 +288,10 @@ const Moderation = () => {
           value={filters.type}
           onChange={(e) => {
             setFilters({ ...filters, type: e.target.value });
+            // Очищаем localStorage при изменении фильтров
+            localStorage.removeItem('moderationPage');
             setPage(1);
+            navigate('/moderation?page=1', { replace: true });
           }}
         >
           <option value="All">Turi</option>
@@ -297,7 +309,7 @@ const Moderation = () => {
             className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
             onClick={() => {
               setPage(1);
-              localStorage.setItem('moderationPage', 1);
+              localStorage.removeItem('moderationPage');
               navigate('/moderation?page=1', { replace: true });
             }}
           >
@@ -406,7 +418,12 @@ const Moderation = () => {
             const newPage = Math.max(page - 1, 1);
             console.log('Back button: setting page to', newPage);
             setPage(newPage);
-            localStorage.setItem('moderationPage', newPage);
+            // Если переходим на первую страницу, очищаем localStorage
+            if (newPage === 1) {
+              localStorage.removeItem('moderationPage');
+            } else {
+              localStorage.setItem('moderationPage', newPage);
+            }
             // Обновляем URL
             navigate(`/moderation?page=${newPage}`, { replace: true });
           }}
