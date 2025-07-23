@@ -7,6 +7,11 @@ import AuthContext from "../context/AuthContext";
 import { landTypeMapping } from "../context/constants";
 
 const Moderation = () => {
+  // Принудительно очищаем localStorage при каждом рендере компонента
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('moderationPage');
+  }
+  
   const [moderations, setModerations] = useState([]);
   const [filters, setFilters] = useState({
     action: "All",
