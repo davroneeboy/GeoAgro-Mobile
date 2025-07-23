@@ -417,7 +417,7 @@ const Moderation = () => {
             // Обновляем URL
             navigate(`/moderation?page=${newPage}`, { replace: true });
           }}
-          disabled={!previous || page <= 1}
+          disabled={page <= 1}
         >
           Назад
         </button>
@@ -439,7 +439,7 @@ const Moderation = () => {
               navigate('/moderation?page=1', { replace: true });
             }
           }}
-          disabled={!next || (totalPages && page >= totalPages) || page >= 50}
+          disabled={totalPages ? page >= totalPages : false}
         >
           Вперед
         </button>
