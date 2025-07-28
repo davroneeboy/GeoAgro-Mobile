@@ -317,75 +317,112 @@ const Moderation = () => {
         {moderations.map((plantation) => (
           <div
             key={plantation.id}
-            className="p-6 border rounded-lg bg-white shadow-lg grid grid-cols-3 gap-4 items-center"
+            className="relative p-6 border border-gray-200 rounded-xl bg-gradient-to-r from-white to-gray-50 shadow-md hover:shadow-lg cursor-pointer transform hover:scale-[1.02] transition-all duration-300 ease-in-out"
+            onClick={() => {
+              handleView(plantation.id);
+              navigate(`/plantations/edit/${plantation.id}`);
+            }}
           >
-            {/* Основная информация */}
-            <div>
-              <div className="flex items-center mb-2">
-                <h3 
-                  className="text-lg font-bold text-gray-900 mr-3 cursor-pointer hover:text-blue-600"
-                  onClick={() => handleView(plantation.id)}
-                >
-                  {plantation.name}
-                </h3>
-              </div>
-              <p className="text-sm text-gray-700">
-                Plantatsiya turi: {landTypeMapping[plantation.type]}
-              </p>
-              <p className="text-sm text-gray-700">Maydon: {plantation.area}</p>
-              <p className="text-sm text-gray-700">
-                Region: {plantation.region}
-              </p>
-              {plantation.createdAt && (
-                <p className="text-sm text-gray-500 mt-2">
-                  Qo'shilgan vaqti:{" "}
-                  {new Date(plantation.createdAt).toLocaleString("ru-RU")}
-                </p>
-              )}
-            </div>
-
-            {/* Данные для изменений, создания или удаления */}
-            <div>
-              {plantation.action === "Обновленный" && plantation.prev_data && (
-                <div className="bg-gray-100 rounded-lg p-4 border text-gray-700">
-                  <h4 className="text-sm font-semibold mb-2">O'zgarishlar:</h4>
-                  {Object.keys(plantation.prev_data).map((key) => (
-                    <p key={key}>
-                      {key === "plantation_type" ? "Тип плантации" : key}:{" "}
-                      <del>{plantation.prev_data[key].old}</del> →{" "}
-                      <span className="font-semibold">
-                        {plantation.prev_data[key].new}
-                      </span>
-                    </p>
-                  ))}
-                </div>
+            {/* Индикатор статуса */}
+            <div className="absolute top-4 right-4">
+              {plantation.action === "Обновленный" && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span className="w-2 h-2 mr-1 bg-blue-500 rounded-full"></span>
+                  Yangilangan
+                </span>
               )}
               {plantation.action === "Bekor qilinganlar" && (
-                <p className="text-red-500 font-bold">Bekor qilinganlar</p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  <span className="w-2 h-2 mr-1 bg-red-500 rounded-full"></span>
+                  Bekor qilingan
+                </span>
               )}
               {plantation.action === "Yaratilgan" && (
-                <p className="text-green-500 font-bold">Yartilgan</p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <span className="w-2 h-2 mr-1 bg-green-500 rounded-full"></span>
+                  Yaratilgan
+                </span>
               )}
             </div>
 
-            {/* Кнопки */}
-            <div className="flex justify-end space-x-4">
-              <button
-                className="py-2 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                onClick={() => handleAccept(plantation.id)}
-              >
-                Qabul qilish
-              </button>
-              <button
-                className="py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-                onClick={() => {
-                  handleView(plantation.id);
-                  navigate(`/plantations/edit/${plantation.id}`);
-                }}
-              >
-                Tahrirlash
-              </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Основная информация */}
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                    {plantation.name}
+                  </h3>
+                </div>
+                
+                <div className="pl-14 space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <span className="font-medium text-gray-800 min-w-[120px]">Plantatsiya turi:</span>
+                    <span className="bg-gray-100 px-2 py-1 rounded-md text-gray-700">
+                      {landTypeMapping[plantation.type]}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <span className="font-medium text-gray-800 min-w-[120px]">Maydon:</span>
+                    <span className="font-semibold text-blue-600">{plantation.area}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <span className="font-medium text-gray-800 min-w-[120px]">Region:</span>
+                    <span className="text-gray-700">{plantation.region}</span>
+                  </div>
+                  {plantation.createdAt && (
+                    <div className="flex items-center text-xs text-gray-500 mt-3 pt-2 border-t border-gray-100">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      Qo'shilgan: {new Date(plantation.createdAt).toLocaleString("ru-RU")}
+                    </div>
+                  )}
+                </div>
+              </div>
 
+              {/* Данные для изменений, создания или удаления */}
+              <div className="flex items-center">
+                {plantation.action === "Обновленный" && plantation.prev_data && (
+                  <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-bold text-blue-800 mb-3 flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      O'zgarishlar:
+                    </h4>
+                    <div className="space-y-2">
+                      {Object.keys(plantation.prev_data).map((key) => (
+                        <div key={key} className="text-sm">
+                          <span className="font-medium text-gray-700">
+                            {key === "plantation_type" ? "Тип плантации" : key}:
+                          </span>
+                          <div className="mt-1">
+                            <span className="line-through text-red-500 bg-red-50 px-2 py-1 rounded mr-2">
+                              {plantation.prev_data[key].old}
+                            </span>
+                            <span className="text-green-600 font-semibold bg-green-50 px-2 py-1 rounded">
+                              {plantation.prev_data[key].new}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Иконка редактирования */}
+            <div className="absolute bottom-4 right-4 opacity-50 group-hover:opacity-100 transition-opacity">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
             </div>
           </div>
         ))}
