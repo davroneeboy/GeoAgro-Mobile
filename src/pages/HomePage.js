@@ -2,21 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL1, API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
-import { Bar } from "react-chartjs-2";
+import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend
@@ -68,77 +64,70 @@ const HomePage = () => {
     fetchStatistics();
   }, []);
 
-  const chartData = {
-    labels: [
-      "Bog'lar",
-      "Uzumzorlar",
-      "Issiqxonalar",
-      "Umumiy maydon",
-      "Meva maydonlari",
-      "Fermerlar",
-    ],
+  // Первый пай-чарт: Типы плантаций
+  const plantationTypesData = {
+    labels: ["Bog'lar", "Uzumzorlar", "Issiqxonalar"],
     datasets: [
       {
-        label: "Statistika",
+        label: "Plantatsiya turlari",
         data: statistics
           ? [
               statistics.total_bogs,
               statistics.total_uzumzors,
               statistics.total_issiqxonas,
-              statistics.total_area,
-              statistics.total_fruit_areas,
-              statistics.total_farmers,
             ]
           : [],
         backgroundColor: [
           "rgba(34, 197, 94, 0.8)",
           "rgba(59, 130, 246, 0.8)",
           "rgba(245, 158, 11, 0.8)",
-          "rgba(239, 68, 68, 0.8)",
-          "rgba(168, 85, 247, 0.8)",
-          "rgba(6, 182, 212, 0.8)",
         ],
         borderColor: [
           "rgba(34, 197, 94, 1)",
           "rgba(59, 130, 246, 1)",
           "rgba(245, 158, 11, 1)",
-          "rgba(239, 68, 68, 1)",
-          "rgba(168, 85, 247, 1)",
-          "rgba(6, 182, 212, 1)",
         ],
         borderWidth: 2,
-        borderRadius: 8,
-        borderSkipped: false,
       },
     ],
   };
 
-  const chartOptions = {
+  // Второй пай-чарт: Площади
+  const areasData = {
+    labels: ["Umumiy maydon", "Meva maydonlari"],
+    datasets: [
+      {
+        label: "Maydonlar",
+        data: statistics
+          ? [statistics.total_area, statistics.total_fruit_areas]
+          : [],
+        backgroundColor: [
+          "rgba(239, 68, 68, 0.8)",
+          "rgba(168, 85, 247, 0.8)",
+        ],
+        borderColor: [
+          "rgba(239, 68, 68, 1)",
+          "rgba(168, 85, 247, 1)",
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top",
+        position: "bottom",
         labels: {
-          padding: 20,
+          padding: 15,
           font: {
-            size: window.innerWidth < 768 ? 12 : 14,
+            size: window.innerWidth < 768 ? 11 : 13,
             weight: 'bold'
           },
           usePointStyle: true,
           pointStyle: 'circle'
-        }
-      },
-      title: {
-        display: true,
-        text: "Qishloq xo'jaligi statistikasi",
-        font: {
-          size: window.innerWidth < 768 ? 14 : 18,
-          weight: 'bold'
-        },
-        padding: {
-          top: 10,
-          bottom: 20
         }
       },
       tooltip: {
@@ -151,45 +140,10 @@ const HomePage = () => {
         displayColors: true,
         callbacks: {
           label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += new Intl.NumberFormat('uz-UZ').format(context.parsed.y);
-            }
-            return label;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = ((context.parsed / total) * 100).toFixed(1);
+            return `${context.label}: ${new Intl.NumberFormat('uz-UZ').format(context.parsed)} (${percentage}%)`;
           }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
-          drawBorder: false
-        },
-        ticks: {
-          font: {
-            size: window.innerWidth < 768 ? 10 : 12
-          },
-          callback: function(value) {
-            return new Intl.NumberFormat('uz-UZ').format(value);
-          }
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          font: {
-            size: window.innerWidth < 768 ? 10 : 12,
-            weight: 'bold'
-          },
-          maxRotation: window.innerWidth < 768 ? 90 : 45,
-          minRotation: 0
         }
       }
     },
@@ -344,11 +298,46 @@ const HomePage = () => {
         <div className="flex-1 p-6 bg-gray-50 flex flex-col">
           <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md flex-1">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-              Statistika
+              Qishloq xo'jaligi statistikasi
             </h2>
             {statistics ? (
-              <div className="h-96 w-full">
-                <Bar data={chartData} options={chartOptions} />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                      Plantatsiya turlari
+                    </h3>
+                    <div className="h-80">
+                      <Pie data={plantationTypesData} options={pieChartOptions} />
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                      Maydonlar
+                    </h3>
+                    <div className="h-80">
+                      <Pie data={areasData} options={pieChartOptions} />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Карточка с фермерами */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                  <div className="flex items-center justify-center">
+                    <div className="bg-green-100 rounded-full p-4 mr-6">
+                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                      </svg>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2">Fermerlar</h3>
+                      <p className="text-4xl font-extrabold text-blue-600">
+                        {new Intl.NumberFormat('uz-UZ').format(statistics.total_farmers)}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-2">Umumiy fermerlar soni</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-center text-gray-500 h-96 flex items-center justify-center">
@@ -405,11 +394,44 @@ const HomePage = () => {
       <div className="lg:hidden p-4">
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-            Statistika
+            Qishloq xo'jaligi statistikasi
           </h2>
           {statistics ? (
-            <div className="h-64 w-full">
-              <Bar data={chartData} options={chartOptions} />
+            <div className="space-y-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                  Plantatsiya turlari
+                </h3>
+                <div className="h-64">
+                  <Pie data={plantationTypesData} options={pieChartOptions} />
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                  Maydonlar
+                </h3>
+                <div className="h-64">
+                  <Pie data={areasData} options={pieChartOptions} />
+                </div>
+              </div>
+              
+              {/* Мобильная карточка с фермерами */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center justify-center">
+                  <div className="bg-green-100 rounded-full p-3 mr-4">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-800 mb-1">Fermerlar</h3>
+                    <p className="text-3xl font-extrabold text-blue-600">
+                      {new Intl.NumberFormat('uz-UZ').format(statistics.total_farmers)}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">Umumiy fermerlar soni</p>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="text-center text-gray-500 h-64 flex items-center justify-center">
