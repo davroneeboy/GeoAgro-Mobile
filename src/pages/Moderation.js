@@ -49,37 +49,6 @@ const Moderation = () => {
     }
   }, [location.search, navigate]);
 
-
-
-
-
-    const handleAccept = async (id) => {
-    try {
-      const response = await axios.patch(
-        `${API_BASE_URL2}api/plantations/${id}/update/`,
-        {
-          is_checked: true,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${authState.accessToken}`,
-          },
-        }
-      );
-      
-      // Обновляем состояние только после успешного ответа от сервера
-      setModerations(prevModerations => 
-        prevModerations.map((item) => 
-          item.id === id ? { ...item, is_checked: true } : item
-        )
-      );
-      
-      console.log("Запись успешно обновлена:", response.data);
-    } catch (error) {
-      console.error("Ошибка при обновлении записи:", error.response?.data || error.message);
-    }
-  };
-
     // Функция для обновления статуса при просмотре
   const handleView = async (id) => {
     try {
