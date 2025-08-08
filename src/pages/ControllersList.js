@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
+import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { useNavigate } from "react-router-dom";
 
 const REGION_CHOICES = [
@@ -122,9 +123,23 @@ const ControllersList = () => {
   };
 
   return (
-    <div className="h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-center">Kontrollerlar</h1>
+        <div 
+          className="flex justify-start items-center mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate("/")}
+        >
+          <img
+            className="h-16 w-auto mr-4"
+            src={uzbekistanEmblem}
+            alt="O'zbekiston gerbi"
+          />
+          <p className="text-start font-extrabold text-white max-w-64">
+            Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish agentligi
+          </p>
+        </div>
+        <div className="border-b border-gray-700 mb-6 -mx-6" />
+        <h1 className="text-2xl font-bold mb-6 text-center text-white">Kontrollerlar</h1>
 
         <div className="mb-4 flex justify-between">
           <input
@@ -132,12 +147,12 @@ const ControllersList = () => {
             placeholder="Qidirish..."
             value={search}
             onChange={handleSearchChange}
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg bg-gray-800 text-white border-gray-600 placeholder-gray-400"
           />
           <select
             value={region}
             onChange={handleRegionChange}
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg bg-gray-800 text-white border-gray-600"
           >
             <option value="">Barcha regionlar</option>
             {REGION_CHOICES.map((region) => (
@@ -152,36 +167,36 @@ const ControllersList = () => {
           {paginatedControllers.map((controller) => (
             <div
               key={controller.id}
-              className="p-6 border rounded-lg bg-white shadow-lg flex items-center justify-between"
+              className="p-6 border rounded-lg bg-gray-800 border-gray-700 shadow-lg flex items-center justify-between"
             >
               <div>
-                <p className="font-semibold">{controller.name}</p>
-                <p>{controller.email}</p>
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Region:</span>{" "}
+                <p className="font-semibold text-white">{controller.name}</p>
+                <p className="text-gray-300">{controller.email}</p>
+                <p className="text-sm text-gray-400">
+                  <span className="font-semibold text-gray-300">Region:</span>{" "}
                   {controller.region}
                   {controller.districts &&
                     `, ${controller.districts.join(", ")}`}
                 </p>
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Tizimga kirgan vahti:</span>{" "}
+                <p className="text-sm text-gray-400">
+                  <span className="font-semibold text-gray-300">Tizimga kirgan vahti:</span>{" "}
                   {controller.last_login || "Tizimga kirmagan"}
                 </p>
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">KPI: </span>{" "}
+                <p className="text-sm text-gray-400">
+                  <span className="font-semibold text-gray-300">KPI: </span>{" "}
                   {controller.kpi_current.points || 0}
                 </p>
               </div>
 
               <div className="flex justify-end space-x-4">
                 <button
-                  className="bg-blue-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
                   onClick={openModal}
                 >
                   Baholash
                 </button>
                 <button
-                  className="bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                  className="bg-green-600 hover:bg-green-700 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
                   onClick={() => navigate(`/user/${controller.id}`)}
                 >
                   Batafsil
@@ -198,13 +213,13 @@ const ControllersList = () => {
             onClick={handlePrevPage}
             className={`px-4 py-2 rounded-lg ${
               currentPage === 1
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-gray-700 text-gray-400"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
             Ortga
           </button>
-          <span>
+          <span className="text-gray-300">
             Page {currentPage} of {totalPages}
           </span>
           <button
@@ -212,8 +227,8 @@ const ControllersList = () => {
             onClick={handleNextPage}
             className={`px-4 py-2 rounded-lg ${
               currentPage === totalPages
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-gray-700 text-gray-400"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
             Oldinga
@@ -222,18 +237,18 @@ const ControllersList = () => {
       </div>
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-md w-96">
-            <h2 className="text-xl mb-4">Hodimni baholang</h2>
+          <div className="bg-gray-800 border border-gray-700 p-6 rounded-md w-96">
+            <h2 className="text-xl mb-4 text-white">Hodimni baholang</h2>
 
             <div className="flex justify-end space-x-4">
               <button
-                className="bg-green-500 text-white px-4 py-2 rounded-md"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
                 onClick={handleConfirm}
               >
                 Tasdiqlash
               </button>
               <button
-                className="bg-red-500 text-white px-4 py-2 rounded-md"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
                 onClick={closeModal}
               >
                 Bekor qilish

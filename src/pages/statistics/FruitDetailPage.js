@@ -59,44 +59,46 @@ const FruitDetailPage = () => {
 
   const dataWithTotal = [...tableData, totalRow];
 
+  const textLight = { color: '#e5e7eb' };
+
   const columns = [
     {
-      title: 'Nav',
+      title: <span style={textLight}>Nav</span>,
       dataIndex: 'variety',
       key: 'variety',
       fixed: 'left',
       render: (text, record) => (
-        <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+        <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {text}
         </span>
       ),
     },
     {
-      title: 'Umumiy Maydon (GA)',
+      title: <span style={textLight}>Umumiy Maydon (GA)</span>,
       dataIndex: 'total_area',
       key: 'total_area',
       render: (value, record) => (
-        <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+        <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {(value || 0).toFixed(1)}
         </span>
       ),
     },
     {
-      title: 'Eskirgan Maydon (GA)',
+      title: <span style={textLight}>Eskirgan Maydon (GA)</span>,
       dataIndex: 'outdated_ga',
       key: 'outdated_ga',
       render: (value, record) => (
-        <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+        <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {(value || 0).toFixed(1)}
         </span>
       ),
     },
     {
-      title: 'O\'rtacha Hosildorlik',
+      title: <span style={textLight}>O'rtacha Hosildorlik</span>,
       dataIndex: 'avg_fertility_score',
       key: 'avg_fertility_score',
       render: (value, record) => (
-        <span style={{ fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
+        <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {record.key === 'total' ? '-' : (value || 0).toFixed(1)}
         </span>
       ),
@@ -105,16 +107,16 @@ const FruitDetailPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6">
+      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex items-center mb-6">
           <Button 
-            type="primary" 
+            type="link" 
             icon={<ArrowLeftOutlined />} 
             onClick={() => navigate('/statistics/fruits')}
           >
             Orqaga
           </Button>
-          <h1 className="text-2xl font-bold ml-4">
+          <h1 className="text-2xl font-bold ml-4 text-white">
             {statistics.fruit_name} statistikasi
           </h1>
         </div>
@@ -122,22 +124,24 @@ const FruitDetailPage = () => {
         {/* Summary Cards */}
         <Row gutter={16} className="mb-6">
           <Col span={12}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic
-                title="Jami maydon"
+                title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totals.total_area}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={12}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic
-                title="Eskirgan maydon"
+                title={<span style={{ color: '#9ca3af' }}>Eskirgan maydon</span>}
                 value={totals.outdated_ga}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
@@ -153,6 +157,7 @@ const FruitDetailPage = () => {
           size="middle"
           pagination={false}
           className="region-statistics-table"
+          style={{ background: '#1f2937', color: '#e5e7eb' }}
           rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
         />
       </div>

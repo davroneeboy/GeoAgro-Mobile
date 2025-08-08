@@ -26,40 +26,44 @@ const StatisticsLayout = ({ children }) => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', background: '#111827' }}>
       <Sider 
         width={280} 
         style={{ 
-          background: 'white',
-          boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
-          padding: '16px'
+          background: '#1f2937', // gray-800
+          boxShadow: '2px 0 8px rgba(0,0,0,0.2)',
+          padding: '16px',
+          borderRight: '1px solid #374151' // gray-700
         }}
       >
         <div className="flex items-center mb-6">
-          <Link to="/">
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
             <img
               src={uzbekistanEmblem}
               alt="Logo"
               style={{ height: '80px', marginRight: '12px' }}
             />
+            <p className="text-sm font-bold" style={{ color: '#e5e7eb' }}>
+              Qishloq xo'jaligi Vazirligi
+            </p>
           </Link>
-          <p className="text-sm font-bold text-gray-900">
-            Qishloq xo'jaligi Vazirligi
-          </p>
         </div>
         <Menu
           mode="vertical"
+          theme="dark"
           items={menuItems}
           defaultSelectedKeys={[location.pathname]}
           style={{
+            background: '#1f2937',
+            color: '#d1d5db',
             border: 'none',
             borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
           }}
           onClick={({ key }) => navigate(key)}
         />
       </Sider>
-      <Content style={{ background: '#f0f2f5' }}>{children}</Content>
+      <Content style={{ background: '#111827' }}>{children}</Content>
     </Layout>
   );
 };

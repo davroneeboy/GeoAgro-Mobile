@@ -168,11 +168,11 @@ const Farmers = () => {
 
   if (loading) {
     return (
-      <div className="h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-900">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading farmers...</p>
+            <p className="mt-4 text-gray-300">Yuklanmoqda...</p>
           </div>
         </div>
       </div>
@@ -181,10 +181,10 @@ const Farmers = () => {
 
   if (error) {
     return (
-      <div className="h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-900">
         <div className="container mx-auto px-4 py-8">
           <div
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+            className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg"
             role="alert"
           >
             <strong className="font-bold">Error!</strong>
@@ -235,25 +235,28 @@ const Farmers = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-md">
+      <div className="bg-gray-800 shadow-lg border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
+            <div 
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate("/")}
+            >
               <img
                 className="h-16 w-auto mr-4"
                 src={uzbekistanEmblem}
                 alt="O'zbekiston gerbi"
               />
-              <h1 className="text-xl font-bold text-gray-800">
-                Qishloq xo'jaligi Vazirligi
-              </h1>
+              <p className="text-start font-extrabold text-white max-w-64">
+                Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish agentligi
+              </p>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate("/")}
-                className="text-gray-600 hover:text-gray-800"
+                className="text-gray-300 hover:text-white"
               >
                 Bosh sahifa
               </button>
@@ -264,10 +267,9 @@ const Farmers = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-
         
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-white">
             Fermerlar ro'yxati
           </h2>
           <div className="flex space-x-4">
@@ -276,7 +278,7 @@ const Farmers = () => {
               placeholder="Qidirish..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-800 text-white border-gray-600 placeholder-gray-400"
             />
             <button
               onClick={() => navigate("/farmers/new")}
@@ -288,69 +290,69 @@ const Farmers = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
           <div className="overflow-x-auto max-w-full">
-            <table className="w-full divide-y divide-gray-200 table-fixed min-w-[800px]">
-              <thead className="bg-gray-50">
+            <table className="w-full divide-y divide-gray-700 table-fixed min-w-[800px]">
+              <thead className="bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/8">
                     Nomi
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/8">
                     Asoschi
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/8">
                     Direktor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/8">
                     Telefon
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/4">
                     Manzil
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/12">
                     INN
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/12">
                     Yil
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/8">
                     Amallar
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
                 {farmers.length === 0 ? (
                   <tr>
                     <td
                       colSpan="8"
-                      className="px-6 py-4 text-center text-gray-500"
+                      className="px-6 py-4 text-center text-gray-400"
                     >
                       Fermerlar topilmadi
                     </td>
                   </tr>
                 ) : (
                   farmers.map((farmer) => (
-                    <tr key={farmer.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                    <tr key={farmer.id} className="hover:bg-gray-700">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.name}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.founder_name}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.director_name}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.phone_number}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.address}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.inn}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 break-words">
+                      <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.established_year}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium break-words">
@@ -386,11 +388,11 @@ const Farmers = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
             >
               Oldingi
             </button>
-            <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+            <span className="relative inline-flex items-center px-4 py-2 border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300">
               Sahifa {currentPage} / {totalPages}
             </span>
             <button
@@ -398,7 +400,7 @@ const Farmers = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
             >
               Keyingi
             </button>

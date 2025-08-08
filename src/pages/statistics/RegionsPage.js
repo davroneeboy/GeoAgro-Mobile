@@ -178,7 +178,7 @@ const RegionsPage = () => {
       fixed: "left",
       onCell: (record) => ({
         onClick: () => handleRowClick(record),
-        style: { cursor: record.key !== "total" ? "pointer" : "default" },
+        style: { cursor: record.key !== "total" ? "pointer" : "default", color: '#e5e7eb' },
       }),
     },
     {
@@ -188,13 +188,13 @@ const RegionsPage = () => {
           title: "Jami (GA)",
           dataIndex: "total_area",
           key: "total_area",
-          render: (value) => safeNumber(value).toFixed(1),
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
         {
           title: "Eskirgan (GA)",
           dataIndex: "outdated_ga",
           key: "outdated_ga",
-          render: (value) => safeNumber(value).toFixed(1),
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
       ],
     },
@@ -213,7 +213,7 @@ const RegionsPage = () => {
               title: "Maydon",
               dataIndex: "low_fertility_area",
               key: "low_fertility_area",
-              render: (value) => safeNumber(value).toFixed(1),
+              render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
             },
           ],
         },
@@ -229,7 +229,7 @@ const RegionsPage = () => {
               title: "Maydon",
               dataIndex: "high_fertility_area",
               key: "high_fertility_area",
-              render: (value) => safeNumber(value).toFixed(1),
+              render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
             },
           ],
         },
@@ -242,7 +242,7 @@ const RegionsPage = () => {
           title: "Maydon",
           dataIndex: "irrigation_area",
           key: "irrigation_area",
-          render: (value) => safeNumber(value).toFixed(1),
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
         {
           title: "Soni",
@@ -258,13 +258,13 @@ const RegionsPage = () => {
           title: "Mahalliy",
           dataIndex: "investment_local",
           key: "investment_local",
-          render: (value) => safeNumber(value).toLocaleString(),
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
         {
           title: "Xorijiy",
           dataIndex: "investment_foreign",
           key: "investment_foreign",
-          render: (value) => safeNumber(value).toLocaleString(),
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
       ],
     },
@@ -280,7 +280,7 @@ const RegionsPage = () => {
           title: "Jami summa",
           dataIndex: "total_subsidy",
           key: "total_subsidy",
-          render: (value) => safeNumber(value).toLocaleString(),
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
       ],
     },
@@ -288,9 +288,9 @@ const RegionsPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6">
+      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Viloyatlar bo'yicha statistika</h1>
+          <h1 className="text-2xl font-bold text-white">Viloyatlar bo'yicha statistika</h1>
           <Button type="primary" danger onClick={handleResetFilters}>
             Filterni tozalash
           </Button>
@@ -307,11 +307,11 @@ const RegionsPage = () => {
         )}
 
         {/* Filters */}
-        <Card className="mb-6">
+        <Card className="mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={16}>
             <Col span={8}>
               <div className="mb-4">
-                <label className="block mb-2">Plantatsiya turi</label>
+                <label className="block mb-2 text-gray-200">Plantatsiya turi</label>
                 <Select
                   mode="multiple"
                   style={{ width: "100%" }}
@@ -329,7 +329,7 @@ const RegionsPage = () => {
             </Col>
             <Col span={8}>
               <div className="mb-4">
-                <label className="block mb-2">Bog' barpo etilgan yil</label>
+                <label className="block mb-2 text-gray-200">Bog' barpo etilgan yil</label>
                 <Select
                   style={{ width: "100%" }}
                   placeholder="Yilni tanlang"
@@ -349,7 +349,7 @@ const RegionsPage = () => {
             </Col>
             <Col span={8}>
               <div className="mb-4">
-                <label className="block mb-2">Viloyatlar</label>
+                <label className="block mb-2 text-gray-2 00">Viloyatlar</label>
                 <Select
                   mode="multiple"
                   style={{ width: "100%" }}
@@ -373,42 +373,46 @@ const RegionsPage = () => {
         {/* Summary Cards */}
         <Row gutter={16} className="mb-6">
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami maydon"
+                title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totalRow.total_area}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Eskirgan maydon"
+                title={<span style={{ color: '#9ca3af' }}>Eskirgan maydon</span>}
                 value={totalRow.outdated_ga}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami investitsiyalar"
+                title={<span style={{ color: '#9ca3af' }}>Jami investitsiyalar</span>}
                 value={totalRow.investment_local + totalRow.investment_foreign}
                 precision={0}
                 formatter={(value) => `${value.toLocaleString()} UZS`}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami subsidiyalar"
+                title={<span style={{ color: '#9ca3af' }}>Jami subsidiyalar</span>}
                 value={totalRow.total_subsidy}
                 precision={0}
                 formatter={(value) => `${value.toLocaleString()} UZS`}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
@@ -423,14 +427,8 @@ const RegionsPage = () => {
           bordered
           size="middle"
           pagination={false}
-          summary={() => null}
-          onRow={(record) => ({
-            onClick: () => handleRowClick(record),
-            style: {
-              cursor: record.key !== "total" ? "pointer" : "default",
-            },
-          })}
           className="region-statistics-table"
+          style={{ background: '#1f2937', color: '#e5e7eb' }}
         />
       </div>
     </StatisticsLayout>

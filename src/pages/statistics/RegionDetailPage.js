@@ -135,52 +135,48 @@ const RegionDetailPage = () => {
   // Add total row to tableData
   const dataWithTotal = [...tableData, totalRow];
 
+  const textLight = { color: '#e5e7eb' };
+
   const columns = [
     {
-      title: "Tuman",
+      title: <span style={textLight}>Tuman</span>,
       dataIndex: "district",
       key: "district",
       fixed: "left",
       width: 150,
       render: (text, record) => (
         <span
-          style={{
-            fontWeight: record.key === "total" ? "bold" : "normal",
-            fontStyle: text === "Test District" ? "normal" : "inherit",
-          }}
+          style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}
         >
           {text}
         </span>
       ),
     },
     {
-      title: "Umumiy maydon",
+      title: <span style={textLight}>Umumiy maydon</span>,
       children: [
         {
-          title: "Jami (GA)",
+          title: <span style={textLight}>Jami (GA)</span>,
           dataIndex: "total_area",
           key: "total_area",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
         },
         {
-          title: "Plantatsiyalar soni",
+          title: <span style={textLight}>Plantatsiyalar soni</span>,
           dataIndex: "total_plantations",
           key: "total_plantations",
+          render: (value) => <span style={textLight}>{value}</span>,
         },
         {
-          title: "Eskirgan (GA)",
+          title: <span style={textLight}>Eskirgan (GA)</span>,
           dataIndex: "outdated_ga",
           key: "outdated_ga",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
@@ -188,26 +184,23 @@ const RegionDetailPage = () => {
       ],
     },
     {
-      title: "Hosildorlik",
+      title: <span style={textLight}>Hosildorlik</span>,
       children: [
         {
-          title: "Past",
+          title: <span style={textLight}>Past</span>,
           children: [
             {
-              title: "Soni",
+              title: <span style={textLight}>Soni</span>,
               dataIndex: "low_fertility_count",
               key: "low_fertility_count",
+              render: (value) => <span style={textLight}>{value}</span>,
             },
             {
-              title: "Maydon",
+              title: <span style={textLight}>Maydon</span>,
               dataIndex: "low_fertility_area",
               key: "low_fertility_area",
               render: (value, record) => (
-                <span
-                  style={{
-                    fontWeight: record.key === "total" ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
                   {(value || 0).toFixed(1)}
                 </span>
               ),
@@ -215,23 +208,20 @@ const RegionDetailPage = () => {
           ],
         },
         {
-          title: "Yuqori",
+          title: <span style={textLight}>Yuqori</span>,
           children: [
             {
-              title: "Soni",
+              title: <span style={textLight}>Soni</span>,
               dataIndex: "high_fertility_count",
               key: "high_fertility_count",
+              render: (value) => <span style={textLight}>{value}</span>,
             },
             {
-              title: "Maydon",
+              title: <span style={textLight}>Maydon</span>,
               dataIndex: "high_fertility_area",
               key: "high_fertility_area",
               render: (value, record) => (
-                <span
-                  style={{
-                    fontWeight: record.key === "total" ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
                   {(value || 0).toFixed(1)}
                 </span>
               ),
@@ -241,62 +231,55 @@ const RegionDetailPage = () => {
       ],
     },
     {
-      title: "Sug'orish",
+      title: <span style={textLight}>Sug'orish</span>,
       children: [
         {
-          title: "Maydon",
+          title: <span style={textLight}>Maydon</span>,
           dataIndex: "irrigation_area",
           key: "irrigation_area",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
         },
         {
-          title: "Soni",
+          title: <span style={textLight}>Soni</span>,
           dataIndex: "irrigation_count",
           key: "irrigation_count",
+          render: (value) => <span style={textLight}>{value}</span>,
         },
       ],
     },
     {
-      title: "Investitsiyalar",
+      title: <span style={textLight}>Investitsiyalar</span>,
       children: [
         {
-          title: "Mahalliy",
+          title: <span style={textLight}>Mahalliy</span>,
           dataIndex: "investment_local",
           key: "investment_local",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
             </span>
           ),
         },
         {
-          title: "Xorijiy",
+          title: <span style={textLight}>Xorijiy</span>,
           dataIndex: "investment_foreign",
           key: "investment_foreign",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
             </span>
           ),
         },
         {
-          title: "Jami",
+          title: <span style={textLight}>Jami</span>,
           dataIndex: "investment_total",
           key: "investment_total",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
             </span>
           ),
@@ -304,21 +287,20 @@ const RegionDetailPage = () => {
       ],
     },
     {
-      title: "Subsidiyalar",
+      title: <span style={textLight}>Subsidiyalar</span>,
       children: [
         {
-          title: "Soni",
+          title: <span style={textLight}>Soni</span>,
           dataIndex: "subsidy_count",
           key: "subsidy_count",
+          render: (value) => <span style={textLight}>{value}</span>,
         },
         {
-          title: "Jami summa",
+          title: <span style={textLight}>Jami summa</span>,
           dataIndex: "total_subsidy",
           key: "total_subsidy",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
             </span>
           ),
@@ -329,7 +311,7 @@ const RegionDetailPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6">
+      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex items-center mb-6">
           <Button
             type="link"
@@ -338,7 +320,7 @@ const RegionDetailPage = () => {
           >
             Orqaga
           </Button>
-          <h1 className="text-2xl font-bold ml-4">
+          <h1 className="text-2xl font-bold ml-4 text-white">
             {REGION_NAMES[id]} viloyati statistikasi
           </h1>
         </div>
@@ -346,40 +328,44 @@ const RegionDetailPage = () => {
         {/* Summary Cards */}
         <Row gutter={16} className="mb-6">
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami maydon"
+                title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totals.total_area}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Plantatsiyalar soni"
+                title={<span style={{ color: '#9ca3af' }}>Plantatsiyalar soni</span>}
                 value={totals.total_plantations}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami investitsiyalar"
+                title={<span style={{ color: '#9ca3af' }}>Jami investitsiyalar</span>}
                 value={totals.total_investment}
                 precision={0}
-                formatter={(value) => `${value.toLocaleString()} UZS`}
+                formatter={(value) => `${Number(value).toLocaleString()} UZS`}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami subsidiyalar"
+                title={<span style={{ color: '#9ca3af' }}>Jami subsidiyalar</span>}
                 value={totals.total_subsidy}
                 precision={0}
-                formatter={(value) => `${value.toLocaleString()} UZS`}
+                formatter={(value) => `${Number(value).toLocaleString()} UZS`}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
@@ -395,13 +381,7 @@ const RegionDetailPage = () => {
           size="middle"
           pagination={false}
           className="region-statistics-table"
-          rowClassName={(record) =>
-            record.key === "total"
-              ? "total-row"
-              : record.district === "Test District"
-              ? "test-district-row"
-              : ""
-          }
+          style={{ background: '#1f2937', color: '#e5e7eb' }}
         />
       </div>
     </StatisticsLayout>

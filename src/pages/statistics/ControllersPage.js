@@ -91,99 +91,108 @@ const ControllersPage = () => {
 
   if (error) return <Alert message={error} type="error" />;
 
-  const tableData = Object.entries(statistics || {}).map(([fruit, data]) => ({
-    key: fruit,
-    fruit,
-    total_area: data.total_area || 0,
-    outdated_ga: data.outdated_ga || 0,
-    low_fertility_count: data.low_fertility?.count || 0,
-    low_fertility_area: data.low_fertility?.area || 0,
-    high_fertility_count: data.high_fertility?.count || 0,
-    high_fertility_area: data.high_fertility?.area || 0,
-    avg_fertility_score: data.avg_fertility_score || 0,
-    regions: data.regions || {},
+  // API возвращает массив пользователей; соберём строки таблицы напрямую
+  const tableData = (Array.isArray(statistics) ? statistics : []).map((user, idx) => ({
+    key: user.id ?? idx,
+    ...user,
   }));
 
-  // Calculate totals
+  // Итоги по plantatsiyalar и KPI
   const totals = tableData.reduce(
-    (acc, curr) => ({
-      total_area: (acc.total_area || 0) + curr.total_area,
-      outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
-      low_fertility_count:
-        (acc.low_fertility_count || 0) + curr.low_fertility_count,
-      low_fertility_area:
-        (acc.low_fertility_area || 0) + curr.low_fertility_area,
-      high_fertility_count:
-        (acc.high_fertility_count || 0) + curr.high_fertility_count,
-      high_fertility_area:
-        (acc.high_fertility_area || 0) + curr.high_fertility_area,
-    }),
-    {}
+    (acc, curr) => {
+      const p = curr.plantations_stats || {};
+      const k = curr.kpi_current || {};
+      return {
+        total: acc.total + (p.total || 0),
+        approved: acc.approved + (p.approved || 0),
+        rejected: acc.rejected + (p.rejected || 0),
+        kpiPoints: acc.kpiPoints + (k.points || 0),
+        kpiAmount: acc.kpiAmount + (k.amount || 0),
+      };
+    },
+    { total: 0, approved: 0, rejected: 0, kpiPoints: 0, kpiAmount: 0 }
   );
+
+  const textLight = { color: '#e5e7eb' };
 
   const columns = [
     {
-      title: "F.I.Sh",
+      title: <span style={textLight}>F.I.Sh</span>,
       dataIndex: "full_name",
       key: "full_name",
-      render: (_, record) =>
-        `${record.first_name || ""} ${record.last_name || ""}`,
+      render: (_value, record) => (
+        <span style={textLight}>{`${record.first_name || ""} ${record.last_name || ""}`}</span>
+      ),
     },
     {
-      title: "Login",
+      title: <span style={textLight}>Login</span>,
       dataIndex: "username",
       key: "username",
+      render: (value) => <span style={textLight}>{value}</span>,
     },
     {
-      title: "Telefon raqami",
+      title: <span style={textLight}>Telefon raqami</span>,
       dataIndex: "phone_number",
       key: "phone",
+      render: (value) => <span style={textLight}>{value}</span>,
     },
     {
-      title: "Plantatsiyalar",
+      title: <span style={textLight}>Plantatsiyalar</span>,
       children: [
         {
-          title: "Umumiy",
+          title: <span style={textLight}>Umumiy</span>,
           dataIndex: ["plantations_stats", "total"],
           key: "total_plantations",
+          render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
         {
-          title: "Tasdiqlangan",
+          title: <span style={textLight}>Tasdiqlangan</span>,
           dataIndex: ["plantations_stats", "approved"],
           key: "approved_plantations",
+          render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
         {
-          title: "Rad etilgan",
+          title: <span style={textLight}>Rad etilgan</span>,
           dataIndex: ["plantations_stats", "rejected"],
           key: "rejected_plantations",
+          render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
       ],
     },
     {
-      title: "KPI",
+      title: <span style={textLight}>KPI</span>,
       children: [
         {
-          title: "Ballar",
+          title: <span style={textLight}>Ballar</span>,
           dataIndex: ["kpi_current", "points"],
           key: "kpi_points",
-          render: (value) => (value || 0).toFixed(1),
+          render: (value) => <span style={textLight}>{(value || 0).toFixed(1)}</span>,
         },
         {
-          title: "Summa",
+          title: <span style={textLight}>Summa</span>,
           dataIndex: ["kpi_current", "amount"],
           key: "kpi_amount",
-          render: (value) => value?.toLocaleString() || 0,
+          render: (value) => (
+            <span style={textLight}>{value?.toLocaleString() || 0}</span>
+          ),
         },
       ],
     },
   ];
 
-  // Add total row
+  // Итоговая строка таблицы
   const totalRow = {
     key: "total",
-    fruit: "Jami",
-    ...totals,
-    avg_fertility_score: "-",
+    username: "Jami",
+    plantations_stats: {
+      total: totals.total,
+      approved: totals.approved,
+      rejected: totals.rejected,
+    },
+    kpi_current: {
+      points: totals.kpiPoints,
+      amount: totals.kpiAmount,
+    },
   };
 
   const dataWithTotal = [...tableData, totalRow];
@@ -193,7 +202,7 @@ const ControllersPage = () => {
     console.log("Showing loading state"); // Debug log 8
     return (
       <StatisticsLayout>
-        <div className="p-6">
+        <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
           <Spin size="large" />
         </div>
       </StatisticsLayout>
@@ -204,9 +213,9 @@ const ControllersPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6">
+      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-white">
             Nazoratchilar bo'yicha statistika
           </h1>
           <Button type="primary" danger onClick={handleResetFilters}>
@@ -214,11 +223,11 @@ const ControllersPage = () => {
           </Button>
         </div>
 
-        <Card className="mb-6">
+        <Card className="mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[16, 16]}>
             <Col span={8}>
               <div className="mb-4">
-                <label className="block mb-2">Viloyatlar</label>
+                <label className="block mb-2 text-gray-200">Viloyatlar</label>
                 <Select
                   mode="multiple"
                   style={{ width: "100%" }}
@@ -242,42 +251,43 @@ const ControllersPage = () => {
         {/* Summary Cards */}
         <Row gutter={16} className="mb-6">
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Jami maydon"
-                value={totals.total_area}
-                suffix="GA"
-                precision={1}
+                title={<span style={{ color: '#9ca3af' }}>Jami plantatsiyalar</span>}
+                value={totals.total}
+                precision={0}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Eskirgan maydon"
-                value={totals.outdated_ga}
-                suffix="GA"
-                precision={1}
+                title={<span style={{ color: '#9ca3af' }}>Tasdiqlangan</span>}
+                value={totals.approved}
+                precision={0}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Yuqori hosildor"
-                value={totals.high_fertility_area}
-                suffix="GA"
-                precision={1}
+                title={<span style={{ color: '#9ca3af' }}>Rad etilgan</span>}
+                value={totals.rejected}
+                precision={0}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
               <Statistic
-                title="Past hosildor"
-                value={totals.low_fertility_area}
-                suffix="GA"
-                precision={1}
+                title={<span style={{ color: '#9ca3af' }}>KPI (summa)</span>}
+                value={totals.kpiAmount}
+                precision={0}
+                formatter={(value) => `${Number(value).toLocaleString()} UZS`}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
@@ -293,6 +303,7 @@ const ControllersPage = () => {
           size="middle"
           pagination={false}
           className="region-statistics-table"
+          style={{ background: '#1f2937', color: '#e5e7eb' }}
         />
       </div>
     </StatisticsLayout>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { API_BASE_URL2, GOOGLE_API_KEY } from "../config";
 import {
@@ -16,7 +16,7 @@ const EditPlantation = () => {
   const [loading, setLoading] = useState(true);
   // const [coordinatesChanged, setCoordinatesChanged] = useState(false);
   // const [area, setArea] = useState(0);
-  const navigate = useNavigate();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
@@ -99,93 +99,61 @@ const EditPlantation = () => {
       const polygon = new google.maps.Polygon({
         paths,
         strokeColor: "#FF0000",
-        strokeOpacity: 0.8,
+        strokeOpacity: 1,
         strokeWeight: 2,
         fillColor: "#FF0000",
         fillOpacity: 0.35,
-        editable: true,
-        draggable: false, // Prevent dragging the polygon
         map,
+        editable: true,
+        draggable: true,
       });
 
-      const bounds = new google.maps.LatLngBounds();
-      paths.forEach((coord) => bounds.extend(coord));
-      map.fitBounds(bounds);
-
       const updateCoordinates = () => {
-        const newCoordinates = polygon
-          .getPath()
-          .getArray()
-          .map((latLng) => ({
-            latitude: latLng.lat(),
-            longitude: latLng.lng(),
-          }));
+        const newPaths = polygon.getPath();
+        const newCoordinates = [];
+        for (let i = 0; i < newPaths.getLength(); i++) {
+          const vertex = newPaths.getAt(i);
+          newCoordinates.push({
+            latitude: vertex.lat(),
+            longitude: vertex.lng(),
+          });
+        }
         setPlantation((prev) => ({
           ...prev,
           coordinates: newCoordinates,
         }));
-        // setCoordinatesChanged(true);
-
-        // Calculate area in square meters and convert to hectares
-        // const areaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
-        // const areaInHectares = areaInSquareMeters / 10000;
-        // setArea(areaInHectares.toFixed(2));
       };
 
-      google.maps.event.addListener(
-        polygon.getPath(),
-        "set_at",
-        updateCoordinates
-      );
-      google.maps.event.addListener(
-        polygon.getPath(),
-        "insert_at",
-        updateCoordinates
-      );
-      google.maps.event.addListener(
-        polygon.getPath(),
-        "remove_at",
-        updateCoordinates
-      );
+      polygon.addListener("mouseup", updateCoordinates);
+      polygon.addListener("dragend", updateCoordinates);
 
-      // Initial area calculation
-      // const initialAreaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
-      // const initialAreaInHectares = initialAreaInSquareMeters / 10000;
-      // setArea(initialAreaInHectares.toFixed(2));
+      const bounds = new google.maps.LatLngBounds();
+      paths.forEach((coord) => bounds.extend(coord));
+      map.fitBounds(bounds);
     }
   }, [plantation]);
 
   const handleSave = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL2}api/plantations/${id}/update/`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authState.accessToken}`,
-          },
-          body: JSON.stringify({
-            coordinates: plantation.coordinates,
-            isChecked: true,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL2}api/plantations/${id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authState.accessToken}`,
+        },
+        body: JSON.stringify(plantation),
+      });
+
       if (response.ok) {
-        alert("Ma'lumotlar muvaffaqiyatli saqlandi.");
-        // setCoordinatesChanged(false);
-        navigate(`/moderation`);
+        console.log("Plantation updated successfully");
+        // Получаем номер страницы из URL или localStorage
+        const currentPage = localStorage.getItem('moderationPage') || 1;
+        window.location.href = `/moderation?page=${currentPage}`;
       } else {
-        alert("Kordinatlar yangilanmadi.");
+        console.error("Failed to update plantation");
       }
     } catch (error) {
-      console.error(
-        "Kordinatlarni yangilashda hatolik, tekshirib boshidan urinib ko'ring:",
-        error
-      );
-      alert(
-        "Kordinatlarni yangilashda hatolik, tekshirib boshidan urinib ko'ring."
-      );
+      console.error("Error updating plantation:", error);
     }
   };
 
@@ -218,20 +186,23 @@ const EditPlantation = () => {
   }, [plantation, initializeMap]);
 
   return (
-    <div className="flex flex-row h-screen bg-gray-100">
+    <div className="flex flex-row h-screen bg-gray-900">
       {loading ? (
-        <div className="flex justify-center items-center h-full w-full">
-          <p>Маълумотлар юкланмоқда...</p>
+        <div className="flex justify-center items-center h-full w-full bg-gray-900">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-2"></div>
+            <p className="text-white">Ma'lumotlar yuklanmoqda...</p>
+          </div>
         </div>
       ) : plantation ? (
         <>
           <div className="w-1/2 h-full p-4">
-            <div id="map" className="w-full h-full border"></div>
+            <div id="map" className="w-full h-full border border-gray-600 rounded-lg"></div>
           </div>
-          <div className="w-1/2 h-full overflow-y-auto p-6 bg-white shadow-lg relative">
+          <div className="w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
             {/* Кнопка закрытия */}
             <button
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded-full transition-colors z-10"
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
               onClick={() => {
                 console.log('Navigating to moderation...');
                 // Получаем номер страницы из URL или localStorage
@@ -242,86 +213,85 @@ const EditPlantation = () => {
             >
               ✕
             </button>
-            <h1 className="text-3xl font-bold mb-4 pr-12">
+            <h1 className="text-3xl font-bold mb-4 pr-12 text-white">
               {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
             </h1>
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <p className="font-semibold">Yer turi:</p>
-                <p>{landTypeMapping[plantation.land_type]}</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Yer turi:</p>
+                <p className="text-white">{landTypeMapping[plantation.land_type]}</p>
               </div>
-              <div>
-                <p className="font-semibold">Maydoni:</p>
-                <p>{plantation.total_area} GA</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Maydoni:</p>
+                <p className="text-white">{plantation.total_area} GA</p>
               </div>
-              <div>
-                <p className="font-semibold">Hosildorlik bahosi:</p>
-                <p>{plantation.fertility_score}</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Hosildorlik bahosi:</p>
+                <p className="text-white">{plantation.fertility_score}</p>
               </div>
-              <div>
-                <p className="font-semibold">Devor bilan o‘ralgan:</p>
-                <p>{plantation.fenced ? "✅" : "🚫"}</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Devor bilan o'ralgan:</p>
+                <p className="text-white">{plantation.fenced ? "✅" : "🚫"}</p>
               </div>
-              <div>
-                <p className="font-semibold">Bo‘sh maydon:</p>
-                <p>{plantation.empty_area} GA</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Bo'sh maydon:</p>
+                <p className="text-white">{plantation.empty_area} GA</p>
               </div>
-              <div>
-                <p className="font-semibold">Suv xovuzlari soni:</p>
-                <p>{plantation.reservoir_count}</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Suv xovuzlari soni:</p>
+                <p className="text-white">{plantation.reservoir_count}</p>
               </div>
-              <div>
-                <p className="font-semibold">Quduqlar soni:</p>
-                <p>{plantation.pump_station_count}</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Quduqlar soni:</p>
+                <p className="text-white">{plantation.pump_station_count}</p>
               </div>
-              <div>
-                <p className="font-semibold">Fermer INN'si:</p>
-                <p>{plantation.farmer?.inn}</p>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Fermer INN'si:</p>
+                <p className="text-white">{plantation.farmer?.inn}</p>
               </div>
-              <div>
-                <p className="font-semibold">
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">
                   Tomchilab sug'oriladigan maydon:
                 </p>
-                <p>{plantation.irrigation_area} GA</p>
+                <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
-
             </div>
 
             {plantation.farmer && (
-              <div className="mb-6">
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer"
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("farmer")}
                 >
-                  Фермер:
+                  Fermer:
                 </h2>
                 {expandedSections.farmer && (
-                  <div>
-                    <p>Асосчи: {plantation.farmer.founder_name}</p>
-                    <p>Директор: {plantation.farmer.director_name}</p>
-                    <p>Телефон: {plantation.farmer.phone_number}</p>
-                    <p>Манзил: {plantation.farmer.address}</p>
+                  <div className="space-y-2 text-gray-300">
+                    <p>Asoschi: {plantation.farmer.founder_name}</p>
+                    <p>Direktor: {plantation.farmer.director_name}</p>
+                    <p>Telefon: {plantation.farmer.phone_number}</p>
+                    <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
                   </div>
                 )}
               </div>
             )}
             {plantation.subsidies.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer"
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("subsidies")}
                 >
-                  Субсидиялар:
+                  Subsidiyalar:
                 </h2>
                 {expandedSections.subsidies && (
                   <div>
                     {plantation.subsidies.map((subsidy, idx) => (
-                      <div key={idx} className="border-b pb-2 mb-2">
-                        <p>Йил: {subsidy.year}</p>
-                        <p>Йўналиши: {subsidyTypeMapping[subsidy.direction]}</p>
-                        <p>Миқдори: {subsidy.amount} UZS</p>
-                        <p>Самарадорлиги: {subsidy.efficiency}</p>
+                      <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
+                        <p>Yil: {subsidy.year}</p>
+                        <p>Yo'nalishi: {subsidyTypeMapping[subsidy.direction]}</p>
+                        <p>Miqdori: {subsidy.amount} UZS</p>
+                        <p>Samaradorligi: {subsidy.efficiency}</p>
                       </div>
                     ))}
                   </div>
@@ -329,25 +299,25 @@ const EditPlantation = () => {
               </div>
             )}
             {plantation.trellises.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer"
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("trellises")}
                 >
-                  Шпаллерлар:
+                  Shpallar:
                 </h2>
                 {expandedSections.trellises && (
                   <div>
                     {plantation.trellises.map((trellis, idx) => (
-                      <div key={idx} className="border-b pb-2 mb-2">
+                      <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
                         <p>
-                          Шпаллер тури:{" "}
+                          Shpalla turi:{" "}
                           {trellisTypeMapping[trellis.trellis_type]}
                         </p>
                         <p>
-                          Шпаллер майдони: {trellis.trellis_installed_area} GA
+                          Shpalla maydoni: {trellis.trellis_installed_area} GA
                         </p>
-                        <p>Шпаллерлар сони: {trellis.trellis_count}</p>
+                        <p>Shpallar soni: {trellis.trellis_count}</p>
                       </div>
                     ))}
                   </div>
@@ -355,22 +325,22 @@ const EditPlantation = () => {
               </div>
             )}
             {plantation.reservoirs.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer"
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("reservoirs")}
                 >
-                  Сув Ховузлари:
+                  Suv Xovuzlari:
                 </h2>
                 {expandedSections.reservoirs && (
                   <div>
                     {plantation.reservoirs.map((reservoir, idx) => (
-                      <div key={idx} className="border-b pb-2 mb-2">
+                      <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
                         <p>
-                          Омбор тури:{" "}
+                          Ombor turi:{" "}
                           {reservoirTypeMapping[reservoir.reservoir_type]}
                         </p>
-                        <p>Хажми: {reservoir.reservoir_volume}</p>
+                        <p>Hajmi: {reservoir.reservoir_volume}</p>
                       </div>
                     ))}
                   </div>
@@ -378,21 +348,21 @@ const EditPlantation = () => {
               </div>
             )}
             {plantation.fruit_areas.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer"
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("fruitAreas")}
                 >
-                  Мевали ҳудудлар:
+                  Mevali hududlar:
                 </h2>
                 {expandedSections.fruitAreas && (
                   <div>
                     {plantation.fruit_areas.map((area, idx) => (
-                      <div key={idx} className="border-b pb-2 mb-2">
-                        <p>Мева: {area.fruit}</p>
-                        <p>Нави: {area.variety}</p>
-                        <p>Майдони: {area.area} GA</p>
-                        <p>Экилган йили: {area.planted_year}</p>
+                      <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
+                        <p>Meva: {area.fruit}</p>
+                        <p>Nav: {area.variety}</p>
+                        <p>Maydoni: {area.area} GA</p>
+                        <p>Ekilgan yili: {area.planted_year}</p>
                       </div>
                     ))}
                   </div>
@@ -400,15 +370,15 @@ const EditPlantation = () => {
               </div>
             )}
             {plantation.images?.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-3">Галерея:</h3>
+              <div className="mt-6 bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-white">Galereya:</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {plantation.images.map((img, idx) => (
                     <img
                       key={idx}
                       src={img}
                       alt={`Изображение ${idx + 1}`}
-                      className="w-full h-24 object-cover border rounded-md cursor-pointer"
+                      className="w-full h-24 object-cover border border-gray-600 rounded-md cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => setSelectedImage(img)}
                     />
                   ))}
@@ -417,23 +387,23 @@ const EditPlantation = () => {
             )}
             <div className="flex justify-end space-x-4">
               <button
-                className="bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                className="bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
                 onClick={handleSave}
               >
                 Tasdiqlash
               </button>
               <button
-                className="bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                className="bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
                 onClick={openModal}
               >
                 Bekor qilish
               </button>
               {isModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                  <div className="bg-white p-6 rounded-md w-96">
-                    <h2 className="text-xl mb-4">Bekor qilish sababi</h2>
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                  <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
+                    <h2 className="text-xl mb-4 text-white">Bekor qilish sababi</h2>
                     <textarea
-                      className="w-full p-2 mb-4 border rounded-md"
+                      className="w-full p-2 mb-4 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
                       value={customReason}
                       onChange={(e) => setCustomReason(e.target.value)}
                       placeholder="Sababni kiriting"
@@ -441,13 +411,13 @@ const EditPlantation = () => {
                     />
                     <div className="flex justify-end space-x-4">
                       <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
                         onClick={handleConfirm}
                       >
                         Tasdiqlash
                       </button>
                       <button
-                        className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
                         onClick={closeModal}
                       >
                         Bekor qilish
@@ -460,8 +430,8 @@ const EditPlantation = () => {
           </div>
         </>
       ) : (
-        <div className="flex justify-center items-center h-full w-full">
-          <p>Плантация топилмади</p>
+        <div className="flex justify-center items-center h-full w-full bg-gray-900">
+          <p className="text-white">Plantatsiya topilmadi</p>
         </div>
       )}
 

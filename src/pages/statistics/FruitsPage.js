@@ -83,55 +83,45 @@ const FruitsPage = () => {
     (acc, curr) => ({
       total_area: (acc.total_area || 0) + curr.total_area,
       outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
-      low_fertility_count:
-        (acc.low_fertility_count || 0) + curr.low_fertility_count,
-      low_fertility_area:
-        (acc.low_fertility_area || 0) + curr.low_fertility_area,
-      high_fertility_count:
-        (acc.high_fertility_count || 0) + curr.high_fertility_count,
-      high_fertility_area:
-        (acc.high_fertility_area || 0) + curr.high_fertility_area,
+      low_fertility_count: (acc.low_fertility_count || 0) + curr.low_fertility_count,
+      low_fertility_area: (acc.low_fertility_area || 0) + curr.low_fertility_area,
+      high_fertility_count: (acc.high_fertility_count || 0) + curr.high_fertility_count,
+      high_fertility_area: (acc.high_fertility_area || 0) + curr.high_fertility_area,
     }),
     {}
   );
 
   const columns = [
     {
-      title: "Meva",
+      title: <span style={{ color: '#e5e7eb' }}>Meva</span>,
       dataIndex: "fruit",
       key: "fruit",
       fixed: "left",
       render: (text, record) => (
-        <span
-          style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-        >
+        <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
           {text}
         </span>
       ),
     },
     {
-      title: "Umumiy maydon",
+      title: <span style={{ color: '#e5e7eb' }}>Umumiy maydon</span>,
       children: [
         {
-          title: "Jami (GA)",
+          title: <span style={{ color: '#e5e7eb' }}>Jami (GA)</span>,
           dataIndex: "total_area",
           key: "total_area",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
         },
         {
-          title: "Eskirgan (GA)",
+          title: <span style={{ color: '#e5e7eb' }}>Eskirgan (GA)</span>,
           dataIndex: "outdated_ga",
           key: "outdated_ga",
           render: (value, record) => (
-            <span
-              style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-            >
+            <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
@@ -139,35 +129,27 @@ const FruitsPage = () => {
       ],
     },
     {
-      title: "Hosildorlik",
+      title: <span style={{ color: '#e5e7eb' }}>Hosildorlik</span>,
       children: [
         {
-          title: "Past",
+          title: <span style={{ color: '#e5e7eb' }}>Past</span>,
           children: [
             {
-              title: "Soni",
+              title: <span style={{ color: '#e5e7eb' }}>Soni</span>,
               dataIndex: "low_fertility_count",
               key: "low_fertility_count",
               render: (value, record) => (
-                <span
-                  style={{
-                    fontWeight: record.key === "total" ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {value}
                 </span>
               ),
             },
             {
-              title: "Maydon",
+              title: <span style={{ color: '#e5e7eb' }}>Maydon</span>,
               dataIndex: "low_fertility_area",
               key: "low_fertility_area",
               render: (value, record) => (
-                <span
-                  style={{
-                    fontWeight: record.key === "total" ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {(value || 0).toFixed(1)}
                 </span>
               ),
@@ -175,32 +157,24 @@ const FruitsPage = () => {
           ],
         },
         {
-          title: "Yuqori",
+          title: <span style={{ color: '#e5e7eb' }}>Yuqori</span>,
           children: [
             {
-              title: "Soni",
+              title: <span style={{ color: '#e5e7eb' }}>Soni</span>,
               dataIndex: "high_fertility_count",
               key: "high_fertility_count",
               render: (value, record) => (
-                <span
-                  style={{
-                    fontWeight: record.key === "total" ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {value}
                 </span>
               ),
             },
             {
-              title: "Maydon",
+              title: <span style={{ color: '#e5e7eb' }}>Maydon</span>,
               dataIndex: "high_fertility_area",
               key: "high_fertility_area",
               render: (value, record) => (
-                <span
-                  style={{
-                    fontWeight: record.key === "total" ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {(value || 0).toFixed(1)}
                 </span>
               ),
@@ -210,14 +184,12 @@ const FruitsPage = () => {
       ],
     },
     {
-      title: "O'rtacha Hosildorlik",
+      title: <span style={{ color: '#e5e7eb' }}>O'rtacha Hosildorlik</span>,
       dataIndex: "avg_fertility_score",
       key: "avg_fertility_score",
       render: (value, record) => (
-        <span
-          style={{ fontWeight: record.key === "total" ? "bold" : "normal" }}
-        >
-          {record.key === "total" ? "-" : (value || 0).toFixed(1)}
+        <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
+          {record.key === "total" ? '-' : (value || 0).toFixed(1)}
         </span>
       ),
     },
@@ -235,19 +207,19 @@ const FruitsPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6">
+      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Mevalar bo'yicha statistika</h1>
+          <h1 className="text-2xl font-bold text-white">Mevalar bo'yicha statistika</h1>
           <Button type="primary" danger onClick={handleResetFilters}>
             Filterni tozalash
           </Button>
         </div>
 
-        <Card className="mb-6">
+        <Card className="mb-6" bodyStyle={{ background: '#1f2937', border: '1px solid #374151' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[16, 16]}>
             <Col span={8}>
               <div className="mb-4">
-                <label className="block mb-2">Viloyatlar</label>
+                <label className="block mb-2 text-gray-200">Viloyatlar</label>
                 <Select
                   mode="multiple"
                   style={{ width: "100%" }}
@@ -271,42 +243,46 @@ const FruitsPage = () => {
         {/* Summary Cards */}
         <Row gutter={16} className="mb-6">
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic
-                title="Jami maydon"
+                title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totals.total_area}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic
-                title="Eskirgan maydon"
+                title={<span style={{ color: '#9ca3af' }}>Eskirgan maydon</span>}
                 value={totals.outdated_ga}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic
-                title="Yuqori hosildor"
+                title={<span style={{ color: '#9ca3af' }}>Yuqori hosildor</span>}
                 value={totals.high_fertility_area}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic
-                title="Past hosildor"
+                title={<span style={{ color: '#9ca3af' }}>Past hosildor</span>}
                 value={totals.low_fertility_area}
                 suffix="GA"
                 precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
@@ -322,6 +298,7 @@ const FruitsPage = () => {
           size="middle"
           pagination={false}
           className="region-statistics-table"
+          style={{ background: '#1f2937', color: '#e5e7eb' }}
         />
       </div>
     </StatisticsLayout>

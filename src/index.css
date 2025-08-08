@@ -393,40 +393,50 @@ code {
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Add these styles to your CSS file */
-.region-statistics-table {
-  .ant-table-cell-fix-left {
-    background-color: #fff !important;
-  }
-  
-  .ant-table-cell-fix-left-last {
-    box-shadow: 6px 0 6px -4px rgba(0,0,0,0.15);
-  }
-
-  .ant-table-row:hover .ant-table-cell {
-    background-color: #f5f5f5 !important;
-  }
-
-  .ant-table-row-level-0:last-child .ant-table-cell {
-    background-color: #fafafa !important;
-    font-weight: bold;
-  }
-
-  .total-row td {
-    background-color: #fafafa !important;
-    font-weight: bold;
-  }
-
-  .test-district-row td {
-    font-weight: normal;
-  }
-
-  /* Fix hover effect */
-  .ant-table-row:hover td {
-    background-color: #f5f5f5 !important;
-  }
-
-  .total-row:hover td {
-    background-color: #fafafa !important;
-  }
+/* Dark theme overrides for AntD tables/selects in statistics pages */
+.region-statistics-table .ant-table,
+.region-statistics-table .ant-table-container,
+.region-statistics-table .ant-table-content {
+  background-color: #1f2937 !important; /* gray-800 */
+  color: #e5e7eb !important; /* gray-200 */
 }
+
+.region-statistics-table .ant-table-thead > tr > th {
+  background-color: #111827 !important; /* gray-900 */
+  color: #e5e7eb !important;
+  border-color: #374151 !important; /* gray-700 */
+}
+
+.region-statistics-table .ant-table-tbody > tr > td {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+  border-color: #374151 !important;
+}
+
+.region-statistics-table .ant-table-tbody > tr:hover > td {
+  background-color: #374151 !important; /* hover */
+}
+
+.region-statistics-table .ant-table-cell-fix-left,
+.region-statistics-table .ant-table-cell-fix-right {
+  background-color: #1f2937 !important;
+}
+
+/* Total row emphasis */
+.region-statistics-table .ant-table-tbody > tr.total-row > td {
+  background-color: #0f172a !important; /* slightly darker */
+  font-weight: 600;
+}
+
+/* AntD Select dark styling within filters */
+.ant-select-selector {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+.ant-select-selection-placeholder { color: #9ca3af !important; }
+.ant-select-arrow { color: #e5e7eb !important; }
+.ant-select-dropdown { background-color: #1f2937 !important; }
+.ant-select-item { color: #e5e7eb !important; }
+.ant-select-item-option-active,
+.ant-select-item-option-selected { background-color: #374151 !important; }
