@@ -139,20 +139,21 @@ const ControllersList = () => {
           </p>
         </div>
         <div className="border-b border-gray-700 mb-6 -mx-6" />
-        <h1 className="text-2xl font-bold mb-6 text-center text-white">Kontrollerlar</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center text-white">Kontrollerlar</h1>
 
-        <div className="mb-4 flex justify-between">
+        {/* Filters */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <input
             type="text"
             placeholder="Qidirish..."
             value={search}
             onChange={handleSearchChange}
-            className="p-2 border rounded-lg bg-gray-800 text-white border-gray-600 placeholder-gray-400"
+            className="w-full sm:w-72 p-2 border rounded-lg bg-gray-800 text-white border-gray-600 placeholder-gray-400"
           />
           <select
             value={region}
             onChange={handleRegionChange}
-            className="p-2 border rounded-lg bg-gray-800 text-white border-gray-600"
+            className="w-full sm:w-56 p-2 border rounded-lg bg-gray-800 text-white border-gray-600"
           >
             <option value="">Barcha regionlar</option>
             {REGION_CHOICES.map((region) => (
@@ -167,36 +168,35 @@ const ControllersList = () => {
           {paginatedControllers.map((controller) => (
             <div
               key={controller.id}
-              className="p-6 border rounded-lg bg-gray-800 border-gray-700 shadow-lg flex items-center justify-between"
+              className="p-4 md:p-6 border rounded-lg bg-gray-800 border-gray-700 shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
-              <div>
-                <p className="font-semibold text-white">{controller.name}</p>
-                <p className="text-gray-300">{controller.email}</p>
-                <p className="text-sm text-gray-400">
+              <div className="min-w-0">
+                <p className="font-semibold text-white break-words">{controller.name}</p>
+                <p className="text-gray-300 break-words">{controller.email}</p>
+                <p className="text-sm text-gray-400 break-words">
                   <span className="font-semibold text-gray-300">Region:</span>{" "}
                   {controller.region}
-                  {controller.districts &&
-                    `, ${controller.districts.join(", ")}`}
+                  {controller.districts && `, ${controller.districts.join(", ")}`}
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400 break-words">
                   <span className="font-semibold text-gray-300">Tizimga kirgan vahti:</span>{" "}
                   {controller.last_login || "Tizimga kirmagan"}
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400 break-words">
                   <span className="font-semibold text-gray-300">KPI: </span>{" "}
                   {controller.kpi_current.points || 0}
                 </p>
               </div>
 
-              <div className="flex justify-end space-x-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end">
                 <button
-                  className="bg-blue-600 hover:bg-blue-700 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md disabled:opacity-50"
                   onClick={openModal}
                 >
                   Baholash
                 </button>
                 <button
-                  className="bg-green-600 hover:bg-green-700 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md disabled:opacity-50"
                   onClick={() => navigate(`/user/${controller.id}`)}
                 >
                   Batafsil
@@ -207,11 +207,11 @@ const ControllersList = () => {
         </div>
 
         {/* Пагинация */}
-        <div className="flex justify-between mt-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
           <button
             disabled={currentPage === 1}
             onClick={handlePrevPage}
-            className={`px-4 py-2 rounded-lg ${
+            className={`w-full sm:w-auto px-4 py-2 rounded-lg ${
               currentPage === 1
                 ? "bg-gray-700 text-gray-400"
                 : "bg-blue-600 text-white hover:bg-blue-700"
@@ -219,13 +219,11 @@ const ControllersList = () => {
           >
             Ortga
           </button>
-          <span className="text-gray-300">
-            Page {currentPage} of {totalPages}
-          </span>
+          <span className="text-gray-300">Page {currentPage} of {totalPages}</span>
           <button
             disabled={currentPage === totalPages}
             onClick={handleNextPage}
-            className={`px-4 py-2 rounded-lg ${
+            className={`w-full sm:w-auto px-4 py-2 rounded-lg ${
               currentPage === totalPages
                 ? "bg-gray-700 text-gray-400"
                 : "bg-blue-600 text-white hover:bg-blue-700"

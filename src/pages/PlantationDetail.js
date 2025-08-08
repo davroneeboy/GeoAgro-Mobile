@@ -105,7 +105,7 @@ const PlantationDetail = () => {
   }, [plantation, initializeMap]);
 
   return (
-    <div className="flex flex-row h-screen bg-gray-900">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-900">
       {loading ? (
         <div className="flex justify-center items-center h-full w-full bg-gray-900">
           <div className="text-center">
@@ -115,10 +115,10 @@ const PlantationDetail = () => {
         </div>
       ) : plantation ? (
         <>
-          <div className="w-1/2 h-full p-4">
+          <div className="w-full md:w-1/2 h-64 md:h-full p-4">
             <div id="map" className="w-full h-full border border-gray-600 rounded-lg"></div>
           </div>
-          <div className="w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
+          <div className="w-full md:w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
             {/* Кнопка закрытия */}
             <button
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
@@ -135,7 +135,7 @@ const PlantationDetail = () => {
             <h1 className="text-3xl font-bold mb-4 pr-12 text-white">
               {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
             </h1>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yer turi:</p>
                 <p className="text-white">{landTypeMapping[plantation.land_type]}</p>
@@ -290,7 +290,7 @@ const PlantationDetail = () => {
             {plantation.images?.length > 0 && (
               <div className="mt-6 bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3 text-white">Galereya:</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {plantation.images.map((img, idx) => (
                     <img
                       key={idx}
@@ -303,10 +303,10 @@ const PlantationDetail = () => {
                 </div>
               </div>
             )}
-
+ 
             <div className="flex justify-end space-x-4 mt-6">
               <button
-                className="py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                className="w-full sm:w-auto py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                 onClick={() => navigate(`/plantations/edit/${plantation.id}`)}
               >
                 Tahrirlash

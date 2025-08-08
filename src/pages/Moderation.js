@@ -205,12 +205,6 @@ const Moderation = () => {
             </div>
           </div>
           <div className="flex space-x-2">
-            <button className="px-2 py-1 border border-gray-600 text-white rounded text-xs flex items-center">
-              <svg className="w-3 h-3 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Ko'rish
-            </button>
             <button 
               onClick={handleLogout}
               className="px-2 py-1 bg-green-500 text-white rounded text-xs flex items-center"
@@ -340,7 +334,7 @@ const Moderation = () => {
             </h1>
 
             {/* Фильтры */}
-            <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex flex-wrap gap-3 mb-6">
               <button
                 className="px-4 py-2 rounded-lg border border-gray-600 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                 onClick={handleResetFilters}
@@ -453,7 +447,7 @@ const Moderation = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     {/* Основная информация */}
                     <div className="space-y-3">
                       <div className="flex items-center">
@@ -685,7 +679,7 @@ const Moderation = () => {
                 Ko'rsatish uchun ma'lumot yo'q
               </div>
             )}
-            {moderations.slice(0, 5).map((plantation) => (
+            {moderations.map((plantation) => (
               <div
                 key={plantation.id}
                 className="p-4 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
@@ -695,7 +689,7 @@ const Moderation = () => {
                 }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white font-medium">{plantation.name}</h3>
+                  <h3 className="text-white font-medium truncate pr-2">{plantation.name}</h3>
                   {plantation.action === "Обновленный" && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-900 text-blue-200">
                       Yangilangan
@@ -712,9 +706,29 @@ const Moderation = () => {
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-300 space-y-1">
-                  <div>Maydon: {plantation.area}</div>
-                  <div>Region: {plantation.region}</div>
+                <div className="text-sm text-gray-300 space-y-2">
+                  <div className="flex items-center">
+                    <span className="text-gray-200 mr-2">Plantatsiya turi:</span>
+                    <span className="bg-gray-600 px-2 py-0.5 rounded-md text-gray-100">
+                      {landTypeMapping[plantation.type]}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-200 mr-2">Maydon:</span>
+                    <span className="font-semibold text-blue-400">{plantation.area}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-200 mr-2">Region:</span>
+                    <span className="text-gray-100 truncate">{plantation.region}</span>
+                  </div>
+                  {plantation.createdAt && (
+                    <div className="flex items-center text-xs text-gray-300 pt-2 border-t border-gray-600">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Qo'shilgan: {new Date(plantation.createdAt).toLocaleString("ru-RU")}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

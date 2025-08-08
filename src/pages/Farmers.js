@@ -39,20 +39,63 @@ const Farmers = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching farmers from:", `${API_BASE_URL2}api/farmers/?page=${page}&search=${debouncedSearch}`);
-        const response = await axios.get(
-          `${API_BASE_URL2}api/farmers/?page=${page}&search=${debouncedSearch}`
-        );
+
+        const digitsOnly = (debouncedSearch || "").replace(/\D/g, "");
+        const isNumericSearch = debouncedSearch.length > 0 && digitsOnly.length === debouncedSearch.length;
+        const PAGE_SIZE = 20;
+
+        const params = new URLSearchParams();
+        params.set("page", String(page));
+        if (debouncedSearch && !isNumericSearch) params.set("search", debouncedSearch);
+        if (isNumericSearch && digitsOnly.length === 9) params.set("inn", digitsOnly);
+
+        let url = `${API_BASE_URL2}api/farmers/?${params.toString()}`;
+        console.log("Fetching farmers from:", url);
+        let response = await axios.get(url);
         console.log("Farmers response:", response.data);
+
+        let results = response.data.results || [];
+
+        // Если частичный ИНН (<9), собираем несколько страниц и фильтруем локально
+        if (isNumericSearch && digitsOnly.length > 0 && digitsOnly.length < 9) {
+          const aggregated = [...results];
+          // Попробуем выкачать до 10 страниц (200 записей максимум) или пока страница короче PAGE_SIZE
+          for (let p = 2; p <= 10; p += 1) {
+            const pageUrl = `${API_BASE_URL2}api/farmers/?page=${p}`;
+            console.log("Aggregating page for partial INN:", pageUrl);
+            const pageResp = await axios.get(pageUrl);
+            const pageResults = pageResp.data.results || [];
+            aggregated.push(...pageResults);
+            if (pageResults.length < PAGE_SIZE) break;
+          }
+          results = aggregated;
+        }
         
-        // Форматируем номера телефонов в полученных данных
-        const formattedFarmers = (response.data.results || []).map(farmer => ({
+        // Форматируем номера телефонов
+        const formattedFarmers = results.map(farmer => ({
           ...farmer,
           phone_number: formatPhoneNumber(farmer.phone_number)
         }));
         
-        setFarmers(formattedFarmers);
-        setTotalPages(Math.ceil((response.data.count || 0) / 20));
+        // Клиентская фильтрация по частичному ИНН
+        const clientFiltered = (isNumericSearch && digitsOnly.length > 0)
+          ? formattedFarmers.filter(f => (String(f.inn || "").replace(/\D/g, "")).includes(digitsOnly))
+          : formattedFarmers;
+
+        // Клиентская пагинация для частичного ИНН
+        if (isNumericSearch && digitsOnly.length > 0 && digitsOnly.length < 9) {
+          const total = clientFiltered.length;
+          setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+          const start = (page - 1) * PAGE_SIZE;
+          const end = start + PAGE_SIZE;
+          setFarmers(clientFiltered.slice(start, end));
+          return;
+        }
+        
+        setFarmers(clientFiltered);
+        const serverCount = response.data.count || clientFiltered.length;
+        const effectiveCount = (isNumericSearch && digitsOnly.length > 0) ? clientFiltered.length : serverCount;
+        setTotalPages(Math.max(1, Math.ceil(effectiveCount / PAGE_SIZE)));
       } catch (error) {
         console.error("Error fetching farmers:", error);
         console.error("Error details:", error.response?.data || error.message);
@@ -64,23 +107,28 @@ const Farmers = () => {
     [debouncedSearch]
   );
 
-  // Debounce search input
+  // Debounce search input (быстрее)
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 2000);
+      setDebouncedSearch(search.trim());
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Сбрасывать на первую страницу при изменении поискового запроса
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     fetchFarmers(currentPage);
   }, [currentPage, fetchFarmers]);
 
-  // Fallback to test data if API is not available
+  // Fallback to test data if API is not available (только когда нет активного поиска)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (loading && farmers.length === 0) {
+      if (loading && farmers.length === 0 && !debouncedSearch) {
         console.log("API timeout, loading test data");
         const testFarmers = [
           {
@@ -148,7 +196,7 @@ const Farmers = () => {
     }, 5000); // 5 second timeout
 
     return () => clearTimeout(timeoutId);
-  }, [loading, farmers.length]);
+  }, [loading, farmers.length, debouncedSearch]);
 
   const handleEdit = (id) => {
     navigate(`/farmers/${id}`);
@@ -268,21 +316,22 @@ const Farmers = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">
             Fermerlar ro'yxati
           </h2>
-          <div className="flex space-x-4">
+          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               placeholder="Qidirish..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-800 text-white border-gray-600 placeholder-gray-400"
+              onKeyDown={(e) => { if (e.key === 'Enter') setDebouncedSearch(search.trim()); }}
+              className="w-full sm:w-72 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-800 text-white border-gray-600 placeholder-gray-400"
             />
             <button
               onClick={() => navigate("/farmers/new")}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center"
+              className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"
             >
               <span className="mr-2">+</span>
               Yangi fermer
@@ -290,7 +339,7 @@ const Farmers = () => {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700 hidden md:block">
           <div className="overflow-x-auto max-w-full">
             <table className="w-full divide-y divide-gray-700 table-fixed min-w-[800px]">
               <thead className="bg-gray-700">
@@ -377,6 +426,43 @@ const Farmers = () => {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          {farmers.length === 0 ? (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center text-gray-400">
+              Fermerlar topilmadi
+            </div>
+          ) : (
+            farmers.map((farmer) => (
+              <div key={farmer.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold break-words">{farmer.name}</p>
+                    <p className="text-gray-300 text-sm break-words mt-1">INN: <span className="text-gray-200">{farmer.inn || '—'}</span></p>
+                    <p className="text-gray-300 text-sm break-words">Direktor: <span className="text-gray-200">{farmer.director_name || '—'}</span></p>
+                    <p className="text-gray-300 text-sm break-words">Tel: <span className="text-gray-200">{farmer.phone_number || '—'}</span></p>
+                    <p className="text-gray-400 text-xs break-words mt-1">{farmer.address}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <button
+                      onClick={() => handleEdit(farmer.id)}
+                      className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors"
+                    >
+                      Tahrirlash
+                    </button>
+                    <button
+                      onClick={() => handleDelete(farmer.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors"
+                    >
+                      O'chirish
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Pagination */}
