@@ -47,12 +47,13 @@ const formatUserLocation = (user) => {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { authState } = useContext(AuthContext);
+  const { authState, logout } = useContext(AuthContext);
   const [controllers, setControllers] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    logout();
     navigate("/");
   };
 

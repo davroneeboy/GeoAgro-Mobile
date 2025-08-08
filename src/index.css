@@ -440,3 +440,28 @@ code {
 .ant-select-item { color: #e5e7eb !important; }
 .ant-select-item-option-active,
 .ant-select-item-option-selected { background-color: #374151 !important; }
+
+/* AntD Select tags visibility on dark (multiple mode) */
+.ant-select-multiple .ant-select-selection-item {
+  background-color: #374151 !important; /* gray-700 */
+  border: 1px solid #4b5563 !important;  /* gray-600 */
+  color: #e5e7eb !important;            /* gray-200 */
+}
+.ant-select-multiple .ant-select-selection-item-content {
+  color: #e5e7eb !important;
+}
+.ant-select-multiple .ant-select-selection-item-remove,
+.ant-select-multiple .ant-select-selection-item-remove .anticon {
+  color: #9ca3af !important;            /* gray-400 */
+}
+.ant-select-multiple .ant-select-selection-item-remove:hover,
+.ant-select-multiple .ant-select-selection-item-remove:hover .anticon {
+  color: #e5e7eb !important;            /* gray-200 */
+}
+/* Clear (x) icon in input */
+.ant-select .ant-select-clear {
+  color: #9ca3af !important;
+}
+.ant-select .ant-select-clear:hover {
+  color: #e5e7eb !important;
+}
