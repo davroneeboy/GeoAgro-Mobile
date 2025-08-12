@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { useMapsHook } from "./mapsHook";
 import L from "leaflet"; // Для работы с координатами на карте
 import { API_BASE_URL2 } from "../config";
@@ -327,12 +327,7 @@ export default function MapContainer() {
         {/* Правая панель */}
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
           <div className="space-y-4">
-            <Link
-              to="/contacts"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-            >
-              Kontaktlar
-            </Link>
+            {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
             <button
               onClick={handleLogout}
               className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"

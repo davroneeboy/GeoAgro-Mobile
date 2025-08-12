@@ -249,13 +249,7 @@ const Moderation = () => {
             >
               Fermerlar
             </Link>
-            <Link
-              to="/contacts"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Kontaktlar
-            </Link>
+            {/* Kontaktlar перенесены в компактную панель */}
             <Link
               to="/moderation"
               className="block w-full bg-green-500 text-white py-2 rounded-lg font-medium text-center hover:bg-green-600 transition-colors"
@@ -573,12 +567,7 @@ const Moderation = () => {
         {/* Правая панель */}
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg h-screen flex flex-col">
           <div className="space-y-4 flex-1 overflow-y-auto">
-            <Link
-              to="/contacts"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-            >
-              Kontaktlar
-            </Link>
+            {/* Kontaktlar перенесены в компактную панель */}
             <button
               onClick={handleLogout}
               className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"

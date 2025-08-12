@@ -4,6 +4,7 @@ import { API_BASE_URL1, API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import NotificationsPanel from "../components/NotificationsPanel";
+import ContactsPanel from "../components/ContactsPanel";
 import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -212,6 +213,7 @@ const HomePage = () => {
               Chiqish
             </button>
             <NotificationsPanel />
+            <ContactsPanel />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
@@ -247,13 +249,7 @@ const HomePage = () => {
             >
               Fermerlar
             </Link>
-            <Link
-              to="/contacts"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Kontaktlar
-            </Link>
+            {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
             <Link
               to="/moderation"
               className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
@@ -358,7 +354,10 @@ const HomePage = () => {
           <div className="p-4 sm:p-6">
             <h1 className="text-white text-3xl font-bold mb-2 flex items-center justify-between">
               <span>Qishloq xo'jaligi statistikasi</span>
-              <NotificationsPanel />
+              <div className="flex items-center gap-2">
+                <ContactsPanel buttonClassName="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors" label="Kontaktlar" />
+                <NotificationsPanel />
+              </div>
             </h1>
             <p className="text-sm text-gray-400 mb-6">
               Tizimga kirgan foydalanuvchi: <span className="text-gray-200 font-semibold">{authState?.username || "Noma'lum foydalanuvchi"}</span>
@@ -438,12 +437,7 @@ const HomePage = () => {
         {/* Правая панель */}
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
           <div className="space-y-4">
-            <Link
-              to="/contacts"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-            >
-              Kontaktlar
-            </Link>
+            {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
             <button
               onClick={handleLogout}
               className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"

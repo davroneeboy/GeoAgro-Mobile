@@ -4,7 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ControllersList from "./pages/ControllersList";
-import Contacts from "./pages/Contacts";
+// import Contacts from "./pages/Contacts";
 import Moderation from "./pages/Moderation";
 import MapContainer from "./pages/mapContainer";
 import PlantationDetail from "./pages/PlantationDetail";
@@ -39,14 +39,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/contacts"
-          element={
-            <ProtectedRoute>
-              <Contacts />
-            </ProtectedRoute>
-          }
-        />
+        {/* Контакты больше не отдельная страница; удалено */}
         <Route
           path="/moderation"
           element={
