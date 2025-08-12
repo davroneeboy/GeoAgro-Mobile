@@ -18,6 +18,7 @@ const REGION_NAMES = {
   10: "Sirdarya",
   11: "Surkhandarya",
   12: "Karakalpakstan",
+  13: "Xorazm",
 };
 
 const FruitsPage = () => {
@@ -27,6 +28,7 @@ const FruitsPage = () => {
   const [filters, setFilters] = useState({
     regions: [],
   });
+  const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,10 +63,10 @@ const FruitsPage = () => {
     setFilters({
       regions: [],
     });
+    setSortConfig({ field: null, order: 'ascend' });
   };
 
-  if (error) return <Alert message={error} type="error" />;
-
+  // Transform to table rows
   const tableData = Object.entries(statistics || {}).map(([fruit, data]) => ({
     key: fruit,
     fruit,
@@ -77,6 +79,47 @@ const FruitsPage = () => {
     avg_fertility_score: data.avg_fertility_score || 0,
     regions: data.regions || {},
   }));
+
+  // Sorted data
+  const sortedTableData = React.useMemo(() => {
+    if (!sortConfig?.field) return tableData;
+    const collator = new Intl.Collator('ru', { sensitivity: 'base' });
+    const getVal = (row) => {
+      switch (sortConfig.field) {
+        case 'fruit':
+          return row.fruit || '';
+        case 'total_area':
+          return Number(row.total_area || 0);
+        case 'outdated_ga':
+          return Number(row.outdated_ga || 0);
+        case 'low_fertility_count':
+          return Number(row.low_fertility_count || 0);
+        case 'low_fertility_area':
+          return Number(row.low_fertility_area || 0);
+        case 'high_fertility_count':
+          return Number(row.high_fertility_count || 0);
+        case 'high_fertility_area':
+          return Number(row.high_fertility_area || 0);
+        case 'avg_fertility_score':
+          return Number(row.avg_fertility_score || 0);
+        default:
+          return '';
+      }
+    };
+    const rows = [...tableData];
+    rows.sort((a, b) => {
+      const aVal = getVal(a);
+      const bVal = getVal(b);
+      let res;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        res = aVal - bVal;
+      } else {
+        res = collator.compare(String(aVal ?? ''), String(bVal ?? ''));
+      }
+      return sortConfig.order === 'descend' ? -res : res;
+    });
+    return rows;
+  }, [tableData, sortConfig]);
 
   // Calculate totals
   const totals = tableData.reduce(
@@ -97,6 +140,8 @@ const FruitsPage = () => {
       dataIndex: "fruit",
       key: "fruit",
       fixed: "left",
+      sorter: true,
+      sortOrder: sortConfig.field === 'fruit' ? sortConfig.order : null,
       render: (text, record) => (
         <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
           {text}
@@ -110,6 +155,8 @@ const FruitsPage = () => {
           title: <span style={{ color: '#e5e7eb' }}>Jami (GA)</span>,
           dataIndex: "total_area",
           key: "total_area",
+          sorter: true,
+          sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
               {(value || 0).toFixed(1)}
@@ -120,6 +167,8 @@ const FruitsPage = () => {
           title: <span style={{ color: '#e5e7eb' }}>Eskirgan (GA)</span>,
           dataIndex: "outdated_ga",
           key: "outdated_ga",
+          sorter: true,
+          sortOrder: sortConfig.field === 'outdated_ga' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
               {(value || 0).toFixed(1)}
@@ -138,6 +187,8 @@ const FruitsPage = () => {
               title: <span style={{ color: '#e5e7eb' }}>Soni</span>,
               dataIndex: "low_fertility_count",
               key: "low_fertility_count",
+              sorter: true,
+              sortOrder: sortConfig.field === 'low_fertility_count' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {value}
@@ -148,6 +199,8 @@ const FruitsPage = () => {
               title: <span style={{ color: '#e5e7eb' }}>Maydon</span>,
               dataIndex: "low_fertility_area",
               key: "low_fertility_area",
+              sorter: true,
+              sortOrder: sortConfig.field === 'low_fertility_area' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {(value || 0).toFixed(1)}
@@ -163,6 +216,8 @@ const FruitsPage = () => {
               title: <span style={{ color: '#e5e7eb' }}>Soni</span>,
               dataIndex: "high_fertility_count",
               key: "high_fertility_count",
+              sorter: true,
+              sortOrder: sortConfig.field === 'high_fertility_count' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {value}
@@ -173,6 +228,8 @@ const FruitsPage = () => {
               title: <span style={{ color: '#e5e7eb' }}>Maydon</span>,
               dataIndex: "high_fertility_area",
               key: "high_fertility_area",
+              sorter: true,
+              sortOrder: sortConfig.field === 'high_fertility_area' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
                   {(value || 0).toFixed(1)}
@@ -187,6 +244,8 @@ const FruitsPage = () => {
       title: <span style={{ color: '#e5e7eb' }}>O'rtacha Hosildorlik</span>,
       dataIndex: "avg_fertility_score",
       key: "avg_fertility_score",
+      sorter: true,
+      sortOrder: sortConfig.field === 'avg_fertility_score' ? sortConfig.order : null,
       render: (value, record) => (
         <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
           {record.key === "total" ? '-' : (value || 0).toFixed(1)}
@@ -195,7 +254,7 @@ const FruitsPage = () => {
     },
   ];
 
-  // Add total row
+  // Total row
   const totalRow = {
     key: "total",
     fruit: "Jami",
@@ -203,7 +262,7 @@ const FruitsPage = () => {
     avg_fertility_score: "-",
   };
 
-  const dataWithTotal = [...tableData, totalRow];
+  const dataWithTotal = [...sortedTableData, totalRow];
 
   return (
     <StatisticsLayout>
@@ -214,6 +273,16 @@ const FruitsPage = () => {
             Filterni tozalash
           </Button>
         </div>
+
+        {error && (
+          <Alert
+            message="Xatolik"
+            description={error}
+            type="error"
+            className="mb-4"
+            showIcon
+          />
+        )}
 
         <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', border: '1px solid #374151', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[12, 12]}>
@@ -234,6 +303,27 @@ const FruitsPage = () => {
                       {name}
                     </Option>
                   ))}
+                </Select>
+              </div>
+            </Col>
+            <Col xs={24} md={8}>
+              <div className="mb-2 sm:mb-4">
+                <label className="block mb-2 text-gray-200">Saralash ustuni</label>
+                <Select
+                  allowClear
+                  style={{ width: "100%" }}
+                  placeholder="Ustunni tanlang"
+                  value={sortConfig.field}
+                  onChange={(value) => setSortConfig((prev) => ({ ...prev, field: value || null }))}
+                >
+                  <Option value="fruit">Meva</Option>
+                  <Option value="total_area">Jami (GA)</Option>
+                  <Option value="outdated_ga">Eskirgan (GA)</Option>
+                  <Option value="low_fertility_count">Past hosildor – Soni</Option>
+                  <Option value="low_fertility_area">Past hosildor – Maydon</Option>
+                  <Option value="high_fertility_count">Yuqori hosildor – Soni</Option>
+                  <Option value="high_fertility_area">Yuqori hosildor – Maydon</Option>
+                  <Option value="avg_fertility_score">O'rtacha hosildorlik</Option>
                 </Select>
               </div>
             </Col>
@@ -294,6 +384,16 @@ const FruitsPage = () => {
             loading={loading}
             columns={columns}
             dataSource={dataWithTotal}
+            onChange={(_, __, sorter) => {
+              const s = Array.isArray(sorter) ? sorter[0] : sorter;
+              const order = s?.order || null;
+              const fieldKey = s?.columnKey || null;
+              if (!order || !fieldKey) {
+                setSortConfig({ field: null, order: 'ascend' });
+              } else {
+                setSortConfig({ field: fieldKey, order });
+              }
+            }}
             scroll={{ x: "max-content" }}
             bordered
             size="small"

@@ -28,6 +28,7 @@ const REGION_NAMES = {
   10: "Sirdarya",
   11: "Surkhandarya",
   12: "Karakalpakstan",
+  13: "Xorazm",
 };
 
 const ControllersPage = () => {
@@ -39,6 +40,7 @@ const ControllersPage = () => {
   const [filters, setFilters] = useState({
     regions: [],
   });
+  const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,7 +91,7 @@ const ControllersPage = () => {
     });
   };
 
-  if (error) return <Alert message={error} type="error" />;
+  // Error alert will be rendered inside the layout below
 
   // API возвращает массив пользователей; соберём строки таблицы напрямую
   const tableData = (Array.isArray(statistics) ? statistics : []).map((user, idx) => ({
@@ -115,11 +117,101 @@ const ControllersPage = () => {
 
   const textLight = { color: '#e5e7eb' };
 
+  const mapRegion = (value) => {
+    if (value == null) return "—";
+    const num = Number(value);
+    return Number.isFinite(num) && REGION_NAMES[num]
+      ? REGION_NAMES[num]
+      : (REGION_NAMES[value] || String(value));
+  };
+
+  const formatDistricts = (listLike) => {
+    if (listLike == null) return '—';
+    const list = Array.isArray(listLike) ? listLike : [listLike];
+    const normalized = list
+      .map((d) => {
+        if (d == null) return '';
+        if (typeof d === 'string') return d.trim();
+        if (typeof d === 'number') return String(d);
+        if (typeof d === 'object') {
+          return d.name || d.title || d.label || d.district || d.district_name || String(d.id ?? '');
+        }
+        return '';
+      })
+      .map((s) => s?.trim())
+      .filter(Boolean);
+    return normalized.join(', ') || '—';
+  };
+
+  const extractDistrictNames = (record) => {
+    const raw =
+      record?.districts ??
+      record?.district ??
+      record?.location?.districts ??
+      record?.location?.district ??
+      record?.district_names ??
+      record?.location?.district_name ??
+      record?.location?.districts_names ??
+      null;
+
+    if (typeof raw === 'string' && raw.includes(',')) {
+      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return raw;
+  };
+  const sortedTableData = React.useMemo(() => {
+    if (!sortConfig?.field) return tableData;
+    const collator = new Intl.Collator('ru', { sensitivity: 'base' });
+    const getVal = (record) => {
+      switch (sortConfig.field) {
+        case 'full_name':
+          return `${record.first_name || ''} ${record.last_name || ''}`.trim();
+        case 'username':
+          return record.username || '';
+        case 'phone':
+          return record.phone_number || '';
+        case 'region':
+          return mapRegion(record.region ?? record.location?.region) || '';
+        case 'districts':
+          return formatDistricts(extractDistrictNames(record)) || '';
+        case 'total_plantations':
+          return Number(record.plantations_stats?.total || 0);
+        case 'approved_plantations':
+          return Number(record.plantations_stats?.approved || 0);
+        case 'rejected_plantations':
+          return Number(record.plantations_stats?.rejected || 0);
+        case 'kpi_points':
+          return Number(record.kpi_current?.points || 0);
+        case 'kpi_amount':
+          return Number(record.kpi_current?.amount || 0);
+        default:
+          return '';
+      }
+    };
+    const rows = [...tableData];
+    rows.sort((a, b) => {
+      const aRaw = getVal(a);
+      const bRaw = getVal(b);
+      let res;
+      if (typeof aRaw === 'number' && typeof bRaw === 'number') {
+        res = aRaw - bRaw;
+      } else {
+        const aKey = (aRaw ?? '').toString();
+        const bKey = (bRaw ?? '').toString();
+        res = collator.compare(aKey, bKey);
+      }
+      return sortConfig.order === 'descend' ? -res : res;
+    });
+    return rows;
+  }, [tableData, sortConfig]);
+
   const columns = [
     {
       title: <span style={textLight}>F.I.Sh</span>,
       dataIndex: "full_name",
       key: "full_name",
+      sorter: true,
+      sortOrder: sortConfig.field === 'full_name' ? sortConfig.order : null,
       render: (_value, record) => (
         <span style={textLight}>{`${record.first_name || ""} ${record.last_name || ""}`}</span>
       ),
@@ -128,13 +220,36 @@ const ControllersPage = () => {
       title: <span style={textLight}>Login</span>,
       dataIndex: "username",
       key: "username",
+      sorter: true,
+      sortOrder: sortConfig.field === 'username' ? sortConfig.order : null,
       render: (value) => <span style={textLight}>{value}</span>,
     },
     {
       title: <span style={textLight}>Telefon raqami</span>,
       dataIndex: "phone_number",
       key: "phone",
+      sorter: true,
+      sortOrder: sortConfig.field === 'phone' ? sortConfig.order : null,
       render: (value) => <span style={textLight}>{value}</span>,
+    },
+    {
+      title: <span style={textLight}>Region</span>,
+      key: "region",
+      sorter: true,
+      sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
+      render: (_v, record) => (
+        <span style={textLight}>{mapRegion(record.region ?? record.location?.region)}</span>
+      ),
+    },
+    {
+      title: <span style={textLight}>Tumanlar</span>,
+      key: "districts",
+      sorter: true,
+      sortOrder: sortConfig.field === 'districts' ? sortConfig.order : null,
+      render: (_v, record) => {
+        const list = extractDistrictNames(record);
+        return <span style={textLight}>{formatDistricts(list)}</span>;
+      },
     },
     {
       title: <span style={textLight}>Plantatsiyalar</span>,
@@ -143,18 +258,24 @@ const ControllersPage = () => {
           title: <span style={textLight}>Umumiy</span>,
           dataIndex: ["plantations_stats", "total"],
           key: "total_plantations",
+          sorter: true,
+          sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
         {
           title: <span style={textLight}>Tasdiqlangan</span>,
           dataIndex: ["plantations_stats", "approved"],
           key: "approved_plantations",
+          sorter: true,
+          sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
         {
           title: <span style={textLight}>Rad etilgan</span>,
           dataIndex: ["plantations_stats", "rejected"],
           key: "rejected_plantations",
+          sorter: true,
+          sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
       ],
@@ -166,12 +287,16 @@ const ControllersPage = () => {
           title: <span style={textLight}>Ballar</span>,
           dataIndex: ["kpi_current", "points"],
           key: "kpi_points",
+          sorter: true,
+          sortOrder: sortConfig.field === 'kpi_points' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{(value || 0).toFixed(1)}</span>,
         },
         {
           title: <span style={textLight}>Summa</span>,
           dataIndex: ["kpi_current", "amount"],
           key: "kpi_amount",
+          sorter: true,
+          sortOrder: sortConfig.field === 'kpi_amount' ? sortConfig.order : null,
           render: (value) => (
             <span style={textLight}>{value?.toLocaleString() || 0}</span>
           ),
@@ -195,7 +320,7 @@ const ControllersPage = () => {
     },
   };
 
-  const dataWithTotal = [...tableData, totalRow];
+  const dataWithTotal = [...sortedTableData, totalRow];
 
   // Show loading state
   if (loading) {
@@ -223,6 +348,16 @@ const ControllersPage = () => {
           </Button>
         </div>
 
+        {error && (
+          <Alert
+            message="Xatolik"
+            description={error}
+            type="error"
+            className="mb-4"
+            showIcon
+          />
+        )}
+
         <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[12, 12]}>
             <Col xs={24} md={8}>
@@ -242,6 +377,29 @@ const ControllersPage = () => {
                       {name}
                     </Option>
                   ))}
+                </Select>
+              </div>
+            </Col>
+            <Col xs={24} md={8}>
+              <div className="mb-2 sm:mb-4">
+                <label className="block mb-2 text-gray-200">Saralash ustuni</label>
+                <Select
+                  allowClear
+                  style={{ width: "100%" }}
+                  placeholder="Ustunni tanlang"
+                  value={sortConfig.field}
+                  onChange={(value) => setSortConfig((prev) => ({ ...prev, field: value || null }))}
+                >
+                  <Option value="full_name">F.I.Sh</Option>
+                  <Option value="username">Login</Option>
+                  <Option value="phone">Telefon raqami</Option>
+                  <Option value="region">Region</Option>
+                  <Option value="districts">Tumanlar</Option>
+                  <Option value="total_plantations">Plantatsiyalar — Umumiy</Option>
+                  <Option value="approved_plantations">Plantatsiyalar — Tasdiqlangan</Option>
+                  <Option value="rejected_plantations">Plantatsiyalar — Rad etilgan</Option>
+                  <Option value="kpi_points">KPI — Ballar</Option>
+                  <Option value="kpi_amount">KPI — Summa</Option>
                 </Select>
               </div>
             </Col>
@@ -299,6 +457,16 @@ const ControllersPage = () => {
             loading={loading}
             columns={columns}
             dataSource={dataWithTotal}
+            onChange={(_, __, sorter) => {
+              const s = Array.isArray(sorter) ? sorter[0] : sorter;
+              const order = s?.order || null;
+              const fieldKey = s?.columnKey || null;
+              if (!order || !fieldKey) {
+                setSortConfig({ field: null, order: 'ascend' });
+              } else {
+                setSortConfig({ field: fieldKey, order });
+              }
+            }}
             scroll={{ x: "max-content" }}
             bordered
             size="small"
