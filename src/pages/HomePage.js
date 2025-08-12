@@ -187,7 +187,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Мобильное меню */}
-      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700">
+      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
@@ -201,8 +201,8 @@ const HomePage = () => {
               </p>
             </div>
           </div>
-          <div className="flex space-x-2">
-            <button 
+          <div className="flex items-center space-x-2">
+                        <button
               onClick={handleLogout}
               className="px-2 py-1 bg-green-500 text-white rounded text-xs flex items-center"
             >
@@ -211,6 +211,7 @@ const HomePage = () => {
               </svg>
               Chiqish
             </button>
+            <NotificationsPanel />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
@@ -272,7 +273,7 @@ const HomePage = () => {
       </div>
 
       {/* Десктопная версия */}
-      <div className="hidden lg:flex h-screen">
+      <div className="hidden lg:flex min-h-screen">
         {/* Левая панель */}
         <div className="w-1/4 p-4 border-r border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
           <div className="flex justify-start items-center mb-5">
@@ -354,7 +355,7 @@ const HomePage = () => {
 
         {/* Центральная панель */}
         <div className="flex-1 bg-gray-900 flex flex-col">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <h1 className="text-white text-3xl font-bold mb-2 flex items-center justify-between">
               <span>Qishloq xo'jaligi statistikasi</span>
               <NotificationsPanel />
@@ -391,7 +392,7 @@ const HomePage = () => {
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">
                       Plantatsiya turlari
                     </h3>
-                    <div className="h-80">
+                    <div className="h-72 sm:h-80">
                       <Pie data={plantationTypesData} options={pieChartOptions} />
                     </div>
                   </div>
@@ -399,7 +400,7 @@ const HomePage = () => {
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">
                       Maydonlar
                     </h3>
-                    <div className="h-80">
+                    <div className="h-72 sm:h-80">
                       <Pie data={areasData} options={pieChartOptions} />
                     </div>
                   </div>

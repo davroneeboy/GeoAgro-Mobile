@@ -285,7 +285,7 @@ const Farmers = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="bg-gray-800 shadow-lg border-b border-gray-700">
+      <div className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div 
@@ -320,7 +320,7 @@ const Farmers = () => {
           <h2 className="text-xl sm:text-2xl font-bold text-white">
             Fermerlar ro'yxati
           </h2>
-          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 sticky top-[64px] z-10 bg-gray-900/80 backdrop-blur-md p-3 md:p-0 md:bg-transparent">
             <input
               type="text"
               placeholder="Qidirish..."
@@ -339,9 +339,9 @@ const Farmers = () => {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700 hidden md:block">
+        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700 hidden md:block text-gray-200">
           <div className="overflow-x-auto max-w-full">
-            <table className="w-full divide-y divide-gray-700 table-fixed min-w-[800px]">
+            <table className="w-full divide-y divide-gray-700 table-fixed min-w-[900px]">
               <thead className="bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/8">
@@ -429,7 +429,7 @@ const Farmers = () => {
         </div>
 
         {/* Mobile cards */}
-        <div className="md:hidden space-y-3">
+        <div className="md:hidden space-y-3 pb-24">
           {farmers.length === 0 ? (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center text-gray-400">
               Fermerlar topilmadi
@@ -468,13 +468,13 @@ const Farmers = () => {
         {/* Pagination */}
         <div className="mt-6 flex justify-center">
           <nav
-            className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            className="fixed md:static bottom-0 left-0 right-0 md:relative z-20 inline-flex rounded-none md:rounded-md shadow-2xl md:shadow-sm md:-space-x-px bg-gray-900/95 md:bg-transparent backdrop-blur md:backdrop-blur-0 border-t border-gray-700 md:border-0 px-3 py-2 md:p-0"
             aria-label="Pagination"
           >
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+              className="relative inline-flex items-center px-4 py-2 md:rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
             >
               Oldingi
             </button>
@@ -486,7 +486,7 @@ const Farmers = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+              className="relative inline-flex items-center px-4 py-2 md:rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
             >
               Keyingi
             </button>

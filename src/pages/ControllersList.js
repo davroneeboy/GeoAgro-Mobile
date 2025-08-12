@@ -123,22 +123,26 @@ const ControllersList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div 
-          className="flex justify-start items-center mb-6 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => navigate("/")}
-        >
-          <img
-            className="h-16 w-auto mr-4"
-            src={uzbekistanEmblem}
-            alt="O'zbekiston gerbi"
-          />
-          <p className="text-start font-extrabold text-white max-w-64">
-            Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish agentligi
-          </p>
+    <div className="min-h-screen bg-gray-900">
+      <div className="bg-gray-800 shadow-lg p-4 border-b border-gray-700 sticky top-0 z-20">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div
+            className="flex justify-start items-center cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate("/")}
+          >
+            <img
+              className="h-16 w-auto mr-4"
+              src={uzbekistanEmblem}
+              alt="O'zbekiston gerbi"
+            />
+            <p className="text-start font-extrabold text-white max-w-64">
+              Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish agentligi
+            </p>
+          </div>
         </div>
-        <div className="border-b border-gray-700 mb-6 -mx-6" />
+      </div>
+
+      <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center text-white">Kontrollerlar</h1>
 
         {/* Filters */}
@@ -164,7 +168,7 @@ const ControllersList = () => {
           </select>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {paginatedControllers.map((controller) => (
             <div
               key={controller.id}
@@ -207,7 +211,7 @@ const ControllersList = () => {
         </div>
 
         {/* Пагинация */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 sm:mt-6">
           <button
             disabled={currentPage === 1}
             onClick={handlePrevPage}
@@ -233,6 +237,7 @@ const ControllersList = () => {
           </button>
         </div>
       </div>
+
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-md w-96">

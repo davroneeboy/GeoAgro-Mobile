@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useMapsHook } from "./mapsHook";
 import L from "leaflet"; // Для работы с координатами на карте
 import { API_BASE_URL2 } from "../config";
@@ -18,6 +18,7 @@ export default function MapContainer() {
   const [mapInstance, setMapInstance] = useState(null); // Ссылка на карту для работы с координатами
   const [loadingPlantation, setLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isLarge = typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
 
   const handleLogout = () => {
     logout();
@@ -113,7 +114,7 @@ export default function MapContainer() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Мобильное меню */}
-      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700">
+      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div 
             className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -318,7 +319,7 @@ export default function MapContainer() {
         <div className="flex-1 bg-gray-900">
           <div
             id="map"
-            ref={mapRef}
+            ref={isLarge ? mapRef : null}
             style={{ width: "100%", height: "100vh" }}
           ></div>
         </div>
@@ -381,7 +382,7 @@ export default function MapContainer() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">Mintaqa:</span>
                     <span className="text-white font-medium">
-                      {selectedPlantation.district?.region},{" "}
+                      {selectedPlantation.district?.region}, {" "}
                       {selectedPlantation.district?.name}
                     </span>
                   </div>
@@ -456,6 +457,11 @@ export default function MapContainer() {
           <h2 className="text-xl font-semibold text-white mb-4 text-center">
             Bog'lar xaritasi
           </h2>
+
+          {/* Контейнер карты для мобильной версии */}
+          <div className="w-full h-64 mb-4 border border-gray-700 rounded-md overflow-hidden">
+            <div ref={!isLarge ? mapRef : null} style={{ width: '100%', height: '100%' }} />
+          </div>
           
           <div className="space-y-4">
             {loading ? (

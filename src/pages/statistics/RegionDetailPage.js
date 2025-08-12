@@ -311,8 +311,8 @@ const RegionDetailPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex items-center mb-6">
+      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex items-center mb-4 sm:mb-6">
           <Button
             type="link"
             icon={<ArrowLeftOutlined />}
@@ -320,15 +320,15 @@ const RegionDetailPage = () => {
           >
             Orqaga
           </Button>
-          <h1 className="text-2xl font-bold ml-4 text-white">
+          <h1 className="text-xl sm:text-2xl font-bold ml-2 sm:ml-4 text-white">
             {REGION_NAMES[id]} viloyati statistikasi
           </h1>
         </div>
 
         {/* Summary Cards */}
-        <Row gutter={16} className="mb-6">
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totals.total_area}
@@ -338,8 +338,8 @@ const RegionDetailPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Plantatsiyalar soni</span>}
                 value={totals.total_plantations}
@@ -347,8 +347,8 @@ const RegionDetailPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami investitsiyalar</span>}
                 value={totals.total_investment}
@@ -358,8 +358,8 @@ const RegionDetailPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami subsidiyalar</span>}
                 value={totals.total_subsidy}
@@ -372,17 +372,19 @@ const RegionDetailPage = () => {
         </Row>
 
         {/* Main Table */}
+        <div className="overflow-x-auto">
         <Table
           loading={loading}
           columns={columns}
           dataSource={dataWithTotal}
           scroll={{ x: "max-content" }}
           bordered
-          size="middle"
+            size="small"
           pagination={false}
           className="region-statistics-table"
-          style={{ background: '#1f2937', color: '#e5e7eb' }}
+            style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
         />
+        </div>
       </div>
     </StatisticsLayout>
   );

@@ -202,7 +202,7 @@ const ControllersPage = () => {
     console.log("Showing loading state"); // Debug log 8
     return (
       <StatisticsLayout>
-        <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
           <Spin size="large" />
         </div>
       </StatisticsLayout>
@@ -213,9 +213,9 @@ const ControllersPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">
+      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">
             Nazoratchilar bo'yicha statistika
           </h1>
           <Button type="primary" danger onClick={handleResetFilters}>
@@ -223,10 +223,10 @@ const ControllersPage = () => {
           </Button>
         </div>
 
-        <Card className="mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
-          <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <div className="mb-4">
+        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+          <Row gutter={[12, 12]}>
+            <Col xs={24} md={8}>
+              <div className="mb-2 sm:mb-4">
                 <label className="block mb-2 text-gray-200">Viloyatlar</label>
                 <Select
                   mode="multiple"
@@ -249,9 +249,9 @@ const ControllersPage = () => {
         </Card>
 
         {/* Summary Cards */}
-        <Row gutter={16} className="mb-6">
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami plantatsiyalar</span>}
                 value={totals.total}
@@ -260,8 +260,8 @@ const ControllersPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Tasdiqlangan</span>}
                 value={totals.approved}
@@ -270,8 +270,8 @@ const ControllersPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Rad etilgan</span>}
                 value={totals.rejected}
@@ -280,8 +280,8 @@ const ControllersPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>KPI (summa)</span>}
                 value={totals.kpiAmount}
@@ -294,17 +294,19 @@ const ControllersPage = () => {
         </Row>
 
         {/* Main Table */}
-        <Table
-          loading={loading}
-          columns={columns}
-          dataSource={dataWithTotal}
-          scroll={{ x: "max-content" }}
-          bordered
-          size="middle"
-          pagination={false}
-          className="region-statistics-table"
-          style={{ background: '#1f2937', color: '#e5e7eb' }}
-        />
+        <div className="overflow-x-auto">
+          <Table
+            loading={loading}
+            columns={columns}
+            dataSource={dataWithTotal}
+            scroll={{ x: "max-content" }}
+            bordered
+            size="small"
+            pagination={false}
+            className="region-statistics-table"
+            style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
+          />
+        </div>
       </div>
     </StatisticsLayout>
   );

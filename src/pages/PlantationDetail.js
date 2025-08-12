@@ -157,7 +157,7 @@ const PlantationDetail = () => {
                 <p className="text-white">{plantation.empty_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Suv xovuzlari soni:</p>
+                <p className="font-semibold text-gray-300">Suv xovузlari soni:</p>
                 <p className="text-white">{plantation.reservoir_count}</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
@@ -169,12 +169,11 @@ const PlantationDetail = () => {
                 <p className="text-white">{plantation.farmer?.inn}</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">
-                  Tomchilab sug'oriladigan maydon:
-                </p>
+                <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
                 <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
             </div>
+
             {plantation.farmer && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
@@ -287,23 +286,6 @@ const PlantationDetail = () => {
                 )}
               </div>
             )}
-            {plantation.images?.length > 0 && (
-              <div className="mt-6 bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-white">Galereya:</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {plantation.images.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`Изображение ${idx + 1}`}
-                      className="w-full h-24 object-cover border border-gray-600 rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setSelectedImage(img)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
- 
             <div className="flex justify-end space-x-4 mt-6">
               <button
                 className="w-full sm:w-auto py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"

@@ -94,7 +94,7 @@ const FarmerEdit = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="bg-gray-800 shadow-lg border-b border-gray-700">
+      <div className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
@@ -135,7 +135,7 @@ const FarmerEdit = () => {
             onSubmit={handleSubmit}
             className="bg-gray-800 shadow-lg rounded-lg p-6 border border-gray-700"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Nomi
@@ -262,19 +262,19 @@ const FarmerEdit = () => {
               </div>
             </div>
 
-            <div className="mt-8 flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => navigate("/farmers")}
-                className="px-6 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors duration-200"
-              >
+            <div className="mt-8 flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4">
+                              <button
+                  type="button"
+                  onClick={() => navigate("/farmers")}
+                  className="w-full sm:w-auto px-6 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors duration-200"
+                >
                 Bekor qilish
               </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
-                disabled={loading}
-              >
+                              <button
+                  type="submit"
+                  className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  disabled={loading}
+                >
                 {loading ? "Saqlanmoqda..." : "Saqlash"}
               </button>
             </div>

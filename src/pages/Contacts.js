@@ -16,7 +16,7 @@ const Contacts = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Мобильное меню */}
-      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700">
+      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div
             className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -104,7 +104,7 @@ const Contacts = () => {
       </div>
 
       {/* Десктопная версия */}
-      <div className="hidden lg:flex h-screen">
+      <div className="hidden lg:flex min-h-screen">
         {/* Левая панель */}
         <div className="w-1/4 p-4 border-r border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
           <div

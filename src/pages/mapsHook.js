@@ -95,7 +95,7 @@ export const useMapsHook = ({
     try {
       const plantations = await fetchPlantationsMap();
 
-      // Tumanni poligon va bog'lar bilan birga ko'rsatish
+      // Tumanni poligon va bog'lar bilan birга ko'rsatish
       plantations.forEach((plantation) => {
         const coordinates = plantation.coordinates.map((coord) => [
           coord.latitude,

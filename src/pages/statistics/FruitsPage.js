@@ -207,18 +207,18 @@ const FruitsPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Mevalar bo'yicha statistika</h1>
+      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Mevalar bo'yicha statistika</h1>
           <Button type="primary" danger onClick={handleResetFilters}>
             Filterni tozalash
           </Button>
         </div>
 
-        <Card className="mb-6" bodyStyle={{ background: '#1f2937', border: '1px solid #374151' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
-          <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <div className="mb-4">
+        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', border: '1px solid #374151', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+          <Row gutter={[12, 12]}>
+            <Col xs={24} md={8}>
+              <div className="mb-2 sm:mb-4">
                 <label className="block mb-2 text-gray-200">Viloyatlar</label>
                 <Select
                   mode="multiple"
@@ -241,9 +241,9 @@ const FruitsPage = () => {
         </Card>
 
         {/* Summary Cards */}
-        <Row gutter={16} className="mb-6">
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
+        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totals.total_area}
@@ -253,8 +253,8 @@ const FruitsPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Eskirgan maydon</span>}
                 value={totals.outdated_ga}
@@ -264,8 +264,8 @@ const FruitsPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Yuqori hosildor</span>}
                 value={totals.high_fertility_area}
@@ -275,8 +275,8 @@ const FruitsPage = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Past hosildor</span>}
                 value={totals.low_fertility_area}
@@ -289,17 +289,19 @@ const FruitsPage = () => {
         </Row>
 
         {/* Main Table */}
-        <Table
-          loading={loading}
-          columns={columns}
-          dataSource={dataWithTotal}
-          scroll={{ x: "max-content" }}
-          bordered
-          size="middle"
-          pagination={false}
-          className="region-statistics-table"
-          style={{ background: '#1f2937', color: '#e5e7eb' }}
-        />
+        <div className="overflow-x-auto">
+          <Table
+            loading={loading}
+            columns={columns}
+            dataSource={dataWithTotal}
+            scroll={{ x: "max-content" }}
+            bordered
+            size="small"
+            pagination={false}
+            className="region-statistics-table"
+            style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
+          />
+        </div>
       </div>
     </StatisticsLayout>
   );

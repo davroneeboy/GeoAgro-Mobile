@@ -186,7 +186,7 @@ const EditPlantation = () => {
   }, [plantation, initializeMap]);
 
   return (
-    <div className="flex flex-row h-screen bg-gray-900">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-900">
       {loading ? (
         <div className="flex justify-center items-center h-full w-full bg-gray-900">
           <div className="text-center">
@@ -196,10 +196,10 @@ const EditPlantation = () => {
         </div>
       ) : plantation ? (
         <>
-          <div className="w-1/2 h-full p-4">
+          <div className="w-full md:w-1/2 h-64 md:h-full p-4">
             <div id="map" className="w-full h-full border border-gray-600 rounded-lg"></div>
           </div>
-          <div className="w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
+          <div className="w-full md:w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
             {/* Кнопка закрытия */}
             <button
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
@@ -216,7 +216,7 @@ const EditPlantation = () => {
             <h1 className="text-3xl font-bold mb-4 pr-12 text-white">
               {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
             </h1>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yer turi:</p>
                 <p className="text-white">{landTypeMapping[plantation.land_type]}</p>
@@ -385,15 +385,15 @@ const EditPlantation = () => {
                 </div>
               </div>
             )}
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4">
               <button
-                className="bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
+                className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
                 onClick={handleSave}
               >
                 Tasdiqlash
               </button>
               <button
-                className="bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
+                className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
                 onClick={openModal}
               >
                 Bekor qilish

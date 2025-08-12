@@ -187,7 +187,7 @@ const Moderation = () => {
   return (
     <div className="min-h-screen bg-gray-900 w-full h-full" style={{backgroundColor: '#111827'}}>
       {/* Мобильное меню */}
-      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 w-full">
+      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 w-full sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div 
             className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -328,13 +328,13 @@ const Moderation = () => {
 
         {/* Центральная панель */}
         <div className="flex-1 bg-gray-900 flex flex-col overflow-y-auto" style={{backgroundColor: '#111827'}}>
-          <div className="p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
-            <h1 className="text-white text-3xl font-bold mb-6">
+          <div className="p-4 sm:p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
+            <h1 className="text-white text-3xl font-bold mb-4 sm:mb-6">
               Moderatsiya
             </h1>
 
             {/* Фильтры */}
-            <div className="flex flex-wrap gap-3 mb-6">
+            <div className="flex flex-wrap gap-3 mb-4 sm:mb-6">
               <button
                 className="px-4 py-2 rounded-lg border border-gray-600 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                 onClick={handleResetFilters}
@@ -412,7 +412,7 @@ const Moderation = () => {
             {/* Список карточек */}
             <div className="space-y-4">
               {!loading && moderations.length === 0 && !error && (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-6 sm:py-8 text-gray-400">
                   Ko'rsatish uchun ma'lumot yo'q
                 </div>
               )}
@@ -447,7 +447,7 @@ const Moderation = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {/* Основная информация */}
                     <div className="space-y-3">
                       <div className="flex items-center">
@@ -590,7 +590,7 @@ const Moderation = () => {
       </div>
 
       {/* Мобильная версия контента */}
-      <div className="lg:hidden p-4 bg-gray-900 min-h-screen" style={{backgroundColor: '#111827'}}>
+      <div className="lg:hidden p-4 bg-gray-900 min-h-screen pb-24" style={{backgroundColor: '#111827'}}>
         <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-700">
           <h2 className="text-xl font-semibold text-white mb-4 text-center">
             Moderatsiya
@@ -736,7 +736,7 @@ const Moderation = () => {
 
           {/* Пагинация для мобильной версии */}
           {!loading && !error && moderations.length > 0 && (
-            <div className="flex justify-center items-center mt-4 space-x-2">
+            <div className="flex justify-center items-center mt-4 space-x-2 fixed bottom-0 left-0 right-0 z-20 bg-gray-900/95 border-t border-gray-700 px-4 py-2">
               <button
                 className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
                 onClick={() => {
