@@ -105,46 +105,56 @@ const Moderation = () => {
         };
         const response = await axios.get(
           `${API_BASE_URL2}api/plantations/moderation/`,
-          { params }
+          {
+            params,
+            headers: {
+              Authorization: `Bearer ${authState.accessToken}`,
+            },
+          }
         );
         
         // Проверяем, что response.data существует и содержит results
         if (!response.data || !response.data.results) {
           setModerations([]);
-          setCount(0);
+          setCount(response.data?.count || 0);
+          setError(null);
           return;
         }
         
-        const formattedData = response.data.results.map((plantation) => {
-          let action;
-          if (plantation.is_deleting) {
-            action = "Удаленный";
-          } else if (plantation.prev_data) {
-            action = "Обновленный";
-          } else {
-            action = "Созданный";
-          }
-          
-          const formattedPlantation = {
-            id: plantation.id,
-            name: plantation.farmer.name,
-            type: plantation.land_type,
-            area: `${plantation.total_area} га`,
-            region: `${plantation.district.region}, ${plantation.district.name}`,
-            status: plantation.status,
-            createdAt: plantation.created_at,
-            is_checked: plantation.is_checked,
-            action,
-            prev_data: plantation.prev_data,
-            is_deleting: plantation.is_deleting,
-          };
-          
-          return formattedPlantation;
-        });
+        const formattedData = (Array.isArray(response.data.results) ? response.data.results : [])
+          .map((plantation) => {
+            try {
+              let action;
+              if (plantation.is_deleting) {
+                action = "Удаленный";
+              } else if (plantation.prev_data) {
+                action = "Обновленный";
+              } else {
+                action = "Созданный";
+              }
+
+              return {
+                id: plantation.id,
+                name: plantation.farmer?.name || "—",
+                type: plantation.land_type,
+                area: `${plantation.total_area ?? 0} га`,
+                region: `${plantation.district?.region || "—"}, ${plantation.district?.name || "—"}`,
+                status: plantation.status || "—",
+                createdAt: plantation.created_at || null,
+                is_checked: Boolean(plantation.is_checked),
+                action,
+                prev_data: plantation.prev_data || null,
+                is_deleting: Boolean(plantation.is_deleting),
+              };
+            } catch (_) {
+              return null; // пропускаем битую запись
+            }
+          })
+          .filter(Boolean);
         
         setModerations(formattedData);
-        
         setCount(response.data.count || 0);
+        setError(null);
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
         

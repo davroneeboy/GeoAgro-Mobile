@@ -105,14 +105,14 @@ const HomePage = () => {
             ]
           : [],
         backgroundColor: [
-          "rgba(50, 205, 50, 0.8)",
-          "rgba(59, 130, 246, 0.8)",
-          "rgba(245, 158, 11, 0.8)",
+          "rgba(34, 197, 94, 0.6)",  // green-500 softer
+          "rgba(59, 130, 246, 0.6)", // blue-500 softer
+          "rgba(234, 179, 8, 0.6)",  // yellow-500 softer
         ],
         borderColor: [
-          "rgba(50, 205, 50, 1)",
-          "rgba(59, 130, 246, 1)",
-          "rgba(245, 158, 11, 1)",
+          "rgba(34, 197, 94, 0.9)",
+          "rgba(59, 130, 246, 0.9)",
+          "rgba(234, 179, 8, 0.9)",
         ],
         borderWidth: 2,
       },
@@ -129,12 +129,12 @@ const HomePage = () => {
           ? [statistics.total_area, statistics.total_fruit_areas]
           : [],
         backgroundColor: [
-          "rgba(239, 68, 68, 0.8)",
-          "rgba(168, 85, 247, 0.8)",
+          "rgba(239, 68, 68, 0.5)", // red-500 softer
+          "rgba(99, 102, 241, 0.5)", // indigo-500 softer (вместо насыщенного фиолетового)
         ],
         borderColor: [
-          "rgba(239, 68, 68, 1)",
-          "rgba(168, 85, 247, 1)",
+          "rgba(239, 68, 68, 0.9)",
+          "rgba(99, 102, 241, 0.9)",
         ],
         borderWidth: 2,
       },
