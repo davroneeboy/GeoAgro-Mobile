@@ -178,7 +178,7 @@ const Moderation = () => {
     };
 
     fetchModerations();
-  }, [page, filters, navigate]);
+  }, [page, filters, navigate, authState.accessToken]);
 
   const handleResetFilters = () => {
     setFilters({ action: "All", status: "All", type: "All" });
