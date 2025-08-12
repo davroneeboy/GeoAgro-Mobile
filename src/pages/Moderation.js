@@ -13,14 +13,21 @@ const Moderation = () => {
     status: "All",
     type: "All",
   });
-  const [page, setPage] = useState(1); // Всегда начинаем с первой страницы
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { authState, logout } = useContext(AuthContext);
+
+  // Инициализируем страницу сразу из URL, чтобы избежать первого запроса с page=1
+  const initialPageFromUrl = (() => {
+    const urlParams = new URLSearchParams(location.search);
+    const pageParam = parseInt(urlParams.get("page") || "1", 10);
+    return pageParam > 0 && pageParam <= 50 ? pageParam : 1;
+  })();
+  const [page, setPage] = useState(initialPageFromUrl);
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
   const [loading, setLoading] = useState(false); // добавляем состояние загрузки
   const [error, setError] = useState(null); // добавляем состояние ошибки
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { authState, logout } = useContext(AuthContext);
 
   const handleLogout = () => {
     logout();
