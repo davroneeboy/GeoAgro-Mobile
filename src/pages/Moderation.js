@@ -29,6 +29,14 @@ const Moderation = () => {
   const [error, setError] = useState(null); // добавляем состояние ошибки
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Проверяем токен при загрузке компонента
+  useEffect(() => {
+    if (!authState.accessToken) {
+      console.log('Токен отсутствует при загрузке компонента, перенаправляем на страницу входа');
+      navigate('/login');
+    }
+  }, [authState.accessToken, navigate]);
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -64,6 +72,13 @@ const Moderation = () => {
 
     // Функция для обновления статуса при просмотре
   const handleView = async (id) => {
+    // Проверяем наличие токена перед запросом
+    if (!authState.accessToken) {
+      console.log('Токен отсутствует, перенаправляем на страницу входа');
+      navigate('/login');
+      return;
+    }
+
     try {
       const response = await axios.patch(
         `${API_BASE_URL2}api/plantations/${id}/update/`,
@@ -87,11 +102,25 @@ const Moderation = () => {
       console.log("Запись успешно обновлена при просмотре:", response.data);
     } catch (error) {
       console.error("Ошибка при обновлении записи при просмотре:", error.response?.data || error.message);
+      
+      // Если получили 401, перенаправляем на страницу входа
+      if (error.response?.status === 401) {
+        console.log('Токен недействителен (401), перенаправляем на страницу входа');
+        logout();
+        navigate('/login');
+      }
     }
   };
 
   useEffect(() => {
     const fetchModerations = async () => {
+      // Проверяем наличие токена перед запросом
+      if (!authState.accessToken) {
+        console.log('Токен отсутствует, перенаправляем на страницу входа');
+        navigate('/login');
+        return;
+      }
+
       setLoading(true);
       setError(null);
       
@@ -164,6 +193,14 @@ const Moderation = () => {
         setError(null);
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
+        
+        // Если получили 401, значит токен недействителен
+        if (error.response?.status === 401) {
+          console.log('Токен недействителен (401), перенаправляем на страницу входа');
+          logout();
+          navigate('/login');
+          return; // Прерываем выполнение, чтобы не устанавливать ошибку
+        }
         
         // Если получили 404, значит страница не существует
         if (error.response?.status === 404) {

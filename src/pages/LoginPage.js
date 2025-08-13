@@ -38,7 +38,7 @@ const LoginPage = () => {
         const data = await response.json();
         console.log("Login successful, data:", data);
         login({ ...data, username });
-        navigate("/");
+        navigate("/home");
       } else {
         const errorData = await response.text();
         console.error("Login failed:", response.status, errorData);

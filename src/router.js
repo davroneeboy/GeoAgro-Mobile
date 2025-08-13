@@ -10,6 +10,7 @@ import PlantationDetail from "./pages/PlantationDetail";
 import UserInfo from "./pages/UserInfo";
 import Farmers from "./pages/Farmers";
 import FarmerEdit from "./pages/FarmerEdit";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import RegionsPage from "./pages/statistics/RegionsPage";
 import RegionDetailPage from "./pages/statistics/RegionDetailPage";
@@ -23,21 +24,23 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/controllers" element={<ControllersList />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/plantations" element={<ProtectedRoute><MapContainer /></ProtectedRoute>} />
+      <Route path="/controllers" element={<ProtectedRoute><ControllersList /></ProtectedRoute>} />
       {/* <Route path="/contacts" element={<Contacts />} /> */}
-      <Route path="/moderation" element={<Moderation />} />
-      <Route path="/plantations/uz" element={<MapContainer />} />
-      <Route path="/plantations/:id" element={<PlantationDetail />} />
-      <Route path="/user/:id" element={<UserInfo />} />
-      <Route path="/statistics/regions" element={<RegionsPage />} />
-      <Route path="/statistics/regions/:id" element={<RegionDetailPage />} />
-      <Route path="/statistics/fruits" element={<FruitsPage />} />
-      <Route path="/statistics/fruits/:id" element={<FruitDetailPage />} />
-      <Route path="/statistics/controllers" element={<ControllersPage />} />
-      <Route path="/farmers" element={<Farmers />} />
-      <Route path="/farmers/:id" element={<FarmerEdit />} />
-      <Route path="/farmers/new" element={<FarmerEdit />} />
+      <Route path="/moderation" element={<ProtectedRoute><Moderation /></ProtectedRoute>} />
+      <Route path="/plantations/uz" element={<ProtectedRoute><MapContainer /></ProtectedRoute>} />
+      <Route path="/plantations/:id" element={<ProtectedRoute><PlantationDetail /></ProtectedRoute>} />
+      <Route path="/user/:id" element={<ProtectedRoute><UserInfo /></ProtectedRoute>} />
+      <Route path="/statistics/regions" element={<ProtectedRoute><RegionsPage /></ProtectedRoute>} />
+      <Route path="/statistics/regions/:id" element={<ProtectedRoute><RegionDetailPage /></ProtectedRoute>} />
+      <Route path="/statistics/fruits" element={<ProtectedRoute><FruitsPage /></ProtectedRoute>} />
+      <Route path="/statistics/fruits/:id" element={<ProtectedRoute><FruitDetailPage /></ProtectedRoute>} />
+      <Route path="/statistics/controllers" element={<ProtectedRoute><ControllersPage /></ProtectedRoute>} />
+      <Route path="/farmers" element={<ProtectedRoute><Farmers /></ProtectedRoute>} />
+      <Route path="/farmers/:id" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
+      <Route path="/farmers/new" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
     </Routes>
   );
 }
