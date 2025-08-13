@@ -9,7 +9,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 1,
+        "id": 39,
         "name": "Peshku tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 834176.19953600003,
@@ -5133,7 +5133,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 2,
+        "id": 38,
         "name": "Olot tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 330850.335318,
@@ -7851,7 +7851,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 3,
+        "id": 36,
         "name": "Qorako`l tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 636722.85369599995,
@@ -12222,7 +12222,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 4,
+        "id": 37,
         "name": "Qorovulbozor tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 277089.98606000002,
@@ -13325,7 +13325,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 5,
+        "id": 35,
         "name": "Kogon tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 157810.86446800001,
@@ -15591,7 +15591,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 6,
+        "id": 40,
         "name": "Romitan tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 700249.97429399996,
@@ -19284,7 +19284,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 7,
+        "id": 34,
         "name": "Jondor tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 793554.017521,
@@ -25212,7 +25212,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 8,
+        "id": 32,
         "name": "Buxoro tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 403068.64389599999,
@@ -30081,7 +30081,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 10,
+        "id": 33,
         "name": "Vobkent tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 160836.99188099999,
@@ -36543,7 +36543,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 11,
+        "id": 42,
         "name": "G`ijduvon tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 591574.59509099997,
@@ -42389,7 +42389,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 12,
+        "id": 41,
         "name": "Shofirkon tumani",
         "region_name": "Buxoro",
         "Shape_Leng": 435632.37887499999,
