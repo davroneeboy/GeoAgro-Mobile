@@ -90,10 +90,10 @@ export const useMapsHook = ({
     }
   };
 
-  const loadTumanPlantations = async () => {
+  const loadTumanPlantations = async (districtId) => {
     setLoading(true);
     try {
-      const plantations = await fetchPlantationsMap();
+      const plantations = await fetchPlantationsMap(districtId);
 
       // Tumanni poligon va bog'lar bilan birга ko'rsatish
       plantations.forEach((plantation) => {
@@ -172,7 +172,7 @@ export const useMapsHook = ({
               singleTumanLayer.addTo(map);
               map.flyToBounds(singleTumanLayer.getBounds());
               await loadTumanPlantations(tumanId); // Tumanning `id` bilan funksiyani chaqiramiz
-              onDistrictClick();
+              onDistrictClick(tumanId, tumanName);
             },
           });
         },
