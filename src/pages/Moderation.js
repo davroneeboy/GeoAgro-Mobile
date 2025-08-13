@@ -17,11 +17,23 @@ const Moderation = () => {
   const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
 
-  // Инициализируем страницу сразу из URL, чтобы избежать первого запроса с page=1
+  // Инициализируем страницу из URL или localStorage
   const initialPageFromUrl = (() => {
     const urlParams = new URLSearchParams(location.search);
     const pageParam = parseInt(urlParams.get("page") || "1", 10);
-    return pageParam > 0 && pageParam <= 50 ? pageParam : 1;
+    const savedPage = parseInt(localStorage.getItem('moderationPage') || "1", 10);
+    
+    // Если есть параметр в URL, используем его, иначе используем сохраненную страницу
+    const pageToUse = urlParams.get("page") ? pageParam : savedPage;
+    const validPage = pageToUse > 0 && pageToUse <= 50 ? pageToUse : 1;
+    
+    // Если используем сохраненную страницу, обновляем URL
+    if (!urlParams.get("page") && savedPage !== validPage) {
+      // Обновляем URL без перезагрузки страницы
+      window.history.replaceState(null, '', `/moderation?page=${validPage}`);
+    }
+    
+    return validPage;
   })();
   const [page, setPage] = useState(initialPageFromUrl);
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
@@ -42,16 +54,31 @@ const Moderation = () => {
     navigate("/login");
   };
 
+  // Синхронизируем URL с состоянием страницы (только при изменении page)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const urlPage = parseInt(urlParams.get("page") || "1", 10);
+    
+    if (urlPage !== page && page > 0) {
+      console.log('Синхронизируем URL с состоянием страницы:', page);
+      window.history.replaceState(null, '', `/moderation?page=${page}`);
+    }
+  }, [page]);
+
   // Читаем номер страницы из URL параметров при загрузке
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const pageFromUrl = urlParams.get('page');
     console.log('URL page param:', pageFromUrl);
     
-    // Если нет параметра page в URL, начинаем с первой страницы
+    // Если нет параметра page в URL, используем сохраненную страницу
     if (!pageFromUrl) {
-      console.log('Нет параметра page в URL, начинаем с первой страницы');
-      setPage(1);
+      const savedPage = parseInt(localStorage.getItem('moderationPage') || "1", 10);
+      const validSavedPage = savedPage > 0 && savedPage <= 50 ? savedPage : 1;
+      console.log('Нет параметра page в URL, используем сохраненную страницу:', validSavedPage);
+      setPage(validSavedPage);
+      // Обновляем URL без перезагрузки
+      window.history.replaceState(null, '', `/moderation?page=${validSavedPage}`);
       return;
     }
     
@@ -62,10 +89,12 @@ const Moderation = () => {
     // Проверяем, что номер страницы валидный
     if (pageNumber > 0 && pageNumber <= 50) {
       setPage(pageNumber);
+      localStorage.setItem('moderationPage', pageNumber.toString());
     } else {
       // Если номер страницы невалидный, сбрасываем на первую страницу
       console.log('Невалидный номер страницы в URL:', pageNumber, ', сбрасываем на первую');
       setPage(1);
+      localStorage.setItem('moderationPage', '1');
       navigate('/moderation?page=1', { replace: true });
     }
   }, [location.search, navigate]);
@@ -128,9 +157,12 @@ const Moderation = () => {
       if (page <= 0 || page > 50) {
         console.log('Невалидный номер страницы:', page, ', сбрасываем на первую');
         setPage(1);
+        localStorage.setItem('moderationPage', '1');
         navigate('/moderation?page=1', { replace: true });
         return;
       }
+      
+
       
       try {
         const params = {
@@ -206,6 +238,7 @@ const Moderation = () => {
         if (error.response?.status === 404) {
           console.log('Страница не найдена (404), возвращаемся на первую страницу');
           setPage(1);
+          localStorage.setItem('moderationPage', '1');
           navigate('/moderation?page=1', { replace: true });
           return; // Прерываем выполнение, чтобы не устанавливать ошибку
         }
@@ -395,6 +428,7 @@ const Moderation = () => {
                 onChange={(e) => {
                   setFilters({ ...filters, action: e.target.value });
                   setPage(1);
+                  localStorage.setItem('moderationPage', '1');
                   navigate('/moderation?page=1', { replace: true });
                 }}
               >
@@ -409,6 +443,7 @@ const Moderation = () => {
                 onChange={(e) => {
                   setFilters({ ...filters, status: e.target.value });
                   setPage(1);
+                  localStorage.setItem('moderationPage', '1');
                   navigate('/moderation?page=1', { replace: true });
                 }}
               >
@@ -423,6 +458,7 @@ const Moderation = () => {
                 onChange={(e) => {
                   setFilters({ ...filters, type: e.target.value });
                   setPage(1);
+                  localStorage.setItem('moderationPage', '1');
                   navigate('/moderation?page=1', { replace: true });
                 }}
               >
@@ -441,6 +477,7 @@ const Moderation = () => {
                   className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                   onClick={() => {
                     setPage(1);
+                    localStorage.setItem('moderationPage', '1');
                     navigate('/moderation?page=1', { replace: true });
                   }}
                 >
@@ -470,6 +507,8 @@ const Moderation = () => {
                   className="relative p-6 border border-gray-600 rounded-xl bg-gray-800 shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-[1.02] transition-all duration-300 ease-in-out"
                   onClick={() => {
                     handleView(plantation.id);
+                    // Сохраняем текущую страницу перед переходом
+                    localStorage.setItem('moderationPage', page.toString());
                     navigate(`/plantations/edit/${plantation.id}`);
                   }}
                 >
@@ -587,6 +626,8 @@ const Moderation = () => {
                     const newPage = Math.max(page - 1, 1);
                     console.log('Back button: setting page to', newPage);
                     setPage(newPage);
+                    // Сохраняем страницу в localStorage
+                    localStorage.setItem('moderationPage', newPage.toString());
                     // Обновляем URL
                     navigate(`/moderation?page=${newPage}`, { replace: true });
                   }}
@@ -603,6 +644,8 @@ const Moderation = () => {
                     // Проверяем, что новая страница не превышает общее количество страниц
                     if (newPage <= totalPages && newPage <= 50) {
                       setPage(newPage);
+                      // Сохраняем страницу в localStorage
+                      localStorage.setItem('moderationPage', newPage.toString());
                       // Обновляем URL
                       navigate(`/moderation?page=${newPage}`, { replace: true });
                     } else {
@@ -653,6 +696,7 @@ const Moderation = () => {
               onChange={(e) => {
                 setFilters({ ...filters, action: e.target.value });
                 setPage(1);
+                localStorage.setItem('moderationPage', '1');
                 navigate('/moderation?page=1', { replace: true });
               }}
             >
@@ -667,6 +711,7 @@ const Moderation = () => {
               onChange={(e) => {
                 setFilters({ ...filters, status: e.target.value });
                 setPage(1);
+                localStorage.setItem('moderationPage', '1');
                 navigate('/moderation?page=1', { replace: true });
               }}
             >
@@ -681,6 +726,7 @@ const Moderation = () => {
               onChange={(e) => {
                 setFilters({ ...filters, type: e.target.value });
                 setPage(1);
+                localStorage.setItem('moderationPage', '1');
                 navigate('/moderation?page=1', { replace: true });
               }}
             >
@@ -699,6 +745,7 @@ const Moderation = () => {
                 className="block w-full mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                 onClick={() => {
                   setPage(1);
+                  localStorage.setItem('moderationPage', '1');
                   navigate('/moderation?page=1', { replace: true });
                 }}
               >
@@ -728,6 +775,8 @@ const Moderation = () => {
                 className="p-4 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
                 onClick={() => {
                   handleView(plantation.id);
+                  // Сохраняем текущую страницу перед переходом
+                  localStorage.setItem('moderationPage', page.toString());
                   navigate(`/plantations/edit/${plantation.id}`);
                 }}
               >
@@ -785,6 +834,7 @@ const Moderation = () => {
                 onClick={() => {
                   const newPage = Math.max(page - 1, 1);
                   setPage(newPage);
+                  localStorage.setItem('moderationPage', newPage.toString());
                   navigate(`/moderation?page=${newPage}`, { replace: true });
                 }}
                 disabled={page <= 1}
@@ -798,6 +848,7 @@ const Moderation = () => {
                   const newPage = page + 1;
                   if (newPage <= totalPages && newPage <= 50) {
                     setPage(newPage);
+                    localStorage.setItem('moderationPage', newPage.toString());
                     navigate(`/moderation?page=${newPage}`, { replace: true });
                   }
                 }}
