@@ -1,15 +1,11 @@
 {
   "type": "FeatureCollection",
   "name": "Xorazm",
-  "crs": {
-    "type": "name",
-    "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" }
-  },
   "features": [
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 180,
+        "id": 163,
         "name": "Qo`shko`pir tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 188722.64988400001,
@@ -5208,7 +5204,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 181,
+        "id": 171,
         "name": "Tuproqqal'a tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 460728.93566999998,
@@ -6689,7 +6685,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 182,
+        "id": 165,
         "name": "Xazorasp tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 156999.334863,
@@ -9267,7 +9263,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 183,
+        "id": 161,
         "name": "Bog`ot tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 151013.789426,
@@ -13534,7 +13530,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 184,
+        "id": 164,
         "name": "Urganch tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 193538.494454,
@@ -17339,7 +17335,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 185,
+        "id": 166,
         "name": "Xonqa tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 171139.45573799999,
@@ -22236,7 +22232,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 186,
+        "id": 162,
         "name": "Gurlan tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 160691.56382099999,
@@ -23710,7 +23706,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 187,
+        "id": 170,
         "name": "Yangibozor tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 160640.97505499999,
@@ -26279,7 +26275,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 188,
+        "id": 169,
         "name": "Yangiariq tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 129615.724006,
@@ -28839,7 +28835,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 189,
+        "id": 168,
         "name": "Shovot tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 156461.00961499999,
@@ -31042,7 +31038,7 @@
     {
       "type": "Feature",
       "properties": {
-        "OBJECTID": 190,
+        "id": 172,
         "name": "Xiva tumani",
         "region_nam": "Xorazm",
         "Shape_Leng": 182318.22698899999,
