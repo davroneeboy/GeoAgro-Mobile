@@ -49,22 +49,18 @@ const EditPlantation = () => {
   const handleConfirm = async () => {
     const comment =
       selectedReason === "Своя причина" ? customReason : selectedReason;
-    const data = {
-      plantation_id: plantation.id,
-      action: "update",
-      comment: comment,
-    };
 
     try {
       setError(null);
       setSuccessMessage(null);
-      await apiRequest(`api/plantations/moderation-logs/`, {
-        method: "POST",
-        body: JSON.stringify(data),
+      
+      // Отправляем DELETE запрос для удаления плантации
+      await apiRequest(`api/plantations/${plantation.id}/`, {
+        method: "DELETE",
       }, refreshAccessToken, authState.accessToken);
 
-      console.log("Moderation log submitted successfully");
-      setSuccessMessage("Bekor qilish sababi muvaffaqiyatli yuborildi!");
+      console.log("Plantation deleted successfully");
+      setSuccessMessage("Plantatsiya muvaffaqiyatli o'chirildi!");
       closeModal();
       
       // Задержка перед редиректом
@@ -73,8 +69,8 @@ const EditPlantation = () => {
         window.location.href = `/moderation?page=${currentPage}`;
       }, 2000);
     } catch (error) {
-      console.error("Error submitting moderation log:", error);
-      setError("Bekor qilish sababini yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      console.error("Error deleting plantation:", error);
+      setError("Plantatsiyani o'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     }
   };
 
@@ -455,25 +451,26 @@ const EditPlantation = () => {
                 className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
                 onClick={openModal}
               >
-                Bekor qilish
+                O'chirish
               </button>
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                   <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
-                    <h2 className="text-xl mb-4 text-white">Bekor qilish sababi</h2>
+                    <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
+                    <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
                     <textarea
                       className="w-full p-2 mb-4 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
                       value={customReason}
                       onChange={(e) => setCustomReason(e.target.value)}
-                      placeholder="Sababni kiriting"
+                      placeholder="O'chirish sababini kiriting (ixtiyoriy)"
                       rows={4}
                     />
                     <div className="flex justify-end space-x-4">
                       <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
                         onClick={handleConfirm}
                       >
-                        Tasdiqlash
+                        O'chirish
                       </button>
                       <button
                         className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"

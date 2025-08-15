@@ -54,7 +54,13 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
     }
 
     if (response.ok) {
-      return await response.json();
+      // Для DELETE запросов может не быть тела ответа
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await response.json();
+      } else {
+        return null; // Для запросов без тела ответа
+      }
     } else {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
