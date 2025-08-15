@@ -80,14 +80,14 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/statistics/regions" element={<RegionsPage />} />
-        <Route path="/statistics/regions/:id" element={<RegionDetailPage />} />
-        <Route path="/statistics/fruits" element={<FruitsPage />} />
-        <Route path="/statistics/fruits/:id" element={<FruitDetailPage />} />
-        <Route path="/statistics/controllers" element={<ControllersPage />} />
-        <Route path="/farmers" element={<Farmers />} />
-        <Route path="/farmers/:id" element={<FarmerEdit />} />
-        <Route path="/farmers/new" element={<FarmerEdit />} />
+        <Route path="/statistics/regions" element={<ProtectedRoute><RegionsPage /></ProtectedRoute>} />
+        <Route path="/statistics/regions/:id" element={<ProtectedRoute><RegionDetailPage /></ProtectedRoute>} />
+        <Route path="/statistics/fruits" element={<ProtectedRoute><FruitsPage /></ProtectedRoute>} />
+        <Route path="/statistics/fruits/:id" element={<ProtectedRoute><FruitDetailPage /></ProtectedRoute>} />
+        <Route path="/statistics/controllers" element={<ProtectedRoute><ControllersPage /></ProtectedRoute>} />
+        <Route path="/farmers" element={<ProtectedRoute><Farmers /></ProtectedRoute>} />
+        <Route path="/farmers/:id" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
+        <Route path="/farmers/new" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

@@ -98,7 +98,7 @@ const FarmerEdit = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Link to="/home" className="flex items-center hover:opacity-80 transition-opacity">
+              <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
                 <img
                   className="h-16 w-auto mr-4"
                   src={uzbekistanEmblem}

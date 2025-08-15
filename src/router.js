@@ -23,7 +23,7 @@ import ControllersPage from "./pages/statistics/ControllersPage";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
       <Route path="/plantations" element={<ProtectedRoute><MapContainer /></ProtectedRoute>} />
