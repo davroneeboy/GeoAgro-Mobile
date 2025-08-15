@@ -66,9 +66,9 @@ const Moderation = () => {
   }, [page]);
 
   // Читаем номер страницы из URL параметров при загрузке
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
+    const search = location.search;
+    const urlParams = new URLSearchParams(search);
     const pageFromUrl = urlParams.get('page');
     console.log('URL page param:', pageFromUrl);
     
@@ -98,7 +98,8 @@ const Moderation = () => {
       localStorage.setItem('moderationPage', '1');
       navigate('/moderation?page=1', { replace: true });
     }
-  }, [navigate, page, location]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, page, location.search]);
 
     // Функция для обновления статуса при просмотре
   const handleView = async (id) => {
