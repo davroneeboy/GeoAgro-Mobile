@@ -47,9 +47,6 @@ const EditPlantation = () => {
   };
 
   const handleConfirm = async () => {
-    const comment =
-      selectedReason === "Своя причина" ? customReason : selectedReason;
-
     try {
       setError(null);
       setSuccessMessage(null);
