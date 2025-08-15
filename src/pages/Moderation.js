@@ -66,6 +66,7 @@ const Moderation = () => {
   }, [page]);
 
   // Читаем номер страницы из URL параметров при загрузке
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const pageFromUrl = urlParams.get('page');
@@ -97,7 +98,7 @@ const Moderation = () => {
       localStorage.setItem('moderationPage', '1');
       navigate('/moderation?page=1', { replace: true });
     }
-  }, [location.search, navigate]);
+  }, [navigate, page, location]);
 
     // Функция для обновления статуса при просмотре
   const handleView = async (id) => {
@@ -255,7 +256,7 @@ const Moderation = () => {
     };
 
     fetchModerations();
-  }, [page, filters, navigate, authState.accessToken]);
+  }, [page, filters, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
     setFilters({ action: "All", status: "All", type: "All" });

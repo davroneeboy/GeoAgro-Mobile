@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { GOOGLE_API_KEY, API_BASE_URL2 } from "../config";
+import { GOOGLE_API_KEY } from "../config";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { apiRequest } from "../utils/apiUtils";
@@ -118,6 +118,27 @@ const PlantationDetail = () => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-2"></div>
             <p className="text-white">Ma'lumotlar yuklanmoqda...</p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center items-center h-full w-full bg-gray-900">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-white mb-4">{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                fetchPlantationDetails();
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Qaytadan urinib ko'ring
+            </button>
           </div>
         </div>
       ) : plantation ? (

@@ -1,7 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useMapsHook } from "./mapsHook";
 import L from "leaflet"; // Для работы с координатами на карте
-import { API_BASE_URL2 } from "../config";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchPlantationsMap } from "../api/api.js";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
-import { API_BASE_URL2, GOOGLE_API_KEY } from "../config";
+import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
 import {
   landTypeMapping,
