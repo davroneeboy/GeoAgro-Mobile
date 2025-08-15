@@ -19,7 +19,6 @@ const EditPlantation = () => {
   // const [area, setArea] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
   const { authState, refreshAccessToken } = useContext(AuthContext);
   const [expandedSections, setExpandedSections] = useState({});
@@ -42,7 +41,6 @@ const EditPlantation = () => {
   // Функция для закрытия модального окна
   const closeModal = () => {
     setIsModalOpen(false);
-    setSelectedReason("");
     setCustomReason("");
   };
 
