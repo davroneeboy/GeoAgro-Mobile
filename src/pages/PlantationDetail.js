@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { GOOGLE_API_KEY, API_BASE_URL2 } from "../config";
 import { useNavigate } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
+import { apiRequest } from "../utils/apiUtils";
 import {
   landTypeMapping,
   subsidyTypeMapping,
@@ -16,7 +18,9 @@ const PlantationDetail = () => {
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { authState, refreshAccessToken } = useContext(AuthContext);
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -27,18 +31,16 @@ const PlantationDetail = () => {
 
   const fetchPlantationDetails = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL2}api/plantations/${id}/`);
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-      const data = await response.json();
+      setError(null);
+      const data = await apiRequest(`api/plantations/${id}/`, {}, refreshAccessToken, authState.accessToken);
       setPlantation(data);
     } catch (error) {
       console.error("Error fetching plantation details:", error);
+      setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, authState.accessToken, refreshAccessToken]);
 
   const getColorByFertilityScore = (score) => {
     const red = Math.min(255, Math.max(0, 255 - score * 2.55));
@@ -77,8 +79,13 @@ const PlantationDetail = () => {
   }, [plantation]);
 
   useEffect(() => {
+    if (!authState.accessToken) {
+      console.error("No access token found. Redirecting to login.");
+      navigate('/login');
+      return;
+    }
     fetchPlantationDetails();
-  }, [fetchPlantationDetails]);
+  }, [fetchPlantationDetails, authState.accessToken, navigate]);
 
   useEffect(() => {
     if (plantation) {

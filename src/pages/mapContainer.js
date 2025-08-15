@@ -7,10 +7,11 @@ import { fetchPlantationsMap } from "../api/api.js";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { landTypeMapping } from "../context/constants";
 import AuthContext from "../context/AuthContext";
+import { apiRequest } from "../utils/apiUtils";
 
 export default function MapContainer() {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext);
+  const { authState, logout, refreshAccessToken } = useContext(AuthContext);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [plantations, setPlantations] = useState([]);
@@ -43,7 +44,7 @@ export default function MapContainer() {
     setSelectedPlantation(null);
 
     try {
-      const plantations = await fetchPlantationsMap(districtId);
+      const plantations = await fetchPlantationsMap(districtId, authState.accessToken);
       setPlantations(plantations);
 
       // Отображение координат на карте
@@ -81,13 +82,7 @@ export default function MapContainer() {
   const handlePlantationClick = async (plantation, map) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL2}api/plantations/${plantation.id}/`
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await apiRequest(`api/plantations/${plantation.id}/`, {}, refreshAccessToken, authState.accessToken);
       setSelectedPlantation(data);
       const karta = map || mapInstance;
       const coordinates = data.coordinates.map((coord) => [

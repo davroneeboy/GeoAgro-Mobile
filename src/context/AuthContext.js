@@ -31,6 +31,39 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        throw new Error("No refresh token available");
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL2 || 'https://luxa.uz/'}api/token/refresh/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("accessToken", data.access);
+        setAuthState(prev => ({
+          ...prev,
+          accessToken: data.access,
+        }));
+        return data.access;
+      } else {
+        throw new Error("Failed to refresh token");
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      logout();
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
@@ -45,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ authState, login, logout }}>
+    <AuthContext.Provider value={{ authState, login, logout, refreshAccessToken }}>
       {children}
     </AuthContext.Provider>
   );

@@ -11,7 +11,7 @@ export function clearPlantationsCache(districtId) {
   }
 }
 
-export async function fetchPlantationsMap(districtId) {
+export async function fetchPlantationsMap(districtId, accessToken) {
   const key = Number(districtId);
   if (!Number.isFinite(key)) {
     console.warn(
@@ -26,8 +26,17 @@ export async function fetchPlantationsMap(districtId) {
   }
 
   try {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
     const response = await fetch(
-      `${API_BASE_URL2}api/plantations/map/?district_id=${key}&is_checked=True`
+      `${API_BASE_URL2}api/plantations/map/?district_id=${key}&is_checked=True`,
+      { headers }
     );
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);

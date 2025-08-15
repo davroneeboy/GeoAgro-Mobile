@@ -61,7 +61,11 @@ const HomePage = () => {
   useEffect(() => {
     const fetchControllers = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL1}api/users/`);
+        const response = await fetch(`${API_BASE_URL1}api/users/`, {
+          headers: {
+            Authorization: `Bearer ${authState.accessToken}`,
+          },
+        });
         const data = await response.json();
         const sortedControllers = data
           .filter((user) => user.last_login)
@@ -79,7 +83,11 @@ const HomePage = () => {
 
     const fetchStatistics = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL2}api/statistics/`);
+        const response = await fetch(`${API_BASE_URL2}api/statistics/`, {
+          headers: {
+            Authorization: `Bearer ${authState.accessToken}`,
+          },
+        });
         const data = await response.json();
         setStatistics(data);
       } catch (error) {
@@ -87,9 +95,11 @@ const HomePage = () => {
       }
     };
 
-    fetchControllers();
-    fetchStatistics();
-  }, []);
+    if (authState.accessToken) {
+      fetchControllers();
+      fetchStatistics();
+    }
+  }, [authState.accessToken]);
 
   // Первый пай-чарт: Типы плантаций
   const plantationTypesData = {

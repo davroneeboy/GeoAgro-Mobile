@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { API_BASE_URL2, GOOGLE_API_KEY } from "../config";
+import { apiRequest } from "../utils/apiUtils";
 import {
   landTypeMapping,
   subsidyTypeMapping,
@@ -20,9 +21,11 @@ const EditPlantation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
-  const { authState } = useContext(AuthContext);
+  const { authState, refreshAccessToken } = useContext(AuthContext);
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Функция для открытия модального окна
   const openModal = () => {
@@ -43,7 +46,7 @@ const EditPlantation = () => {
     setCustomReason("");
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const comment =
       selectedReason === "Своя причина" ? customReason : selectedReason;
     const data = {
@@ -52,35 +55,42 @@ const EditPlantation = () => {
       comment: comment,
     };
 
-    // Отправка данных на сервер
-    fetch(`${API_BASE_URL2}api/plantations/moderation-logs/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authState.accessToken}`,
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-        closeModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    try {
+      setError(null);
+      setSuccessMessage(null);
+      await apiRequest(`api/plantations/moderation-logs/`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }, refreshAccessToken, authState.accessToken);
+
+      console.log("Moderation log submitted successfully");
+      setSuccessMessage("Bekor qilish sababi muvaffaqiyatli yuborildi!");
+      closeModal();
+      
+      // Задержка перед редиректом
+      setTimeout(() => {
+        const currentPage = localStorage.getItem('moderationPage') || 1;
+        window.location.href = `/moderation?page=${currentPage}`;
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting moderation log:", error);
+      setError("Bekor qilish sababini yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+    }
   };
 
   const fetchPlantationDetails = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL2}api/plantations/${id}/`);
-      const data = await response.json();
+      setError(null);
+      const data = await apiRequest(`api/plantations/${id}/`, {}, refreshAccessToken, authState.accessToken);
+      
       setPlantation(data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching plantation details:", error);
+      setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, authState.accessToken, refreshAccessToken]);
 
   const initializeMap = useCallback(() => {
     const map = new google.maps.Map(document.getElementById("map"), {
@@ -135,31 +145,42 @@ const EditPlantation = () => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL2}api/plantations/${id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authState.accessToken}`,
-        },
-        body: JSON.stringify(plantation),
-      });
+      setError(null);
+      setSuccessMessage(null);
+      
+      // Отправляем только координаты и is_checked
+      const updateData = {
+        coordinates: plantation.coordinates,
+        is_checked: true
+      };
+      
+      await apiRequest(`api/plantations/${id}/update/`, {
+        method: "PATCH",
+        body: JSON.stringify(updateData),
+      }, refreshAccessToken, authState.accessToken);
 
-      if (response.ok) {
-        console.log("Plantation updated successfully");
-        // Получаем номер страницы из URL или localStorage
+      console.log("Plantation updated successfully");
+      setSuccessMessage("Plantatsiya muvaffaqiyatli tasdiqlandi!");
+      
+      // Задержка перед редиректом, чтобы пользователь увидел уведомление
+      setTimeout(() => {
         const currentPage = localStorage.getItem('moderationPage') || 1;
         window.location.href = `/moderation?page=${currentPage}`;
-      } else {
-        console.error("Failed to update plantation");
-      }
+      }, 2000);
     } catch (error) {
       console.error("Error updating plantation:", error);
+      setError("O'zgartirishlarni saqlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     }
   };
 
   useEffect(() => {
+    if (!authState.accessToken) {
+      console.error("No access token found. Redirecting to login.");
+      window.location.href = '/login';
+      return;
+    }
     fetchPlantationDetails();
-  }, [fetchPlantationDetails]);
+  }, [fetchPlantationDetails, authState.accessToken]);
 
   useEffect(() => {
     if (plantation) {
@@ -194,6 +215,27 @@ const EditPlantation = () => {
             <p className="text-white">Ma'lumotlar yuklanmoqda...</p>
           </div>
         </div>
+      ) : error ? (
+        <div className="flex justify-center items-center h-full w-full bg-gray-900">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-white mb-4">{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                fetchPlantationDetails();
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Qaytadan urinib ko'ring
+            </button>
+          </div>
+        </div>
       ) : plantation ? (
         <>
           <div className="w-full md:w-1/2 h-64 md:h-full p-4">
@@ -216,6 +258,23 @@ const EditPlantation = () => {
             <h1 className="text-3xl font-bold mb-4 pr-12 text-white">
               {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
             </h1>
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-900 border border-red-600 rounded-md">
+                <p className="text-red-200 text-sm">{error}</p>
+              </div>
+            )}
+            
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-900 border border-green-600 rounded-md">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-green-200 text-sm">{successMessage}</p>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yer turi:</p>
