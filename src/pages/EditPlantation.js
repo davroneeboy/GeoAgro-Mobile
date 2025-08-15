@@ -26,6 +26,7 @@ const EditPlantation = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+
   // Функция для открытия модального окна
   const openModal = () => {
     setIsModalOpen(true);
@@ -106,7 +107,7 @@ const EditPlantation = () => {
         fillOpacity: 0.35,
         map,
         editable: true,
-        draggable: true,
+        draggable: false,
       });
 
       const updateCoordinates = () => {
@@ -126,8 +127,8 @@ const EditPlantation = () => {
       };
 
       polygon.addListener("mouseup", updateCoordinates);
-      polygon.addListener("dragend", updateCoordinates);
 
+      // Устанавливаем границы для отображения полигона
       const bounds = new google.maps.LatLngBounds();
       paths.forEach((coord) => bounds.extend(coord));
       map.fitBounds(bounds);
@@ -175,6 +176,8 @@ const EditPlantation = () => {
 
   useEffect(() => {
     if (plantation) {
+
+
       const loadGoogleMapsScript = () => {
         const existingScript = document.getElementById("googleMaps");
         if (!existingScript) {
@@ -230,7 +233,24 @@ const EditPlantation = () => {
       ) : plantation ? (
         <>
           <div className="w-full md:w-1/2 h-64 md:h-full p-4">
-            <div id="map" className="w-full h-full border border-gray-600 rounded-lg"></div>
+            <div 
+              id="map" 
+              className="w-full h-full border border-gray-600 rounded-lg"
+              style={{ 
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                WebkitTouchCallout: 'none',
+                WebkitUserDrag: 'none',
+                KhtmlUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                userSelect: 'none'
+              }}
+              onDragStart={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+            ></div>
           </div>
           <div className="w-full md:w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
             {/* Кнопка закрытия */}
