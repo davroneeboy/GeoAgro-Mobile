@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Table,
   Card,
@@ -12,6 +12,8 @@ import {
 } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
+import AuthContext from "../../context/AuthContext";
+import { fetchStatisticsData } from "../../utils/apiUtils";
 
 const { Option } = Select;
 
@@ -34,6 +36,7 @@ const REGION_NAMES = {
 const ControllersPage = () => {
   console.log("ControllersPage component rendered"); // Debug log 1
 
+  const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState({});
@@ -60,15 +63,7 @@ const ControllersPage = () => {
           url += `?${queryParams.toString()}`;
         }
 
-        const response = await fetch(url);
-
-        console.log("Response status:", response.status); // Debug log 4
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await fetchStatisticsData(url, authState.accessToken);
         console.log("Received data:", data); // Debug log 5
 
         setStatistics(data);
@@ -81,7 +76,7 @@ const ControllersPage = () => {
     };
 
     fetchData();
-  }, [filters]);
+  }, [filters, authState.accessToken]);
 
   console.log("Current state:", { loading, error, statistics }); // Debug log 7
 

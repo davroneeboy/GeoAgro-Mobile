@@ -112,7 +112,7 @@ const Moderation = () => {
 
     try {
       const response = await axios.patch(
-        `${API_BASE_URL2}api/plantations/${id}/update/`,
+        `${API_BASE_URL2}api/plantations/${id}/update/`,  
         {
           is_checked: true,
         },

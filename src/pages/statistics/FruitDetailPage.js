@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Card, Row, Col, Spin, Alert, Statistic, Button } from 'antd';
 import StatisticsLayout from '../../layouts/StatisticsLayout';
 import { API_BASE_URL1 } from "../../config";
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import AuthContext from '../../context/AuthContext';
+import { fetchStatisticsData } from '../../utils/apiUtils';
 
 const FruitDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState(null);
@@ -16,9 +19,8 @@ const FruitDetailPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL1}api/statistics/fruits/${id}/`);
-        if (!response.ok) throw new Error('Failed to fetch data');
-        const data = await response.json();
+        
+        const data = await fetchStatisticsData(`${API_BASE_URL1}api/statistics/fruits/${id}/`, authState.accessToken);
         setStatistics(data);
       } catch (err) {
         setError(err.message);
@@ -28,7 +30,7 @@ const FruitDetailPage = () => {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, authState.accessToken]);
 
   if (loading) return <Spin size="large" />;
   if (error) return <Alert message={error} type="error" />;

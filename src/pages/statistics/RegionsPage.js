@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
 import { useNavigate } from "react-router-dom";
+import AuthContext from "../../context/AuthContext";
+import { fetchStatisticsData } from "../../utils/apiUtils";
 
 const { Option } = Select;
 
@@ -24,6 +26,7 @@ const REGION_NAMES = {
 
 const RegionsPage = () => {
   const navigate = useNavigate();
+  const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState({});
@@ -52,9 +55,7 @@ const RegionsPage = () => {
           url += `?${queryParams.toString()}`;
         }
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Failed to fetch data");
-        const data = await response.json();
+        const data = await fetchStatisticsData(url, authState.accessToken);
 
         if (filters.regions.length > 0) {
           const filteredData = {};
@@ -73,7 +74,7 @@ const RegionsPage = () => {
     };
 
     fetchData();
-  }, [filters]);
+  }, [filters, authState.accessToken]);
 
   const safeNumber = (value) => (typeof value === "number" ? value : 0);
 

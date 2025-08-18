@@ -236,17 +236,14 @@ const EditPlantation = () => {
             <div 
               id="map" 
               className="w-full h-full border border-gray-600 rounded-lg"
-              style={{ 
+                            style={{
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
                 MozUserSelect: 'none',
                 msUserSelect: 'none',
                 WebkitTouchCallout: 'none',
                 WebkitUserDrag: 'none',
-                KhtmlUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none',
-                userSelect: 'none'
+                KhtmlUserSelect: 'none'
               }}
               onDragStart={(e) => e.preventDefault()}
               onSelectStart={(e) => e.preventDefault()}

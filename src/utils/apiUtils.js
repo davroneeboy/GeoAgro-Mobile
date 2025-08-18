@@ -95,3 +95,29 @@ export const createAuthenticatedAxios = (accessToken) => {
 
   return axiosInstance;
 }; 
+
+// Функция для создания заголовков с токеном авторизации для статистических API
+export const createAuthHeaders = (accessToken) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+};
+
+// Функция для выполнения API запросов к статистическим эндпоинтам
+export const fetchStatisticsData = async (url, accessToken) => {
+  const headers = createAuthHeaders(accessToken);
+  
+  const response = await fetch(url, { headers });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+  
+  return await response.json();
+}; 
