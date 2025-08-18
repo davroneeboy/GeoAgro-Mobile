@@ -48,9 +48,10 @@ export default function MapContainer() {
 
       // Отображение координат на карте
       if (mapInstance) {
+        // Удаляем только полигоны плантаций, но оставляем границы района
         mapInstance.eachLayer((layer) => {
-          if (layer instanceof L.Polygon || layer instanceof L.Marker) {
-            mapInstance.removeLayer(layer); // Удаляем предыдущие полигоны/маркеры
+          if (layer instanceof L.Polygon && layer.options && layer.options.isPlantation) {
+            mapInstance.removeLayer(layer);
           }
         });
 
@@ -64,6 +65,7 @@ export default function MapContainer() {
           const polygon = L.polygon(coordinates, {
             color: "red",
             weight: 2,
+            isPlantation: true, // Флаг для идентификации полигонов плантаций
           }).addTo(mapInstance);
 
           polygon.bindPopup(

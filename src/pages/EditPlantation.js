@@ -322,6 +322,31 @@ const EditPlantation = () => {
                 </p>
                 <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
+              {plantation.investments && plantation.investments.length > 0 && (
+                <div className="bg-gray-700 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-300 mb-2">Investitsiyalar:</p>
+                  <div className="space-y-1 mb-3">
+                    {plantation.investments.map((investment, index) => (
+                      <div key={investment.id || index} className="text-white text-sm">
+                        <span className="text-gray-400">
+                          {investment.invest_type === 1 ? 'Mahalliy' : investment.invest_type === 2 ? 'Xorijiy' : `Turi ${investment.invest_type}`}:
+                        </span>
+                        <span className="ml-2 font-medium">
+                          {new Intl.NumberFormat('uz-UZ').format(investment.investment_amount)} UZS
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-600 pt-2">
+                    <p className="font-semibold text-gray-300">Jami investitsiyalar:</p>
+                    <p className="text-white font-bold text-green-400 text-lg">
+                      {new Intl.NumberFormat('uz-UZ').format(
+                        plantation.investments.reduce((total, inv) => total + (inv.investment_amount || 0), 0)
+                      )} UZS
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {plantation.farmer && (

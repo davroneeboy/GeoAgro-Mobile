@@ -92,6 +92,13 @@ export const useMapsHook = ({
     try {
       const plantations = await fetchPlantationsMap(districtId, accessToken);
 
+      // Удаляем только старые полигоны плантаций
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Polygon && layer.options && layer.options.isPlantation) {
+          map.removeLayer(layer);
+        }
+      });
+
       // Tumanni poligon va bog'lar bilan birга ko'rsatish
       plantations.forEach((plantation) => {
         const coordinates = plantation.coordinates.map((coord) => [
@@ -104,6 +111,7 @@ export const useMapsHook = ({
           color: "red",
           fillColor: "red",
           weight: 2,
+          isPlantation: true, // Флаг для идентификации полигонов плантаций
         }).addTo(map);
 
 
@@ -131,12 +139,12 @@ export const useMapsHook = ({
       const response = await fetch(`/uzb-geojson/${regionId}.geojson`);
       const geoData = await response.json();
 
-      // Har bir layerni tozalash
+      // Удаляем все слои кроме базовой карты
       map.eachLayer((layer) => {
         if (!(layer instanceof L.TileLayer)) map.removeLayer(layer);
       });
 
-      // Tumanni yuklash
+      // Загружаем все районы региона
       const newGeoLayer = L.geoJSON(geoData, {
         style: {
           fillColor: "#52ADEC",
@@ -158,15 +166,19 @@ export const useMapsHook = ({
               layer.closePopup();
             },
             click: async () => {
+              // Удаляем все слои кроме базовой карты
               map.eachLayer((l) => {
-                if (!(l instanceof L.TileLayer)) map.removeLayer(l);
+                if (!(l instanceof L.TileLayer)) {
+                  map.removeLayer(l);
+                }
               });
 
+              // Добавляем только выбранный район
               const singleTumanLayer = L.geoJSON(feature, {
                 style: {
                   fillColor: "transparent",
                   color: "#FFFFFF",
-                  weight: 4,
+                  weight: 3,
                   fillOpacity: 0,
                 },
               });

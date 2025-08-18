@@ -432,6 +432,9 @@ const HomePage = () => {
                     </div>
                   </div>
                 </div>
+
+
+
               </div>
             ) : (
               <div className="text-center text-gray-400 h-96 flex items-center justify-center">
@@ -455,8 +458,10 @@ const HomePage = () => {
               Chiqish
             </button>
           </div>
+
+
           
-          <h2 className="mt-8 text-lg font-semibold text-white mb-1">
+          <h2 className="mt-6 text-lg font-semibold text-white mb-1">
             Moderatsiya
           </h2>
           <p className="text-xs text-gray-400 mb-4">Kirish: <span className="text-gray-300 font-medium">{authState?.username || "—"}</span></p>
