@@ -10,6 +10,7 @@ export const useMapsHook = ({
   onDistrictClick,
   onMapLoad,
   onPlantationClick,
+  accessToken,
 }) => {
   const mapRef = useRef();
   const [map, setMap] = useState(null);
@@ -93,7 +94,7 @@ export const useMapsHook = ({
   const loadTumanPlantations = async (districtId) => {
     setLoading(true);
     try {
-      const plantations = await fetchPlantationsMap(districtId);
+      const plantations = await fetchPlantationsMap(districtId, accessToken);
 
       // Tumanni poligon va bog'lar bilan birга ko'rsatish
       plantations.forEach((plantation) => {
@@ -104,10 +105,12 @@ export const useMapsHook = ({
 
         // Bog' poligonlarini chizish
         const polygon = L.polygon(coordinates, {
-          color: getColorByFertilityScore(plantation.fertility_score),
-          fillColor: getColorByFertilityScore(plantation.fertility_score),
+          color: "red",
+          fillColor: "red",
           weight: 2,
         }).addTo(map);
+
+
 
         polygon.bindPopup(
           `<strong>${plantation.name || "Sarlavhasiz"}</strong><br>Maydon: ${
@@ -118,6 +121,9 @@ export const useMapsHook = ({
           onPlantationClick(plantation, map);
         });
       });
+      
+
+      
       setLoading(false);
     } catch (error) {
       console.error("Error loading tuman plantations:", error);

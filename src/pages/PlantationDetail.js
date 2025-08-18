@@ -64,10 +64,10 @@ const PlantationDetail = () => {
 
       new google.maps.Polygon({
         paths,
-        strokeColor: getColorByFertilityScore(plantation.fertility_score),
+        strokeColor: "red",
         strokeOpacity: 1,
         strokeWeight: 2,
-        fillColor: getColorByFertilityScore(plantation.fertility_score),
+        fillColor: "red",
         fillOpacity: 0.35,
         map: mapInstance,
       });

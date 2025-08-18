@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Table, Card, Row, Col, Spin, Alert, Statistic, Button } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
@@ -25,6 +25,7 @@ const REGION_NAMES = {
 const RegionDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,10 +36,31 @@ const RegionDetailPage = () => {
       try {
         setLoading(true);
         
-        const data = await fetchStatisticsData(
-          `${API_BASE_URL1}api/statistics/regions/${id}/`,
-          authState.accessToken
-        );
+        // Читаем фильтры из URL параметров
+        const searchParams = new URLSearchParams(location.search);
+        const estDate = searchParams.get('est_date');
+        const plantationType = searchParams.get('plantation_type');
+        const regions = searchParams.get('regions');
+        
+        // Строим URL с фильтрами
+        let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
+        const queryParams = new URLSearchParams();
+        
+        if (estDate) {
+          queryParams.append("est_date", estDate);
+        }
+        if (plantationType) {
+          queryParams.append("plantation_type", plantationType);
+        }
+        if (regions) {
+          queryParams.append("regions", regions);
+        }
+        
+        if (queryParams.toString()) {
+          url += `?${queryParams.toString()}`;
+        }
+        
+        const data = await fetchStatisticsData(url, authState.accessToken);
         setStatistics(data);
       } catch (err) {
         setError(err.message);
@@ -48,7 +70,7 @@ const RegionDetailPage = () => {
     };
 
     fetchData();
-  }, [id, authState.accessToken]);
+  }, [id, authState.accessToken, location.search]);
 
   if (loading) return <Spin size="large" />;
   if (error) return <Alert message={error} type="error" />;
@@ -319,7 +341,11 @@ const RegionDetailPage = () => {
           <Button
             type="link"
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/statistics/regions")}
+            onClick={() => {
+              const searchParams = new URLSearchParams(location.search);
+              const queryString = searchParams.toString();
+              navigate(`/statistics/regions${queryString ? `?${queryString}` : ''}`);
+            }}
           >
             Orqaga
           </Button>
@@ -327,6 +353,40 @@ const RegionDetailPage = () => {
             {REGION_NAMES[id]} viloyati statistikasi
           </h1>
         </div>
+
+        {/* Active Filters Display */}
+        {(() => {
+          const searchParams = new URLSearchParams(location.search);
+          const estDate = searchParams.get('est_date');
+          const plantationType = searchParams.get('plantation_type');
+          const regions = searchParams.get('regions');
+          
+          if (estDate || plantationType || regions) {
+            return (
+              <div className="mb-4 p-3 bg-blue-900 border border-blue-600 rounded-md">
+                <p className="text-blue-200 text-sm font-semibold mb-2">Faol filtrlarni qo'llanilmoqda:</p>
+                <div className="flex flex-wrap gap-2">
+                  {estDate && (
+                    <span className="px-2 py-1 bg-blue-800 text-blue-200 rounded text-xs">
+                      Yil: {estDate}
+                    </span>
+                  )}
+                  {plantationType && (
+                    <span className="px-2 py-1 bg-blue-800 text-blue-200 rounded text-xs">
+                      Tur: {plantationType}
+                    </span>
+                  )}
+                  {regions && (
+                    <span className="px-2 py-1 bg-blue-800 text-blue-200 rounded text-xs">
+                      Viloyatlar: {regions}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Summary Cards */}
         <Row gutter={[12, 12]} className="mb-4 sm:mb-6">

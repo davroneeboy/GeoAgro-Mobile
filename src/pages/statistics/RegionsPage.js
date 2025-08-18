@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
 
@@ -26,6 +26,7 @@ const REGION_NAMES = {
 
 const RegionsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,6 +40,22 @@ const RegionsPage = () => {
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
+
+  // Читаем фильтры из URL при загрузке страницы
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const estDate = searchParams.get('est_date');
+    const plantationType = searchParams.get('plantation_type');
+    const regions = searchParams.get('regions');
+    
+    const newFilters = {
+      plantation_type: plantationType ? plantationType.split(',') : [],
+      garden_established_year: estDate ? parseInt(estDate) : null,
+      regions: regions ? regions.split(',') : [],
+    };
+    
+    setFilters(newFilters);
+  }, [location.search]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -192,7 +209,22 @@ const RegionsPage = () => {
       sorter: true,
       sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
       onCell: (record) => ({
-        onClick: () => record.key !== "total" && navigate(`/statistics/regions/${record.key}`),
+        onClick: () => {
+          if (record.key !== "total") {
+            const params = new URLSearchParams();
+            if (filters.garden_established_year) {
+              params.append("est_date", filters.garden_established_year);
+            }
+            if (filters.plantation_type.length > 0) {
+              params.append("plantation_type", filters.plantation_type.join(","));
+            }
+            if (filters.regions.length > 0) {
+              params.append("regions", filters.regions.join(","));
+            }
+            const queryString = params.toString();
+            navigate(`/statistics/regions/${record.key}${queryString ? `?${queryString}` : ''}`);
+          }
+        },
         style: { cursor: record.key !== "total" ? "pointer" : "default", color: '#e5e7eb' },
       }),
       responsive: ['xs', 'sm', 'md', 'lg']
@@ -334,6 +366,7 @@ const RegionsPage = () => {
           <Button type="primary" danger onClick={() => {
             setFilters({ plantation_type: [], garden_established_year: null, regions: [] });
             setSortConfig({ field: null, order: 'ascend' });
+            navigate('/statistics/regions');
           }}>
             Filterni tozalash
           </Button>

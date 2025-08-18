@@ -62,7 +62,7 @@ export default function MapContainer() {
 
           // Добавляем полигон или маркер на карту
           const polygon = L.polygon(coordinates, {
-            color: plantation.is_fertile ? "green" : "red",
+            color: "red",
             weight: 2,
           }).addTo(mapInstance);
 
@@ -101,6 +101,7 @@ export default function MapContainer() {
     onDistrictClick: handleDistrictClick,
     onPlantationClick: handlePlantationClick,
     onMapLoad: handleMapLoad,
+    accessToken: authState.accessToken,
   });
 
   return (
