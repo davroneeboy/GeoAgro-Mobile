@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
+import AuthContext from "../context/AuthContext";
 
 const FarmerEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { authState } = useContext(AuthContext);
   const [farmer, setFarmer] = useState({
     name: "",
     founder_name: "",
@@ -31,7 +33,17 @@ const FarmerEdit = () => {
     const fetchFarmer = async () => {
       try {
         setError(null);
-        const response = await axios.get(`${API_BASE_URL2}api/farmers/${id}/`);
+        
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+
+        // Добавляем Bearer токен к заголовкам
+        if (authState.accessToken) {
+          headers.Authorization = `Bearer ${authState.accessToken}`;
+        }
+
+        const response = await axios.get(`${API_BASE_URL2}api/farmers/${id}/`, { headers });
         setFarmer(response.data);
       } catch (error) {
         console.error("Error fetching farmer:", error);
@@ -64,10 +76,19 @@ const FarmerEdit = () => {
     try {
       setLoading(true);
       setError(null);
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      // Добавляем Bearer токен к заголовкам
+      if (authState.accessToken) {
+        headers.Authorization = `Bearer ${authState.accessToken}`;
+      }
+
       if (id === "new") {
-        await axios.post(`${API_BASE_URL2}api/farmers/`, farmer);
+        await axios.post(`${API_BASE_URL2}api/farmers/`, farmer, { headers });
       } else {
-        await axios.put(`${API_BASE_URL2}api/farmers/${id}/`, farmer);
+        await axios.put(`${API_BASE_URL2}api/farmers/${id}/`, farmer, { headers });
       }
       navigate("/farmers");
     } catch (error) {

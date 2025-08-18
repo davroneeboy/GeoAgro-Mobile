@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
+import AuthContext from "../context/AuthContext";
 
 const Farmers = () => {
+  const { authState } = useContext(AuthContext);
   const [farmers, setFarmers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -51,7 +53,17 @@ const Farmers = () => {
 
         let url = `${API_BASE_URL2}api/farmers/?${params.toString()}`;
         console.log("Fetching farmers from:", url);
-        let response = await axios.get(url);
+        
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+
+        // Добавляем Bearer токен к заголовкам
+        if (authState.accessToken) {
+          headers.Authorization = `Bearer ${authState.accessToken}`;
+        }
+
+        let response = await axios.get(url, { headers });
         console.log("Farmers response:", response.data);
 
         let results = response.data.results || [];
@@ -63,7 +75,7 @@ const Farmers = () => {
           for (let p = 2; p <= 10; p += 1) {
             const pageUrl = `${API_BASE_URL2}api/farmers/?page=${p}`;
             console.log("Aggregating page for partial INN:", pageUrl);
-            const pageResp = await axios.get(pageUrl);
+            const pageResp = await axios.get(pageUrl, { headers });
             const pageResults = pageResp.data.results || [];
             aggregated.push(...pageResults);
             if (pageResults.length < PAGE_SIZE) break;
@@ -104,7 +116,7 @@ const Farmers = () => {
         setLoading(false);
       }
     },
-    [debouncedSearch]
+    [debouncedSearch, authState.accessToken]
   );
 
   // Debounce search input (быстрее)
