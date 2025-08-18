@@ -33,11 +33,7 @@ export const useMapsHook = ({
     return () => mapInstance.remove();
   }, []);
 
-  const getColorByFertilityScore = (score) => {
-    const red = Math.min(255, Math.max(0, 255 - score * 2.55));
-    const green = Math.min(255, Math.max(0, score * 2.55));
-    return `rgb(${red}, ${green}, 0)`;
-  };
+
 
   const initializeMap = async () => {
     try {
