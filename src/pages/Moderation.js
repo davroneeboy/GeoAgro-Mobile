@@ -12,7 +12,11 @@ const Moderation = () => {
     action: "All",
     status: "All",
     type: "All",
+    region: "All",
+    district: "All",
   });
+  const [districts, setDistricts] = useState([]);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
@@ -52,6 +56,69 @@ const Moderation = () => {
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const getRegionName = (regionId) => {
+    if (!regionId) return "—";
+    
+    const regionNames = {
+      1: "Tashkent",
+      2: "Andijan", 
+      3: "Bukhara",
+      4: "Fergana",
+      5: "Jizzakh",
+      6: "Kashkadarya",
+      7: "Navoi",
+      8: "Namangan",
+      9: "Samarkand",
+      10: "Sirdarya",
+      11: "Surkhandarya",
+      12: "Karakalpakstan",
+    };
+    
+    // Если regionId - это строка с названием региона, возвращаем как есть
+    if (typeof regionId === 'string' && regionNames[parseInt(regionId)] === undefined) {
+      return regionId;
+    }
+    
+    return regionNames[regionId] || `Region ${regionId}`;
+  };
+
+  // Функция для загрузки районов по региону
+  const fetchDistricts = async (regionId) => {
+    if (!regionId || regionId === "All") {
+      setDistricts([]);
+      return;
+    }
+
+    setLoadingDistricts(true);
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL2}api/districts/?region=${regionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authState.accessToken}`,
+          },
+        }
+      );
+      
+      if (response.data && response.data.results) {
+        setDistricts(response.data.results);
+      } else {
+        setDistricts([]);
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке районов:", error);
+      setDistricts([]);
+      
+      if (error.response?.status === 401) {
+        logout();
+        navigate('/login');
+      }
+    } finally {
+      setLoadingDistricts(false);
+    }
   };
 
   // Синхронизируем URL с состоянием страницы (только при изменении page)
@@ -100,6 +167,11 @@ const Moderation = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, page, location.search]);
+
+  // Загружаем районы при изменении региона
+  useEffect(() => {
+    fetchDistricts(filters.region);
+  }, [filters.region]);
 
     // Функция для обновления статуса при просмотре
   const handleView = async (id) => {
@@ -172,6 +244,8 @@ const Moderation = () => {
           action: filters.action !== "All" ? filters.action : undefined,
           status: filters.status !== "All" ? filters.status : undefined,
           type: filters.type !== "All" ? filters.type : undefined,
+          region: filters.region !== "All" ? filters.region : undefined,
+          district: filters.district !== "All" ? filters.district : undefined,
         };
         const response = await axios.get(
           `${API_BASE_URL2}api/plantations/moderation/`,
@@ -260,7 +334,7 @@ const Moderation = () => {
   }, [page, filters, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
-    setFilters({ action: "All", status: "All", type: "All" });
+    setFilters({ action: "All", status: "All", type: "All", region: "All", district: "All" });
     setPage(1);
     navigate('/moderation?page=1', { replace: true });
     // Очищаем localStorage при сбросе фильтров
@@ -338,6 +412,13 @@ const Moderation = () => {
             >
               Fermerlar
             </Link>
+            <Link
+              to="/approved-plantations"
+              className="block w-full bg-green-500 text-white py-2 rounded-lg font-medium text-center hover:bg-green-600 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Tasdiqlangan bog'lar
+            </Link>
             {/* Kontaktlar перенесены в компактную панель */}
             <Link
               to="/moderation"
@@ -406,6 +487,16 @@ const Moderation = () => {
               </svg>
               Fermerlar
             </Link>
+
+            <Link
+              to="/approved-plantations"
+              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Tasdiqlangan bog'lar
+            </Link>
           </div>
         </div>
 
@@ -469,6 +560,54 @@ const Moderation = () => {
                 <option value="Issiqxonalar">Issiqxonalar</option>
                 <option value="Uzumzorlar">Uzumzorlar</option>
               </select>
+              <select
+                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={filters.region}
+                onChange={(e) => {
+                  setFilters({ ...filters, region: e.target.value, district: "All" });
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  navigate('/moderation?page=1', { replace: true });
+                }}
+              >
+                <option value="All">Region</option>
+                <option value="1">Tashkent</option>
+                <option value="2">Andijan</option>
+                <option value="3">Bukhara</option>
+                <option value="4">Fergana</option>
+                <option value="5">Jizzakh</option>
+                <option value="6">Kashkadarya</option>
+                <option value="7">Navoi</option>
+                <option value="8">Namangan</option>
+                <option value="9">Samarkand</option>
+                <option value="10">Sirdarya</option>
+                <option value="11">Surkhandarya</option>
+                <option value="12">Karakalpakstan</option>
+              </select>
+              {filters.region !== "All" && (
+                <select
+                  className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  value={filters.district}
+                  onChange={(e) => {
+                    setFilters({ ...filters, district: e.target.value });
+                    setPage(1);
+                    localStorage.setItem('moderationPage', '1');
+                    navigate('/moderation?page=1', { replace: true });
+                  }}
+                  disabled={loadingDistricts}
+                >
+                  <option value="All">Barcha tumanlar</option>
+                  {loadingDistricts ? (
+                    <option value="" disabled>Yuklanmoqda...</option>
+                  ) : (
+                    districts.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              )}
             </div>
 
             {/* Сообщение об ошибке */}
@@ -506,98 +645,95 @@ const Moderation = () => {
               {moderations.map((plantation) => (
                 <div
                   key={plantation.id}
-                  className="relative p-6 border border-gray-600 rounded-xl bg-gray-800 shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-[1.02] transition-all duration-300 ease-in-out"
+                  className="group block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 hover:border-blue-500 hover:from-gray-750 hover:to-gray-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-blue-500/10"
                   onClick={() => {
                     handleView(plantation.id);
                     // Сохраняем текущую страницу перед переходом
                     localStorage.setItem('moderationPage', page.toString());
-                    navigate(`/plantations/edit/${plantation.id}`);
+                    navigate(`/plantations/edit/${plantation.id}`, { 
+                      state: { from: '/moderation' } 
+                    });
                   }}
                 >
-                  {/* Индикатор статуса */}
-                  <div className="absolute top-4 right-4">
-                    {plantation.action === "Обновленный" && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-900 text-blue-200">
-                        <span className="w-2 h-2 mr-1 bg-blue-400 rounded-full"></span>
-                        Yangilangan
-                      </span>
-                    )}
-                    {plantation.action === "Bekor qilinganlar" && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-900 text-red-200">
-                        <span className="w-2 h-2 mr-1 bg-red-400 rounded-full"></span>
-                        Bekor qilingan
-                      </span>
-                    )}
-                    {plantation.action === "Yaratilgan" && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-900 text-green-200">
-                        <span className="w-2 h-2 mr-1 bg-green-400 rounded-full"></span>
-                        Yaratilgan
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    {/* Основная информация */}
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center mr-4">
-                          <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7"></path>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                        {plantation.name}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
                           </svg>
-                        </div>
-                        <h3 className="text-xl font-bold text-white leading-tight">
-                          {plantation.name}
-                        </h3>
-                      </div>
-                      
-                      <div className="pl-14 space-y-2">
-                        <div className="flex items-center text-sm text-gray-300">
-                          <span className="font-medium text-gray-200 min-w-[120px]">Plantatsiya turi:</span>
-                          <span className="bg-gray-700 px-2 py-1 rounded-md text-gray-200">
-                            {landTypeMapping[plantation.type]}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-300">
-                          <span className="font-medium text-gray-200 min-w-[120px]">Maydon:</span>
-                          <span className="font-semibold text-blue-400">{plantation.area}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-300">
-                          <span className="font-medium text-gray-200 min-w-[120px]">Region:</span>
-                          <span className="text-gray-200">{plantation.region}</span>
-                        </div>
-                        {plantation.createdAt && (
-                          <div className="flex items-center text-xs text-gray-400 mt-3 pt-2 border-t border-gray-600">
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Qo'shilgan: {new Date(plantation.createdAt).toLocaleString("ru-RU")}
-                          </div>
-                        )}
+                          {plantation.area}
+                        </span>
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {plantation.region}
+                        </span>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      {plantation.action === "Обновленный" && (
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                      {plantation.action === "Bekor qilinganlar" && (
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                      )}
+                      {plantation.action === "Yaratilgan" && (
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      )}
+                      <span className="text-xs font-medium">
+                        {plantation.action === "Обновленный" && "Yangilangan"}
+                        {plantation.action === "Bekor qilinganlar" && "Bekor qilingan"}
+                        {plantation.action === "Yaratilgan" && "Yaratilgan"}
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* Данные для изменений, создания или удаления */}
-                    <div className="flex items-center">
-                      {plantation.action === "Обновленный" && plantation.prev_data && (
-                        <div className="w-full bg-blue-900 border border-blue-700 rounded-lg p-4">
-                          <h4 className="text-sm font-bold text-blue-200 mb-3 flex items-center">
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            O'zgarishlar:
-                          </h4>
-                          <div className="space-y-2">
-                            {Object.keys(plantation.prev_data).map((key) => (
-                              <div key={key} className="text-sm">
-                                <span className="font-medium text-gray-300">
-                                  {key === "plantation_type" ? "Тип плантации" : key}:
-                                </span>
-                                <div className="mt-1">
-                                  <span className="line-through text-red-400 bg-red-900 px-2 py-1 rounded mr-2">
-                                    {plantation.prev_data[key].old}
-                                  </span>
-                                  <span className="text-green-400 font-semibold bg-green-900 px-2 py-1 rounded">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                      <div className="text-xs text-gray-400 mb-1">Turi</div>
+                      <div className="text-white font-semibold">{landTypeMapping[plantation.type]}</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                      <div className="text-xs text-gray-400 mb-1">Maydon</div>
+                      <div className="text-white font-semibold">{plantation.area}</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                      <div className="text-xs text-gray-400 mb-1">Region</div>
+                      <div className="text-white font-semibold">{plantation.region}</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                      <div className="text-xs text-gray-400 mb-1">Qo'shilgan</div>
+                      <div className="text-white font-semibold text-sm">
+                        {plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {plantation.action === "Обновленный" && plantation.prev_data && (
+                    <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4 mb-4">
+                      <h4 className="text-sm font-bold text-blue-200 mb-3 flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        O'zgarishlar:
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {Object.keys(plantation.prev_data).map((key) => (
+                          <div key={key} className="text-sm">
+                            <span className="font-medium text-gray-300">
+                              {key === "plantation_type" ? "Тип плантации" : key}:
+                            </span>
+                            <div className="mt-1 flex items-center space-x-2">
+                              <span className="line-through text-red-400 bg-red-900/50 px-2 py-1 rounded text-xs">
+                                {plantation.prev_data[key].old}
+                              </span>
+                              <span className="text-green-400 font-semibold bg-green-900/50 px-2 py-1 rounded text-xs">
                                     {plantation.prev_data[key].new}
                                   </span>
                                 </div>
@@ -606,14 +742,20 @@ const Moderation = () => {
                           </div>
                         </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Иконка редактирования */}
-                  <div className="absolute bottom-4 right-4 opacity-50 group-hover:opacity-100 transition-opacity">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-700">
+                    <div className="flex items-center space-x-2 text-sm text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>Qo'shilgan: {plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}</span>
+                    </div>
+                    <div className="flex items-center text-blue-400 text-sm font-medium group-hover:text-blue-300 transition-colors">
+                      <span>Tahrirlash</span>
+                      <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -666,7 +808,7 @@ const Moderation = () => {
         {/* Правая панель */}
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg h-screen flex flex-col">
           <div className="space-y-4 flex-1 overflow-y-auto">
-            {/* Kontaktlar перенесены в компактную панель */}
+            {/* Кнопка выхода */}
             <button
               onClick={handleLogout}
               className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
@@ -737,6 +879,54 @@ const Moderation = () => {
               <option value="Issiqxonalar">Issiqxonalar</option>
               <option value="Uzumzorlar">Uzumzorlar</option>
             </select>
+            <select
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              value={filters.region}
+              onChange={(e) => {
+                setFilters({ ...filters, region: e.target.value, district: "All" });
+                setPage(1);
+                localStorage.setItem('moderationPage', '1');
+                navigate('/moderation?page=1', { replace: true });
+              }}
+            >
+              <option value="All">Region</option>
+              <option value="1">Tashkent</option>
+              <option value="2">Andijan</option>
+              <option value="3">Bukhara</option>
+              <option value="4">Fergana</option>
+              <option value="5">Jizzakh</option>
+              <option value="6">Kashkadarya</option>
+              <option value="7">Navoi</option>
+              <option value="8">Namangan</option>
+              <option value="9">Samarkand</option>
+              <option value="10">Sirdarya</option>
+              <option value="11">Surkhandarya</option>
+              <option value="12">Karakalpakstan</option>
+            </select>
+            {filters.region !== "All" && (
+              <select
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={filters.district}
+                onChange={(e) => {
+                  setFilters({ ...filters, district: e.target.value });
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  navigate('/moderation?page=1', { replace: true });
+                }}
+                disabled={loadingDistricts}
+              >
+                <option value="All">Barcha tumanlar</option>
+                {loadingDistricts ? (
+                  <option value="" disabled>Yuklanmoqda...</option>
+                ) : (
+                  districts.map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            )}
           </div>
 
           {/* Сообщение об ошибке */}
@@ -774,55 +964,79 @@ const Moderation = () => {
             {moderations.map((plantation) => (
               <div
                 key={plantation.id}
-                className="p-4 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
+                className="group block bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl p-4 border border-gray-600 hover:border-blue-500 hover:from-gray-650 hover:to-gray-750 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg"
                 onClick={() => {
                   handleView(plantation.id);
                   // Сохраняем текущую страницу перед переходом
                   localStorage.setItem('moderationPage', page.toString());
-                  navigate(`/plantations/edit/${plantation.id}`);
+                  navigate(`/plantations/edit/${plantation.id}`, { 
+                    state: { from: '/moderation' } 
+                  });
                 }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white font-medium truncate pr-2">{plantation.name}</h3>
-                  {plantation.action === "Обновленный" && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-900 text-blue-200">
-                      Yangilangan
-                    </span>
-                  )}
-                  {plantation.action === "Bekor qilinganlar" && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-900 text-red-200">
-                      Bekor qilingan
-                    </span>
-                  )}
-                  {plantation.action === "Yaratilgan" && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-900 text-green-200">
-                      Yaratilgan
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-300 space-y-2">
-                  <div className="flex items-center">
-                    <span className="text-gray-200 mr-2">Plantatsiya turi:</span>
-                    <span className="bg-gray-600 px-2 py-0.5 rounded-md text-gray-100">
-                      {landTypeMapping[plantation.type]}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-200 mr-2">Maydon:</span>
-                    <span className="font-semibold text-blue-400">{plantation.area}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-200 mr-2">Region:</span>
-                    <span className="text-gray-100 truncate">{plantation.region}</span>
-                  </div>
-                  {plantation.createdAt && (
-                    <div className="flex items-center text-xs text-gray-300 pt-2 border-t border-gray-600">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Qo'shilgan: {new Date(plantation.createdAt).toLocaleString("ru-RU")}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                      {plantation.name}
+                    </h3>
+                    <div className="flex items-center space-x-3 text-xs text-gray-400">
+                      <span className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
+                        </svg>
+                        {plantation.area}
+                      </span>
+                      <span className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {plantation.region}
+                      </span>
                     </div>
-                  )}
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    {plantation.action === "Обновленный" && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    )}
+                    {plantation.action === "Bekor qilinganlar" && (
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    )}
+                    {plantation.action === "Yaratilgan" && (
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    )}
+                    <span className="text-xs font-medium">
+                      {plantation.action === "Обновленный" && "Yangilangan"}
+                      {plantation.action === "Bekor qilinganlar" && "Bekor qilingan"}
+                      {plantation.action === "Yaratilgan" && "Yaratilgan"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div className="bg-gray-600/50 rounded-lg p-2">
+                    <div className="text-xs text-gray-400 mb-1">Turi</div>
+                    <div className="text-white font-semibold text-sm">{landTypeMapping[plantation.type]}</div>
+                  </div>
+                  <div className="bg-gray-600/50 rounded-lg p-2">
+                    <div className="text-xs text-gray-400 mb-1">Maydon</div>
+                    <div className="text-white font-semibold text-sm">{plantation.area}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-gray-600">
+                  <div className="flex items-center space-x-1 text-xs text-gray-400">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}</span>
+                  </div>
+                  <div className="flex items-center text-blue-400 text-xs font-medium group-hover:text-blue-300 transition-colors">
+                    <span>Tahrirlash</span>
+                    <svg className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
             ))}

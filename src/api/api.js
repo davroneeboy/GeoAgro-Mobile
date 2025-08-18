@@ -37,7 +37,7 @@ export async function fetchPlantationsMap(districtId, accessToken) {
     const response = await fetch(
       `${API_BASE_URL2}api/plantations/map/?district_id=${key}&is_checked=True`,
       { headers }
-    );
+    );  
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }

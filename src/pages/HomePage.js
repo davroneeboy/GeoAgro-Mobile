@@ -268,6 +268,13 @@ const HomePage = () => {
               Moderatsiya
             </Link>
             <Link
+              to="/approved-plantations"
+              className="block w-full bg-green-500 text-white py-2 rounded-lg font-medium text-center hover:bg-green-600 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Tasdiqlangan bog'lar
+            </Link>
+            <Link
               to="/controllers"
               className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -449,39 +456,33 @@ const HomePage = () => {
 
         {/* Правая панель */}
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
-          <div className="space-y-4">
-            {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
+          <div className="space-y-3">
             <button
               onClick={handleLogout}
-              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
+              className="block w-full bg-green-500 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
             >
               Chiqish
             </button>
-          </div>
-
-
-          
-          <h2 className="mt-6 text-lg font-semibold text-white mb-1">
-            Moderatsiya
-          </h2>
-          <p className="text-xs text-gray-400 mb-4">Kirish: <span className="text-gray-300 font-medium">{authState?.username || "—"}</span></p>
-          <div className="space-y-3">
-            {Array(3)
-              .fill(null)
-              .map((_, idx) => (
-                <Link
-                  to="/moderation"
-                  key={idx}
-                  className="p-4 border border-gray-600 rounded-lg flex items-center justify-between bg-gray-700 hover:bg-gray-600 transition-colors"
-                >
-                  <p className="text-sm text-white">
-                    Toshkent viloyati, Tashkent
-                  </p>
-                  <button className="py-1 px-3 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors">
-                    Ko'proq
-                  </button>
-                </Link>
-              ))}
+            
+            <Link
+              to="/moderation"
+              className="block w-full bg-gray-700 border border-gray-600 text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Moderatsiya
+            </Link>
+            
+            <Link
+              to="/approved-plantations"
+              className="block w-full bg-green-500 text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Tasdiqlangan bog'lar
+            </Link>
           </div>
         </div>
       </div>

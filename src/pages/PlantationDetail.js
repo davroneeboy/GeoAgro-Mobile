@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { GOOGLE_API_KEY } from "../config";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
@@ -14,6 +14,7 @@ import {
 
 const PlantationDetail = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState({});
@@ -148,9 +149,22 @@ const PlantationDetail = () => {
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
               onClick={() => {
                 console.log('Navigating back...');
-                // Получаем номер страницы из URL или localStorage
-                const currentPage = localStorage.getItem('moderationPage') || 1;
-                navigate(`/moderation?page=${currentPage}`);
+                
+                // Определяем, с какой страницы пришел пользователь
+                const referrer = location.state?.from || document.referrer;
+                
+                if (referrer.includes('/approved-plantations')) {
+                  // Если пришел с approved-plantations, возвращаемся туда
+                  const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
+                  navigate(`/approved-plantations?page=${currentPage}`);
+                } else if (referrer.includes('/moderation')) {
+                  // Если пришел с moderation, возвращаемся туда
+                  const currentPage = localStorage.getItem('moderationPage') || 1;
+                  navigate(`/moderation?page=${currentPage}`);
+                } else {
+                  // По умолчанию возвращаемся на главную
+                  navigate('/');
+                }
               }}
               title="Закрыть"
             >
@@ -196,6 +210,31 @@ const PlantationDetail = () => {
                 <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
                 <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
+              {plantation.investments && plantation.investments.length > 0 && (
+                <div className="bg-gray-700 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-300 mb-2">Investitsiyalar:</p>
+                  <div className="space-y-1 mb-3">
+                    {plantation.investments.map((investment, index) => (
+                      <div key={investment.id || index} className="text-white text-sm">
+                        <span className="text-gray-400">
+                          {investment.invest_type === 1 ? 'Mahalliy' : investment.invest_type === 2 ? 'Xorijiy' : `Turi ${investment.invest_type}`}:
+                        </span>
+                        <span className="ml-2 font-medium">
+                          {new Intl.NumberFormat('uz-UZ').format(investment.investment_amount)} UZS
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-600 pt-2">
+                    <p className="font-semibold text-gray-300">Jami investitsiyalar:</p>
+                    <p className="text-white font-bold text-green-400 text-lg">
+                      {new Intl.NumberFormat('uz-UZ').format(
+                        plantation.investments.reduce((total, inv) => total + (inv.investment_amount || 0), 0)
+                      )} UZS
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {plantation.farmer && (

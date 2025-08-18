@@ -17,6 +17,7 @@ import FruitDetailPage from './pages/statistics/FruitDetailPage';
 import ControllersPage from './pages/statistics/ControllersPage';
 import Farmers from './pages/Farmers';
 import FarmerEdit from './pages/FarmerEdit';
+import ApprovedPlantations from './pages/ApprovedPlantations';
 
 const App = () => {
   return (
@@ -88,6 +89,7 @@ const App = () => {
         <Route path="/farmers" element={<ProtectedRoute><Farmers /></ProtectedRoute>} />
         <Route path="/farmers/:id" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
         <Route path="/farmers/new" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
+        <Route path="/approved-plantations" element={<ProtectedRoute><ApprovedPlantations /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
