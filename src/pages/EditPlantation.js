@@ -59,11 +59,8 @@ const EditPlantation = () => {
       setSuccessMessage("Plantatsiya muvaffaqiyatli o'chirildi!");
       closeModal();
       
-      // Задержка перед редиректом
-      setTimeout(() => {
-        const currentPage = localStorage.getItem('moderationPage') || 1;
-        window.location.href = `/moderation?page=${currentPage}`;
-      }, 2000);
+      // Автоперенаправление отключено по запросу. Останемся на странице для проверки Network.
+      // При необходимости вернуться вручную, используйте кнопки навигации сверху.
     } catch (error) {
       console.error("Error deleting plantation:", error);
       setError("Plantatsiyani o'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
@@ -135,12 +132,13 @@ const EditPlantation = () => {
     }
   }, [plantation]);
 
-  const handleSave = async () => {
+  // Функция для подтверждения плантации (устанавливает is_checked: true)
+  const handleApprove = async () => {
     try {
       setError(null);
       setSuccessMessage(null);
       
-      // Отправляем только координаты и is_checked
+      // Отправляем только координаты и is_checked: true для подтверждения
       const updateData = {
         coordinates: plantation.coordinates,
         is_checked: true
@@ -151,7 +149,7 @@ const EditPlantation = () => {
         body: JSON.stringify(updateData),
       }, refreshAccessToken, authState.accessToken);
 
-      console.log("Plantation updated successfully");
+      console.log("Plantation approved successfully");
       setSuccessMessage("Plantatsiya muvaffaqiyatli tasdiqlandi!");
       
       // Задержка перед редиректом, чтобы пользователь увидел уведомление
@@ -160,10 +158,12 @@ const EditPlantation = () => {
         window.location.href = `/moderation?page=${currentPage}`;
       }, 2000);
     } catch (error) {
-      console.error("Error updating plantation:", error);
-      setError("O'zgartirishlarni saqlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      console.error("Error approving plantation:", error);
+      setError("Plantatsiyani tasdiqlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     }
   };
+
+
 
   useEffect(() => {
     if (!authState.accessToken) {
@@ -480,7 +480,7 @@ const EditPlantation = () => {
             <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4">
               <button
                 className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
-                onClick={handleSave}
+                onClick={handleApprove}
               >
                 Tasdiqlash
               </button>

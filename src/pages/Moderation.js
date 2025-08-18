@@ -173,7 +173,7 @@ const Moderation = () => {
     fetchDistricts(filters.region);
   }, [filters.region]);
 
-    // Функция для обновления статуса при просмотре
+    // Функция для перехода к просмотру плантации (без автоматического подтверждения)
   const handleView = async (id) => {
     // Проверяем наличие токена перед запросом
     if (!authState.accessToken) {
@@ -182,37 +182,8 @@ const Moderation = () => {
       return;
     }
 
-    try {
-      const response = await axios.patch(
-        `${API_BASE_URL2}api/plantations/${id}/update/`,  
-        {
-          is_checked: true,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${authState.accessToken}`,
-          },
-        }
-      );
-      
-      // Обновляем состояние только после успешного ответа от сервера
-      setModerations(prevModerations => 
-        prevModerations.map((item) => 
-          item.id === id ? { ...item, is_checked: true } : item
-        )
-      );
-      
-      console.log("Запись успешно обновлена при просмотре:", response.data);
-    } catch (error) {
-      console.error("Ошибка при обновлении записи при просмотре:", error.response?.data || error.message);
-      
-      // Если получили 401, перенаправляем на страницу входа
-      if (error.response?.status === 401) {
-        console.log('Токен недействителен (401), перенаправляем на страницу входа');
-        logout();
-        navigate('/login');
-      }
-    }
+    // Просто переходим к просмотру без автоматического подтверждения
+    console.log("Переход к просмотру плантации:", id);
   };
 
   useEffect(() => {
