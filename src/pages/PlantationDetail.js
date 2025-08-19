@@ -503,10 +503,32 @@ const PlantationDetail = () => {
                 )}
               </div>
             )}
+            {plantation.images?.length > 0 && (
+              <div className="mt-6 bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-white">Galereya:</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {plantation.images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`Изображение ${idx + 1}`}
+                      className="w-full h-24 object-cover border border-gray-600 rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setSelectedImage(img)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex justify-end space-x-4 mt-6">
               <button
                 className="w-full sm:w-auto py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                onClick={() => navigate(`/plantations/edit/${plantation.id}`)}
+                onClick={() => {
+                  // Передаем информацию о том, откуда пришли
+                  const fromPage = location.state?.from || '/moderation';
+                  navigate(`/plantations/edit/${plantation.id}`, {
+                    state: { from: fromPage }
+                  });
+                }}
               >
                 Tahrirlash
               </button>

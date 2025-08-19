@@ -187,23 +187,34 @@ const EditPlantation = () => {
       
       // Задержка перед редиректом, чтобы пользователь увидел уведомление
       setTimeout(() => {
-        const currentPage = localStorage.getItem('moderationPage') || 1;
-        const savedFilters = location.state?.filters;
+        // Определяем, откуда пришел пользователь
+        const fromPage = location.state?.from;
+        console.log('Approve redirect, fromPage:', fromPage, 'location.state:', location.state);
         
-        // Восстанавливаем фильтры в URL
-        const searchParams = new URLSearchParams();
-        searchParams.set('page', currentPage.toString());
-        
-        if (savedFilters) {
-          if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
-          if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
-          if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
-          if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
-          if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+        if (fromPage === '/approved-plantations') {
+          // Если пришел с approved-plantations, возвращаемся туда
+          const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
+          window.location.href = `/approved-plantations?page=${currentPage}`;
+        } else {
+          // По умолчанию возвращаемся на moderation
+          const currentPage = localStorage.getItem('moderationPage') || 1;
+          const savedFilters = location.state?.filters;
+          
+          // Восстанавливаем фильтры в URL
+          const searchParams = new URLSearchParams();
+          searchParams.set('page', currentPage.toString());
+          
+          if (savedFilters) {
+            if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
+            if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
+            if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
+            if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
+            if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+          }
+          
+          const newUrl = `/moderation?${searchParams.toString()}`;
+          window.location.href = newUrl;
         }
-        
-        const newUrl = `/moderation?${searchParams.toString()}`;
-        window.location.href = newUrl;
       }, 2000);
     } catch (error) {
       console.error("Error approving plantation:", error);
@@ -312,25 +323,35 @@ const EditPlantation = () => {
             <button
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
               onClick={() => {
-                console.log('Navigating to moderation...');
-                // Получаем номер страницы из URL или localStorage
-                const currentPage = localStorage.getItem('moderationPage') || 1;
-                const savedFilters = location.state?.filters;
+                // Определяем, откуда пришел пользователь
+                const fromPage = location.state?.from;
+                console.log('Close button clicked, fromPage:', fromPage, 'location.state:', location.state);
                 
-                // Восстанавливаем фильтры в URL
-                const searchParams = new URLSearchParams();
-                searchParams.set('page', currentPage.toString());
-                
-                if (savedFilters) {
-                  if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
-                  if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
-                  if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
-                  if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
-                  if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+                if (fromPage === '/approved-plantations') {
+                  // Если пришел с approved-plantations, возвращаемся туда
+                  const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
+                  window.location.href = `/approved-plantations?page=${currentPage}`;
+                } else {
+                  // По умолчанию возвращаемся на moderation
+                  console.log('Navigating to moderation...');
+                  const currentPage = localStorage.getItem('moderationPage') || 1;
+                  const savedFilters = location.state?.filters;
+                  
+                  // Восстанавливаем фильтры в URL
+                  const searchParams = new URLSearchParams();
+                  searchParams.set('page', currentPage.toString());
+                  
+                  if (savedFilters) {
+                    if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
+                    if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
+                    if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
+                    if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
+                    if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+                  }
+                  
+                  const newUrl = `/moderation?${searchParams.toString()}`;
+                  window.location.href = newUrl;
                 }
-                
-                const newUrl = `/moderation?${searchParams.toString()}`;
-                window.location.href = newUrl;
               }}
               title="Закрыть"
             >
