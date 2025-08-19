@@ -73,6 +73,57 @@ const RegionsPage = () => {
         }
 
         const data = await fetchStatisticsData(url, authState.accessToken);
+        
+        // Параллельные запросы для получения данных по всем регионам и подсчета плантаций из туманов
+        // Добавляем флаг для быстрой загрузки без подсчета плантаций
+        const shouldFetchPlantations = true; // Можно поменять на false для быстрой загрузки
+        
+        if (shouldFetchPlantations) {
+          try {
+          const regionIds = Object.keys(data);
+          
+          // Создаем массив промисов для параллельных запросов
+          const regionPromises = regionIds.map(async (regionId) => {
+            try {
+              let regionUrl = `${API_BASE_URL1}api/statistics/regions/${regionId}/`;
+              const regionQueryParams = new URLSearchParams();
+              
+              if (filters.garden_established_year) {
+                regionQueryParams.append("est_date", filters.garden_established_year);
+              }
+              
+              if (regionQueryParams.toString()) {
+                regionUrl += `?${regionQueryParams.toString()}`;
+              }
+              
+              const regionData = await fetchStatisticsData(regionUrl, authState.accessToken);
+              
+              // Суммируем количество плантаций из всех туманов региона
+              let totalPlantations = 0;
+              if (regionData.data) {
+                Object.values(regionData.data).forEach(districtData => {
+                  totalPlantations += districtData.total_plantations || 0;
+                });
+              }
+              
+              return { regionId, totalPlantations };
+            } catch (regionError) {
+              console.warn(`Не удалось загрузить данные для региона ${regionId}:`, regionError);
+              return { regionId, totalPlantations: 0 };
+            }
+          });
+          
+          // Ждем выполнения всех запросов параллельно
+          const results = await Promise.all(regionPromises);
+          
+          // Объединяем данные статистики с данными о количестве плантаций
+          results.forEach(({ regionId, totalPlantations }) => {
+            data[regionId].total_plantations = totalPlantations;
+          });
+                  } catch (plantationsError) {
+            console.warn("Не удалось загрузить данные о плантациях:", plantationsError);
+          }
+        }
 
         if (filters.regions.length > 0) {
           const filteredData = {};
@@ -99,6 +150,7 @@ const RegionsPage = () => {
     key: regionId,
     region: REGION_NAMES[regionId],
     total_area: safeNumber(data.total_area),
+    total_plantations: safeNumber(data.total_plantations || data.plantations_count || data.count || 0),
     outdated_ga: safeNumber(data.outdated_ga),
     low_fertility_count: safeNumber(data.low_fertility?.count),
     low_fertility_area: safeNumber(data.low_fertility?.area),
@@ -121,6 +173,8 @@ const RegionsPage = () => {
           return row.region || '';
         case 'total_area':
           return Number(row.total_area || 0);
+        case 'total_plantations':
+          return Number(row.total_plantations || 0);
         case 'outdated_ga':
           return Number(row.outdated_ga || 0);
         case 'low_fertility_count':
@@ -166,6 +220,7 @@ const RegionsPage = () => {
     key: "total",
     region: "Jami",
     total_area: 0,
+    total_plantations: 0,
     outdated_ga: 0,
     low_fertility_count: 0,
     low_fertility_area: 0,
@@ -183,6 +238,7 @@ const RegionsPage = () => {
     (acc, curr) => ({
       ...acc,
       total_area: acc.total_area + safeNumber(curr.total_area),
+      total_plantations: acc.total_plantations + safeNumber(curr.total_plantations),
       outdated_ga: acc.outdated_ga + safeNumber(curr.outdated_ga),
       low_fertility_count: acc.low_fertility_count + safeNumber(curr.low_fertility_count),
       low_fertility_area: acc.low_fertility_area + safeNumber(curr.low_fertility_area),
@@ -239,6 +295,14 @@ const RegionsPage = () => {
           sorter: true,
           sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
+        },
+        {
+          title: "Plantatsiyalar",
+          dataIndex: "total_plantations",
+          key: "total_plantations",
+          sorter: true,
+          sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
           title: "Eskirgan (GA)",
