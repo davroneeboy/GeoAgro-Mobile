@@ -22,7 +22,9 @@ const PlantationDetail = () => {
   const [error, setError] = useState(null);
   const [createdByUser, setCreatedByUser] = useState(null);
   const [moderatedByUser, setModeratedByUser] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [regionPolygons, setRegionPolygons] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [regionLabels, setRegionLabels] = useState([]);
   const navigate = useNavigate();
   const { authState, refreshAccessToken } = useContext(AuthContext);

@@ -27,7 +27,9 @@ const EditPlantation = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [createdByUser, setCreatedByUser] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [regionPolygons, setRegionPolygons] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [regionLabels, setRegionLabels] = useState([]);
 
 
