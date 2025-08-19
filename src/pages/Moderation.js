@@ -15,11 +15,40 @@ const Moderation = () => {
     region: "All",
     district: "All",
   });
-  const [districts, setDistricts] = useState([]);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
+
+  // Функция для чтения фильтров из URL
+  const getFiltersFromUrl = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return {
+      action: searchParams.get('action') || "All",
+      status: searchParams.get('status') || "All",
+      type: searchParams.get('type') || "All",
+      region: searchParams.get('region') || "All",
+      district: searchParams.get('district') || "All",
+    };
+  };
+
+  // Функция для сохранения фильтров в URL
+  const saveFiltersToUrl = (newFilters, newPage = 1) => {
+    const searchParams = new URLSearchParams();
+    
+    // Добавляем страницу
+    searchParams.set('page', newPage.toString());
+    
+    // Добавляем фильтры только если они не "All"
+    if (newFilters.action !== "All") searchParams.set('action', newFilters.action);
+    if (newFilters.status !== "All") searchParams.set('status', newFilters.status);
+    if (newFilters.type !== "All") searchParams.set('type', newFilters.type);
+    if (newFilters.region !== "All") searchParams.set('region', newFilters.region);
+    if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
+    
+    const newUrl = `/moderation?${searchParams.toString()}`;
+    navigate(newUrl, { replace: true });
+  };
 
   // Инициализируем страницу из URL или localStorage
   const initialPageFromUrl = (() => {
@@ -44,6 +73,7 @@ const Moderation = () => {
   const [loading, setLoading] = useState(false); // добавляем состояние загрузки
   const [error, setError] = useState(null); // добавляем состояние ошибки
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [pageInput, setPageInput] = useState(initialPageFromUrl.toString()); // для поля ввода страницы
 
   // Проверяем токен при загрузке компонента
   useEffect(() => {
@@ -52,6 +82,12 @@ const Moderation = () => {
       navigate('/login');
     }
   }, [authState.accessToken, navigate]);
+
+  // Обновляем фильтры при изменении URL
+  useEffect(() => {
+    const newFilters = getFiltersFromUrl();
+    setFilters(newFilters);
+  }, [location.search]);
 
   const handleLogout = () => {
     logout();
@@ -85,41 +121,7 @@ const Moderation = () => {
     return regionNames[regionId] || `Region ${regionId}`;
   };
 
-  // Функция для загрузки районов по региону
-  const fetchDistricts = async (regionId) => {
-    if (!regionId || regionId === "All") {
-      setDistricts([]);
-      return;
-    }
 
-    setLoadingDistricts(true);
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL2}api/districts/?region=${regionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authState.accessToken}`,
-          },
-        }
-      );
-      
-      if (response.data && response.data.results) {
-        setDistricts(response.data.results);
-      } else {
-        setDistricts([]);
-      }
-    } catch (error) {
-      console.error("Ошибка при загрузке районов:", error);
-      setDistricts([]);
-      
-      if (error.response?.status === 401) {
-        logout();
-        navigate('/login');
-      }
-    } finally {
-      setLoadingDistricts(false);
-    }
-  };
 
   // Синхронизируем URL с состоянием страницы (только при изменении page)
   useEffect(() => {
@@ -130,6 +132,9 @@ const Moderation = () => {
       console.log('Синхронизируем URL с состоянием страницы:', page);
       window.history.replaceState(null, '', `/moderation?page=${page}`);
     }
+    
+    // Синхронизируем поле ввода с текущей страницей
+    setPageInput(page.toString());
   }, [page]);
 
   // Читаем номер страницы из URL параметров при загрузке
@@ -168,10 +173,7 @@ const Moderation = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, page, location.search]);
 
-  // Загружаем районы при изменении региона
-  useEffect(() => {
-    fetchDistricts(filters.region);
-  }, [filters.region]);
+
 
     // Функция для перехода к просмотру плантации (без автоматического подтверждения)
   const handleView = async (id) => {
@@ -182,6 +184,9 @@ const Moderation = () => {
       return;
     }
 
+    // Сохраняем текущую страницу и фильтры перед переходом
+    localStorage.setItem('moderationPage', page.toString());
+    
     // Просто переходим к просмотру без автоматического подтверждения
     console.log("Переход к просмотру плантации:", id);
   };
@@ -218,6 +223,7 @@ const Moderation = () => {
           region: filters.region !== "All" ? filters.region : undefined,
           district: filters.district !== "All" ? filters.district : undefined,
         };
+        
         const response = await axios.get(
           `${API_BASE_URL2}api/plantations/moderation/`,
           {
@@ -248,12 +254,34 @@ const Moderation = () => {
                 action = "Созданный";
               }
 
+              // Определяем название региона по ID
+              const getRegionNameById = (regionId) => {
+                const regionNames = {
+                  1: "Toshkent",
+                  2: "Andijon", 
+                  3: "Buxoro",
+                  4: "Farg'ona",
+                  5: "Jizzax",
+                  6: "Qashqadaryo",
+                  7: "Navoiy",
+                  8: "Namangan",
+                  9: "Samarqand",
+                  10: "Sirdaryo",
+                  11: "Surxondaryo",
+                  12: "Qoraqalpog'iston",
+                };
+                return regionNames[regionId] || `Region ${regionId}`;
+              };
+
+              const regionName = getRegionNameById(plantation.district?.region);
+              const districtName = plantation.district?.name || "—";
+
               return {
                 id: plantation.id,
                 name: plantation.farmer?.name || "—",
                 type: plantation.land_type,
                 area: `${plantation.total_area ?? 0} га`,
-                region: `${plantation.district?.region || "—"}, ${plantation.district?.name || "—"}`,
+                region: `${regionName}, ${districtName}`,
                 status: plantation.status || "—",
                 createdAt: plantation.created_at || null,
                 is_checked: Boolean(plantation.is_checked),
@@ -305,11 +333,46 @@ const Moderation = () => {
   }, [page, filters, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
-    setFilters({ action: "All", status: "All", type: "All", region: "All", district: "All" });
+    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All" };
+    setFilters(resetFilters);
     setPage(1);
+    localStorage.setItem('moderationPage', '1');
+    saveFiltersToUrl(resetFilters, 1);
+  };
+
+  // Функция для перехода на конкретную страницу
+  const handlePageInputChange = (e) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputSubmit = (e) => {
+    e.preventDefault();
+    const newPage = parseInt(pageInput, 10);
+    if (newPage > 0 && newPage <= totalPages && newPage <= 50) {
+      setPage(newPage);
+      localStorage.setItem('moderationPage', newPage.toString());
+      navigate(`/moderation?page=${newPage}`, { replace: true });
+    } else {
+      // Если введен неверный номер страницы, сбрасываем поле ввода
+      setPageInput(page.toString());
+    }
+  };
+
+  // Функция для перехода в начало
+  const goToFirstPage = () => {
+    setPage(1);
+    setPageInput('1');
+    localStorage.setItem('moderationPage', '1');
     navigate('/moderation?page=1', { replace: true });
-    // Очищаем localStorage при сбросе фильтров
-    localStorage.removeItem('moderationPage');
+  };
+
+  // Функция для перехода в конец
+  const goToLastPage = () => {
+    const lastPage = Math.min(totalPages, 50);
+    setPage(lastPage);
+    setPageInput(lastPage.toString());
+    localStorage.setItem('moderationPage', lastPage.toString());
+    navigate(`/moderation?page=${lastPage}`, { replace: true });
   };
 
   // убираем фронтовую фильтрацию, используем только moderations
@@ -479,21 +542,22 @@ const Moderation = () => {
             </h1>
 
             {/* Фильтры */}
-            <div className="flex flex-wrap gap-3 mb-4 sm:mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
               <button
-                className="px-4 py-2 rounded-lg border border-gray-600 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                className="px-3 py-2 sm:px-4 rounded-lg border border-gray-600 bg-blue-500 text-white hover:bg-blue-600 transition-colors text-sm sm:text-base"
                 onClick={handleResetFilters}
               >
                 Filterlarni tozalash
               </button>
               <select
-                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                 value={filters.action}
                 onChange={(e) => {
-                  setFilters({ ...filters, action: e.target.value });
+                  const newFilters = { ...filters, action: e.target.value };
+                  setFilters(newFilters);
                   setPage(1);
                   localStorage.setItem('moderationPage', '1');
-                  navigate('/moderation?page=1', { replace: true });
+                  saveFiltersToUrl(newFilters, 1);
                 }}
               >
                 <option value="All">O'zgarishlar</option>
@@ -502,13 +566,14 @@ const Moderation = () => {
                 <option value="Yaratilgan">Yaratilgan</option>
               </select>
               <select
-                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                 value={filters.status}
                 onChange={(e) => {
-                  setFilters({ ...filters, status: e.target.value });
+                  const newFilters = { ...filters, status: e.target.value };
+                  setFilters(newFilters);
                   setPage(1);
                   localStorage.setItem('moderationPage', '1');
-                  navigate('/moderation?page=1', { replace: true });
+                  saveFiltersToUrl(newFilters, 1);
                 }}
               >
                 <option value="All">Holati</option>
@@ -517,13 +582,14 @@ const Moderation = () => {
                 <option value="Bad">Sifatsiz</option>
               </select>
               <select
-                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                 value={filters.type}
                 onChange={(e) => {
-                  setFilters({ ...filters, type: e.target.value });
+                  const newFilters = { ...filters, type: e.target.value };
+                  setFilters(newFilters);
                   setPage(1);
                   localStorage.setItem('moderationPage', '1');
-                  navigate('/moderation?page=1', { replace: true });
+                  saveFiltersToUrl(newFilters, 1);
                 }}
               >
                 <option value="All">Turi</option>
@@ -532,13 +598,14 @@ const Moderation = () => {
                 <option value="Uzumzorlar">Uzumzorlar</option>
               </select>
               <select
-                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                 value={filters.region}
                 onChange={(e) => {
-                  setFilters({ ...filters, region: e.target.value, district: "All" });
+                  const newFilters = { ...filters, region: e.target.value, district: "All" };
+                  setFilters(newFilters);
                   setPage(1);
                   localStorage.setItem('moderationPage', '1');
-                  navigate('/moderation?page=1', { replace: true });
+                  saveFiltersToUrl(newFilters, 1);
                 }}
               >
                 <option value="All">Region</option>
@@ -557,26 +624,11 @@ const Moderation = () => {
               </select>
               {filters.region !== "All" && (
                 <select
-                  className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  value={filters.district}
-                  onChange={(e) => {
-                    setFilters({ ...filters, district: e.target.value });
-                    setPage(1);
-                    localStorage.setItem('moderationPage', '1');
-                    navigate('/moderation?page=1', { replace: true });
-                  }}
-                  disabled={loadingDistricts}
+                  className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                  value="All"
+                  disabled
                 >
                   <option value="All">Barcha tumanlar</option>
-                  {loadingDistricts ? (
-                    <option value="" disabled>Yuklanmoqda...</option>
-                  ) : (
-                    districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))
-                  )}
                 </select>
               )}
             </div>
@@ -616,30 +668,34 @@ const Moderation = () => {
               {moderations.map((plantation) => (
                 <div
                   key={plantation.id}
-                  className="group block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 hover:border-blue-500 hover:from-gray-750 hover:to-gray-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-blue-500/10"
+                  className="group block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 sm:p-6 border border-gray-700 hover:border-blue-500 hover:from-gray-750 hover:to-gray-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-blue-500/10"
                   onClick={() => {
                     handleView(plantation.id);
                     // Сохраняем текущую страницу перед переходом
                     localStorage.setItem('moderationPage', page.toString());
                     navigate(`/plantations/edit/${plantation.id}`, { 
-                      state: { from: '/moderation' } 
+                      state: { 
+                        from: '/moderation',
+                        filters: filters,
+                        page: page
+                      } 
                     });
                   }}
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
                         {plantation.name}
                       </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-sm text-gray-400">
                         <span className="flex items-center">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
                           </svg>
                           {plantation.area}
                         </span>
                         <span className="flex items-center">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
@@ -665,22 +721,22 @@ const Moderation = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4">
+                    <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Turi</div>
-                      <div className="text-white font-semibold">{landTypeMapping[plantation.type]}</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">{landTypeMapping[plantation.type]}</div>
                     </div>
-                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                    <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Maydon</div>
-                      <div className="text-white font-semibold">{plantation.area}</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">{plantation.area}</div>
                     </div>
-                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                    <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Region</div>
-                      <div className="text-white font-semibold">{plantation.region}</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">{plantation.region}</div>
                     </div>
-                    <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                    <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Qo'shilgan</div>
-                      <div className="text-white font-semibold text-sm">
+                      <div className="text-white font-semibold text-xs sm:text-sm">
                         {plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}
                       </div>
                     </div>
@@ -734,43 +790,90 @@ const Moderation = () => {
 
             {/* Пагинация */}
             {!loading && !error && moderations.length > 0 && (
-              <div className="flex justify-center items-center mt-8 space-x-4 pb-6">
-                <button
-                  className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    const newPage = Math.max(page - 1, 1);
-                    console.log('Back button: setting page to', newPage);
-                    setPage(newPage);
-                    // Сохраняем страницу в localStorage
-                    localStorage.setItem('moderationPage', newPage.toString());
-                    // Обновляем URL
-                    navigate(`/moderation?page=${newPage}`, { replace: true });
-                  }}
-                  disabled={page <= 1}
-                >
-                  Orqaga
-                </button>
-                <span className="text-white">Sahifa {page} dan {totalPages || 1}</span>
-                <button
-                  className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    const newPage = page + 1;
-                    console.log('Forward button: setting page to', newPage);
-                    // Проверяем, что новая страница не превышает общее количество страниц
-                    if (newPage <= totalPages && newPage <= 50) {
+              <div className="flex flex-col items-center mt-6 sm:mt-8 space-y-3 sm:space-y-4 pb-6">
+                {/* Информация о страницах */}
+                <div className="text-white text-center">
+                  <span className="text-base sm:text-lg font-semibold">Sahifa {page} dan {totalPages || 1}</span>
+                  <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                    Jami {count} ta yozuv
+                  </div>
+                </div>
+                
+                {/* Навигация по страницам */}
+                <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+                  {/* Кнопка "В начало" */}
+                  <button
+                    className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    onClick={goToFirstPage}
+                    disabled={page <= 1}
+                    title="Birinchi sahifa"
+                  >
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* Кнопка "Назад" */}
+                  <button
+                    className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    onClick={() => {
+                      const newPage = Math.max(page - 1, 1);
                       setPage(newPage);
-                      // Сохраняем страницу в localStorage
                       localStorage.setItem('moderationPage', newPage.toString());
-                      // Обновляем URL
                       navigate(`/moderation?page=${newPage}`, { replace: true });
-                    } else {
-                      console.log('Попытка перейти на несуществующую страницу:', newPage);
-                    }
-                  }}
-                  disabled={page >= totalPages || page >= 50}
-                >
-                  Oldinga
-                </button>
+                    }}
+                    disabled={page <= 1}
+                  >
+                    Orqaga
+                  </button>
+                  
+                  {/* Поле ввода номера страницы */}
+                  <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1 sm:space-x-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max={Math.min(totalPages, 50)}
+                      value={pageInput}
+                      onChange={handlePageInputChange}
+                      className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
+                      placeholder={page.toString()}
+                    />
+                    <button
+                      type="submit"
+                      className="px-2 sm:px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs sm:text-sm"
+                    >
+                      O'tish
+                    </button>
+                  </form>
+                  
+                  {/* Кнопка "Вперед" */}
+                  <button
+                    className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    onClick={() => {
+                      const newPage = page + 1;
+                      if (newPage <= totalPages && newPage <= 50) {
+                        setPage(newPage);
+                        localStorage.setItem('moderationPage', newPage.toString());
+                        navigate(`/moderation?page=${newPage}`, { replace: true });
+                      }
+                    }}
+                    disabled={page >= totalPages || page >= 50}
+                  >
+                    Oldinga
+                  </button>
+                  
+                  {/* Кнопка "В конец" */}
+                  <button
+                    className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    onClick={goToLastPage}
+                    disabled={page >= totalPages || page >= 50}
+                    title="Oxirgi sahifa"
+                  >
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -809,10 +912,11 @@ const Moderation = () => {
               className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={filters.action}
               onChange={(e) => {
-                setFilters({ ...filters, action: e.target.value });
+                const newFilters = { ...filters, action: e.target.value };
+                setFilters(newFilters);
                 setPage(1);
                 localStorage.setItem('moderationPage', '1');
-                navigate('/moderation?page=1', { replace: true });
+                saveFiltersToUrl(newFilters, 1);
               }}
             >
               <option value="All">O'zgarishlar</option>
@@ -824,10 +928,11 @@ const Moderation = () => {
               className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={filters.status}
               onChange={(e) => {
-                setFilters({ ...filters, status: e.target.value });
+                const newFilters = { ...filters, status: e.target.value };
+                setFilters(newFilters);
                 setPage(1);
                 localStorage.setItem('moderationPage', '1');
-                navigate('/moderation?page=1', { replace: true });
+                saveFiltersToUrl(newFilters, 1);
               }}
             >
               <option value="All">Holati</option>
@@ -839,10 +944,11 @@ const Moderation = () => {
               className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={filters.type}
               onChange={(e) => {
-                setFilters({ ...filters, type: e.target.value });
+                const newFilters = { ...filters, type: e.target.value };
+                setFilters(newFilters);
                 setPage(1);
                 localStorage.setItem('moderationPage', '1');
-                navigate('/moderation?page=1', { replace: true });
+                saveFiltersToUrl(newFilters, 1);
               }}
             >
               <option value="All">Turi</option>
@@ -854,10 +960,11 @@ const Moderation = () => {
               className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={filters.region}
               onChange={(e) => {
-                setFilters({ ...filters, region: e.target.value, district: "All" });
+                const newFilters = { ...filters, region: e.target.value, district: "All" };
+                setFilters(newFilters);
                 setPage(1);
                 localStorage.setItem('moderationPage', '1');
-                navigate('/moderation?page=1', { replace: true });
+                saveFiltersToUrl(newFilters, 1);
               }}
             >
               <option value="All">Region</option>
@@ -877,25 +984,10 @@ const Moderation = () => {
             {filters.region !== "All" && (
               <select
                 className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                value={filters.district}
-                onChange={(e) => {
-                  setFilters({ ...filters, district: e.target.value });
-                  setPage(1);
-                  localStorage.setItem('moderationPage', '1');
-                  navigate('/moderation?page=1', { replace: true });
-                }}
-                disabled={loadingDistricts}
+                value="All"
+                disabled
               >
                 <option value="All">Barcha tumanlar</option>
-                {loadingDistricts ? (
-                  <option value="" disabled>Yuklanmoqda...</option>
-                ) : (
-                  districts.map((district) => (
-                    <option key={district.id} value={district.id}>
-                      {district.name}
-                    </option>
-                  ))
-                )}
               </select>
             )}
           </div>
@@ -941,7 +1033,11 @@ const Moderation = () => {
                   // Сохраняем текущую страницу перед переходом
                   localStorage.setItem('moderationPage', page.toString());
                   navigate(`/plantations/edit/${plantation.id}`, { 
-                    state: { from: '/moderation' } 
+                    state: { 
+                      from: '/moderation',
+                      filters: filters,
+                      page: page
+                    } 
                   });
                 }}
               >
@@ -1015,34 +1111,92 @@ const Moderation = () => {
 
           {/* Пагинация для мобильной версии */}
           {!loading && !error && moderations.length > 0 && (
-            <div className="flex justify-center items-center mt-4 space-x-2 fixed bottom-0 left-0 right-0 z-20 bg-gray-900/95 border-t border-gray-700 px-4 py-2">
-              <button
-                className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
-                onClick={() => {
-                  const newPage = Math.max(page - 1, 1);
-                  setPage(newPage);
-                  localStorage.setItem('moderationPage', newPage.toString());
-                  navigate(`/moderation?page=${newPage}`, { replace: true });
-                }}
-                disabled={page <= 1}
-              >
-                Orqaga
-              </button>
-              <span className="text-white text-sm">Sahifa {page}</span>
-              <button
-                className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
-                onClick={() => {
-                  const newPage = page + 1;
-                  if (newPage <= totalPages && newPage <= 50) {
+            <div className="fixed bottom-0 left-0 right-0 z-20 bg-gray-900/95 border-t border-gray-700 px-4 py-3">
+              {/* Информация о страницах */}
+              <div className="text-center mb-3">
+                <div className="text-white text-sm font-semibold">
+                  Sahifa {page} dan {totalPages || 1}
+                </div>
+                <div className="text-gray-400 text-xs">
+                  Jami {count} ta yozuv
+                </div>
+              </div>
+              
+              {/* Навигация */}
+              <div className="flex items-center justify-center space-x-2">
+                {/* Кнопка "В начало" */}
+                <button
+                  className="p-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50"
+                  onClick={goToFirstPage}
+                  disabled={page <= 1}
+                  title="Birinchi sahifa"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                {/* Кнопка "Назад" */}
+                <button
+                  className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
+                  onClick={() => {
+                    const newPage = Math.max(page - 1, 1);
                     setPage(newPage);
                     localStorage.setItem('moderationPage', newPage.toString());
                     navigate(`/moderation?page=${newPage}`, { replace: true });
-                  }
-                }}
-                disabled={page >= totalPages || page >= 50}
-              >
-                Oldinga
-              </button>
+                  }}
+                  disabled={page <= 1}
+                >
+                  Orqaga
+                </button>
+                
+                {/* Поле ввода номера страницы */}
+                <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1">
+                  <input
+                    type="number"
+                    min="1"
+                    max={Math.min(totalPages, 50)}
+                    value={pageInput}
+                    onChange={handlePageInputChange}
+                    className="w-12 px-1 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
+                    placeholder={page.toString()}
+                  />
+                  <button
+                    type="submit"
+                    className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs"
+                  >
+                    O'tish
+                  </button>
+                </form>
+                
+                {/* Кнопка "Вперед" */}
+                <button
+                  className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
+                  onClick={() => {
+                    const newPage = page + 1;
+                    if (newPage <= totalPages && newPage <= 50) {
+                      setPage(newPage);
+                      localStorage.setItem('moderationPage', newPage.toString());
+                      navigate(`/moderation?page=${newPage}`, { replace: true });
+                    }
+                  }}
+                  disabled={page >= totalPages || page >= 50}
+                >
+                  Oldinga
+                </button>
+                
+                {/* Кнопка "В конец" */}
+                <button
+                  className="p-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50"
+                  onClick={goToLastPage}
+                  disabled={page >= totalPages || page >= 50}
+                  title="Oxirgi sahifa"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
         </div>

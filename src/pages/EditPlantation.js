@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
@@ -13,6 +13,7 @@ import {
 
 const EditPlantation = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
   // const [coordinatesChanged, setCoordinatesChanged] = useState(false);
@@ -25,6 +26,7 @@ const EditPlantation = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [createdByUser, setCreatedByUser] = useState(null);
 
 
   // Функция для открытия модального окна
@@ -67,22 +69,53 @@ const EditPlantation = () => {
     }
   };
 
+  // Функция для получения информации о пользователе
+  const fetchUserDetails = useCallback(async (userId) => {
+    if (!userId) return null;
+    
+    try {
+      // Получаем список всех пользователей
+      const users = await apiRequest('api/users/', {}, refreshAccessToken, authState.accessToken);
+      
+      // Находим пользователя по ID
+      const user = users.find(u => u.id === parseInt(userId));
+      return user;
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      return null;
+    }
+  }, [authState.accessToken, refreshAccessToken]);
+
   const fetchPlantationDetails = useCallback(async () => {
     try {
       setError(null);
       const data = await apiRequest(`api/plantations/${id}/`, {}, refreshAccessToken, authState.accessToken);
       
       setPlantation(data);
+      
+      // Получаем информацию о пользователе, который создал плантацию
+      if (data.created_by) {
+        const userDetails = await fetchUserDetails(data.created_by);
+        setCreatedByUser(userDetails);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error("Error fetching plantation details:", error);
       setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
       setLoading(false);
     }
-  }, [id, authState.accessToken, refreshAccessToken]);
+  }, [id, authState.accessToken, refreshAccessToken, fetchUserDetails]);
 
   const initializeMap = useCallback(() => {
-    const map = new google.maps.Map(document.getElementById("map"), {
+    // Проверяем, что элемент карты существует
+    const mapElement = document.getElementById("map");
+    if (!mapElement) {
+      console.warn("Map element not found, skipping map initialization");
+      return;
+    }
+
+    const map = new google.maps.Map(mapElement, {
       center: { lat: 41.2995, lng: 69.2401 },
       zoom: 12,
       mapTypeId: "satellite",
@@ -155,7 +188,22 @@ const EditPlantation = () => {
       // Задержка перед редиректом, чтобы пользователь увидел уведомление
       setTimeout(() => {
         const currentPage = localStorage.getItem('moderationPage') || 1;
-        window.location.href = `/moderation?page=${currentPage}`;
+        const savedFilters = location.state?.filters;
+        
+        // Восстанавливаем фильтры в URL
+        const searchParams = new URLSearchParams();
+        searchParams.set('page', currentPage.toString());
+        
+        if (savedFilters) {
+          if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
+          if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
+          if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
+          if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
+          if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+        }
+        
+        const newUrl = `/moderation?${searchParams.toString()}`;
+        window.location.href = newUrl;
       }, 2000);
     } catch (error) {
       console.error("Error approving plantation:", error);
@@ -175,30 +223,40 @@ const EditPlantation = () => {
   }, [fetchPlantationDetails, authState.accessToken]);
 
   useEffect(() => {
-    if (plantation) {
-
-
+    if (plantation && !loading) {
       const loadGoogleMapsScript = () => {
-        const existingScript = document.getElementById("googleMaps");
-        if (!existingScript) {
-          const script = document.createElement("script");
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
-          script.id = "googleMaps";
-          document.body.appendChild(script);
-          script.onload = () => {
+        // Добавляем небольшую задержку, чтобы убедиться, что DOM готов
+        setTimeout(() => {
+          const mapElement = document.getElementById("map");
+          if (!mapElement) {
+            console.warn("Map element not ready yet");
+            return;
+          }
+
+          const existingScript = document.getElementById("googleMaps");
+          if (!existingScript) {
+            const script = document.createElement("script");
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
+            script.id = "googleMaps";
+            document.body.appendChild(script);
+            script.onload = () => {
+              if (typeof google !== "undefined") {
+                initializeMap();
+              }
+            };
+            script.onerror = () => {
+              console.error("Failed to load Google Maps API");
+            };
+          } else {
             if (typeof google !== "undefined") {
               initializeMap();
             }
-          };
-        } else {
-          if (typeof google !== "undefined") {
-            initializeMap();
           }
-        }
+        }, 100);
       };
       loadGoogleMapsScript();
     }
-  }, [plantation, initializeMap]);
+  }, [plantation, loading, initializeMap]);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-900">
@@ -257,7 +315,22 @@ const EditPlantation = () => {
                 console.log('Navigating to moderation...');
                 // Получаем номер страницы из URL или localStorage
                 const currentPage = localStorage.getItem('moderationPage') || 1;
-                window.location.href = `/moderation?page=${currentPage}`;
+                const savedFilters = location.state?.filters;
+                
+                // Восстанавливаем фильтры в URL
+                const searchParams = new URLSearchParams();
+                searchParams.set('page', currentPage.toString());
+                
+                if (savedFilters) {
+                  if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
+                  if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
+                  if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
+                  if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
+                  if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+                }
+                
+                const newUrl = `/moderation?${searchParams.toString()}`;
+                window.location.href = newUrl;
               }}
               title="Закрыть"
             >
@@ -316,6 +389,22 @@ const EditPlantation = () => {
                 <p className="font-semibold text-gray-300">Fermer INN'si:</p>
                 <p className="text-white">{plantation.farmer?.inn}</p>
               </div>
+
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Qo'shilgan vaqti:</p>
+                <p className="text-white">
+                  {plantation.created_at 
+                    ? new Date(plantation.created_at).toLocaleString("ru-RU", {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : "—"
+                  }
+                </p>
+              </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">
                   Tomchilab sug'oriladigan maydon:
@@ -364,6 +453,49 @@ const EditPlantation = () => {
                     <p>Telefon: {plantation.farmer.phone_number}</p>
                     <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Секция с информацией о пользователе, который создал плантацию */}
+            {createdByUser && (
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
+                <h2
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
+                  onClick={() => toggleSection("user")}
+                >
+                  Qo'shgan foydalanuvchi:
+                </h2>
+                {expandedSections.user && (
+                  <div className="space-y-2 text-gray-300">
+                    <p>Ism Familiya: {`${createdByUser.first_name} ${createdByUser.last_name}`.trim() || "—"}</p>
+                    <p>Foydalanuvchi nomi: {createdByUser.username || "—"}</p>
+                    <p>Telefon raqami: {createdByUser.phone_number || "—"}</p>
+                    {createdByUser.location && (
+                      <p>Joylashuv: {createdByUser.location.district || "—"}</p>
+                    )}
+                    <p>Oxirgi kirish: {
+                      createdByUser.last_login 
+                        ? new Date(createdByUser.last_login).toLocaleString("ru-RU", {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : "Hech qachon"
+                    }</p>
+                    {createdByUser.contact_link && (
+                      <p>Aloqa: <a 
+                        href={createdByUser.contact_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        {createdByUser.contact_link}
+                      </a></p>
+                    )}
                   </div>
                 )}
               </div>
@@ -540,6 +672,8 @@ const EditPlantation = () => {
           />
         </div>
       )}
+
+
     </div>
   );
 };

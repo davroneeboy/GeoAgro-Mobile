@@ -18,9 +18,9 @@ const ProtectedRoute = ({ children }) => {
       }
 
       try {
-        // Делаем тестовый запрос для проверки токена
-        await axios.get(`${API_BASE_URL2}api/plantations/moderation/`, {
-          params: { page: 1 },
+        // Делаем легкий тестовый запрос для проверки токена
+        await axios.get(`${API_BASE_URL2}api/users/`, {
+          params: { limit: 1 }, // Запрашиваем только одного пользователя
           headers: {
             Authorization: `Bearer ${authState.accessToken}`,
           },

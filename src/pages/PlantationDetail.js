@@ -159,8 +159,8 @@ const PlantationDetail = () => {
                   navigate(`/approved-plantations?page=${currentPage}`);
                 } else if (referrer.includes('/moderation')) {
                   // Если пришел с moderation, возвращаемся туда
-                  const currentPage = localStorage.getItem('moderationPage') || 1;
-                  navigate(`/moderation?page=${currentPage}`);
+                const currentPage = localStorage.getItem('moderationPage') || 1;
+                navigate(`/moderation?page=${currentPage}`);
                 } else {
                   // По умолчанию возвращаемся на главную
                   navigate('/');
