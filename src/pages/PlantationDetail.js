@@ -20,6 +20,8 @@ const PlantationDetail = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
   const [error, setError] = useState(null);
+  const [createdByUser, setCreatedByUser] = useState(null);
+  const [moderatedByUser, setModeratedByUser] = useState(null);
   const navigate = useNavigate();
   const { authState, refreshAccessToken } = useContext(AuthContext);
 
@@ -30,23 +32,58 @@ const PlantationDetail = () => {
     }));
   };
 
+  // Функция для получения информации о пользователе
+  const fetchUserDetails = useCallback(async (userId) => {
+    if (!userId) return null;
+    
+    try {
+      // Получаем список всех пользователей
+      const users = await apiRequest('api/users/', {}, refreshAccessToken, authState.accessToken);
+      
+      // Находим пользователя по ID
+      const user = users.find(u => u.id === parseInt(userId));
+      return user;
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      return null;
+    }
+  }, [authState.accessToken, refreshAccessToken]);
+
   const fetchPlantationDetails = useCallback(async () => {
     try {
       setError(null);
       const data = await apiRequest(`api/plantations/${id}/`, {}, refreshAccessToken, authState.accessToken);
       setPlantation(data);
+      
+      // Получаем информацию о пользователе, который создал плантацию
+      if (data.created_by) {
+        const userDetails = await fetchUserDetails(data.created_by);
+        setCreatedByUser(userDetails);
+      }
+      
+      // Получаем информацию о пользователе, который подтвердил плантацию
+      if (data.moderated_by) {
+        const moderatorDetails = await fetchUserDetails(data.moderated_by);
+        setModeratedByUser(moderatorDetails);
+      }
     } catch (error) {
       console.error("Error fetching plantation details:", error);
       setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     } finally {
       setLoading(false);
     }
-  }, [id, authState.accessToken, refreshAccessToken]);
+  }, [id, authState.accessToken, refreshAccessToken, fetchUserDetails]);
 
 
 
   const initializeMap = useCallback(() => {
-    const mapInstance = new google.maps.Map(document.getElementById("map"), {
+    const mapElement = document.getElementById("map");
+    if (!mapElement) {
+      console.warn("Map element not found, skipping map initialization");
+      return;
+    }
+
+    const mapInstance = new google.maps.Map(mapElement, {
       center: { lat: 41.2995, lng: 69.2401 },
       zoom: 12,
       mapTypeId: "satellite",
@@ -85,28 +122,37 @@ const PlantationDetail = () => {
   }, [fetchPlantationDetails, authState.accessToken, navigate]);
 
   useEffect(() => {
-    if (plantation) {
+    if (plantation && !loading) {
       const loadGoogleMapsScript = () => {
-        const existingScript = document.getElementById("googleMaps");
-        if (!existingScript) {
-          const script = document.createElement("script");
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
-          script.id = "googleMaps";
-          document.body.appendChild(script);
-          script.onload = () => {
+        // Добавляем небольшую задержку, чтобы убедиться, что DOM готов
+        setTimeout(() => {
+          const mapElement = document.getElementById("map");
+          if (!mapElement) {
+            console.warn("Map element not ready yet");
+            return;
+          }
+
+          const existingScript = document.getElementById("googleMaps");
+          if (!existingScript) {
+            const script = document.createElement("script");
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
+            script.id = "googleMaps";
+            document.body.appendChild(script);
+            script.onload = () => {
+              if (typeof google !== "undefined") {
+                initializeMap();
+              }
+            };
+          } else {
             if (typeof google !== "undefined") {
               initializeMap();
             }
-          };
-        } else {
-          if (typeof google !== "undefined") {
-            initializeMap();
           }
-        }
+        }, 100);
       };
       loadGoogleMapsScript();
     }
-  }, [plantation, initializeMap]);
+  }, [plantation, loading, initializeMap]);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-900">
@@ -252,6 +298,114 @@ const PlantationDetail = () => {
                     <p>Telefon: {plantation.farmer.phone_number}</p>
                     <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Секция с информацией о пользователе, который создал плантацию */}
+            {createdByUser && (
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
+                <h2
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
+                  onClick={() => toggleSection("user")}
+                >
+                  Qo'shgan foydalanuvchi:
+                </h2>
+                {expandedSections.user && (
+                  <div className="space-y-2 text-gray-300">
+                    <p>Ism Familiya: {`${createdByUser.first_name} ${createdByUser.last_name}`.trim() || "—"}</p>
+                    <p>Foydalanuvchi nomi: {createdByUser.username || "—"}</p>
+                    <p>Telefon raqami: {createdByUser.phone_number || "—"}</p>
+                    {createdByUser.location && (
+                      <p>Joylashuv: {createdByUser.location.district || "—"}</p>
+                    )}
+                    <p>Qo'shilgan vaqti: {
+                      plantation.created_at 
+                        ? new Date(plantation.created_at).toLocaleString("ru-RU", {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : "—"
+                    }</p>
+                    <p>Oxirgi kirish: {
+                      createdByUser.last_login 
+                        ? new Date(createdByUser.last_login).toLocaleString("ru-RU", {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : "Hech qachon"
+                    }</p>
+                    {createdByUser.contact_link && (
+                      <p>Aloqa: <a 
+                        href={createdByUser.contact_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        {createdByUser.contact_link}
+                      </a></p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Секция с информацией о пользователе, который подтвердил плантацию */}
+            {moderatedByUser && plantation.moderated_at && (
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
+                <h2
+                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
+                  onClick={() => toggleSection("moderator")}
+                >
+                  Tasdiqlagan foydalanuvchi:
+                </h2>
+                {expandedSections.moderator && (
+                  <div className="space-y-2 text-gray-300">
+                    <p>Ism Familiya: {`${moderatedByUser.first_name} ${moderatedByUser.last_name}`.trim() || "—"}</p>
+                    <p>Foydalanuvchi nomi: {moderatedByUser.username || "—"}</p>
+                    <p>Telefon raqami: {moderatedByUser.phone_number || "—"}</p>
+                    {moderatedByUser.location && (
+                      <p>Joylashuv: {moderatedByUser.location.district || "—"}</p>
+                    )}
+                    <p>Tasdiqlangan vaqti: {
+                      plantation.moderated_at 
+                        ? new Date(plantation.moderated_at).toLocaleString("ru-RU", {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : "—"
+                    }</p>
+                    <p>Oxirgi kirish: {
+                      moderatedByUser.last_login 
+                        ? new Date(moderatedByUser.last_login).toLocaleString("ru-RU", {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : "Hech qachon"
+                    }</p>
+                    {moderatedByUser.contact_link && (
+                      <p>Aloqa: <a 
+                        href={moderatedByUser.contact_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        {moderatedByUser.contact_link}
+                      </a></p>
+                    )}
                   </div>
                 )}
               </div>

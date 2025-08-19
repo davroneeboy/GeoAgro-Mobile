@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Table, Card, Row, Col, Spin, Alert, Statistic, Button } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
-import { API_BASE_URL1 } from "../../config";
+import { API_BASE_URL1, API_BASE_URL2 } from "../../config";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
@@ -30,6 +30,7 @@ const RegionDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState(null);
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved', 'moderation'
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,26 +42,126 @@ const RegionDetailPage = () => {
         const estDate = searchParams.get('est_date');
         const plantationType = searchParams.get('plantation_type');
         const regions = searchParams.get('regions');
+        const dataType = searchParams.get('data_type');
         
-        // Строим URL с фильтрами
-        let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
-        const queryParams = new URLSearchParams();
-        
-        if (estDate) {
-          queryParams.append("est_date", estDate);
-        }
-        if (plantationType) {
-          queryParams.append("plantation_type", plantationType);
-        }
-        if (regions) {
-          queryParams.append("regions", regions);
+        // Устанавливаем активную вкладку
+        if (dataType) {
+          setActiveTab(dataType);
         }
         
-        if (queryParams.toString()) {
-          url += `?${queryParams.toString()}`;
-        }
+        let data;
         
-        const data = await fetchStatisticsData(url, authState.accessToken);
+        if (!dataType || dataType === 'all') {
+          // Для всех плантаций используем обычный API статистики
+          let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
+          const queryParams = new URLSearchParams();
+          
+          if (estDate) {
+            queryParams.append("est_date", estDate);
+          }
+          if (plantationType) {
+            queryParams.append("plantation_type", plantationType);
+          }
+          if (regions) {
+            queryParams.append("regions", regions);
+          }
+          
+          if (queryParams.toString()) {
+            url += `?${queryParams.toString()}`;
+          }
+          
+          data = await fetchStatisticsData(url, authState.accessToken);
+        } else {
+          // Для подтвержденных и на модерации используем API плантаций
+          const isChecked = dataType === 'approved' ? 'True' : 'False';
+          const plantationsUrl = `${API_BASE_URL2}api/plantations/map/?is_checked=${isChecked}`;
+          
+          const plantationsResponse = await fetch(plantationsUrl, {
+            headers: {
+              Authorization: `Bearer ${authState.accessToken}`,
+            },
+          });
+          
+          if (!plantationsResponse.ok) {
+            throw new Error(`HTTP error! status: ${plantationsResponse.status}`);
+          }
+          
+          const plantationsData = await plantationsResponse.json();
+          const plantations = (plantationsData.results || []).filter(
+            plantation => plantation.district?.region === parseInt(id)
+          );
+          
+          // Вычисляем статистику по районам на основе данных плантаций
+          const districtStats = {};
+          plantations.forEach(plantation => {
+            const districtName = plantation.district?.name;
+            if (!districtName) return;
+            
+            if (!districtStats[districtName]) {
+              districtStats[districtName] = {
+                total_area: 0,
+                total_plantations: 0,
+                outdated_ga: 0,
+                low_fertility: { count: 0, area: 0 },
+                high_fertility: { count: 0, area: 0 },
+                irrigation: { area: 0, count: 0 },
+                investment: { local: 0, foreign: 0, total: 0 },
+                subsidy: { subsidy_count: 0, total_subsidy: 0 }
+              };
+            }
+            
+            const district = districtStats[districtName];
+            district.total_area += plantation.total_area || 0;
+            district.total_plantations += 1;
+            district.outdated_ga += plantation.outdated_ga || 0;
+            
+            // Добавляем данные по плодородности
+            if (plantation.fertility_score === 'Low') {
+              district.low_fertility.count += 1;
+              district.low_fertility.area += plantation.total_area || 0;
+            } else if (plantation.fertility_score === 'High') {
+              district.high_fertility.count += 1;
+              district.high_fertility.area += plantation.total_area || 0;
+            }
+            
+            // Добавляем данные по поливу
+            district.irrigation.area += plantation.irrigation_area || 0;
+            if (plantation.irrigation_area > 0) {
+              district.irrigation.count += 1;
+            }
+            
+            // Добавляем инвестиции
+            if (plantation.investments) {
+              plantation.investments.forEach(inv => {
+                if (inv.invest_type === 1) {
+                  district.investment.local += inv.investment_amount || 0;
+                } else if (inv.invest_type === 2) {
+                  district.investment.foreign += inv.investment_amount || 0;
+                }
+                district.investment.total += inv.investment_amount || 0;
+              });
+            }
+            
+            // Добавляем субсидии
+            if (plantation.subsidies) {
+              plantation.subsidies.forEach(sub => {
+                district.subsidy.subsidy_count += 1;
+                district.subsidy.total_subsidy += sub.amount || 0;
+              });
+            }
+          });
+          
+          // Формируем данные в том же формате, что и API статистики
+          data = {
+            data: districtStats,
+            totals: {
+              total_area: Object.values(districtStats).reduce((sum, d) => sum + d.total_area, 0),
+              total_plantations: Object.values(districtStats).reduce((sum, d) => sum + d.total_plantations, 0),
+              total_investment: Object.values(districtStats).reduce((sum, d) => sum + d.investment.total, 0),
+              total_subsidy: Object.values(districtStats).reduce((sum, d) => sum + d.subsidy.total_subsidy, 0)
+            }
+          };
+        }
         setStatistics(data);
       } catch (err) {
         setError(err.message);
@@ -70,7 +171,7 @@ const RegionDetailPage = () => {
     };
 
     fetchData();
-  }, [id, authState.accessToken, location.search]);
+  }, [id, authState.accessToken, location.search, activeTab]);
 
   if (loading) return <Spin size="large" />;
   if (error) return <Alert message={error} type="error" />;
@@ -354,6 +455,57 @@ const RegionDetailPage = () => {
           </h1>
         </div>
 
+        {/* Вкладки для переключения типов данных */}
+        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const searchParams = new URLSearchParams(location.search);
+                searchParams.delete('data_type');
+                const queryString = searchParams.toString();
+                navigate(`/statistics/regions/${id}${queryString ? `?${queryString}` : ''}`);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'all'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              Barcha planatsiyalar
+            </button>
+            <button
+              onClick={() => {
+                const searchParams = new URLSearchParams(location.search);
+                searchParams.set('data_type', 'approved');
+                const queryString = searchParams.toString();
+                navigate(`/statistics/regions/${id}?${queryString}`);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'approved'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              Tasdiqlangan
+            </button>
+            <button
+              onClick={() => {
+                const searchParams = new URLSearchParams(location.search);
+                searchParams.set('data_type', 'moderation');
+                const queryString = searchParams.toString();
+                navigate(`/statistics/regions/${id}?${queryString}`);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'moderation'
+                  ? 'bg-yellow-500 text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              Moderatsiyada
+            </button>
+          </div>
+        </Card>
+
         {/* Active Filters Display */}
         {(() => {
           const searchParams = new URLSearchParams(location.search);
@@ -393,7 +545,11 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan maydon' : 
+                   activeTab === 'moderation' ? 'Moderatsiyadagi maydon' : 
+                   'Jami maydon'}
+                </span>}
                 value={totals.total_area}
                 suffix="GA"
                 precision={1}
@@ -404,7 +560,11 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Plantatsiyalar soni</span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan planatsiyalar' : 
+                   activeTab === 'moderation' ? 'Moderatsiyadagi planatsiyalar' : 
+                   'Plantatsiyalar soni'}
+                </span>}
                 value={totals.total_plantations}
                 valueStyle={{ color: '#e5e7eb' }}
               />
@@ -413,7 +573,11 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Jami investitsiyalar</span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 
+                   activeTab === 'moderation' ? 'Moderatsiyadagi investitsiyalar' : 
+                   'Jami investitsiyalar'}
+                </span>}
                 value={totals.total_investment}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}
@@ -424,7 +588,11 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Jami subsidiyalar</span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 
+                   activeTab === 'moderation' ? 'Moderatsiyadagi subsidiyalar' : 
+                   'Jami subsidiyalar'}
+                </span>}
                 value={totals.total_subsidy}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}

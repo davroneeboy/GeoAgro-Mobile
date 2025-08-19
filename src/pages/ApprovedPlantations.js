@@ -16,6 +16,8 @@ const ApprovedPlantations = () => {
   });
   const [districts, setDistricts] = useState([]);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [users, setUsers] = useState({}); // Кеш пользователей
+
   const navigate = useNavigate();
   const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
@@ -164,7 +166,47 @@ const ApprovedPlantations = () => {
         const plantationsData = response.data.results || [];
         const countData = plantationsData.length;
         
-        setPlantations(plantationsData);
+        // Загружаем детальную информацию для каждой плантации
+        const detailedPlantations = await Promise.all(
+          plantationsData.map(async (plantation) => {
+            try {
+              const detailResponse = await axios.get(
+                `${API_BASE_URL2}api/plantations/${plantation.id}/`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${authState.accessToken}`,
+                  },
+                }
+              );
+              return detailResponse.data;
+            } catch (error) {
+              console.error(`Error fetching details for plantation ${plantation.id}:`, error);
+              return plantation; // Возвращаем исходные данные, если детали не загрузились
+            }
+          })
+        );
+
+        // Загружаем информацию о пользователях, если она еще не загружена
+        if (Object.keys(users).length === 0 && detailedPlantations.length > 0) {
+          try {
+            const usersData = await axios.get(`${API_BASE_URL2}api/users/`, {
+              headers: {
+                Authorization: `Bearer ${authState.accessToken}`,
+              },
+            });
+            
+            // Создаем кеш пользователей
+            const usersCache = {};
+            usersData.data.forEach(user => {
+              usersCache[user.id] = user;
+            });
+            setUsers(usersCache);
+          } catch (userError) {
+            console.error("Error fetching users:", userError);
+          }
+        }
+        
+        setPlantations(detailedPlantations);
         setCount(countData);
       } catch (error) {
         console.error("Ошибка при загрузке подтвержденных плантаций:", error);
@@ -180,7 +222,7 @@ const ApprovedPlantations = () => {
     };
 
     fetchApprovedPlantations();
-  }, [page, filters, authState.accessToken, logout, navigate]);
+  }, [page, filters, authState.accessToken, logout, navigate, users]);
 
   // eslint-disable-next-line no-unused-vars
   const handlePageChange = (newPage) => {
@@ -211,6 +253,8 @@ const ApprovedPlantations = () => {
     });
   };
 
+
+
   const getRegionName = (regionId) => {
     if (!regionId) return "—";
     
@@ -236,6 +280,15 @@ const ApprovedPlantations = () => {
     
     return regionNames[regionId] || `Region ${regionId}`;
   };
+
+  // Функция для получения имени пользователя
+  const getUserName = (userId) => {
+    if (!userId || !users[userId]) return "—";
+    const user = users[userId];
+    return `${user.first_name} ${user.last_name}`.trim() || user.username || `ID: ${userId}`;
+  };
+
+
 
   const handleResetFilters = () => {
     setFilters({ region: "All", district: "All", crop_type: "All" });
@@ -469,22 +522,22 @@ const ApprovedPlantations = () => {
                     key={plantation.id}
                     to={`/plantations/${plantation.id}`}
                     state={{ from: '/approved-plantations' }}
-                    className="group block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 hover:border-green-500 hover:from-gray-750 hover:to-gray-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-green-500/10"
+                    className="group block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-gray-700 hover:border-green-500 hover:from-gray-750 hover:to-gray-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-green-500/10"
                   >
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
+                        <h3 className="text-lg font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
                           {plantation.name || "Sarlavhasiz bog'"}
                         </h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <div className="flex items-center space-x-3 text-xs text-gray-400">
                           <span className="flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
                             </svg>
                             {plantation.total_area} ga
                           </span>
                           <span className="flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -492,45 +545,46 @@ const ApprovedPlantations = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-green-400 font-medium">Tasdiqlangan</span>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-green-400 font-medium">✓</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
-                        <div className="text-xs text-gray-400 mb-1">Tuman</div>
-                        <div className="text-white font-semibold">{plantation.district?.name || "—"}</div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+                      <div className="bg-gray-700/50 rounded-lg p-2 border border-gray-600">
+                        <div className="text-xs text-gray-400 mb-1">Qo'shgan</div>
+                        <div className="text-white font-semibold text-xs">{getUserName(plantation.created_by)}</div>
+                        <div className="text-gray-400 text-xs">{formatDate(plantation.created_at)}</div>
                       </div>
-                      <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                      <div className="bg-gray-700/50 rounded-lg p-2 border border-gray-600">
+                        <div className="text-xs text-gray-400 mb-1">Tasdiqlagan</div>
+                        <div className="text-white font-semibold text-xs">{getUserName(plantation.moderated_by)}</div>
+                        <div className="text-gray-400 text-xs">{formatDate(plantation.moderated_at)}</div>
+                      </div>
+                      <div className="bg-gray-700/50 rounded-lg p-2 border border-gray-600">
+                        <div className="text-xs text-gray-400 mb-1">District</div>
+                        <div className="text-white font-semibold text-xs">
+                          {plantation.district ? 
+                            `${getRegionName(plantation.district.region)}, ${plantation.district.name}` : 
+                            "—"
+                          }
+                        </div>
+                      </div>
+                      <div className="bg-gray-700/50 rounded-lg p-2 border border-gray-600">
                         <div className="text-xs text-gray-400 mb-1">Ekin turi</div>
-                        <div className="text-white font-semibold">
+                        <div className="text-white font-semibold text-xs">
                           {plantation.fruit_areas && plantation.fruit_areas.length > 0 
                             ? plantation.fruit_areas.map(fruit => fruit.fruit).join(', ')
                             : plantation.crop_type || "—"}
                         </div>
                       </div>
-                      <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
-                        <div className="text-xs text-gray-400 mb-1">Yaratilgan</div>
-                        <div className="text-white font-semibold text-sm">{formatDate(plantation.created_at)}</div>
-                      </div>
-                      <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
-                        <div className="text-xs text-gray-400 mb-1">Tasdiqlangan</div>
-                        <div className="text-white font-semibold text-sm">{formatDate(plantation.moderated_at || plantation.checked_at || plantation.updated_at)}</div>
-                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-700">
-                      <div className="flex items-center space-x-2 text-sm text-gray-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span>Tasdiqlagan: {plantation.moderated_by ? `ID: ${plantation.moderated_by}` : plantation.checked_by || plantation.checked_by_user || "—"}</span>
-                      </div>
-                      <div className="flex items-center text-green-400 text-sm font-medium group-hover:text-green-300 transition-colors">
+                    <div className="flex items-center justify-end pt-2 border-t border-gray-700">
+                      <div className="flex items-center text-green-400 text-xs font-medium group-hover:text-green-300 transition-colors">
                         <span>Batafsil ko'rish</span>
-                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -666,14 +720,14 @@ const ApprovedPlantations = () => {
                   key={plantation.id}
                   to={`/plantations/${plantation.id}`}
                   state={{ from: '/approved-plantations' }}
-                  className="group block bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl p-4 border border-gray-600 hover:border-green-500 hover:from-gray-650 hover:to-gray-750 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg"
+                  className="group block bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg p-3 border border-gray-600 hover:border-green-500 hover:from-gray-650 hover:to-gray-750 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
+                      <h3 className="text-sm font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
                         {plantation.name || "Sarlavhasiz bog'"}
                       </h3>
-                      <div className="flex items-center space-x-3 text-xs text-gray-400">
+                      <div className="flex items-center space-x-2 text-xs text-gray-400">
                         <span className="flex items-center">
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
@@ -695,14 +749,29 @@ const ApprovedPlantations = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="bg-gray-600/50 rounded-lg p-2">
-                      <div className="text-xs text-gray-400 mb-1">Tuman</div>
-                      <div className="text-white font-semibold text-sm">{plantation.district?.name || "—"}</div>
+                  <div className="grid grid-cols-2 gap-1 mb-2">
+                    <div className="bg-gray-600/50 rounded p-1.5">
+                      <div className="text-xs text-gray-400 mb-0.5">Qo'shgan</div>
+                      <div className="text-white font-semibold text-xs">{getUserName(plantation.created_by)}</div>
+                      <div className="text-gray-400 text-xs">{formatDate(plantation.created_at)}</div>
                     </div>
-                    <div className="bg-gray-600/50 rounded-lg p-2">
-                      <div className="text-xs text-gray-400 mb-1">Ekin turi</div>
-                      <div className="text-white font-semibold text-sm">
+                    <div className="bg-gray-600/50 rounded p-1.5">
+                      <div className="text-xs text-gray-400 mb-0.5">Tasdiqlagan</div>
+                      <div className="text-white font-semibold text-xs">{getUserName(plantation.moderated_by)}</div>
+                      <div className="text-gray-400 text-xs">{formatDate(plantation.moderated_at)}</div>
+                    </div>
+                    <div className="bg-gray-600/50 rounded p-1.5">
+                      <div className="text-xs text-gray-400 mb-0.5">District</div>
+                      <div className="text-white font-semibold text-xs">
+                        {plantation.district ? 
+                          `${getRegionName(plantation.district.region)}, ${plantation.district.name}` : 
+                          "—"
+                        }
+                      </div>
+                    </div>
+                    <div className="bg-gray-600/50 rounded p-1.5">
+                      <div className="text-xs text-gray-400 mb-0.5">Ekin turi</div>
+                      <div className="text-white font-semibold text-xs">
                         {plantation.fruit_areas && plantation.fruit_areas.length > 0 
                           ? plantation.fruit_areas.map(fruit => fruit.fruit).join(', ')
                           : plantation.crop_type || "—"}
@@ -710,13 +779,7 @@ const ApprovedPlantations = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-600">
-                    <div className="flex items-center space-x-1 text-xs text-gray-400">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span>ID: {plantation.moderated_by || "—"}</span>
-                    </div>
+                  <div className="flex items-center justify-end pt-1 border-t border-gray-600">
                     <div className="flex items-center text-green-400 text-xs font-medium group-hover:text-green-300 transition-colors">
                       <span>Ko'rish</span>
                       <svg className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
