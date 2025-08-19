@@ -351,7 +351,7 @@ const Moderation = () => {
     if (newPage > 0 && newPage <= totalPages && newPage <= 50) {
       setPage(newPage);
       localStorage.setItem('moderationPage', newPage.toString());
-      navigate(`/moderation?page=${newPage}`, { replace: true });
+      saveFiltersToUrl(filters, newPage);
     } else {
       // Если введен неверный номер страницы, сбрасываем поле ввода
       setPageInput(page.toString());
@@ -363,7 +363,7 @@ const Moderation = () => {
     setPage(1);
     setPageInput('1');
     localStorage.setItem('moderationPage', '1');
-    navigate('/moderation?page=1', { replace: true });
+    saveFiltersToUrl(filters, 1);
   };
 
   // Функция для перехода в конец
@@ -372,7 +372,7 @@ const Moderation = () => {
     setPage(lastPage);
     setPageInput(lastPage.toString());
     localStorage.setItem('moderationPage', lastPage.toString());
-    navigate(`/moderation?page=${lastPage}`, { replace: true });
+    saveFiltersToUrl(filters, lastPage);
   };
 
   // убираем фронтовую фильтрацию, используем только moderations
@@ -820,7 +820,7 @@ const Moderation = () => {
                       const newPage = Math.max(page - 1, 1);
                       setPage(newPage);
                       localStorage.setItem('moderationPage', newPage.toString());
-                      navigate(`/moderation?page=${newPage}`, { replace: true });
+                      saveFiltersToUrl(filters, newPage);
                     }}
                     disabled={page <= 1}
                   >
@@ -854,7 +854,7 @@ const Moderation = () => {
                       if (newPage <= totalPages && newPage <= 50) {
                         setPage(newPage);
                         localStorage.setItem('moderationPage', newPage.toString());
-                        navigate(`/moderation?page=${newPage}`, { replace: true });
+                        saveFiltersToUrl(filters, newPage);
                       }
                     }}
                     disabled={page >= totalPages || page >= 50}

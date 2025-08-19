@@ -164,27 +164,38 @@ const ApprovedPlantations = () => {
 
         // Обрабатываем данные как в fetchPlantationsMap
         const plantationsData = response.data.results || [];
-        const countData = plantationsData.length;
         
         // Загружаем детальную информацию для каждой плантации
-        const detailedPlantations = await Promise.all(
-          plantationsData.map(async (plantation) => {
-            try {
-              const detailResponse = await axios.get(
-                `${API_BASE_URL2}api/plantations/${plantation.id}/`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${authState.accessToken}`,
-                  },
+        const detailedPlantationsPromises = plantationsData.map(async (plantation) => {
+          try {
+            const detailResponse = await axios.get(
+              `${API_BASE_URL2}api/plantations/${plantation.id}/`,
+              {
+                headers: {
+                  Authorization: `Bearer ${authState.accessToken}`,
+                },
+                // Подавляем логирование ошибок в консоль
+                validateStatus: function (status) {
+                  return status < 500; // Не считаем 500 ошибкой для axios
                 }
-              );
-              return detailResponse.data;
-            } catch (error) {
-              console.error(`Error fetching details for plantation ${plantation.id}:`, error);
-              return plantation; // Возвращаем исходные данные, если детали не загрузились
+              }
+            );
+            return detailResponse.data;
+          } catch (error) {
+            // Если плантация удалена (404 или 500), возвращаем null
+            if (error.response?.status === 404 || error.response?.status === 500) {
+              console.warn(`Plantation ${plantation.id} not found or deleted, skipping`);
+              return null;
             }
-          })
-        );
+            console.error(`Error fetching details for plantation ${plantation.id}:`, error);
+            return plantation; // Для других ошибок возвращаем исходные данные
+          }
+        });
+        
+        const detailedPlantationsResults = await Promise.all(detailedPlantationsPromises);
+        
+        // Фильтруем null значения (удаленные плантации)
+        const detailedPlantations = detailedPlantationsResults.filter(plantation => plantation !== null);
 
         // Загружаем информацию о пользователях, если она еще не загружена
         if (Object.keys(users).length === 0 && detailedPlantations.length > 0) {
@@ -207,7 +218,7 @@ const ApprovedPlantations = () => {
         }
         
         setPlantations(detailedPlantations);
-        setCount(countData);
+        setCount(detailedPlantations.length); // Используем количество успешно загруженных плантаций
       } catch (error) {
         console.error("Ошибка при загрузке подтвержденных плантаций:", error);
         setError("Ошибка при загрузке данных");

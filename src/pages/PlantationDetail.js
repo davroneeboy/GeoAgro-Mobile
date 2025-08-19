@@ -22,6 +22,8 @@ const PlantationDetail = () => {
   const [error, setError] = useState(null);
   const [createdByUser, setCreatedByUser] = useState(null);
   const [moderatedByUser, setModeratedByUser] = useState(null);
+  const [regionPolygons, setRegionPolygons] = useState([]);
+  const [regionLabels, setRegionLabels] = useState([]);
   const navigate = useNavigate();
   const { authState, refreshAccessToken } = useContext(AuthContext);
 
@@ -48,6 +50,117 @@ const PlantationDetail = () => {
       return null;
     }
   }, [authState.accessToken, refreshAccessToken]);
+
+
+
+  // Функция для загрузки полигонов всех регионов
+  const loadRegionPolygons = async (mapInstance) => {
+    try {
+      // Очищаем старые полигоны
+      setRegionPolygons(prev => {
+        prev.forEach((polygon) => {
+          polygon.setMap(null);
+        });
+        return [];
+      });
+      setRegionLabels(prev => {
+        prev.forEach(({ overlay }) => overlay.setMap(null));
+        return [];
+      });
+      
+      // Список всех регионов
+      const regions = [
+        'toshkent', 'navoiy', 'jizzax', 'namangan', 'andijon', 'fargona',
+        'samarqand', 'buxoro', 'qashqadaryo', 'surxondaryo', 'qoraqalpogiston',
+        'xorazm', 'sirdaryo'
+      ];
+      
+      console.log('Loading all regions...');
+      
+      const newPolygons = [];
+      const newLabels = [];
+      
+      // Загружаем все регионы параллельно
+      const regionPromises = regions.map(async (regionName) => {
+        try {
+          const geojson = await fetch(`/uzb-geojson/${regionName}.geojson`).then((res) => res.json());
+          console.log(`Loaded ${regionName}:`, geojson.features.length, 'features');
+          
+          geojson.features.forEach((feature) => {
+            let paths = [];
+            
+            // Обрабатываем разные типы геометрии
+            if (feature.geometry.type === 'Polygon') {
+              paths = feature.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }));
+            } else if (feature.geometry.type === 'MultiPolygon') {
+              // Для MultiPolygon берем первый полигон
+              paths = feature.geometry.coordinates[0][0].map(([lng, lat]) => ({ lat, lng }));
+            }
+            
+            if (paths.length === 0) return;
+            
+            // Создаем полигон района
+            const polygon = new google.maps.Polygon({
+              paths,
+              strokeColor: "#FFFFFF",
+              strokeOpacity: 0.8,
+              strokeWeight: 1,
+              fillOpacity: 0,
+              map: mapInstance,
+            });
+
+            newPolygons.push(polygon);
+
+            // Добавляем подпись района
+            const bounds = new google.maps.LatLngBounds();
+            paths.forEach((coord) => bounds.extend(coord));
+            const center = bounds.getCenter();
+
+            const overlay = new google.maps.OverlayView();
+            overlay.onAdd = function () {
+              const div = document.createElement("div");
+              div.style.position = "absolute";
+              div.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
+              div.style.color = "white";
+              div.style.padding = "3px 8px";
+              div.style.borderRadius = "4px";
+              div.style.fontWeight = "bold";
+              div.style.fontSize = "10px";
+              div.innerHTML = feature.properties.name;
+              this.div = div;
+              this.getPanes().overlayLayer.appendChild(div);
+            };
+
+            overlay.draw = function () {
+              const projection = this.getProjection();
+              const position = projection.fromLatLngToDivPixel(center);
+              this.div.style.left = `${position.x - this.div.offsetWidth / 2}px`;
+              this.div.style.top = `${position.y - this.div.offsetHeight / 2}px`;
+            };
+
+            overlay.onRemove = function () {
+              this.div.parentNode.removeChild(this.div);
+              this.div = null;
+            };
+
+            overlay.setMap(mapInstance);
+            newLabels.push({ overlay, center });
+          });
+        } catch (error) {
+          console.error(`Ошибка загрузки региона ${regionName}:`, error);
+        }
+      });
+      
+      // Ждем загрузки всех регионов
+      await Promise.all(regionPromises);
+      
+      setRegionPolygons(newPolygons);
+      setRegionLabels(newLabels);
+      console.log('Loaded total:', newPolygons.length, 'region polygons from all regions');
+    } catch (error) {
+      console.error("Ошибка загрузки полигонов районов:", error);
+    }
+  };
 
   const fetchPlantationDetails = useCallback(async () => {
     try {
@@ -76,7 +189,7 @@ const PlantationDetail = () => {
 
 
 
-  const initializeMap = useCallback(() => {
+  const initializeMap = () => {
     const mapElement = document.getElementById("map");
     if (!mapElement) {
       console.warn("Map element not found, skipping map initialization");
@@ -109,8 +222,11 @@ const PlantationDetail = () => {
       const bounds = new google.maps.LatLngBounds();
       paths.forEach((coord) => bounds.extend(coord));
       mapInstance.fitBounds(bounds);
+      
+      // Загружаем полигоны всех регионов
+      loadRegionPolygons(mapInstance);
     }
-  }, [plantation]);
+  };
 
   useEffect(() => {
     if (!authState.accessToken) {
@@ -152,7 +268,23 @@ const PlantationDetail = () => {
       };
       loadGoogleMapsScript();
     }
-  }, [plantation, loading, initializeMap]);
+  }, [plantation, loading]);
+
+  // Очистка полигонов при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      setRegionPolygons(prev => {
+        prev.forEach((polygon) => {
+          polygon.setMap(null);
+        });
+        return [];
+      });
+      setRegionLabels(prev => {
+        prev.forEach(({ overlay }) => overlay.setMap(null));
+        return [];
+      });
+    };
+  }, []);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-900">
