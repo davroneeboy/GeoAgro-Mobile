@@ -330,7 +330,7 @@ const Moderation = () => {
     };
 
     fetchModerations();
-  }, [page, filters, navigate, authState.accessToken, logout]);
+  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
     const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All" };
@@ -462,6 +462,13 @@ const Moderation = () => {
               Moderatsiya
             </Link>
             <Link
+              to="/rejected-plantations"
+              className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Rad etilgan bog'lar
+            </Link>
+            <Link
               to="/controllers"
               className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -530,6 +537,26 @@ const Moderation = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
               Tasdiqlangan bog'lar
+            </Link>
+
+            <Link
+              to="/rejected-plantations"
+              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Rad etilgan bog'lar
+            </Link>
+
+            <Link
+              to="/rejected-plantations"
+              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Rad etilgan bog'lar
             </Link>
           </div>
         </div>

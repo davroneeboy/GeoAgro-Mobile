@@ -488,21 +488,6 @@ const RegionDetailPage = () => {
             >
               Tasdiqlangan
             </button>
-            <button
-              onClick={() => {
-                const searchParams = new URLSearchParams(location.search);
-                searchParams.set('data_type', 'moderation');
-                const queryString = searchParams.toString();
-                navigate(`/statistics/regions/${id}?${queryString}`);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'moderation'
-                  ? 'bg-yellow-500 text-white'
-                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-              }`}
-            >
-              Moderatsiyada
-            </button>
           </div>
         </Card>
 

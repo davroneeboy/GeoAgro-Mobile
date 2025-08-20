@@ -323,7 +323,7 @@ const ApprovedPlantations = () => {
     };
 
     fetchApprovedPlantations();
-  }, [page, filters, authState.accessToken, logout, navigate]);
+  }, [page, filters.region, filters.district, filters.crop_type, authState.accessToken, logout, navigate]);
 
   // eslint-disable-next-line no-unused-vars
   const handlePageChange = (newPage) => {
@@ -467,6 +467,13 @@ const ApprovedPlantations = () => {
             >
               Moderatsiya
             </Link>
+            <Link
+              to="/rejected-plantations"
+              className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Rad etilgan bog'lar
+            </Link>
           </div>
         )}
       </div>
@@ -516,6 +523,26 @@ const ApprovedPlantations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Moderatsiya
+            </Link>
+
+            <Link
+              to="/rejected-plantations"
+              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Rad etilgan bog'lar
+            </Link>
+
+            <Link
+              to="/rejected-plantations"
+              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Rad etilgan bog'lar
             </Link>
           </div>
         </div>

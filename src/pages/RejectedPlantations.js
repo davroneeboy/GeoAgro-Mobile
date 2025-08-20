@@ -16,6 +16,7 @@ const RejectedPlantations = () => {
   const [users, setUsers] = useState({});
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [rejectedStats, setRejectedStats] = useState(null);
 
   const pageSize = 20;
 
@@ -78,6 +79,17 @@ const RejectedPlantations = () => {
       setLoading(true);
       setError(null);
 
+      // Используем новый API endpoint для статистики отклоненных плантаций
+      const statsResponse = await axios.get(`${API_BASE_URL2}api/statistics/rejected/`, {
+        headers: { Authorization: `Bearer ${authState.accessToken}` }
+      });
+      
+      console.log("Rejected statistics API response:", statsResponse.data);
+      
+      // Получаем данные из нового API
+      const rejectedData = statsResponse.data;
+      
+      // Получаем список отклоненных плантаций с деталями
       const params = new URLSearchParams({
         page: page.toString(),
         page_size: pageSize.toString(),
@@ -114,12 +126,18 @@ const RejectedPlantations = () => {
       const detailedPlantationsResults = await Promise.all(detailedPlantationsPromises);
       const detailedPlantations = detailedPlantationsResults.filter(p => p !== null);
 
-      setPlantations(detailedPlantations);
-      setCount(response.data.count || detailedPlantations.length);
+      // Фильтруем плантации с непустым moderation_comment
+      const filteredPlantations = detailedPlantations.filter(plantation => 
+        plantation.moderation_comment && plantation.moderation_comment.trim() !== ''
+      );
+
+      setPlantations(filteredPlantations);
+      setCount(filteredPlantations.length);
+      setRejectedStats(rejectedData); // Save the statistics
 
       // Загружаем информацию о пользователях
       const userIds = new Set();
-      detailedPlantations.forEach(plantation => {
+      filteredPlantations.forEach(plantation => {
         if (plantation.created_by) userIds.add(plantation.created_by);
         if (plantation.moderated_by) userIds.add(plantation.moderated_by);
       });
@@ -291,7 +309,7 @@ const RejectedPlantations = () => {
               Tasdiqlangan bog'lar
             </Link>
 
-            {/* <Link
+            <Link
               to="/rejected-plantations"
               className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
             >
@@ -299,7 +317,7 @@ const RejectedPlantations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Rad etilgan bog'lar
-            </Link> */}
+            </Link>
           </div>
         </div>
 
@@ -308,8 +326,95 @@ const RejectedPlantations = () => {
           <div className="p-6">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-white mb-2">Rad etilgan bog'lar</h1>
-              <p className="text-gray-400">Jami: {count} ta plantatsiya</p>
             </div>
+
+            {/* Статистика */}
+            {rejectedStats && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Statistika</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Jami rad etilgan</div>
+                    <div className="text-2xl font-bold text-white">
+                      {rejectedStats.total_rejected_plantations || 0}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      {rejectedStats.total_rejected_area || 0} GA
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Bog'lar</div>
+                    <div className="text-2xl font-bold text-white">
+                      {rejectedStats.rejected_by_type?.bogs?.count || 0}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      {rejectedStats.rejected_by_type?.bogs?.area || 0} GA
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Uzumzorlar</div>
+                    <div className="text-2xl font-bold text-white">
+                      {rejectedStats.rejected_by_type?.uzumzors?.count || 0}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      {rejectedStats.rejected_by_type?.uzumzors?.area || 0} GA
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Issiqxonalar</div>
+                    <div className="text-2xl font-bold text-white">
+                      {rejectedStats.rejected_by_type?.issiqxonas?.count || 0}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      {rejectedStats.rejected_by_type?.issiqxonas?.area || 0} GA
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Investitsiyalar</div>
+                    <div className="text-2xl font-bold text-white">
+                      {((rejectedStats.rejected_investments?.local || 0) + (rejectedStats.rejected_investments?.foreign || 0)).toLocaleString()}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      Mahalliy: {(rejectedStats.rejected_investments?.local || 0).toLocaleString()}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Subsidiyalar</div>
+                    <div className="text-2xl font-bold text-white">
+                      {rejectedStats.rejected_subsidies?.beneficiary_count || 0}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      {(rejectedStats.rejected_subsidies?.total_amount || 0).toLocaleString()} so'm
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">O'rtacha hosildorlik</div>
+                    <div className="text-2xl font-bold text-white">
+                      {(rejectedStats.rejected_fertility_stats?.average_score || 0).toFixed(1)}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      Past: {rejectedStats.rejected_fertility_stats?.low_fertility_area || 0} GA
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="text-gray-400 text-sm mb-1">Mevali maydon</div>
+                    <div className="text-2xl font-bold text-white">
+                      {rejectedStats.total_rejected_fruitarea || 0}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      GA
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Ошибки */}
             {error && (
@@ -439,18 +544,7 @@ const RejectedPlantations = () => {
               </div>
             )}
 
-            {/* Сообщение если нет плантаций */}
-            {!loading && plantations.length === 0 && !error && (
-              <div className="text-center py-12">
-                <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                  <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <h3 className="text-xl font-semibold text-white mb-2">Rad etilgan plantatsiyalar topilmadi</h3>
-                  <p className="text-gray-400">Hozircha hech qanday plantatsiya rad etilmagan</p>
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
@@ -459,7 +553,6 @@ const RejectedPlantations = () => {
       <div className="lg:hidden p-4">
         <div className="mb-4">
           <h1 className="text-xl font-bold text-white mb-1">Rad etilgan bog'lar</h1>
-          <p className="text-gray-400 text-sm">Jami: {count} ta plantatsiya</p>
         </div>
 
         {/* Ошибки */}
@@ -549,18 +642,7 @@ const RejectedPlantations = () => {
           </div>
         )}
 
-        {/* Мобильное сообщение если нет плантаций */}
-        {!loading && plantations.length === 0 && !error && (
-          <div className="text-center py-8">
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <svg className="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <h3 className="text-lg font-semibold text-white mb-2">Topilmadi</h3>
-              <p className="text-gray-400 text-sm">Rad etilgan plantatsiyalar yo'q</p>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );

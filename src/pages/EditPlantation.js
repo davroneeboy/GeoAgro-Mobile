@@ -345,7 +345,7 @@ const EditPlantation = () => {
           window.location.href = `/approved-plantations?page=${currentPage}`;
         } else {
           // По умолчанию возвращаемся на moderation
-          const currentPage = localStorage.getItem('moderationPage') || 1;
+        const currentPage = localStorage.getItem('moderationPage') || 1;
           const savedFilters = location.state?.filters;
           
           // Восстанавливаем фильтры в URL
@@ -392,25 +392,25 @@ const EditPlantation = () => {
             return;
           }
 
-          const existingScript = document.getElementById("googleMaps");
-          if (!existingScript) {
-            const script = document.createElement("script");
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
-            script.id = "googleMaps";
-            document.body.appendChild(script);
-            script.onload = () => {
-              if (typeof google !== "undefined") {
-                initializeMap();
-              }
-            };
-            script.onerror = () => {
-              console.error("Failed to load Google Maps API");
-            };
-          } else {
+        const existingScript = document.getElementById("googleMaps");
+        if (!existingScript) {
+          const script = document.createElement("script");
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
+          script.id = "googleMaps";
+          document.body.appendChild(script);
+          script.onload = () => {
             if (typeof google !== "undefined") {
               initializeMap();
             }
+          };
+            script.onerror = () => {
+              console.error("Failed to load Google Maps API");
+            };
+        } else {
+          if (typeof google !== "undefined") {
+            initializeMap();
           }
+        }
         }, 100);
       };
       loadGoogleMapsScript();
@@ -497,8 +497,8 @@ const EditPlantation = () => {
                   window.location.href = `/approved-plantations?page=${currentPage}`;
                 } else {
                   // По умолчанию возвращаемся на moderation
-                  console.log('Navigating to moderation...');
-                  const currentPage = localStorage.getItem('moderationPage') || 1;
+                console.log('Navigating to moderation...');
+                const currentPage = localStorage.getItem('moderationPage') || 1;
                   const savedFilters = location.state?.filters;
                   
                   // Восстанавливаем фильтры в URL

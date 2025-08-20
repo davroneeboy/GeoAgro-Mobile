@@ -274,13 +274,13 @@ const HomePage = () => {
             >
               Tasdiqlangan bog'lar
             </Link>
-            {/* <Link
+            <Link
               to="/rejected-plantations"
               className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Rad etilgan bog'lar
-            </Link> */}
+            </Link>
             <Link
               to="/controllers"
               className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
@@ -491,7 +491,7 @@ const HomePage = () => {
               Tasdiqlangan bog'lar
                 </Link>
                 
-            {/* <Link
+            <Link
               to="/rejected-plantations"
               className="block w-full bg-red-500 text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
             >
@@ -499,7 +499,7 @@ const HomePage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Rad etilgan bog'lar
-            </Link> */}
+            </Link>
           </div>
         </div>
       </div>
