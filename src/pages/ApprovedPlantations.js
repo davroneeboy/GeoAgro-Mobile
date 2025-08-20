@@ -633,7 +633,7 @@ const ApprovedPlantations = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="text-lg font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
-                          {plantation.name || "Sarlavhasiz bog'"}
+                          {plantation.farmer?.name || "Sarlavhasiz bog'"}
                         </h3>
                         <div className="flex items-center space-x-3 text-xs text-gray-400">
                           <span className="flex items-center">
@@ -919,7 +919,7 @@ const ApprovedPlantations = () => {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <h3 className="text-sm font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
-                        {plantation.name || "Sarlavhasiz bog'"}
+                        {plantation.farmer?.name || "Sarlavhasiz bog'"}
                       </h3>
                       <div className="flex items-center space-x-2 text-xs text-gray-400">
                         <span className="flex items-center">
