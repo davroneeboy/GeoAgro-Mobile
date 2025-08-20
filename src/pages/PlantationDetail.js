@@ -104,49 +104,58 @@ const PlantationDetail = () => {
             // Создаем полигон района
             const polygon = new google.maps.Polygon({
               paths,
-              strokeColor: "#FFFFFF",
-              strokeOpacity: 0.8,
-              strokeWeight: 1,
+              strokeColor: "#FFD700",
+              strokeOpacity: 1,
+              strokeWeight: 3,
               fillOpacity: 0,
               map: mapInstance,
             });
 
+            // Создаем подпись района в углу экрана
+            const districtName = feature.properties.name;
+            
+            // Создаем элемент для отображения названия в углу
+            let cornerLabel = null;
+            
+            // Добавляем обработчики событий для полигона
+            polygon.addListener('mouseover', function() {
+              // Удаляем предыдущую подпись если есть
+              if (cornerLabel && cornerLabel.parentNode) {
+                cornerLabel.parentNode.removeChild(cornerLabel);
+              }
+              
+              // Создаем новую подпись в правом верхнем углу
+              cornerLabel = document.createElement("div");
+              cornerLabel.style.position = "absolute";
+              cornerLabel.style.top = "20px";
+              cornerLabel.style.right = "20px";
+              cornerLabel.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+              cornerLabel.style.color = "white";
+              cornerLabel.style.padding = "8px 16px";
+              cornerLabel.style.borderRadius = "8px";
+              cornerLabel.style.fontWeight = "bold";
+              cornerLabel.style.fontSize = "18px";
+              cornerLabel.style.zIndex = "1000";
+              cornerLabel.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
+              cornerLabel.style.border = "2px solid #FFD700";
+              cornerLabel.style.minWidth = "120px";
+              cornerLabel.style.textAlign = "center";
+              cornerLabel.innerHTML = districtName;
+              
+              // Добавляем в контейнер карты
+              const mapContainer = mapInstance.getDiv();
+              mapContainer.appendChild(cornerLabel);
+            });
+
+            polygon.addListener('mouseout', function() {
+              // Удаляем подпись при уходе курсора
+              if (cornerLabel && cornerLabel.parentNode) {
+                cornerLabel.parentNode.removeChild(cornerLabel);
+                cornerLabel = null;
+              }
+            });
+
             newPolygons.push(polygon);
-
-            // Добавляем подпись района
-            const bounds = new google.maps.LatLngBounds();
-            paths.forEach((coord) => bounds.extend(coord));
-            const center = bounds.getCenter();
-
-            const overlay = new google.maps.OverlayView();
-            overlay.onAdd = function () {
-              const div = document.createElement("div");
-              div.style.position = "absolute";
-              div.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-              div.style.color = "white";
-              div.style.padding = "3px 8px";
-              div.style.borderRadius = "4px";
-              div.style.fontWeight = "bold";
-              div.style.fontSize = "10px";
-              div.innerHTML = feature.properties.name;
-              this.div = div;
-              this.getPanes().overlayLayer.appendChild(div);
-            };
-
-            overlay.draw = function () {
-              const projection = this.getProjection();
-              const position = projection.fromLatLngToDivPixel(center);
-              this.div.style.left = `${position.x - this.div.offsetWidth / 2}px`;
-              this.div.style.top = `${position.y - this.div.offsetHeight / 2}px`;
-            };
-
-            overlay.onRemove = function () {
-              this.div.parentNode.removeChild(this.div);
-              this.div = null;
-            };
-
-            overlay.setMap(mapInstance);
-            newLabels.push({ overlay, center });
           });
         } catch (error) {
           console.error(`Ошибка загрузки региона ${regionName}:`, error);
