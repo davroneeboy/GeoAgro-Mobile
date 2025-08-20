@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
-import { API_BASE_URL1, API_BASE_URL2 } from "../../config";
+import { API_BASE_URL1 } from "../../config";
 import { useNavigate, useLocation } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
@@ -38,6 +38,7 @@ const RegionsPage = () => {
   });
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved', 'moderation'
+  const [approvedTotals, setApprovedTotals] = useState(null);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
@@ -67,99 +68,113 @@ const RegionsPage = () => {
         
         if (activeTab === 'all') {
           // Для всех плантаций используем обычный API статистики
+          setApprovedTotals(null);
           let baseUrl = `${API_BASE_URL1}api/statistics/regions/`;
-          const queryParams = new URLSearchParams();
+        const queryParams = new URLSearchParams();
 
-          if (filters.garden_established_year) {
-            queryParams.append("est_date", filters.garden_established_year);
-          }
+        if (filters.garden_established_year) {
+          queryParams.append("est_date", filters.garden_established_year);
+        }
 
-          if (queryParams.toString()) {
+        if (queryParams.toString()) {
             baseUrl += `?${queryParams.toString()}`;
-          }
+        }
 
           data = await fetchStatisticsData(baseUrl, authState.accessToken);
-        } else {
-          // Для подтвержденных и на модерации используем API плантаций
-          const isChecked = activeTab === 'approved' ? 'True' : 'False';
-          const plantationsUrl = `${API_BASE_URL2}api/plantations/map/?is_checked=${isChecked}`;
+        } else if (activeTab === 'approved') {
+          // Для подтвержденных используем специальный API статистики
+          const approvedUrl = `${API_BASE_URL1}api/statistics/approved/`;
           
-          const plantationsResponse = await fetch(plantationsUrl, {
+          const approvedResponse = await fetch(approvedUrl, {
             headers: {
               Authorization: `Bearer ${authState.accessToken}`,
             },
           });
           
-          if (!plantationsResponse.ok) {
-            throw new Error(`HTTP error! status: ${plantationsResponse.status}`);
+          if (!approvedResponse.ok) {
+            throw new Error(`HTTP error! status: ${approvedResponse.status}`);
           }
           
-          const plantationsData = await plantationsResponse.json();
-          const plantations = plantationsData.results || [];
+          const approvedData = await approvedResponse.json();
           
-          // Вычисляем статистику по регионам на основе данных плантаций
+          // Преобразуем данные в нужный формат
           data = {};
-          plantations.forEach(plantation => {
-            const regionId = plantation.district?.region;
-            if (!regionId) return;
-            
-            if (!data[regionId]) {
-              data[regionId] = {
-                total_area: 0,
-                outdated_ga: 0,
-                low_fertility: { count: 0, area: 0 },
-                high_fertility: { count: 0, area: 0 },
-                irrigation: { area: 0, count: 0 },
-                investment: { local: 0, foreign: 0, total: 0 },
-                subsidy: { subsidy_count: 0, total_subsidy: 0 }
-              };
-            }
-            
-            const region = data[regionId];
-            region.total_area += plantation.total_area || 0;
-            region.outdated_ga += plantation.outdated_ga || 0;
-            
-            // Добавляем данные по плодородности
-            if (plantation.fertility_score === 'Low') {
-              region.low_fertility.count += 1;
-              region.low_fertility.area += plantation.total_area || 0;
-            } else if (plantation.fertility_score === 'High') {
-              region.high_fertility.count += 1;
-              region.high_fertility.area += plantation.total_area || 0;
-            }
-            
-            // Добавляем данные по поливу
-            region.irrigation.area += plantation.irrigation_area || 0;
-            if (plantation.irrigation_area > 0) {
-              region.irrigation.count += 1;
-            }
-            
-            // Добавляем инвестиции
-            if (plantation.investments) {
-              plantation.investments.forEach(inv => {
-                if (inv.invest_type === 1) {
-                  region.investment.local += inv.investment_amount || 0;
-                } else if (inv.invest_type === 2) {
-                  region.investment.foreign += inv.investment_amount || 0;
-                }
-                region.investment.total += inv.investment_amount || 0;
-              });
-            }
-            
-            // Добавляем субсидии
-            if (plantation.subsidies) {
-              plantation.subsidies.forEach(sub => {
-                region.subsidy.subsidy_count += 1;
-                region.subsidy.total_subsidy += sub.amount || 0;
-              });
-            }
-          });
           
-          // Добавляем количество плантаций для каждого региона
-          Object.keys(data).forEach(regionId => {
-            const regionPlantations = plantations.filter(p => p.district?.region === parseInt(regionId));
-            data[regionId].total_plantations = regionPlantations.length;
+          // Создаем массив всех регионов с нулевыми значениями
+          const allRegions = {
+            1: "Tashkent",
+            2: "Andijan", 
+            3: "Bukhara",
+            4: "Fergana",
+            5: "Jizzakh",
+            6: "Kashkadarya",
+            7: "Navoi",
+            8: "Namangan",
+            9: "Samarkand",
+            10: "Sirdarya",
+            11: "Surkhandarya",
+            12: "Karakalpakstan",
+            13: "Xorazm",
+          };
+
+          // Инициализируем все регионы с нулевыми значениями
+          Object.keys(allRegions).forEach(regionId => {
+            data[regionId] = {
+              total_area: 0,
+              total_plantations: 0,
+              outdated_ga: 0,
+              // Данные по типам плантаций
+              bogs_count: 0,
+              bogs_area: 0,
+              uzumzors_count: 0,
+              uzumzors_area: 0,
+              issiqxonas_count: 0,
+              issiqxonas_area: 0,
+              // Остальные данные
+              investment_local: 0,
+              investment_foreign: 0,
+              subsidy_count: 0,
+              total_subsidy: 0
+            };
           });
+
+          // Заполняем данные для регионов, которые есть в API
+          if (approvedData.approved_by_region) {
+            approvedData.approved_by_region.forEach(regionData => {
+              const regionId = regionData.district__region;
+              if (data[regionId]) {
+                data[regionId] = {
+                  ...data[regionId],
+                  total_area: regionData.total_area || 0,
+                  total_plantations: regionData.count || 0,
+                };
+              }
+            });
+          }
+          
+          // Сохраняем общие данные для итоговой строки
+          const totals = {
+            total_area: approvedData.total_approved_area || 0,
+            total_plantations: approvedData.total_approved_plantations || 0,
+            outdated_ga: approvedData.approved_fertility_stats?.low_fertility_area || 0,
+            // Данные по типам плантаций из API
+            bogs_count: approvedData.approved_by_type?.bogs?.count || 0,
+            bogs_area: approvedData.approved_by_type?.bogs?.area || 0,
+            uzumzors_count: approvedData.approved_by_type?.uzumzors?.count || 0,
+            uzumzors_area: approvedData.approved_by_type?.uzumzors?.area || 0,
+            issiqxonas_count: approvedData.approved_by_type?.issiqxonas?.count || 0,
+            issiqxonas_area: approvedData.approved_by_type?.issiqxonas?.area || 0,
+            // Остальные данные
+            investment_local: approvedData.approved_investments?.local || 0,
+            investment_foreign: approvedData.approved_investments?.foreign || 0,
+            subsidy_count: approvedData.approved_subsidies?.beneficiary_count || 0,
+            total_subsidy: approvedData.approved_subsidies?.total_amount || 0
+          };
+          setApprovedTotals(totals);
+        } else {
+          // Для остальных случаев очищаем данные
+          setApprovedTotals(null);
+          data = {};
         }
         
         // Для вкладки "all" получаем количество плантаций из API статистики
@@ -237,12 +252,12 @@ const RegionsPage = () => {
     total_area: safeNumber(data.total_area),
     total_plantations: safeNumber(data.total_plantations || data.plantations_count || data.count || 0),
     outdated_ga: safeNumber(data.outdated_ga),
-    low_fertility_count: safeNumber(data.low_fertility?.count),
-    low_fertility_area: safeNumber(data.low_fertility?.area),
-    high_fertility_count: safeNumber(data.high_fertility?.count),
-    high_fertility_area: safeNumber(data.high_fertility?.area),
-    irrigation_area: safeNumber(data.irrigation?.area),
-    irrigation_count: safeNumber(data.irrigation?.count),
+    bogs_count: safeNumber(data.bogs_count),
+    bogs_area: safeNumber(data.bogs_area),
+    uzumzors_count: safeNumber(data.uzumzors_count),
+    uzumzors_area: safeNumber(data.uzumzors_area),
+    issiqxonas_count: safeNumber(data.issiqxonas_count),
+    issiqxonas_area: safeNumber(data.issiqxonas_area),
     investment_local: safeNumber(data.investment?.local),
     investment_foreign: safeNumber(data.investment?.foreign),
     subsidy_count: safeNumber(data.subsidy?.subsidy_count),
@@ -307,37 +322,49 @@ const RegionsPage = () => {
     total_area: 0,
     total_plantations: 0,
     outdated_ga: 0,
-    low_fertility_count: 0,
-    low_fertility_area: 0,
-    high_fertility_count: 0,
-    high_fertility_area: 0,
-    irrigation_area: 0,
-    irrigation_count: 0,
+    bogs_count: 0,
+    bogs_area: 0,
+    uzumzors_count: 0,
+    uzumzors_area: 0,
+    issiqxonas_count: 0,
+    issiqxonas_area: 0,
     investment_local: 0,
     investment_foreign: 0,
     subsidy_count: 0,
     total_subsidy: 0,
   };
 
-  const totalRow = tableData.reduce(
-    (acc, curr) => ({
-      ...acc,
-      total_area: acc.total_area + safeNumber(curr.total_area),
-      total_plantations: acc.total_plantations + safeNumber(curr.total_plantations),
-      outdated_ga: acc.outdated_ga + safeNumber(curr.outdated_ga),
-      low_fertility_count: acc.low_fertility_count + safeNumber(curr.low_fertility_count),
-      low_fertility_area: acc.low_fertility_area + safeNumber(curr.low_fertility_area),
-      high_fertility_count: acc.high_fertility_count + safeNumber(curr.high_fertility_count),
-      high_fertility_area: acc.high_fertility_area + safeNumber(curr.high_fertility_area),
-      irrigation_area: acc.irrigation_area + safeNumber(curr.irrigation_area),
-      irrigation_count: acc.irrigation_count + safeNumber(curr.irrigation_count),
-      investment_local: acc.investment_local + safeNumber(curr.investment_local),
-      investment_foreign: acc.investment_foreign + safeNumber(curr.investment_foreign),
-      subsidy_count: acc.subsidy_count + safeNumber(curr.subsidy_count),
-      total_subsidy: acc.total_subsidy + safeNumber(curr.total_subsidy),
-    }),
-    initialTotalRow
-  );
+  let totalRow;
+  
+  if (activeTab === 'approved' && approvedTotals) {
+    // Для approved статистики используем данные из API
+    totalRow = {
+      key: "total",
+      region: "Jami",
+      ...approvedTotals
+    };
+  } else {
+    // Для остальных случаев вычисляем сумму
+    totalRow = tableData.reduce(
+      (acc, curr) => ({
+        ...acc,
+        total_area: acc.total_area + safeNumber(curr.total_area),
+        total_plantations: acc.total_plantations + safeNumber(curr.total_plantations),
+        outdated_ga: acc.outdated_ga + safeNumber(curr.outdated_ga),
+        bogs_count: acc.bogs_count + safeNumber(curr.bogs_count),
+        bogs_area: acc.bogs_area + safeNumber(curr.bogs_area),
+        uzumzors_count: acc.uzumzors_count + safeNumber(curr.uzumzors_count),
+        uzumzors_area: acc.uzumzors_area + safeNumber(curr.uzumzors_area),
+        issiqxonas_count: acc.issiqxonas_count + safeNumber(curr.issiqxonas_count),
+        issiqxonas_area: acc.issiqxonas_area + safeNumber(curr.issiqxonas_area),
+        investment_local: acc.investment_local + safeNumber(curr.investment_local),
+        investment_foreign: acc.investment_foreign + safeNumber(curr.investment_foreign),
+        subsidy_count: acc.subsidy_count + safeNumber(curr.subsidy_count),
+        total_subsidy: acc.total_subsidy + safeNumber(curr.total_subsidy),
+      }),
+      initialTotalRow
+    );
+  }
 
   const dataWithTotal = [...sortedTableData, totalRow];
 
@@ -404,67 +431,65 @@ const RegionsPage = () => {
       ],
     },
     {
-      title: "Hosildorlik",
+      title: "Bog'lar",
       children: [
         {
-          title: "Past",
-          children: [
-            {
-              title: "Soni",
-              dataIndex: "low_fertility_count",
-              key: "low_fertility_count",
-              sorter: true,
-              sortOrder: sortConfig.field === 'low_fertility_count' ? sortConfig.order : null,
-            },
-            {
-              title: "Maydon",
-              dataIndex: "low_fertility_area",
-              key: "low_fertility_area",
-              sorter: true,
-              sortOrder: sortConfig.field === 'low_fertility_area' ? sortConfig.order : null,
-              render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
-            },
-          ],
+          title: "Soni",
+          dataIndex: "bogs_count",
+          key: "bogs_count",
+          sorter: true,
+          sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
-          title: "Yuqori",
-          children: [
-            {
-              title: "Soni",
-              dataIndex: "high_fertility_count",
-              key: "high_fertility_count",
-              sorter: true,
-              sortOrder: sortConfig.field === 'high_fertility_count' ? sortConfig.order : null,
-            },
-            {
-              title: "Maydon",
-              dataIndex: "high_fertility_area",
-              key: "high_fertility_area",
-              sorter: true,
-              sortOrder: sortConfig.field === 'high_fertility_area' ? sortConfig.order : null,
-              render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
-            },
-          ],
+          title: "Maydon (GA)",
+          dataIndex: "bogs_area",
+          key: "bogs_area",
+          sorter: true,
+          sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
       ],
     },
     {
-      title: "Sug'orish",
+      title: "Uzumzorlar",
       children: [
         {
-          title: "Maydon",
-          dataIndex: "irrigation_area",
-          key: "irrigation_area",
+          title: "Soni",
+          dataIndex: "uzumzors_count",
+          key: "uzumzors_count",
           sorter: true,
-          sortOrder: sortConfig.field === 'irrigation_area' ? sortConfig.order : null,
-          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
+          sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
-          title: "Soni",
-          dataIndex: "irrigation_count",
-          key: "irrigation_count",
+          title: "Maydon (GA)",
+          dataIndex: "uzumzors_area",
+          key: "uzumzors_area",
           sorter: true,
-          sortOrder: sortConfig.field === 'irrigation_count' ? sortConfig.order : null,
+          sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
+        },
+      ],
+    },
+    {
+      title: "Issiqxonalar",
+      children: [
+        {
+          title: "Soni",
+          dataIndex: "issiqxonas_count",
+          key: "issiqxonas_count",
+          sorter: true,
+          sortOrder: sortConfig.field === 'issiqxonas_count' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
+        },
+        {
+          title: "Maydon (GA)",
+          dataIndex: "issiqxonas_area",
+          key: "issiqxonas_area",
+          sorter: true,
+          sortOrder: sortConfig.field === 'issiqxonas_area' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
       ],
     },
@@ -547,16 +572,6 @@ const RegionsPage = () => {
               }`}
             >
               Tasdiqlangan
-            </button>
-            <button
-              onClick={() => setActiveTab('moderation')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'moderation'
-                  ? 'bg-yellow-500 text-white'
-                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-              }`}
-            >
-              Moderatsiyada
             </button>
           </div>
         </Card>
@@ -667,11 +682,9 @@ const RegionsPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan maydon' : 
-                   activeTab === 'moderation' ? 'Moderatsiyadagi maydon' : 
-                   'Jami maydon'}
+                  {activeTab === 'approved' ? 'Tasdiqlangan maydon' : 'Jami maydon'}
                 </span>}
-                value={totalRow.total_area}
+                value={activeTab === 'approved' && approvedTotals ? approvedTotals.total_area : totalRow.total_area}
                 suffix="GA"
                 precision={1}
                 valueStyle={{ color: '#e5e7eb' }}
@@ -682,13 +695,11 @@ const RegionsPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan eskirgan' : 
-                   activeTab === 'moderation' ? 'Moderatsiyadagi eskirgan' : 
-                   'Eskirgan maydon'}
+                  {activeTab === 'approved' ? 'Issiqxona soni' : 'Issiqxonalar'}
                 </span>}
-                value={totalRow.outdated_ga}
-                suffix="GA"
-                precision={1}
+                value={activeTab === 'approved' && approvedTotals ? approvedTotals.issiqxonas_count : totalRow.issiqxonas_count}
+                suffix=""
+                precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
@@ -697,13 +708,11 @@ const RegionsPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan yuqori' : 
-                   activeTab === 'moderation' ? 'Moderatsiyadagi yuqori' : 
-                   'Hosildor (yuqori)'}
+                  {activeTab === 'approved' ? 'Bog\'lar soni' : 'Bog\'lar'}
                 </span>}
-                value={totalRow.high_fertility_area}
-                suffix="GA"
-                precision={1}
+                value={activeTab === 'approved' && approvedTotals ? approvedTotals.bogs_count : totalRow.bogs_count}
+                suffix=""
+                precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
@@ -712,13 +721,11 @@ const RegionsPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan past' : 
-                   activeTab === 'moderation' ? 'Moderatsiyadagi past' : 
-                   'Hosildor (past)'}
+                  {activeTab === 'approved' ? 'Uzumzorlar soni' : 'Uzumzorlar'}
                 </span>}
-                value={totalRow.low_fertility_area}
-                suffix="GA"
-                precision={1}
+                value={activeTab === 'approved' && approvedTotals ? approvedTotals.uzumzors_count : totalRow.uzumzors_count}
+                suffix=""
+                precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>

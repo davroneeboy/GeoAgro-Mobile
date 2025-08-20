@@ -53,28 +53,28 @@ const RegionDetailPage = () => {
         
         if (!dataType || dataType === 'all') {
           // Для всех плантаций используем обычный API статистики
-          let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
-          const queryParams = new URLSearchParams();
-          
-          if (estDate) {
-            queryParams.append("est_date", estDate);
-          }
-          if (plantationType) {
-            queryParams.append("plantation_type", plantationType);
-          }
-          if (regions) {
-            queryParams.append("regions", regions);
-          }
-          
-          if (queryParams.toString()) {
-            url += `?${queryParams.toString()}`;
-          }
-          
+        let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
+        const queryParams = new URLSearchParams();
+        
+        if (estDate) {
+          queryParams.append("est_date", estDate);
+        }
+        if (plantationType) {
+          queryParams.append("plantation_type", plantationType);
+        }
+        if (regions) {
+          queryParams.append("regions", regions);
+        }
+        
+        if (queryParams.toString()) {
+          url += `?${queryParams.toString()}`;
+        }
+        
           data = await fetchStatisticsData(url, authState.accessToken);
         } else {
           // Для подтвержденных и на модерации используем API плантаций
           const isChecked = dataType === 'approved' ? 'True' : 'False';
-          const plantationsUrl = `${API_BASE_URL2}api/plantations/map/?is_checked=${isChecked}`;
+          const plantationsUrl = `${API_BASE_URL2}api/plantations/?is_checked=${isChecked}`;
           
           const plantationsResponse = await fetch(plantationsUrl, {
             headers: {

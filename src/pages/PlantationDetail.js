@@ -250,22 +250,22 @@ const PlantationDetail = () => {
             return;
           }
 
-          const existingScript = document.getElementById("googleMaps");
-          if (!existingScript) {
-            const script = document.createElement("script");
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
-            script.id = "googleMaps";
-            document.body.appendChild(script);
-            script.onload = () => {
-              if (typeof google !== "undefined") {
-                initializeMap();
-              }
-            };
-          } else {
+        const existingScript = document.getElementById("googleMaps");
+        if (!existingScript) {
+          const script = document.createElement("script");
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
+          script.id = "googleMaps";
+          document.body.appendChild(script);
+          script.onload = () => {
             if (typeof google !== "undefined") {
               initializeMap();
             }
+          };
+        } else {
+          if (typeof google !== "undefined") {
+            initializeMap();
           }
+        }
         }, 100);
       };
       loadGoogleMapsScript();

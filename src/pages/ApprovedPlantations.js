@@ -43,6 +43,34 @@ const ApprovedPlantations = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pageSize = 20; // Максимум 20 плантаций на страницу
+  const [pageInput, setPageInput] = useState(initialPageFromUrl.toString()); // для поля ввода страницы
+
+  // Функция для получения фильтров из URL
+  const getFiltersFromUrl = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return {
+      region: searchParams.get('region') || "All",
+      district: searchParams.get('district') || "All",
+      crop_type: searchParams.get('crop_type') || "All",
+    };
+  };
+
+  // Функция для сохранения фильтров в URL
+  const saveFiltersToUrl = (newFilters, newPage = 1) => {
+    const searchParams = new URLSearchParams();
+    
+    // Добавляем страницу
+    searchParams.set('page', newPage.toString());
+    
+    // Добавляем фильтры только если они не "All"
+    if (newFilters.region !== "All") searchParams.set('region', newFilters.region);
+    if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
+    if (newFilters.crop_type !== "All") searchParams.set('crop_type', newFilters.crop_type);
+    
+    const newUrl = `/approved-plantations?${searchParams.toString()}`;
+    navigate(newUrl, { replace: true });
+  };
 
   // Проверяем токен при загрузке компонента
   useEffect(() => {
@@ -51,6 +79,12 @@ const ApprovedPlantations = () => {
       navigate('/login');
     }
   }, [authState.accessToken, navigate]);
+
+  // Обновляем фильтры при изменении URL
+  useEffect(() => {
+    const newFilters = getFiltersFromUrl();
+    setFilters(newFilters);
+  }, [location.search]);
 
   const handleLogout = () => {
     logout();
@@ -134,8 +168,48 @@ const ApprovedPlantations = () => {
     fetchDistricts(filters.region);
   }, [filters.region]);
 
+  // Вычисляем totalPages
+  const totalPages = Math.ceil(count / pageSize);
+
+  // Функция для обработки изменения поля ввода страницы
+  const handlePageInputChange = (e) => {
+    setPageInput(e.target.value);
+  };
+
+  // Функция для обработки отправки формы с номером страницы
+  const handlePageInputSubmit = (e) => {
+    e.preventDefault();
+    const newPage = parseInt(pageInput, 10);
+    if (newPage > 0 && newPage <= totalPages && newPage <= 50) {
+      setPage(newPage);
+      localStorage.setItem('approvedPlantationsPage', newPage.toString());
+      saveFiltersToUrl(filters, newPage);
+    } else {
+      // Если введен неверный номер страницы, сбрасываем поле ввода
+      setPageInput(page.toString());
+    }
+  };
+
+  // Функция для перехода в начало
+  const goToFirstPage = () => {
+    setPage(1);
+    setPageInput('1');
+    localStorage.setItem('approvedPlantationsPage', '1');
+    saveFiltersToUrl(filters, 1);
+  };
+
+  // Функция для перехода в конец
+  const goToLastPage = () => {
+    const lastPage = Math.min(totalPages, 50);
+    setPage(lastPage);
+    setPageInput(lastPage.toString());
+    localStorage.setItem('approvedPlantationsPage', lastPage.toString());
+    saveFiltersToUrl(filters, lastPage);
+  };
+
   // Загружаем данные при изменении страницы или фильтров
   useEffect(() => {
+    if (!authState.accessToken) return;
     const fetchApprovedPlantations = async () => {
       if (!authState.accessToken) return;
 
@@ -143,17 +217,19 @@ const ApprovedPlantations = () => {
       setError(null);
 
       try {
-        // Строим параметры запроса с учетом фильтров
+        // Строим параметры запроса с учетом фильтров и пагинации
         const params = {
+          page: page.toString(),
+          page_size: pageSize.toString(),
           is_checked: 'True',
           region: filters.region !== "All" ? filters.region : undefined,
           district: filters.district !== "All" ? filters.district : undefined,
           crop_type: filters.crop_type !== "All" ? filters.crop_type : undefined,
         };
 
-        // Используем endpoint для карты с подтвержденными плантациями
+        // Используем endpoint для плантаций с пагинацией
         const response = await axios.get(
-          `${API_BASE_URL2}api/plantations/map/`,
+          `${API_BASE_URL2}api/plantations/`,
           {
             params,
             headers: {
@@ -162,10 +238,10 @@ const ApprovedPlantations = () => {
           }
         );
 
-        // Обрабатываем данные как в fetchPlantationsMap
+        // Обрабатываем данные с пагинацией
         const plantationsData = response.data.results || [];
         
-        // Загружаем детальную информацию для каждой плантации
+        // Загружаем детальную информацию только для видимых плантаций
         const detailedPlantationsPromises = plantationsData.map(async (plantation) => {
           try {
             const detailResponse = await axios.get(
@@ -174,7 +250,6 @@ const ApprovedPlantations = () => {
                 headers: {
                   Authorization: `Bearer ${authState.accessToken}`,
                 },
-                // Подавляем логирование ошибок в консоль
                 validateStatus: function (status) {
                   return status < 500; // Не считаем 500 ошибкой для axios
                 }
@@ -182,43 +257,58 @@ const ApprovedPlantations = () => {
             );
             return detailResponse.data;
           } catch (error) {
-            // Если плантация удалена (404 или 500), возвращаем null
+            // Если плантация удалена (404 или 500), возвращаем базовые данные
             if (error.response?.status === 404 || error.response?.status === 500) {
-              console.warn(`Plantation ${plantation.id} not found or deleted, skipping`);
-              return null;
+              console.warn(`Plantation ${plantation.id} not found or deleted, using basic data`);
+              return plantation; // Используем данные из списка
             }
             console.error(`Error fetching details for plantation ${plantation.id}:`, error);
-            return plantation; // Для других ошибок возвращаем исходные данные
+            return plantation; // Для других ошибок возвращаем базовые данные
           }
         });
         
-        const detailedPlantationsResults = await Promise.all(detailedPlantationsPromises);
+        const detailedPlantations = await Promise.all(detailedPlantationsPromises);
         
-        // Фильтруем null значения (удаленные плантации)
-        const detailedPlantations = detailedPlantationsResults.filter(plantation => plantation !== null);
+        setPlantations(detailedPlantations);
+        setCount(response.data.count || detailedPlantations.length);
 
-        // Загружаем информацию о пользователях, если она еще не загружена
-        if (Object.keys(users).length === 0 && detailedPlantations.length > 0) {
+        // Загружаем информацию о пользователях для отображения имен создателей и модераторов
+        const userIds = new Set();
+        detailedPlantations.forEach(plantation => {
+          if (plantation.created_by) userIds.add(plantation.created_by);
+          if (plantation.moderated_by) userIds.add(plantation.moderated_by);
+        });
+
+        // Загружаем только недостающих пользователей  
+        const missingUserIds = Array.from(userIds).filter(id => !users[id]);
+        if (missingUserIds.length > 0) {
           try {
-            const usersData = await axios.get(`${API_BASE_URL2}api/users/`, {
-              headers: {
-                Authorization: `Bearer ${authState.accessToken}`,
-              },
+            const userPromises = missingUserIds.map(async (userId) => {
+              try {
+                const userResponse = await axios.get(`${API_BASE_URL2}api/users/${userId}/`, {
+                  headers: {
+                    Authorization: `Bearer ${authState.accessToken}`,
+                  },
+                });
+                return userResponse.data;
+              } catch (error) {
+                console.warn(`Failed to fetch user ${userId}:`, error);
+                return null;
+              }
             });
-            
-            // Создаем кеш пользователей
-            const usersCache = {};
-            usersData.data.forEach(user => {
-              usersCache[user.id] = user;
+
+            const userResults = await Promise.all(userPromises);
+            const newUsers = { ...users };
+            userResults.forEach(user => {
+              if (user) {
+                newUsers[user.id] = user;
+              }
             });
-            setUsers(usersCache);
+            setUsers(newUsers);
           } catch (userError) {
             console.error("Error fetching users:", userError);
           }
         }
-        
-        setPlantations(detailedPlantations);
-        setCount(detailedPlantations.length); // Используем количество успешно загруженных плантаций
       } catch (error) {
         console.error("Ошибка при загрузке подтвержденных плантаций:", error);
         setError("Ошибка при загрузке данных");
@@ -233,7 +323,7 @@ const ApprovedPlantations = () => {
     };
 
     fetchApprovedPlantations();
-  }, [page, filters, authState.accessToken, logout, navigate, users]);
+  }, [page, filters, authState.accessToken, logout, navigate]);
 
   // eslint-disable-next-line no-unused-vars
   const handlePageChange = (newPage) => {
@@ -242,14 +332,18 @@ const ApprovedPlantations = () => {
   };
 
   const handleFilterChange = (filterType, value) => {
+    const newFilters = { ...filters };
     if (filterType === 'region') {
       // При изменении региона сбрасываем район
-      setFilters(prev => ({ ...prev, [filterType]: value, district: "All" }));
+      newFilters[filterType] = value;
+      newFilters.district = "All";
     } else {
-      setFilters(prev => ({ ...prev, [filterType]: value }));
+      newFilters[filterType] = value;
     }
+    setFilters(newFilters);
     setPage(1); // Сбрасываем на первую страницу при изменении фильтров
     localStorage.setItem('approvedPlantationsPage', '1');
+    saveFiltersToUrl(newFilters, 1);
   };
 
   const formatDate = (dateString) => {
@@ -302,13 +396,14 @@ const ApprovedPlantations = () => {
 
 
   const handleResetFilters = () => {
-    setFilters({ region: "All", district: "All", crop_type: "All" });
+    const resetFilters = { region: "All", district: "All", crop_type: "All" };
+    setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('approvedPlantationsPage', '1');
+    saveFiltersToUrl(resetFilters, 1);
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const totalPages = Math.ceil(count / 20); // Предполагаем 20 элементов на страницу
+
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -605,6 +700,94 @@ const ApprovedPlantations = () => {
               </div>
             )}
 
+            {/* Пагинация */}
+            {plantations.length > 0 && (
+              <div className="mt-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  {/* Информация о страницах */}
+                  <div className="text-sm text-gray-400">
+                    Sahifa {page} / {totalPages} ({count} ta jami)
+                  </div>
+                  
+                  {/* Навигация по страницам */}
+                  <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+                    {/* Кнопка "В начало" */}
+                    <button
+                      className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      onClick={goToFirstPage}
+                      disabled={page <= 1}
+                      title="Birinchi sahifa"
+                    >
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    
+                    {/* Кнопка "Назад" */}
+                    <button
+                      className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                      onClick={() => {
+                        const newPage = Math.max(page - 1, 1);
+                        setPage(newPage);
+                        localStorage.setItem('approvedPlantationsPage', newPage.toString());
+                        saveFiltersToUrl(filters, newPage);
+                      }}
+                      disabled={page <= 1}
+                    >
+                      Orqaga
+                    </button>
+                    
+                    {/* Поле ввода номера страницы */}
+                    <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1 sm:space-x-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max={Math.min(totalPages, 50)}
+                        value={pageInput}
+                        onChange={handlePageInputChange}
+                        className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
+                        placeholder={page.toString()}
+                      />
+                      <button
+                        type="submit"
+                        className="px-2 sm:px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs sm:text-sm"
+                      >
+                        O'tish
+                      </button>
+                    </form>
+                    
+                    {/* Кнопка "Вперед" */}
+                    <button
+                      className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                      onClick={() => {
+                        const newPage = page + 1;
+                        if (newPage <= totalPages && newPage <= 50) {
+                          setPage(newPage);
+                          localStorage.setItem('approvedPlantationsPage', newPage.toString());
+                          saveFiltersToUrl(filters, newPage);
+                        }
+                      }}
+                      disabled={page >= totalPages || page >= 50}
+                    >
+                      Oldinga
+                    </button>
+                    
+                    {/* Кнопка "В конец" */}
+                    <button
+                      className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      onClick={goToLastPage}
+                      disabled={page >= totalPages || page >= 50}
+                      title="Oxirgi sahifa"
+                    >
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Информация о количестве */}
             {plantations.length > 0 && (
               <div className="text-center mt-6">
@@ -800,6 +983,94 @@ const ApprovedPlantations = () => {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+
+          {/* Пагинация */}
+          {plantations.length > 0 && (
+            <div className="mt-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Информация о страницах */}
+                <div className="text-sm text-gray-400">
+                  Sahifa {page} / {totalPages} ({count} ta jami)
+                </div>
+                
+                {/* Навигация по страницам */}
+                <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+                  {/* Кнопка "В начало" */}
+                  <button
+                    className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    onClick={goToFirstPage}
+                    disabled={page <= 1}
+                    title="Birinchi sahifa"
+                  >
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* Кнопка "Назад" */}
+                  <button
+                    className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    onClick={() => {
+                      const newPage = Math.max(page - 1, 1);
+                      setPage(newPage);
+                      localStorage.setItem('approvedPlantationsPage', newPage.toString());
+                      saveFiltersToUrl(filters, newPage);
+                    }}
+                    disabled={page <= 1}
+                  >
+                    Orqaga
+                  </button>
+                  
+                  {/* Поле ввода номера страницы */}
+                  <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1 sm:space-x-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max={Math.min(totalPages, 50)}
+                      value={pageInput}
+                      onChange={handlePageInputChange}
+                      className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
+                      placeholder={page.toString()}
+                    />
+                    <button
+                      type="submit"
+                      className="px-2 sm:px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs sm:text-sm"
+                    >
+                      O'tish
+                    </button>
+                  </form>
+                  
+                  {/* Кнопка "Вперед" */}
+                  <button
+                    className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    onClick={() => {
+                      const newPage = page + 1;
+                      if (newPage <= totalPages && newPage <= 50) {
+                        setPage(newPage);
+                        localStorage.setItem('approvedPlantationsPage', newPage.toString());
+                        saveFiltersToUrl(filters, newPage);
+                      }
+                    }}
+                    disabled={page >= totalPages || page >= 50}
+                  >
+                    Oldinga
+                  </button>
+                  
+                  {/* Кнопка "В конец" */}
+                  <button
+                    className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    onClick={goToLastPage}
+                    disabled={page >= totalPages || page >= 50}
+                    title="Oxirgi sahifa"
+                  >
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

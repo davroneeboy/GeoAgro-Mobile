@@ -4,9 +4,12 @@ import HomePage from "./pages/HomePage";
 import ControllersList from "./pages/ControllersList";
 // import Contacts from "./pages/Contacts";
 import Moderation from "./pages/Moderation";
+import RejectedPlantations from "./pages/RejectedPlantations";
+import ApprovedPlantations from "./pages/ApprovedPlantations";
 import LoginPage from "./pages/LoginPage";
 import MapContainer from "./pages/mapContainer";
 import PlantationDetail from "./pages/PlantationDetail";
+import EditPlantation from "./pages/EditPlantation";
 import UserInfo from "./pages/UserInfo";
 import Farmers from "./pages/Farmers";
 import FarmerEdit from "./pages/FarmerEdit";
@@ -30,8 +33,11 @@ export default function AppRouter() {
       <Route path="/controllers" element={<ProtectedRoute><ControllersList /></ProtectedRoute>} />
       {/* <Route path="/contacts" element={<Contacts />} /> */}
       <Route path="/moderation" element={<ProtectedRoute><Moderation /></ProtectedRoute>} />
+      <Route path="/rejected-plantations" element={<ProtectedRoute><RejectedPlantations /></ProtectedRoute>} />
+      <Route path="/approved-plantations" element={<ProtectedRoute><ApprovedPlantations /></ProtectedRoute>} />
       <Route path="/plantations/uz" element={<ProtectedRoute><MapContainer /></ProtectedRoute>} />
       <Route path="/plantations/:id" element={<ProtectedRoute><PlantationDetail /></ProtectedRoute>} />
+      <Route path="/plantations/edit/:id" element={<ProtectedRoute><EditPlantation /></ProtectedRoute>} />
       <Route path="/user/:id" element={<ProtectedRoute><UserInfo /></ProtectedRoute>} />
       <Route path="/statistics/regions" element={<ProtectedRoute><RegionsPage /></ProtectedRoute>} />
       <Route path="/statistics/regions/:id" element={<ProtectedRoute><RegionDetailPage /></ProtectedRoute>} />

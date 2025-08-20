@@ -693,7 +693,7 @@ const Moderation = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
                           </svg>
                           {plantation.area}
-                        </span>
+                      </span>
                         <span className="flex items-center">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -706,60 +706,60 @@ const Moderation = () => {
                     <div className="flex items-center space-x-2">
                       {plantation.action === "Обновленный" && (
                         <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                      )}
-                      {plantation.action === "Bekor qilinganlar" && (
+                    )}
+                    {plantation.action === "Bekor qilinganlar" && (
                         <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      )}
-                      {plantation.action === "Yaratilgan" && (
+                    )}
+                    {plantation.action === "Yaratilgan" && (
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      )}
+                    )}
                       <span className="text-xs font-medium">
                         {plantation.action === "Обновленный" && "Yangilangan"}
                         {plantation.action === "Bekor qilinganlar" && "Bekor qilingan"}
                         {plantation.action === "Yaratilgan" && "Yaratilgan"}
                       </span>
-                    </div>
                   </div>
-
+                      </div>
+                      
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4">
                     <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Turi</div>
                       <div className="text-white font-semibold text-sm sm:text-base">{landTypeMapping[plantation.type]}</div>
-                    </div>
+                        </div>
                     <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Maydon</div>
                       <div className="text-white font-semibold text-sm sm:text-base">{plantation.area}</div>
-                    </div>
+                        </div>
                     <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Region</div>
                       <div className="text-white font-semibold text-sm sm:text-base">{plantation.region}</div>
-                    </div>
+                        </div>
                     <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Qo'shilgan</div>
                       <div className="text-white font-semibold text-xs sm:text-sm">
                         {plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}
+                          </div>
                       </div>
                     </div>
-                  </div>
 
-                  {plantation.action === "Обновленный" && plantation.prev_data && (
+                      {plantation.action === "Обновленный" && plantation.prev_data && (
                     <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4 mb-4">
-                      <h4 className="text-sm font-bold text-blue-200 mb-3 flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        O'zgarishlar:
-                      </h4>
+                          <h4 className="text-sm font-bold text-blue-200 mb-3 flex items-center">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            O'zgarishlar:
+                          </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {Object.keys(plantation.prev_data).map((key) => (
-                          <div key={key} className="text-sm">
-                            <span className="font-medium text-gray-300">
-                              {key === "plantation_type" ? "Тип плантации" : key}:
-                            </span>
+                            {Object.keys(plantation.prev_data).map((key) => (
+                              <div key={key} className="text-sm">
+                                <span className="font-medium text-gray-300">
+                                  {key === "plantation_type" ? "Тип плантации" : key}:
+                                </span>
                             <div className="mt-1 flex items-center space-x-2">
                               <span className="line-through text-red-400 bg-red-900/50 px-2 py-1 rounded text-xs">
-                                {plantation.prev_data[key].old}
-                              </span>
+                                    {plantation.prev_data[key].old}
+                                  </span>
                               <span className="text-green-400 font-semibold bg-green-900/50 px-2 py-1 rounded text-xs">
                                     {plantation.prev_data[key].new}
                                   </span>
@@ -774,7 +774,7 @@ const Moderation = () => {
                     <div className="flex items-center space-x-2 text-sm text-gray-400">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
+                    </svg>
                       <span>Qo'shilgan: {plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}</span>
                     </div>
                     <div className="flex items-center text-blue-400 text-sm font-medium group-hover:text-blue-300 transition-colors">
@@ -802,7 +802,7 @@ const Moderation = () => {
                 {/* Навигация по страницам */}
                 <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
                   {/* Кнопка "В начало" */}
-                  <button
+                <button
                     className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     onClick={goToFirstPage}
                     disabled={page <= 1}
@@ -816,16 +816,16 @@ const Moderation = () => {
                   {/* Кнопка "Назад" */}
                   <button
                     className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                    onClick={() => {
-                      const newPage = Math.max(page - 1, 1);
-                      setPage(newPage);
-                      localStorage.setItem('moderationPage', newPage.toString());
+                  onClick={() => {
+                    const newPage = Math.max(page - 1, 1);
+                    setPage(newPage);
+                    localStorage.setItem('moderationPage', newPage.toString());
                       saveFiltersToUrl(filters, newPage);
-                    }}
-                    disabled={page <= 1}
-                  >
-                    Orqaga
-                  </button>
+                  }}
+                  disabled={page <= 1}
+                >
+                  Orqaga
+                </button>
                   
                   {/* Поле ввода номера страницы */}
                   <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1 sm:space-x-2">
@@ -838,7 +838,7 @@ const Moderation = () => {
                       className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
                       placeholder={page.toString()}
                     />
-                    <button
+                <button
                       type="submit"
                       className="px-2 sm:px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs sm:text-sm"
                     >
@@ -849,18 +849,18 @@ const Moderation = () => {
                   {/* Кнопка "Вперед" */}
                   <button
                     className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                    onClick={() => {
-                      const newPage = page + 1;
-                      if (newPage <= totalPages && newPage <= 50) {
-                        setPage(newPage);
-                        localStorage.setItem('moderationPage', newPage.toString());
+                  onClick={() => {
+                    const newPage = page + 1;
+                    if (newPage <= totalPages && newPage <= 50) {
+                      setPage(newPage);
+                      localStorage.setItem('moderationPage', newPage.toString());
                         saveFiltersToUrl(filters, newPage);
-                      }
-                    }}
-                    disabled={page >= totalPages || page >= 50}
-                  >
-                    Oldinga
-                  </button>
+                    }
+                  }}
+                  disabled={page >= totalPages || page >= 50}
+                >
+                  Oldinga
+                </button>
                   
                   {/* Кнопка "В конец" */}
                   <button
@@ -1052,7 +1052,7 @@ const Moderation = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
                         </svg>
                         {plantation.area}
-                      </span>
+                    </span>
                       <span className="flex items-center">
                         <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -1065,20 +1065,20 @@ const Moderation = () => {
                   <div className="flex items-center space-x-1">
                     {plantation.action === "Обновленный" && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    )}
-                    {plantation.action === "Bekor qilinganlar" && (
+                  )}
+                  {plantation.action === "Bekor qilinganlar" && (
                       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    )}
-                    {plantation.action === "Yaratilgan" && (
+                  )}
+                  {plantation.action === "Yaratilgan" && (
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    )}
+                  )}
                     <span className="text-xs font-medium">
                       {plantation.action === "Обновленный" && "Yangilangan"}
                       {plantation.action === "Bekor qilinganlar" && "Bekor qilingan"}
                       {plantation.action === "Yaratilgan" && "Yaratilgan"}
                     </span>
                   </div>
-                </div>
+                  </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div className="bg-gray-600/50 rounded-lg p-2">
@@ -1094,10 +1094,10 @@ const Moderation = () => {
                 <div className="flex items-center justify-between pt-2 border-t border-gray-600">
                   <div className="flex items-center space-x-1 text-xs text-gray-400">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                     <span>{plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}</span>
-                  </div>
+                    </div>
                   <div className="flex items-center text-blue-400 text-xs font-medium group-hover:text-blue-300 transition-colors">
                     <span>Tahrirlash</span>
                     <svg className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1137,18 +1137,18 @@ const Moderation = () => {
                 </button>
                 
                 {/* Кнопка "Назад" */}
-                <button
-                  className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
-                  onClick={() => {
-                    const newPage = Math.max(page - 1, 1);
-                    setPage(newPage);
-                    localStorage.setItem('moderationPage', newPage.toString());
-                    navigate(`/moderation?page=${newPage}`, { replace: true });
-                  }}
-                  disabled={page <= 1}
-                >
-                  Orqaga
-                </button>
+              <button
+                className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
+                onClick={() => {
+                  const newPage = Math.max(page - 1, 1);
+                  setPage(newPage);
+                  localStorage.setItem('moderationPage', newPage.toString());
+                  navigate(`/moderation?page=${newPage}`, { replace: true });
+                }}
+                disabled={page <= 1}
+              >
+                Orqaga
+              </button>
                 
                 {/* Поле ввода номера страницы */}
                 <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1">
@@ -1170,20 +1170,20 @@ const Moderation = () => {
                 </form>
                 
                 {/* Кнопка "Вперед" */}
-                <button
-                  className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
-                  onClick={() => {
-                    const newPage = page + 1;
-                    if (newPage <= totalPages && newPage <= 50) {
-                      setPage(newPage);
-                      localStorage.setItem('moderationPage', newPage.toString());
-                      navigate(`/moderation?page=${newPage}`, { replace: true });
-                    }
-                  }}
-                  disabled={page >= totalPages || page >= 50}
-                >
-                  Oldinga
-                </button>
+              <button
+                className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
+                onClick={() => {
+                  const newPage = page + 1;
+                  if (newPage <= totalPages && newPage <= 50) {
+                    setPage(newPage);
+                    localStorage.setItem('moderationPage', newPage.toString());
+                    navigate(`/moderation?page=${newPage}`, { replace: true });
+                  }
+                }}
+                disabled={page >= totalPages || page >= 50}
+              >
+                Oldinga
+              </button>
                 
                 {/* Кнопка "В конец" */}
                 <button

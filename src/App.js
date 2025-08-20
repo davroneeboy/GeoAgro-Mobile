@@ -18,6 +18,7 @@ import ControllersPage from './pages/statistics/ControllersPage';
 import Farmers from './pages/Farmers';
 import FarmerEdit from './pages/FarmerEdit';
 import ApprovedPlantations from './pages/ApprovedPlantations';
+import RejectedPlantations from './pages/RejectedPlantations';
 
 const App = () => {
   return (
@@ -90,6 +91,7 @@ const App = () => {
         <Route path="/farmers/:id" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
         <Route path="/farmers/new" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
         <Route path="/approved-plantations" element={<ProtectedRoute><ApprovedPlantations /></ProtectedRoute>} />
+        <Route path="/rejected-plantations" element={<ProtectedRoute><RejectedPlantations /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
@@ -14,6 +14,7 @@ import {
 const EditPlantation = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
   // const [coordinatesChanged, setCoordinatesChanged] = useState(false);
@@ -56,20 +57,36 @@ const EditPlantation = () => {
       setError(null);
       setSuccessMessage(null);
       
-      // Отправляем DELETE запрос для удаления плантации
-      await apiRequest(`api/plantations/${plantation.id}/`, {
-        method: "DELETE",
+      // Проверяем, что комментарий введен
+      if (!customReason.trim()) {
+        setError("Iltimos, o'chirish sababini kiriting!");
+        return;
+      }
+      
+      // Отправляем PATCH запрос для отклонения плантации
+      await apiRequest(`api/plantations/${plantation.id}/update/`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          is_checked: false,
+          moderation_comment: customReason.trim()
+        })
       }, refreshAccessToken, authState.accessToken);
 
-      console.log("Plantation deleted successfully");
-      setSuccessMessage("Plantatsiya muvaffaqiyatli o'chirildi!");
+      console.log("Plantation rejected successfully");
+      setSuccessMessage("Plantatsiya muvaffaqiyatli rad etildi!");
       closeModal();
       
-      // Автоперенаправление отключено по запросу. Останемся на странице для проверки Network.
-      // При необходимости вернуться вручную, используйте кнопки навигации сверху.
+      // Перенаправляем обратно на предыдущую страницу
+      setTimeout(() => {
+        if (location.state?.from) {
+          navigate(location.state.from);
+        } else {
+          navigate('/moderation');
+        }
+      }, 2000);
     } catch (error) {
-      console.error("Error deleting plantation:", error);
-      setError("Plantatsiyani o'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      console.error("Error rejecting plantation:", error);
+      setError("Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     }
   };
 
@@ -784,13 +801,13 @@ const EditPlantation = () => {
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                   <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
-                    <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
-                    <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
+                    <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
+                    <p className="text-gray-300 mb-4">Bu plantatsiyani rad etishni xohlaysizmi? Rad etish sababi majburiy.</p>
                     <textarea
                       className="w-full p-2 mb-4 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
                       value={customReason}
                       onChange={(e) => setCustomReason(e.target.value)}
-                      placeholder="O'chirish sababini kiriting (ixtiyoriy)"
+                      placeholder="Rad etish sababini kiriting (majburiy)"
                       rows={4}
                     />
                     <div className="flex justify-end space-x-4">
@@ -798,7 +815,7 @@ const EditPlantation = () => {
                         className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
                         onClick={handleConfirm}
                       >
-                        O'chirish
+                        Rad etish
                       </button>
                       <button
                         className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
