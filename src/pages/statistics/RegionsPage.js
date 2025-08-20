@@ -727,7 +727,7 @@ const RegionsPage = () => {
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
         {
-          title: "Plantatsiyalar",
+          title: "Subyektlar",
           dataIndex: "total_plantations",
           key: "total_plantations",
           sorter: true,
@@ -735,7 +735,7 @@ const RegionsPage = () => {
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
-          title: activeTab === 'approved' ? "Tasdiqlangan ekin maydoni (GA)" : "Ekin maydoni (GA)",
+          title: activeTab === 'approved' ? "Tasdiqlangan ekilgan maydoni (GA)" : "Ekilgan maydoni (GA)",
           dataIndex: activeTab === 'approved' ? "total_approved_fruitarea" : "total_fruitarea",
           key: activeTab === 'approved' ? "total_approved_fruitarea" : "total_fruitarea",
           sorter: true,
@@ -1124,7 +1124,7 @@ const RegionsPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan ekin maydoni' : 'Ekin maydoni'}
+                  {activeTab === 'approved' ? 'Tasdiqlangan ekilgan maydoni' : 'Ekilgan maydoni'}
                 </span>}
                 value={(activeTab === 'approved' || activeTab === 'all') && approvedTotals ? 
                   (activeTab === 'approved' ? approvedTotals.total_approved_fruitarea : approvedTotals.total_fruitarea) : 
