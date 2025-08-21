@@ -399,18 +399,24 @@ code {
 .region-statistics-table .ant-table-content {
   background-color: #1f2937 !important; /* gray-800 */
   color: #e5e7eb !important; /* gray-200 */
+  border: 1px solid #374151 !important; /* gray-700 */
+  border-radius: 8px !important;
 }
 
 .region-statistics-table .ant-table-thead > tr > th {
   background-color: #111827 !important; /* gray-900 */
   color: #e5e7eb !important;
   border-color: #374151 !important; /* gray-700 */
+  border-right: 1px solid #374151 !important;
+  border-bottom: 1px solid #374151 !important;
 }
 
 .region-statistics-table .ant-table-tbody > tr > td {
   background-color: #1f2937 !important;
   color: #e5e7eb !important;
   border-color: #374151 !important;
+  border-right: 1px solid #374151 !important;
+  border-bottom: 1px solid #374151 !important;
 }
 
 .region-statistics-table .ant-table-tbody > tr:hover > td {
@@ -420,6 +426,17 @@ code {
 .region-statistics-table .ant-table-cell-fix-left,
 .region-statistics-table .ant-table-cell-fix-right {
   background-color: #1f2937 !important;
+  border-right: 1px solid #374151 !important;
+}
+
+/* Убираем двойные границы */
+.region-statistics-table .ant-table-thead > tr > th:last-child,
+.region-statistics-table .ant-table-tbody > tr > td:last-child {
+  border-right: none !important;
+}
+
+.region-statistics-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: none !important;
 }
 
 /* Total row emphasis */

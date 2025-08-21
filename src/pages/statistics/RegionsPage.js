@@ -393,6 +393,8 @@ const RegionsPage = () => {
                   total_area: regionData.total_area ?? 0,
                   total_plantations: regionData.count ?? 0,
                   total_approved_fruitarea: regionData.total_approved_fruitarea ?? 0,
+                  // Добавляем средний балл плодородия для всех регионов
+                  avg_fertility: approvedData.approved_fertility_stats?.average_score ?? 0,
                 };
               }
             });
@@ -457,6 +459,8 @@ const RegionsPage = () => {
             uzumzors_area: approvedData.approved_by_type?.uzumzors?.area ?? 0,
             issiqxonas_count: approvedData.approved_by_type?.issiqxonas?.count ?? 0,
             issiqxonas_area: approvedData.approved_by_type?.issiqxonas?.area ?? 0,
+            // Статистика плодородия
+            fertility_stats: approvedData.approved_fertility_stats ?? {},
             // Остальные данные
             investment_local: approvedData.approved_investments?.local ?? 0,
             investment_foreign: approvedData.approved_investments?.foreign ?? 0,
@@ -554,6 +558,7 @@ const RegionsPage = () => {
     region: REGION_NAMES[regionId],
     total_area: safeNumber(data.total_area),
     total_plantations: safeNumber(data.total_plantations || data.plantations_count || data.count || 0),
+    total_fruitarea: safeNumber(data.total_fruitarea || data.total_approved_fruitarea),
     outdated_ga: safeNumber(data.outdated_ga),
     bogs_count: safeNumber(data.bogs_count),
     bogs_area: safeNumber(data.bogs_area),
@@ -561,6 +566,7 @@ const RegionsPage = () => {
     uzumzors_area: safeNumber(data.uzumzors_area),
     issiqxonas_count: safeNumber(data.issiqxonas_count),
     issiqxonas_area: safeNumber(data.issiqxonas_area),
+    avg_fertility: safeNumber(data.avg_fertility || data.fertility_score),
     investment_local: safeNumber(data.investment_local),
     investment_foreign: safeNumber(data.investment_foreign),
     subsidy_count: safeNumber(data.subsidy_count),
@@ -604,6 +610,8 @@ const RegionsPage = () => {
           return Number(row.subsidy_count || 0);
         case 'total_subsidy':
           return Number(row.total_subsidy || 0);
+        case 'avg_fertility':
+          return Number(row.avg_fertility || 0);
         default:
           return '';
       }
@@ -637,6 +645,7 @@ const RegionsPage = () => {
     uzumzors_area: 0,
     issiqxonas_count: 0,
     issiqxonas_area: 0,
+    avg_fertility: 0,
     investment_local: 0,
     investment_foreign: 0,
     subsidy_count: 0,
@@ -668,6 +677,7 @@ const RegionsPage = () => {
         uzumzors_area: acc.uzumzors_area + safeNumber(curr.uzumzors_area),
         issiqxonas_count: acc.issiqxonas_count + safeNumber(curr.issiqxonas_count),
         issiqxonas_area: acc.issiqxonas_area + safeNumber(curr.issiqxonas_area),
+        avg_fertility: acc.avg_fertility + safeNumber(curr.avg_fertility),
       investment_local: acc.investment_local + safeNumber(curr.investment_local),
       investment_foreign: acc.investment_foreign + safeNumber(curr.investment_foreign),
       subsidy_count: acc.subsidy_count + safeNumber(curr.subsidy_count),
@@ -813,6 +823,19 @@ const RegionsPage = () => {
       ],
     },
     {
+      title: "Hosildorlik",
+      children: [
+        {
+          title: "O'rtacha ball",
+          dataIndex: "avg_fertility",
+          key: "avg_fertility",
+          sorter: true,
+          sortOrder: sortConfig.field === 'avg_fertility' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
+        },
+      ],
+    },
+    {
       title: "Investitsiyalar",
       children: [
         {
@@ -857,7 +880,7 @@ const RegionsPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
+      <div className="p-4 sm:p-6 pb-8" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-white">Viloyatlar bo'yicha statistika</h1>
           <Button type="primary" danger           onClick={handleResetFilters}>
@@ -1156,10 +1179,52 @@ const RegionsPage = () => {
               />
             </Card>
           </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>
+                  O'rtacha hosildorlik
+                </span>}
+                value={approvedTotals?.fertility_stats?.average_score || 0}
+                suffix="ball"
+                precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>
+                  Past hosildorlik maydoni
+                </span>}
+                value={approvedTotals?.fertility_stats?.low_fertility_area || 0}
+                suffix="GA"
+                precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>
+                  Yuqori hosildorlik maydoni
+                </span>}
+                value={approvedTotals?.fertility_stats?.high_fertility_area || 0}
+                suffix="GA"
+                precision={1}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
         </Row>
 
         {/* Main Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mb-6 mr-4" style={{ 
+          borderRadius: '8px',
+          padding: '0'
+        }}>
           <Table
             loading={loading}
             columns={columns}
@@ -1179,7 +1244,11 @@ const RegionsPage = () => {
             size="small"
             pagination={false}
             className="region-statistics-table"
-            style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
+            style={{ 
+              background: '#1f2937', 
+              color: '#e5e7eb', 
+              minWidth: 700
+            }}
           />
         </div>
       </div>

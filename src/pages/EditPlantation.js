@@ -452,7 +452,7 @@ const EditPlantation = () => {
           };
             script.onerror = () => {
               console.error("Failed to load Google Maps API");
-            };
+          };
         } else {
           if (typeof google !== "undefined") {
             initializeMap();

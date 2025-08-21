@@ -29,6 +29,7 @@ const generateStandardColumns = (isRegionPage = false) => {
       { header: 'Uzumzorlar maydoni (GA)', key: 'uzumzors_area', width: 20 },
       { header: 'Issiqxonalar soni', key: 'issiqxonas_count', width: 15 },
       { header: 'Issiqxonalar maydoni (GA)', key: 'issiqxonas_area', width: 20 },
+      { header: 'O\'rtacha hosildorlik', key: 'avg_fertility', width: 20 },
       { header: 'Mahalliy investitsiyalar (UZS)', key: 'investment_local', width: 25 },
       { header: 'Chet el investitsiyalari (UZS)', key: 'investment_foreign', width: 25 },
       { header: 'Subsidiya soni', key: 'subsidy_count', width: 15 },
@@ -89,6 +90,7 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
       'uzumzors_area': formatNumber(row.uzumzors_area),
       'issiqxonas_count': row.issiqxonas_count || 0,
       'issiqxonas_area': formatNumber(row.issiqxonas_area),
+      'avg_fertility': formatNumber(row.avg_fertility),
       'investment_local': formatCurrency(row.investment_local),
       'investment_foreign': formatCurrency(row.investment_foreign),
       'subsidy_count': row.subsidy_count || 0,
@@ -138,6 +140,7 @@ const createTotalRow = (totals, activeTab, isRegionPage = false) => {
       'uzumzors_area': formatNumber(totals.uzumzors_area),
       'issiqxonas_count': totals.issiqxonas_count || 0,
       'issiqxonas_area': formatNumber(totals.issiqxonas_area),
+      'avg_fertility': formatNumber(totals.fertility_stats?.average_score || 0),
       'investment_local': formatCurrency(totals.investment_local),
       'investment_foreign': formatCurrency(totals.investment_foreign),
       'subsidy_count': totals.subsidy_count || 0,
@@ -192,6 +195,9 @@ const createSummarySheet = (totals, activeTab, regionName, isRegionPage = false)
     summaryData.push(['Uzumzorlar maydoni:', `${formatNumber(totals.uzumzors_area)} GA`]);
     summaryData.push(['Issiqxonalar soni:', totals.issiqxonas_count || 0]);
     summaryData.push(['Issiqxonalar maydoni:', `${formatNumber(totals.issiqxonas_area)} GA`]);
+    summaryData.push(['O\'rtacha hosildorlik:', `${formatNumber(totals.fertility_stats?.average_score || 0)} ball`]);
+    summaryData.push(['Past hosildorlik maydoni:', `${formatNumber(totals.fertility_stats?.low_fertility_area || 0)} GA`]);
+    summaryData.push(['Yuqori hosildorlik maydoni:', `${formatNumber(totals.fertility_stats?.high_fertility_area || 0)} GA`]);
     summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.investment_local + totals.investment_foreign)]);
     summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy)]);
   } else {
