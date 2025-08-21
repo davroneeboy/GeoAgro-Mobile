@@ -132,6 +132,50 @@ const EditPlantation = () => {
 
 
 
+  // Функция для добавления обработчиков событий к полигону
+  const addPolygonEventListeners = (polygon, districtName, mapInstance) => {
+    // Создаем элемент для отображения названия в углу
+    let cornerLabel = null;
+    
+    // Добавляем обработчики событий для полигона
+    polygon.addListener('mouseover', function() {
+      // Удаляем предыдущую подпись если есть
+      if (cornerLabel && cornerLabel.parentNode) {
+        cornerLabel.parentNode.removeChild(cornerLabel);
+      }
+      
+      // Создаем новую подпись в правом верхнем углу
+      cornerLabel = document.createElement("div");
+      cornerLabel.style.position = "absolute";
+      cornerLabel.style.top = "20px";
+      cornerLabel.style.right = "20px";
+      cornerLabel.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+      cornerLabel.style.color = "white";
+      cornerLabel.style.padding = "8px 16px";
+      cornerLabel.style.borderRadius = "8px";
+      cornerLabel.style.fontWeight = "bold";
+      cornerLabel.style.fontSize = "18px";
+      cornerLabel.style.zIndex = "1000";
+      cornerLabel.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
+      cornerLabel.style.border = "2px solid #FFD700";
+      cornerLabel.style.minWidth = "120px";
+      cornerLabel.style.textAlign = "center";
+      cornerLabel.innerHTML = districtName;
+      
+      // Добавляем в контейнер карты
+      const mapContainer = mapInstance.getDiv();
+      mapContainer.appendChild(cornerLabel);
+    });
+
+    polygon.addListener('mouseout', function() {
+      // Удаляем подпись при уходе курсора
+      if (cornerLabel && cornerLabel.parentNode) {
+        cornerLabel.parentNode.removeChild(cornerLabel);
+        cornerLabel = null;
+      }
+    });
+  };
+
   // Функция для загрузки полигонов всех регионов
   const loadRegionPolygons = async (mapInstance) => {
     try {
@@ -154,85 +198,86 @@ const EditPlantation = () => {
         'xorazm', 'sirdaryo'
       ];
       
-      console.log('Loading all regions...');
-      
       const newPolygons = [];
       const newLabels = [];
       
       // Загружаем все регионы параллельно
       const regionPromises = regions.map(async (regionName) => {
         try {
-          const geojson = await fetch(`/uzb-geojson/${regionName}.geojson`).then((res) => res.json());
-          console.log(`Loaded ${regionName}:`, geojson.features.length, 'features');
+          const response = await fetch(`/uzb-geojson/${regionName}.geojson`);
           
-          geojson.features.forEach((feature) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const geojson = await response.json();
+          
+          geojson.features.forEach((feature, index) => {
             let paths = [];
+            
+            // Проверяем наличие геометрии
+            if (!feature.geometry || !feature.geometry.coordinates) {
+              return;
+            }
             
             // Обрабатываем разные типы геометрии
             if (feature.geometry.type === 'Polygon') {
               paths = feature.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }));
-            } else if (feature.geometry.type === 'MultiPolygon') {
-              // Для MultiPolygon берем первый полигон
-              paths = feature.geometry.coordinates[0][0].map(([lng, lat]) => ({ lat, lng }));
+              
+                          if (paths.length === 0) {
+              return;
             }
-            
-            if (paths.length === 0) return;
-            
-            // Создаем полигон района
-            const polygon = new google.maps.Polygon({
-              paths,
-              strokeColor: "#FFD700",
-              strokeOpacity: 1,
-              strokeWeight: 3,
-              fillOpacity: 0,
-              map: mapInstance,
-            });
-
-            // Создаем подпись района в углу экрана
-            const districtName = feature.properties.name;
-            
-            // Создаем элемент для отображения названия в углу
-            let cornerLabel = null;
-            
-            // Добавляем обработчики событий для полигона
-            polygon.addListener('mouseover', function() {
-              // Удаляем предыдущую подпись если есть
-              if (cornerLabel && cornerLabel.parentNode) {
-                cornerLabel.parentNode.removeChild(cornerLabel);
-              }
               
-              // Создаем новую подпись в правом верхнем углу
-              cornerLabel = document.createElement("div");
-              cornerLabel.style.position = "absolute";
-              cornerLabel.style.top = "20px";
-              cornerLabel.style.right = "20px";
-              cornerLabel.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
-              cornerLabel.style.color = "white";
-              cornerLabel.style.padding = "8px 16px";
-              cornerLabel.style.borderRadius = "8px";
-              cornerLabel.style.fontWeight = "bold";
-              cornerLabel.style.fontSize = "18px";
-              cornerLabel.style.zIndex = "1000";
-              cornerLabel.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
-              cornerLabel.style.border = "2px solid #FFD700";
-              cornerLabel.style.minWidth = "120px";
-              cornerLabel.style.textAlign = "center";
-              cornerLabel.innerHTML = districtName;
+              // Проверяем наличие названия района
+              const districtName = feature.properties?.name || feature.properties?.NAME || `District ${index}`;
               
-              // Добавляем в контейнер карты
-              const mapContainer = mapInstance.getDiv();
-              mapContainer.appendChild(cornerLabel);
-            });
-
-            polygon.addListener('mouseout', function() {
-              // Удаляем подпись при уходе курсора
-              if (cornerLabel && cornerLabel.parentNode) {
-                cornerLabel.parentNode.removeChild(cornerLabel);
-                cornerLabel = null;
-              }
-            });
-
-            newPolygons.push(polygon);
+              // Создаем полигон района
+              const polygon = new google.maps.Polygon({
+                paths,
+                strokeColor: "#FFD700",
+                strokeOpacity: 1,
+                strokeWeight: 3,
+                fillOpacity: 0,
+                map: mapInstance,
+              });
+              
+              // Добавляем обработчики событий для полигона
+              addPolygonEventListeners(polygon, districtName, mapInstance);
+              
+              newPolygons.push(polygon);
+              
+            } else if (feature.geometry.type === 'MultiPolygon') {
+              // Для MultiPolygon создаем полигон для каждой части
+              const districtName = feature.properties?.name || feature.properties?.NAME || `District ${index}`;
+              
+              feature.geometry.coordinates.forEach((polygonCoords, polygonIndex) => {
+                polygonCoords.forEach((ringCoords, ringIndex) => {
+                  const paths = ringCoords.map(([lng, lat]) => ({ lat, lng }));
+                  
+                  if (paths.length === 0) {
+                    return;
+                  }
+                  
+                  // Создаем полигон для этой части
+                  const polygon = new google.maps.Polygon({
+                    paths,
+                    strokeColor: "#FFD700",
+                    strokeOpacity: 1,
+                    strokeWeight: 3,
+                    fillOpacity: 0,
+                    map: mapInstance,
+                  });
+                  
+                  // Добавляем обработчики событий для полигона
+                  addPolygonEventListeners(polygon, districtName, mapInstance);
+                  
+                  newPolygons.push(polygon);
+                });
+              });
+              
+            } else {
+              return;
+            }
           });
         } catch (error) {
           console.error(`Ошибка загрузки региона ${regionName}:`, error);
@@ -244,7 +289,6 @@ const EditPlantation = () => {
       
       setRegionPolygons(newPolygons);
       setRegionLabels(newLabels);
-      console.log('Loaded total:', newPolygons.length, 'region polygons from all regions');
     } catch (error) {
       console.error("Ошибка загрузки полигонов районов:", error);
     }
