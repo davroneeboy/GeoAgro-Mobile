@@ -348,8 +348,11 @@ const PlantationDetail = () => {
                   navigate(`/approved-plantations?page=${currentPage}`);
                 } else if (referrer.includes('/moderation')) {
                   // Если пришел с moderation, возвращаемся туда
-                const currentPage = localStorage.getItem('moderationPage') || 1;
-                navigate(`/moderation?page=${currentPage}`);
+                  const currentPage = localStorage.getItem('moderationPage') || 1;
+                  navigate(`/moderation?page=${currentPage}`);
+                } else if (referrer.includes('/rejected-plantations')) {
+                  // Если пришел с rejected-plantations, возвращаемся туда
+                  navigate('/rejected-plantations');
                 } else {
                   // По умолчанию возвращаемся на главную
                   navigate('/');

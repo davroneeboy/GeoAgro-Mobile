@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import { Table, Card, Select, Row, Col, Alert, Statistic, Button, message } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
+import { exportToExcel } from "../../utils/excelExport";
 
 
 const { Option } = Select;
@@ -57,7 +59,6 @@ const DISTRICT_TO_REGION_MAPPING = {
 
 const RegionsPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -76,35 +77,12 @@ const RegionsPage = () => {
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved'
   const [approvedTotals, setApprovedTotals] = useState(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
 
-  // Читаем фильтры из URL при загрузке страницы
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const estDate = searchParams.get('est_date');
-    const plantationType = searchParams.get('plantation_type');
-    const regions = searchParams.get('regions');
-    const plantedYear = searchParams.get('planted_year');
-    const minFertility = searchParams.get('min_fertility');
-    const maxFertility = searchParams.get('max_fertility');
-    const sortBy = searchParams.get('sort_by');
-    const sortDirection = searchParams.get('sort_direction');
-    
-    const newFilters = {
-      plantation_type: plantationType ? plantationType.split(',') : [],
-      garden_established_year: estDate ? parseInt(estDate) : null,
-      regions: regions ? regions.split(',') : [],
-      planted_year: plantedYear ? parseInt(plantedYear) : null,
-      min_fertility: minFertility ? parseInt(minFertility) : null,
-      max_fertility: maxFertility ? parseInt(maxFertility) : null,
-      sort_by: sortBy || 'plantations',
-      sort_direction: sortDirection || 'desc',
-    };
-    
-    setFilters(newFilters);
-  }, [location.search]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -147,7 +125,7 @@ const RegionsPage = () => {
 
           if (filters.sort_direction !== 'desc') {
             queryParams.append("sort_direction", filters.sort_direction);
-          }
+        }
 
         if (queryParams.toString()) {
             allUrl += `?${queryParams.toString()}`;
@@ -511,44 +489,63 @@ const RegionsPage = () => {
     };
 
     fetchData();
-  }, [authState.accessToken, activeTab, filters.regions, filters.garden_established_year, filters.planted_year, filters.min_fertility, filters.max_fertility, filters.sort_by, filters.sort_direction]);
+  }, [authState.accessToken, activeTab, filters]);
 
-  // Обновляем URL при изменении фильтров
-  useEffect(() => {
-    const params = new URLSearchParams();
-    
-    if (filters.garden_established_year) {
-      params.append("est_date", filters.garden_established_year);
-    }
-    if (filters.plantation_type.length > 0) {
-      params.append("plantation_type", filters.plantation_type.join(","));
-    }
-    if (filters.regions.length > 0) {
-      params.append("regions", filters.regions.join(","));
-    }
-    if (filters.planted_year) {
-      params.append("planted_year", filters.planted_year);
-    }
-    if (filters.min_fertility) {
-      params.append("min_fertility", filters.min_fertility);
-    }
-    if (filters.max_fertility) {
-      params.append("max_fertility", filters.max_fertility);
-    }
-    if (filters.sort_by !== 'plantations') {
-      params.append("sort_by", filters.sort_by);
-    }
-    if (filters.sort_direction !== 'desc') {
-      params.append("sort_direction", filters.sort_direction);
-    }
+  // Обработчики фильтров
+  const handleFilterChange = useCallback((filterName, value) => {
+    setFilters(prev => ({ ...prev, [filterName]: value }));
+  }, []);
 
-    const queryString = params.toString();
-    const newUrl = `/statistics/regions${queryString ? `?${queryString}` : ''}`;
-    
-    if (location.pathname + location.search !== newUrl) {
-      navigate(newUrl, { replace: true });
+  const handleResetFilters = useCallback(() => {
+    setFilters({
+      plantation_type: [],
+      garden_established_year: null,
+      regions: [],
+      planted_year: null,
+      min_fertility: null,
+      max_fertility: null,
+      sort_by: 'plantations',
+      sort_direction: 'desc',
+    });
+  }, []);
+
+  // Функция для экспорта в Excel
+  const handleExportToExcel = async () => {
+    try {
+      setExporting(true);
+      
+      // Получаем данные для экспорта
+      const exportData = sortedTableData;
+      const exportTotals = activeTab === 'approved' ? approvedTotals : {
+        total_area: exportData.reduce((sum, row) => sum + (row.total_area || 0), 0),
+        total_plantations: exportData.reduce((sum, row) => sum + (row.total_plantations || 0), 0),
+        total_fruitarea: exportData.reduce((sum, row) => sum + (row.total_fruitarea || 0), 0),
+        outdated_ga: exportData.reduce((sum, row) => sum + (row.outdated_ga || 0), 0),
+        total_investment: exportData.reduce((sum, row) => sum + (row.investment_local || 0) + (row.investment_foreign || 0), 0),
+        total_subsidy: exportData.reduce((sum, row) => sum + (row.total_subsidy || 0), 0)
+      };
+      
+      // Генерируем имя файла
+      const regionName = filters.regions.length > 0 
+        ? filters.regions.map(id => REGION_NAMES[id]).join('_')
+        : 'All_Regions';
+      const filename = `${regionName}_statistics_${activeTab}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Экспортируем
+      const success = await exportToExcel(exportData, exportTotals, activeTab, regionName, filename, true);
+      
+      if (success) {
+        message.success('Excel fayl muvaffaqiyatli yuklandi!');
+      } else {
+        message.error('Excel fayl yuklashda xatolik yuz berdi.');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Excel fayl yuklashda xatolik yuz berdi.');
+    } finally {
+      setExporting(false);
     }
-  }, [filters, navigate, location.pathname, location.search]);
+  };
 
   const safeNumber = (value) => (typeof value === "number" ? value : 0);
 
@@ -863,20 +860,7 @@ const RegionsPage = () => {
       <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-white">Viloyatlar bo'yicha statistika</h1>
-          <Button type="primary" danger onClick={() => {
-            setFilters({ 
-              plantation_type: [], 
-              garden_established_year: null, 
-              regions: [],
-              planted_year: null,
-              min_fertility: null,
-              max_fertility: null,
-              sort_by: 'plantations',
-              sort_direction: 'desc'
-            });
-            setSortConfig({ field: null, order: 'ascend' });
-            navigate('/statistics/regions');
-          }}>
+          <Button type="primary" danger           onClick={handleResetFilters}>
             Filterni tozalash
           </Button>
         </div>
@@ -905,6 +889,20 @@ const RegionsPage = () => {
               Tasdiqlangan
             </button>
           </div>
+          
+          {/* Кнопка экспорта */}
+          <div className="flex justify-end mt-4">
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleExportToExcel}
+              loading={exporting}
+              className="bg-green-600 hover:bg-green-700 border-green-600"
+              size="large"
+            >
+              Excel ga eksport qilish
+            </Button>
+          </div>
         </Card>
 
         {error && (
@@ -929,9 +927,7 @@ const RegionsPage = () => {
                   style={{ width: "100%" }}
                   placeholder="Tanlang"
                   value={filters.plantation_type}
-                  onChange={(value) =>
-                    setFilters({ ...filters, plantation_type: value })
-                  }
+                  onChange={(value) => handleFilterChange('plantation_type', value)}
                 >
                   <Option value="garden">Bog'</Option>
                   <Option value="vineyard">Uzumzor</Option>
@@ -947,9 +943,7 @@ const RegionsPage = () => {
                   style={{ width: "100%" }}
                   placeholder="Viloyatlarni tanlang"
                   value={filters.regions}
-                  onChange={(value) =>
-                    setFilters({ ...filters, regions: value })
-                  }
+                  onChange={(value) => handleFilterChange('regions', value)}
                 >
                   {Object.entries(REGION_NAMES).map(([id, name]) => (
                     <Option key={id} value={id}>
@@ -966,9 +960,7 @@ const RegionsPage = () => {
                   style={{ width: "100%" }}
                   placeholder="Yilni tanlang"
                   value={filters.garden_established_year}
-                  onChange={(value) =>
-                    setFilters({ ...filters, garden_established_year: value })
-                  }
+                  onChange={(value) => handleFilterChange('garden_established_year', value)}
                   allowClear
                 >
                   {years.map((year) => (
@@ -986,9 +978,7 @@ const RegionsPage = () => {
                   style={{ width: "100%" }}
                   placeholder="Yilni tanlang"
                   value={filters.planted_year}
-                  onChange={(value) =>
-                    setFilters({ ...filters, planted_year: value })
-                  }
+                  onChange={(value) => handleFilterChange('planted_year', value)}
                   allowClear
                 >
                   {years.map((year) => (
@@ -1027,9 +1017,7 @@ const RegionsPage = () => {
                     style={{ width: "100%" }}
                     placeholder="Min balini tanlang"
                     value={filters.min_fertility}
-                    onChange={(value) =>
-                      setFilters({ ...filters, min_fertility: value })
-                    }
+                    onChange={(value) => handleFilterChange('min_fertility', value)}
                   allowClear
                   >
                     {[...Array(10)].map((_, i) => {
@@ -1050,9 +1038,7 @@ const RegionsPage = () => {
                   style={{ width: "100%" }}
                     placeholder="Max balini tanlang"
                     value={filters.max_fertility}
-                    onChange={(value) =>
-                      setFilters({ ...filters, max_fertility: value })
-                    }
+                    onChange={(value) => handleFilterChange('max_fertility', value)}
                     allowClear
                   >
                     {[...Array(10)].map((_, i) => {
@@ -1073,9 +1059,7 @@ const RegionsPage = () => {
                     style={{ width: "100%" }}
                     placeholder="Saralash turini tanlang"
                     value={filters.sort_by}
-                    onChange={(value) =>
-                      setFilters({ ...filters, sort_by: value })
-                    }
+                    onChange={(value) => handleFilterChange('sort_by', value)}
                   >
                     <Option value="plantations">Plantatsiyalar soni</Option>
                     <Option value="area">Umumiy maydon</Option>
@@ -1092,9 +1076,7 @@ const RegionsPage = () => {
                     style={{ width: "100%" }}
                     placeholder="Yo'nalishni tanlang"
                     value={filters.sort_direction}
-                    onChange={(value) =>
-                      setFilters({ ...filters, sort_direction: value })
-                    }
+                    onChange={(value) => handleFilterChange('sort_direction', value)}
                   >
                     <Option value="desc">Kamayish bo'yicha</Option>
                     <Option value="asc">O'sish bo'yicha</Option>

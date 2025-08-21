@@ -14,6 +14,7 @@ const Moderation = () => {
     type: "All",
     region: "All",
     district: "All",
+    farmer: "All",
   });
 
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const Moderation = () => {
       type: searchParams.get('type') || "All",
       region: searchParams.get('region') || "All",
       district: searchParams.get('district') || "All",
+      farmer: searchParams.get('farmer') || "All",
     };
   };
 
@@ -45,6 +47,7 @@ const Moderation = () => {
     if (newFilters.type !== "All") searchParams.set('type', newFilters.type);
     if (newFilters.region !== "All") searchParams.set('region', newFilters.region);
     if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
+    if (newFilters.farmer !== "All") searchParams.set('farmer', newFilters.farmer);
     
     const newUrl = `/moderation?${searchParams.toString()}`;
     navigate(newUrl, { replace: true });
@@ -222,6 +225,7 @@ const Moderation = () => {
           type: filters.type !== "All" ? filters.type : undefined,
           region: filters.region !== "All" ? filters.region : undefined,
           district: filters.district !== "All" ? filters.district : undefined,
+          farmer: filters.farmer !== "All" ? filters.farmer : undefined,
         };
         
         const response = await axios.get(
@@ -330,10 +334,10 @@ const Moderation = () => {
     };
 
     fetchModerations();
-  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, navigate, authState.accessToken, logout]);
+  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
-    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All" };
+    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All", farmer: "All" };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('moderationPage', '1');
@@ -548,16 +552,6 @@ const Moderation = () => {
               </svg>
               Rad etilgan bog'lar
             </Link>
-
-            <Link
-              to="/rejected-plantations"
-              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Rad etilgan bog'lar
-            </Link>
           </div>
         </div>
 
@@ -658,6 +652,19 @@ const Moderation = () => {
                   <option value="All">Barcha tumanlar</option>
                 </select>
               )}
+              <input
+                type="text"
+                placeholder="Fermer nomi yoki ID"
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base placeholder-gray-400"
+                value={filters.farmer === "All" ? "" : filters.farmer}
+                onChange={(e) => {
+                  const newFilters = { ...filters, farmer: e.target.value || "All" };
+                  setFilters(newFilters);
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  saveFiltersToUrl(newFilters, 1);
+                }}
+              />
             </div>
 
             {/* Сообщение об ошибке */}
@@ -1017,6 +1024,19 @@ const Moderation = () => {
                 <option value="All">Barcha tumanlar</option>
               </select>
             )}
+            <input
+              type="text"
+              placeholder="Fermer nomi yoki ID"
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
+              value={filters.farmer === "All" ? "" : filters.farmer}
+              onChange={(e) => {
+                const newFilters = { ...filters, farmer: e.target.value || "All" };
+                setFilters(newFilters);
+                setPage(1);
+                localStorage.setItem('moderationPage', '1');
+                saveFiltersToUrl(newFilters, 1);
+              }}
+            />
           </div>
 
           {/* Сообщение об ошибке */}

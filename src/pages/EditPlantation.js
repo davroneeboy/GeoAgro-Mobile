@@ -343,6 +343,9 @@ const EditPlantation = () => {
           // Если пришел с approved-plantations, возвращаемся туда
           const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
           window.location.href = `/approved-plantations?page=${currentPage}`;
+        } else if (fromPage === '/rejected-plantations') {
+          // Если пришел с rejected-plantations, возвращаемся туда
+          window.location.href = '/rejected-plantations';
         } else {
           // По умолчанию возвращаемся на moderation
         const currentPage = localStorage.getItem('moderationPage') || 1;
@@ -495,6 +498,9 @@ const EditPlantation = () => {
                   // Если пришел с approved-plantations, возвращаемся туда
                   const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
                   window.location.href = `/approved-plantations?page=${currentPage}`;
+                } else if (fromPage === '/rejected-plantations') {
+                  // Если пришел с rejected-plantations, возвращаемся туда
+                  window.location.href = '/rejected-plantations';
                 } else {
                   // По умолчанию возвращаемся на moderation
                 console.log('Navigating to moderation...');

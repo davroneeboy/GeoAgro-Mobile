@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { API_BASE_URL2 } from "../config";
+import { API_BASE_URL1, API_BASE_URL2 } from "../config";
 import { useNavigate, Link } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import AuthContext from "../context/AuthContext";
@@ -16,9 +16,77 @@ const RejectedPlantations = () => {
   const [users, setUsers] = useState({});
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [rejectedStats, setRejectedStats] = useState(null);
+  const [pageInput, setPageInput] = useState('');
+  const [filters, setFilters] = useState({
+    region: 'All',
+    crop_type: 'All'
+  });
 
   const pageSize = 20;
+  const totalPages = Math.ceil(count / pageSize);
+
+  // Функции пагинации
+  const handlePageInputChange = (e) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputSubmit = (e) => {
+    e.preventDefault();
+    const newPage = parseInt(pageInput);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      setPageInput('');
+    }
+  };
+
+  const goToFirstPage = () => setPage(1);
+  const goToLastPage = () => setPage(totalPages);
+
+  // Функции для работы с фильтрами
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+    
+    // Сброс страницы при изменении фильтров
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      region: 'All',
+      crop_type: 'All'
+    });
+    setPage(1);
+  };
+
+  // Функция для получения названия региона
+  const getRegionName = (regionId) => {
+    const regionNames = {
+      1: "Tashkent",
+      2: "Andijan", 
+      3: "Bukhara",
+      4: "Fergana",
+      5: "Jizzakh",
+      6: "Kashkadarya",
+      7: "Navoi",
+      8: "Namangan",
+      9: "Samarkand",
+      10: "Sirdarya",
+      11: "Surkhandarya",
+      12: "Karakalpakstan",
+      13: "Khorazm"
+    };
+    return regionNames[regionId] || "Noma'lum";
+  };
+
+  // Проверяем является ли пользователь админом (пока все пользователи считаются админами)
+  const isAdmin = () => {
+    // TODO: Добавить логику проверки роли пользователя
+    // Например: return authState.user?.role === 'admin' || authState.user?.is_superuser;
+    return true; // Временно все пользователи считаются админами
+  };
 
   // Функция для получения названия региона
   const getRegionNameById = (regionId) => {
@@ -79,61 +147,49 @@ const RejectedPlantations = () => {
       setLoading(true);
       setError(null);
 
-      // Используем новый API endpoint для статистики отклоненных плантаций
-      const statsResponse = await axios.get(`${API_BASE_URL2}api/statistics/rejected/`, {
-        headers: { Authorization: `Bearer ${authState.accessToken}` }
-      });
+      // Определяем какой endpoint использовать в зависимости от роли пользователя
+      let plantationsEndpoint;
       
-      console.log("Rejected statistics API response:", statsResponse.data);
-      
-      // Получаем данные из нового API
-      const rejectedData = statsResponse.data;
-      
-      // Получаем список отклоненных плантаций с деталями
+      if (isAdmin()) {
+        // Для админов используем API для просмотра всех отклоненных плантаций
+        plantationsEndpoint = `${API_BASE_URL1}api/plantations/moderation/rejected/`;
+      } else {
+        // Для обычных пользователей используем API для их района
+        plantationsEndpoint = `${API_BASE_URL1}api/plantations/forme/rejected/`;
+      }
+
+      // Получаем список отклоненных плантаций с деталями через новый endpoint
       const params = new URLSearchParams({
         page: page.toString(),
-        page_size: pageSize.toString(),
-        is_checked: 'false'
+        page_size: pageSize.toString()
       });
+
+      // Добавляем фильтры в параметры запроса
+      if (filters.region !== 'All') {
+        params.append('region', filters.region);
+      }
+      if (filters.crop_type !== 'All') {
+        params.append('crop_type', filters.crop_type);
+      }
       
-      const response = await axios.get(`${API_BASE_URL2}api/plantations/?${params.toString()}`, {
+      const response = await axios.get(`${plantationsEndpoint}?${params.toString()}`, {
         headers: { Authorization: `Bearer ${authState.accessToken}` }
       });
       
       const plantationsData = response.data.results || [];
 
-      // Получаем детальную информацию для каждой плантации
-      const detailedPlantationsPromises = plantationsData.map(async (plantation) => {
-        try {
-          const detailResponse = await axios.get(
-            `${API_BASE_URL2}api/plantations/${plantation.id}/`,
-            {
-              headers: { Authorization: `Bearer ${authState.accessToken}` },
-              validateStatus: function (status) { return status < 500; }
-            }
-          );
-          return detailResponse.data;
-        } catch (error) {
-          if (error.response?.status === 404 || error.response?.status === 500) {
-            console.warn(`Plantation ${plantation.id} not found or deleted, skipping`);
-            return null;
-          }
-          console.error(`Error fetching details for plantation ${plantation.id}:`, error);
-          return plantation;
-        }
+      console.log("Plantations data from new API:", plantationsData);
+      console.log("First plantation structure:", plantationsData[0]);
+      
+      // Новые endpoints должны возвращать уже отфильтрованные данные с полной информацией
+      // Фильтруем только по наличию комментария отказа на всякий случай
+      const filteredPlantations = plantationsData.filter(plantation => {
+        const comment = plantation.moderation_comment || plantation.comment || plantation.rejection_reason;
+        return comment && comment.trim() !== '';
       });
 
-      const detailedPlantationsResults = await Promise.all(detailedPlantationsPromises);
-      const detailedPlantations = detailedPlantationsResults.filter(p => p !== null);
-
-      // Фильтруем плантации с непустым moderation_comment
-      const filteredPlantations = detailedPlantations.filter(plantation => 
-        plantation.moderation_comment && plantation.moderation_comment.trim() !== ''
-      );
-
       setPlantations(filteredPlantations);
-      setCount(filteredPlantations.length);
-      setRejectedStats(rejectedData); // Save the statistics
+      setCount(response.data.count || filteredPlantations.length); // Используем count из API response если есть
 
       // Загружаем информацию о пользователях
       const userIds = new Set();
@@ -170,7 +226,7 @@ const RejectedPlantations = () => {
     } else {
       navigate('/login');
     }
-  }, [authState, navigate, page]);
+  }, [authState, navigate, page, filters]);
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -241,13 +297,13 @@ const RejectedPlantations = () => {
             >
               Tasdiqlangan bog'lar
             </Link>
-            {/* <Link
+            <Link
               to="/rejected-plantations"
               className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Rad etilgan bog'lar
-            </Link> */}
+            </Link>
           </div>
         )}
       </div>
@@ -325,96 +381,57 @@ const RejectedPlantations = () => {
         <div className="flex-1 bg-gray-900 text-white overflow-y-auto">
           <div className="p-6">
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white mb-2">Rad etilgan bog'lar</h1>
+              <h1 className="text-2xl font-bold text-white mb-2">
+                Rad etilgan bog'lar
+                {!isAdmin() && <span className="text-lg text-gray-400 ml-2">(Mening tumanim)</span>}
+              </h1>
             </div>
 
-            {/* Статистика */}
-            {rejectedStats && (
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-white mb-4">Statistika</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Jami rad etilgan</div>
-                    <div className="text-2xl font-bold text-white">
-                      {rejectedStats.total_rejected_plantations || 0}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      {rejectedStats.total_rejected_area || 0} GA
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Bog'lar</div>
-                    <div className="text-2xl font-bold text-white">
-                      {rejectedStats.rejected_by_type?.bogs?.count || 0}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      {rejectedStats.rejected_by_type?.bogs?.area || 0} GA
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Uzumzorlar</div>
-                    <div className="text-2xl font-bold text-white">
-                      {rejectedStats.rejected_by_type?.uzumzors?.count || 0}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      {rejectedStats.rejected_by_type?.uzumzors?.area || 0} GA
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Issiqxonalar</div>
-                    <div className="text-2xl font-bold text-white">
-                      {rejectedStats.rejected_by_type?.issiqxonas?.count || 0}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      {rejectedStats.rejected_by_type?.issiqxonas?.area || 0} GA
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Investitsiyalar</div>
-                    <div className="text-2xl font-bold text-white">
-                      {((rejectedStats.rejected_investments?.local || 0) + (rejectedStats.rejected_investments?.foreign || 0)).toLocaleString()}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      Mahalliy: {(rejectedStats.rejected_investments?.local || 0).toLocaleString()}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Subsidiyalar</div>
-                    <div className="text-2xl font-bold text-white">
-                      {rejectedStats.rejected_subsidies?.beneficiary_count || 0}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      {(rejectedStats.rejected_subsidies?.total_amount || 0).toLocaleString()} so'm
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">O'rtacha hosildorlik</div>
-                    <div className="text-2xl font-bold text-white">
-                      {(rejectedStats.rejected_fertility_stats?.average_score || 0).toFixed(1)}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      Past: {rejectedStats.rejected_fertility_stats?.low_fertility_area || 0} GA
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="text-gray-400 text-sm mb-1">Mevali maydon</div>
-                    <div className="text-2xl font-bold text-white">
-                      {rejectedStats.total_rejected_fruitarea || 0}
-                    </div>
-                    <div className="text-gray-500 text-sm">
-                      GA
-                    </div>
-                  </div>
-                </div>
+            {/* Фильтры */}
+            <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-700">
+              <div className="flex flex-wrap items-center gap-4">
+                <button
+                  className="px-4 py-2 rounded-lg border border-gray-600 bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+                  onClick={handleResetFilters}
+                >
+                  Filterlarni tozalash
+                </button>
+                
+                <select
+                  className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  value={filters.region}
+                  onChange={(e) => handleFilterChange('region', e.target.value)}
+                >
+                  <option value="All">Barcha viloyatlar</option>
+                  <option value="1">Tashkent</option>
+                  <option value="2">Andijan</option>
+                  <option value="3">Bukhara</option>
+                  <option value="4">Fergana</option>
+                  <option value="5">Jizzakh</option>
+                  <option value="6">Kashkadarya</option>
+                  <option value="7">Navoi</option>
+                  <option value="8">Namangan</option>
+                  <option value="9">Samarkand</option>
+                  <option value="10">Sirdarya</option>
+                  <option value="11">Surkhandarya</option>
+                  <option value="12">Karakalpakstan</option>
+                  <option value="13">Khorazm</option>
+                </select>
+                
+                <select
+                  className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  value={filters.crop_type}
+                  onChange={(e) => handleFilterChange('crop_type', e.target.value)}
+                >
+                  <option value="All">Ekin turi</option>
+                  <option value="Bog'lar">Bog'lar</option>
+                  <option value="Issiqxonalar">Issiqxonalar</option>
+                  <option value="Uzumzorlar">Uzumzorlar</option>
+                </select>
               </div>
-            )}
+            </div>
+
+
 
             {/* Ошибки */}
             {error && (
@@ -445,10 +462,10 @@ const RejectedPlantations = () => {
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-white mb-1">
-                          {plantation.name || "Noma'lum"}
+                          {plantation.farmer?.name || "Fermer nomi yo'q"}
                         </h3>
                         <p className="text-xs text-gray-400 mb-1">
-                          {plantation.farmer?.name || "Fermer nomi yo'q"}
+                          {plantation.name || "Sarlavhasiz bog'"}
                         </p>
                         <p className="text-xs text-gray-500">
                           Maydon: {plantation.total_area || 0} GA
@@ -486,10 +503,10 @@ const RejectedPlantations = () => {
                       </div>
                     </div>
 
-                    {plantation.moderation_comment && (
+                    {(plantation.moderation_comment || plantation.comment || plantation.rejection_reason) && (
                       <div className="mt-2 bg-gray-700/30 rounded p-2 border border-gray-600">
                         <div className="text-gray-400 text-xs mb-1">Rad etish sababi</div>
-                        <div className="text-white text-xs">{plantation.moderation_comment}</div>
+                        <div className="text-white text-xs">{plantation.moderation_comment || plantation.comment || plantation.rejection_reason}</div>
                       </div>
                     )}
                   </div>
@@ -497,50 +514,90 @@ const RejectedPlantations = () => {
               </div>
             )}
 
-            {/* Пагинация */}
+            {/* Красивая пагинация */}
             {count > pageSize && (
-              <div className="mt-8 flex items-center justify-between">
-                <div className="text-sm text-gray-400">
-                  {((page - 1) * pageSize) + 1} - {Math.min(page * pageSize, count)} dan {count} ta
+              <div className="mt-8">
+                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                  <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                    {/* Информация о страницах */}
+                    <div className="text-sm text-gray-400">
+                      Sahifa {page} dan {totalPages} | Jami: {count} ta rad etilgan bog'
+                    </div>
+                    
+                    {/* Навигационные кнопки */}
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      {/* Кнопка "В начало" */}
+                      <button
+                        className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        onClick={goToFirstPage}
+                        disabled={page <= 1}
+                        title="Birinchi sahifa"
+                      >
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Кнопка "Назад" */}
+                      <button
+                        className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                        onClick={() => setPage(Math.max(page - 1, 1))}
+                        disabled={page <= 1}
+                      >
+                        Orqaga
+                      </button>
+                      
+                      {/* Поле ввода номера страницы */}
+                      <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1 sm:space-x-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max={Math.min(totalPages, 50)}
+                          value={pageInput}
+                          onChange={handlePageInputChange}
+                          className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center text-sm"
+                          placeholder={page.toString()}
+                        />
+                        <button
+                          type="submit"
+                          className="px-2 sm:px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs sm:text-sm"
+                        >
+                          O'tish
+                        </button>
+                      </form>
+                      
+                      {/* Кнопка "Вперед" */}
+                      <button
+                        className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                        onClick={() => setPage(Math.min(page + 1, totalPages))}
+                        disabled={page >= totalPages}
+                      >
+                        Oldinga
+                      </button>
+                      
+                      {/* Кнопка "В конец" */}
+                      <button
+                        className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        onClick={goToLastPage}
+                        disabled={page >= totalPages}
+                        title="Oxirgi sahifa"
+                      >
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPage(1)}
-                    disabled={page <= 1}
-                    className="px-3 py-1 bg-gray-700 text-white rounded-md disabled:opacity-50 hover:bg-gray-600 transition-colors"
-                  >
-                    Birinchi
-                  </button>
-                  
-                  <button
-                    onClick={() => setPage(Math.max(page - 1, 1))}
-                    disabled={page <= 1}
-                    className="px-3 py-1 bg-gray-700 text-white rounded-md disabled:opacity-50 hover:bg-gray-600 transition-colors"
-                  >
-                    Orqaga
-                  </button>
-                  
-                  <span className="px-3 py-1 bg-gray-700 text-white rounded-md">
-                    {page} / {Math.ceil(count / pageSize)}
-                  </span>
-                  
-                  <button
-                    onClick={() => setPage(Math.min(page + 1, Math.ceil(count / pageSize)))}
-                    disabled={page >= Math.ceil(count / pageSize)}
-                    className="px-3 py-1 bg-gray-700 text-white rounded-md disabled:opacity-50 hover:bg-gray-600 transition-colors"
-                  >
-                    Oldinga
-                  </button>
-                  
-                  <button
-                    onClick={() => setPage(Math.ceil(count / pageSize))}
-                    disabled={page >= Math.ceil(count / pageSize)}
-                    className="px-3 py-1 bg-gray-700 text-white rounded-md disabled:opacity-50 hover:bg-gray-600 transition-colors"
-                  >
-                    Oxirgi
-                  </button>
-                </div>
+              </div>
+            )}
+
+            {/* Информация о количестве */}
+            {plantations.length > 0 && (
+              <div className="text-center mt-6">
+                <p className="text-gray-400 text-sm">
+                  Ko'rsatilgan: {plantations.length} ta rad etilgan bog'
+                </p>
               </div>
             )}
 
@@ -552,7 +609,64 @@ const RejectedPlantations = () => {
       {/* Мобильная версия контента */}
       <div className="lg:hidden p-4">
         <div className="mb-4">
-          <h1 className="text-xl font-bold text-white mb-1">Rad etilgan bog'lar</h1>
+          <h1 className="text-xl font-bold text-white mb-1">
+            Rad etilgan bog'lar
+            {!isAdmin() && <span className="text-sm text-gray-400 ml-2">(Mening tumanim)</span>}
+          </h1>
+        </div>
+
+        {/* Мобильные фильтры */}
+        <div className="bg-gray-800 rounded-lg p-4 mb-4 border border-gray-700">
+          <div className="space-y-3">
+            <button
+              className="w-full px-4 py-2 rounded-lg border border-gray-600 bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+              onClick={handleResetFilters}
+            >
+              Filterlarni tozalash
+            </button>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Viloyat
+              </label>
+              <select
+                value={filters.region}
+                onChange={(e) => handleFilterChange('region', e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              >
+                <option value="All">Barcha viloyatlar</option>
+                <option value="1">Tashkent</option>
+                <option value="2">Andijan</option>
+                <option value="3">Bukhara</option>
+                <option value="4">Fergana</option>
+                <option value="5">Jizzakh</option>
+                <option value="6">Kashkadarya</option>
+                <option value="7">Navoi</option>
+                <option value="8">Namangan</option>
+                <option value="9">Samarkand</option>
+                <option value="10">Sirdarya</option>
+                <option value="11">Surkhandarya</option>
+                <option value="12">Karakalpakstan</option>
+                <option value="13">Khorazm</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Ekin turi
+              </label>
+              <select
+                value={filters.crop_type}
+                onChange={(e) => handleFilterChange('crop_type', e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              >
+                <option value="All">Barcha ekin turlari</option>
+                <option value="Bog'lar">Bog'lar</option>
+                <option value="Issiqxonalar">Issiqxonalar</option>
+                <option value="Uzumzorlar">Uzumzorlar</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Ошибки */}
@@ -584,10 +698,10 @@ const RejectedPlantations = () => {
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-white mb-1">
-                      {plantation.name || "Noma'lum"}
+                      {plantation.farmer?.name || "Fermer nomi yo'q"}
                     </h3>
                     <p className="text-xs text-gray-400">
-                      {plantation.farmer?.name || "Fermer nomi yo'q"}
+                      {plantation.name || "Sarlavhasiz bog'"}
                     </p>
                   </div>
                   <span className="inline-block px-2 py-1 bg-red-600 text-white text-xs rounded">
@@ -606,10 +720,10 @@ const RejectedPlantations = () => {
                   </div>
                 </div>
 
-                {plantation.moderation_comment && (
+                {(plantation.moderation_comment || plantation.comment || plantation.rejection_reason) && (
                   <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
                     <div className="text-gray-400 text-xs mb-1">Sabab</div>
-                    <div className="text-white text-xs">{plantation.moderation_comment}</div>
+                    <div className="text-white text-xs">{plantation.moderation_comment || plantation.comment || plantation.rejection_reason}</div>
                   </div>
                 )}
               </div>
@@ -619,26 +733,90 @@ const RejectedPlantations = () => {
 
         {/* Мобильная пагинация */}
         {count > pageSize && (
-          <div className="mt-4 flex items-center justify-between">
-            <button
-              onClick={() => setPage(Math.max(page - 1, 1))}
-              disabled={page <= 1}
-              className="px-3 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50 text-sm"
-            >
-              Orqaga
-            </button>
-            
-            <span className="text-sm text-gray-400">
-              {page} / {Math.ceil(count / pageSize)}
-            </span>
-            
-            <button
-              onClick={() => setPage(Math.min(page + 1, Math.ceil(count / pageSize)))}
-              disabled={page >= Math.ceil(count / pageSize)}
-              className="px-3 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50 text-sm"
-            >
-              Oldinga
-            </button>
+          <div className="mt-4">
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <div className="space-y-4">
+                {/* Информация о страницах */}
+                <div className="text-center text-sm text-gray-400">
+                  Sahifa {page} dan {totalPages} | Jami: {count} ta rad etilgan bog'
+                </div>
+                
+                {/* Основные кнопки навигации */}
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setPage(Math.max(page - 1, 1))}
+                    disabled={page <= 1}
+                    className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    Orqaga
+                  </button>
+                  
+                  <span className="text-sm text-gray-400 font-medium">
+                    {page} / {totalPages}
+                  </span>
+                  
+                  <button
+                    onClick={() => setPage(Math.min(page + 1, totalPages))}
+                    disabled={page >= totalPages}
+                    className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    Oldinga
+                  </button>
+                </div>
+                
+                {/* Дополнительные кнопки и поле ввода */}
+                <div className="flex items-center justify-center space-x-2">
+                  <button
+                    onClick={goToFirstPage}
+                    disabled={page <= 1}
+                    className="p-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Birinchi sahifa"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  <form onSubmit={handlePageInputSubmit} className="flex items-center space-x-1">
+                    <input
+                      type="number"
+                      value={pageInput}
+                      onChange={handlePageInputChange}
+                      placeholder={page.toString()}
+                      min="1"
+                      max={totalPages}
+                      className="w-16 px-2 py-2 bg-gray-700 text-white rounded text-center text-sm border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                    <button
+                      type="submit"
+                      className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+                    >
+                      O'tish
+                    </button>
+                  </form>
+                  
+                  <button
+                    onClick={goToLastPage}
+                    disabled={page >= totalPages}
+                    className="p-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Oxirgi sahifa"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Информация о количестве для мобильной версии */}
+        {plantations.length > 0 && (
+          <div className="text-center mt-4">
+            <p className="text-gray-400 text-sm">
+              Ko'rsatilgan: {plantations.length} ta rad etilgan bog'
+            </p>
           </div>
         )}
 
