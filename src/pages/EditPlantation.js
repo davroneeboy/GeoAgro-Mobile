@@ -673,6 +673,18 @@ const EditPlantation = () => {
               )}
             </div>
 
+            {/* Секция с комментарием модерации */}
+            {plantation.moderation_comment && (
+              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
+                <h2 className="font-semibold text-lg mb-3 text-white">
+                  Moderatsiya kommenti:
+                </h2>
+                <div className="bg-gray-800 p-3 rounded-lg border-l-4 border-yellow-500">
+                  <p className="text-white font-medium">{plantation.moderation_comment}</p>
+                </div>
+              </div>
+            )}
+
             {plantation.farmer && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
@@ -735,6 +747,7 @@ const EditPlantation = () => {
                 )}
               </div>
             )}
+
             {plantation.subsidies.length > 0 && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
