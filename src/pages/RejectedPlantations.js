@@ -61,26 +61,6 @@ const RejectedPlantations = () => {
     setPage(1);
   };
 
-  // Функция для получения названия региона
-  const getRegionName = (regionId) => {
-    const regionNames = {
-      1: "Tashkent",
-      2: "Andijan", 
-      3: "Bukhara",
-      4: "Fergana",
-      5: "Jizzakh",
-      6: "Kashkadarya",
-      7: "Navoi",
-      8: "Namangan",
-      9: "Samarkand",
-      10: "Sirdarya",
-      11: "Surkhandarya",
-      12: "Karakalpakstan",
-      13: "Khorazm"
-    };
-    return regionNames[regionId] || "Noma'lum";
-  };
-
   // Проверяем является ли пользователь админом (пока все пользователи считаются админами)
   const isAdmin = () => {
     // TODO: Добавить логику проверки роли пользователя
