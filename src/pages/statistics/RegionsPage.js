@@ -29,36 +29,7 @@ const REGION_NAMES = {
   13: "Xorazm",
 };
 
-const DISTRICT_TO_REGION_MAPPING = {
-  // Tashkent region districts
-  1: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 12: 1, 14: 1, 15: 1, 25: 1,
-  // Andijan region districts  
-  28: 2, 31: 2, 44: 2,
-  // Bukhara region districts
-  49: 3, 52: 3, 55: 3,
-  // Fergana region districts
-  58: 4, 59: 4,
-  // Jizzakh region districts
-  63: 5, 64: 5, 65: 5, 66: 5, 67: 5, 68: 5, 69: 5, 70: 5, 71: 5, 73: 5,
-  // Kashkadarya region districts
-  104: 6, 106: 6, 108: 6,
-  // Navoi region districts
-  // Add district IDs for Navoi region
-  
-  // Namangan region districts
-  115: 8, 116: 8,
-  // Samarkand region districts
-  129: 9,
-  // Sirdarya region districts
-  // Add district IDs for Sirdarya region
-  
-  // Surkhandarya region districts
-  133: 11, 134: 11, 135: 11, 136: 11,
-  // Karakalpakstan region districts
-  88: 12, 113: 12,
-  // Xorazm region districts
-  // Add district IDs for Xorazm region
-};
+
 
 const RegionsPage = () => {
   const navigate = useNavigate();
