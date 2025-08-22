@@ -35,6 +35,19 @@ const RegionDetailPage = () => {
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved', 'rejected', 'fruits'
   const [exporting, setExporting] = useState(false);
 
+  // Отслеживаем изменения в URL для обновления активной вкладки
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const dataType = searchParams.get('data_type');
+    console.log('URL changed, dataType:', dataType);
+    
+    if (dataType) {
+      setActiveTab(dataType);
+    } else {
+      setActiveTab('all');
+    }
+  }, [location.search]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -47,10 +60,7 @@ const RegionDetailPage = () => {
         const regions = searchParams.get('regions');
         const dataType = searchParams.get('data_type');
         
-        // Устанавливаем активную вкладку
-        if (dataType) {
-          setActiveTab(dataType);
-        }
+
         
         let data;
         
@@ -74,6 +84,7 @@ const RegionDetailPage = () => {
         }
         
           data = await fetchStatisticsData(url, authState.accessToken);
+          console.log('API Response for region detail:', data);
         } else if (dataType === 'approved') {
           // Для подтвержденных используем новый API endpoint
           let approvedUrl = `${API_BASE_URL1}api/statistics/regions/${id}/approved/`;
@@ -91,37 +102,6 @@ const RegionDetailPage = () => {
           }
           
           data = await fetchStatisticsData(approvedUrl, authState.accessToken);
-        } else if (dataType === 'rejected') {
-          // Для отклоненных используем новый API endpoint
-          let rejectedUrl = `${API_BASE_URL1}api/statistics/regions/${id}/rejected/`;
-          const queryParams = new URLSearchParams();
-          
-          if (estDate) {
-            queryParams.append("est_date", estDate);
-          }
-          if (plantationType) {
-            queryParams.append("plantation_type", plantationType);
-          }
-          
-          if (queryParams.toString()) {
-            rejectedUrl += `?${queryParams.toString()}`;
-          }
-          
-          data = await fetchStatisticsData(rejectedUrl, authState.accessToken);
-        } else if (dataType === 'fruits') {
-          // Для фруктов используем новый API endpoint
-          let fruitsUrl = `${API_BASE_URL1}api/statistics/regions/${id}/fruits/`;
-          const queryParams = new URLSearchParams();
-          
-          if (estDate) {
-            queryParams.append("planted_year", estDate);
-          }
-          
-          if (queryParams.toString()) {
-            fruitsUrl += `?${queryParams.toString()}`;
-          }
-          
-          data = await fetchStatisticsData(fruitsUrl, authState.accessToken);
         } else {
           // Для модерации используем старый API плантаций
           const plantationsUrl = `${API_BASE_URL2}api/plantations/?is_checked=False`;
@@ -212,7 +192,20 @@ const RegionDetailPage = () => {
             }
           };
         }
-        setStatistics(data);
+        console.log('Setting statistics data:', data);
+        // Проверяем структуру данных и преобразуем если нужно
+        console.log('Raw API data:', data);
+        
+        // Если данные приходят в формате { district1: {...}, district2: {...} }
+        // то нужно обернуть их в объект с полем data
+        let processedData = data;
+        if (data && typeof data === 'object' && !data.data && !data.fruits_by_name) {
+          // Это данные районов, оборачиваем в правильную структуру
+          processedData = { data: data };
+        }
+        
+        console.log('Processed data:', processedData);
+        setStatistics(processedData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -254,99 +247,46 @@ const RegionDetailPage = () => {
   if (!statistics) return <Alert message="Ma'lumot topilmadi" type="info" />;
 
   // Transform data for table
-  const tableData = activeTab === 'fruits' 
-    ? (statistics.fruits_by_name || []).map((fruit, index) => ({
-        key: fruit.fruit__name || index,
-        fruit__name: fruit.fruit__name,
-        total_area: fruit.total_area,
-        plantation_count: fruit.plantation_count,
-        avg_fertility_score: fruit.avg_fertility_score,
-        outdated_area: fruit.outdated_area,
-        low_fertility_area: fruit.low_fertility_area,
-        high_fertility_area: fruit.high_fertility_area,
-      }))
-    : Object.entries(statistics.data || {}).map(
-    ([district, data]) => ({
-      key: district,
-      district,
-      total_area: data.total_area,
-      total_plantations: data.total_plantations,
-      outdated_ga: data.outdated_ga,
-      low_fertility_count: data.low_fertility.count,
-      low_fertility_area: data.low_fertility.area,
-      high_fertility_count: data.high_fertility.count,
-      high_fertility_area: data.high_fertility.area,
-      irrigation_area: data.irrigation.area,
-      irrigation_count: data.irrigation.count,
-      investment_local: data.investment.local,
-      investment_foreign: data.investment.foreign,
-      investment_total: data.investment.total,
-      subsidy_count: data.subsidy.subsidy_count,
-      total_subsidy: data.subsidy.total_subsidy,
-    })
+  console.log('Processing statistics for table:', statistics);
+  console.log('Active tab:', activeTab);
+  
+  const tableData = Object.entries(statistics.data || {}).map(
+    ([district, data]) => {
+      console.log(`Processing district ${district}:`, data);
+              return {
+          key: district,
+          district,
+          total_area: data.total_area,
+          total_plantations: data.plantation_count || 0,
+          planted_area: data.planted_area,
+          investment_local: data.investment.local,
+          investment_foreign: data.investment.foreign,
+          investment_total: (data.investment.local || 0) + (data.investment.foreign || 0),
+          subsidy_count: data.subsidy.subsidy_count,
+          total_subsidy: data.subsidy.total_subsidy,
+        };
+    }
   );
 
   // Calculate totals for summary cards
-  const totals = activeTab === 'fruits'
-    ? {
-        total_fruitarea: (statistics.total_stats?.total_fruit_area || 0),
-        total_fruits_count: (statistics.total_stats?.total_fruits_count || 0),
-        total_plantations: (statistics.total_stats?.total_plantations || 0),
-        total_area: (statistics.total_stats?.total_fruit_area || 0),
-        total_investment: 0,
-        total_subsidy: 0,
-      }
-    : Object.values(statistics.data || {}).reduce(
+  const totals = Object.values(statistics.data || {}).reduce(
     (acc, curr) => ({
       total_area: (acc.total_area || 0) + curr.total_area,
-      total_plantations: (acc.total_plantations || 0) + curr.total_plantations,
-      outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
-      total_investment: (acc.total_investment || 0) + curr.investment.total,
+      total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || 0),
+      planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
+      total_investment: (acc.total_investment || 0) + ((curr.investment.local || 0) + (curr.investment.foreign || 0)),
       total_subsidy: (acc.total_subsidy || 0) + curr.subsidy.total_subsidy,
     }),
     {}
   );
 
   // Add total row
-  const totalRow = activeTab === 'fruits' ? {
-    key: "total",
-    fruit__name: "Jami",
-    total_area: totals.total_fruitarea,
-    plantation_count: totals.total_plantations,
-    avg_fertility_score: 0,
-    outdated_area: 0,
-    low_fertility_area: 0,
-    high_fertility_area: 0,
-  } : {
+  const totalRow = {
     key: "total",
     district: "Jami",
     total_area: totals.total_area,
     total_plantations: totals.total_plantations,
-    outdated_ga: totals.outdated_ga,
-    low_fertility_count: Object.values(statistics.data || {}).reduce(
-      (acc, curr) => acc + curr.low_fertility.count,
-      0
-    ),
-    low_fertility_area: Object.values(statistics.data || {}).reduce(
-      (acc, curr) => acc + curr.low_fertility.area,
-      0
-    ),
-    high_fertility_count: Object.values(statistics.data || {}).reduce(
-      (acc, curr) => acc + curr.high_fertility.count,
-      0
-    ),
-    high_fertility_area: Object.values(statistics.data || {}).reduce(
-      (acc, curr) => acc + curr.high_fertility.area,
-      0
-    ),
-    irrigation_area: Object.values(statistics.data || {}).reduce(
-      (acc, curr) => acc + curr.irrigation.area,
-      0
-    ),
-    irrigation_count: Object.values(statistics.data || {}).reduce(
-      (acc, curr) => acc + curr.irrigation.count,
-      0
-    ),
+    planted_area: totals.planted_area,
     investment_local: Object.values(statistics.data || {}).reduce(
       (acc, curr) => acc + curr.investment.local,
       0
@@ -368,78 +308,7 @@ const RegionDetailPage = () => {
 
   const textLight = { color: '#e5e7eb' };
 
-  const columns = activeTab === 'fruits' ? [
-    {
-      title: <span style={textLight}>Meva nomi</span>,
-      dataIndex: "fruit__name",
-      key: "fruit__name",
-      fixed: "left",
-      width: 150,
-      render: (text, record) => (
-        <span
-          style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}
-        >
-          {text}
-        </span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Maydon (GA)</span>,
-      dataIndex: "total_area",
-      key: "total_area",
-      render: (value, record) => (
-        <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-          {(value || 0).toFixed(1)}
-        </span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Plantatsiyalar soni</span>,
-      dataIndex: "plantation_count",
-      key: "plantation_count",
-      render: (value) => <span style={textLight}>{value}</span>,
-    },
-    {
-      title: <span style={textLight}>O'rtacha hosildorlik</span>,
-      dataIndex: "avg_fertility_score",
-      key: "avg_fertility_score",
-      render: (value) => (
-        <span style={textLight}>
-          {(value || 0).toFixed(1)}
-        </span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Eskirgan maydon (GA)</span>,
-      dataIndex: "outdated_area",
-      key: "outdated_area",
-      render: (value, record) => (
-        <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-          {(value || 0).toFixed(1)}
-        </span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Past hosildorlik (GA)</span>,
-      dataIndex: "low_fertility_area",
-      key: "low_fertility_area",
-      render: (value, record) => (
-        <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-          {(value || 0).toFixed(1)}
-        </span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Yuqori hosildorlik (GA)</span>,
-      dataIndex: "high_fertility_area",
-      key: "high_fertility_area",
-      render: (value, record) => (
-        <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-          {(value || 0).toFixed(1)}
-        </span>
-      ),
-    },
-  ] : [
+  const columns = [
     {
       title: <span style={textLight}>Tuman</span>,
       dataIndex: "district",
@@ -468,89 +337,22 @@ const RegionDetailPage = () => {
           ),
         },
         {
-          title: <span style={textLight}>Plantatsiyalar soni</span>,
+          title: <span style={textLight}>Subyektlar soni</span>,
           dataIndex: "total_plantations",
           key: "total_plantations",
           render: (value) => <span style={textLight}>{value}</span>,
         },
         {
-          title: <span style={textLight}>Eskirgan (GA)</span>,
-          dataIndex: "outdated_ga",
-          key: "outdated_ga",
+          title: <span style={textLight}>Ekilgan maydoni (GA)</span>,
+          dataIndex: "planted_area",
+          key: "planted_area",
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
         },
-      ],
-    },
-    {
-      title: <span style={textLight}>Hosildorlik</span>,
-      children: [
-        {
-          title: <span style={textLight}>Past</span>,
-          children: [
-            {
-              title: <span style={textLight}>Soni</span>,
-              dataIndex: "low_fertility_count",
-              key: "low_fertility_count",
-              render: (value) => <span style={textLight}>{value}</span>,
-            },
-            {
-              title: <span style={textLight}>Maydon</span>,
-              dataIndex: "low_fertility_area",
-              key: "low_fertility_area",
-              render: (value, record) => (
-                <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-                  {(value || 0).toFixed(1)}
-                </span>
-              ),
-            },
-          ],
-        },
-        {
-          title: <span style={textLight}>Yuqori</span>,
-          children: [
-            {
-              title: <span style={textLight}>Soni</span>,
-              dataIndex: "high_fertility_count",
-              key: "high_fertility_count",
-              render: (value) => <span style={textLight}>{value}</span>,
-            },
-            {
-              title: <span style={textLight}>Maydon</span>,
-              dataIndex: "high_fertility_area",
-              key: "high_fertility_area",
-              render: (value, record) => (
-                <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-                  {(value || 0).toFixed(1)}
-                </span>
-              ),
-            },
-          ],
-        },
-      ],
-    },
-    {
-      title: <span style={textLight}>Sug'orish</span>,
-      children: [
-        {
-          title: <span style={textLight}>Maydon</span>,
-          dataIndex: "irrigation_area",
-          key: "irrigation_area",
-          render: (value, record) => (
-            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-              {(value || 0).toFixed(1)}
-            </span>
-          ),
-        },
-        {
-          title: <span style={textLight}>Soni</span>,
-          dataIndex: "irrigation_count",
-          key: "irrigation_count",
-          render: (value) => <span style={textLight}>{value}</span>,
-        },
+
       ],
     },
     {
@@ -634,8 +436,10 @@ const RegionDetailPage = () => {
         {/* Вкладки для переключения типов данных */}
         <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <div className="flex flex-wrap gap-2">
+            {console.log('Current activeTab:', activeTab)}
             <button
               onClick={() => {
+                console.log('Clicking on Barcha planatsiyalar tab');
                 const searchParams = new URLSearchParams(location.search);
                 searchParams.delete('data_type');
                 const queryString = searchParams.toString();
@@ -651,6 +455,7 @@ const RegionDetailPage = () => {
             </button>
             <button
               onClick={() => {
+                console.log('Clicking on Tasdiqlangan tab');
                 const searchParams = new URLSearchParams(location.search);
                 searchParams.set('data_type', 'approved');
                 const queryString = searchParams.toString();
@@ -659,40 +464,10 @@ const RegionDetailPage = () => {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'approved'
                   ? 'bg-green-500 text-white'
-                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  : 'bg-gray-300 hover:bg-gray-500'
               }`}
             >
               Tasdiqlangan
-            </button>
-            <button
-              onClick={() => {
-                const searchParams = new URLSearchParams(location.search);
-                searchParams.set('data_type', 'rejected');
-                const queryString = searchParams.toString();
-                navigate(`/statistics/regions/${id}?${queryString}`);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'rejected'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-              }`}
-            >
-              Rad etilgan
-            </button>
-            <button
-              onClick={() => {
-                const searchParams = new URLSearchParams(location.search);
-                searchParams.set('data_type', 'fruits');
-                const queryString = searchParams.toString();
-                navigate(`/statistics/regions/${id}?${queryString}`);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'fruits'
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-              }`}
-            >
-              Fruits
             </button>
           </div>
           
@@ -717,19 +492,6 @@ const RegionDetailPage = () => {
           const estDate = searchParams.get('est_date');
           const plantationType = searchParams.get('plantation_type');
           const regions = searchParams.get('regions');
-          
-          if (activeTab === 'fruits' && estDate) {
-            return (
-              <div className="mb-4 p-3 bg-orange-900 border border-orange-600 rounded-md">
-                <p className="text-orange-200 text-sm font-semibold mb-2">Faol filtrlarni qo'llanilmoqda:</p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 bg-orange-800 text-orange-200 rounded text-xs">
-                    Ekilgan yil: {estDate}
-                  </span>
-                </div>
-              </div>
-            );
-          }
           
           if (estDate || plantationType || regions) {
             return (
@@ -764,13 +526,9 @@ const RegionDetailPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan maydon' : 
-                   activeTab === 'rejected' ? 'Rad etilgan maydon' :
-                   activeTab === 'fruits' ? 'Mevali maydon' :
-                   activeTab === 'moderation' ? 'Moderatsiyadagi maydon' : 
-                   'Jami maydon'}
+                  {activeTab === 'approved' ? 'Tasdiqlangan maydon' : 'Jami maydon'}
                 </span>}
-                value={activeTab === 'fruits' ? totals.total_fruitarea || totals.total_area : totals.total_area}
+                value={totals.total_area}
                 suffix="GA"
                 precision={1}
                 valueStyle={{ color: '#e5e7eb' }}
@@ -781,27 +539,18 @@ const RegionDetailPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan planatsiyalar' : 
-                   activeTab === 'rejected' ? 'Rad etilgan planatsiyalar' :
-                   activeTab === 'fruits' ? 'Mevali turlari' :
-                   activeTab === 'moderation' ? 'Moderatsiyadagi planatsiyalar' : 
-                   'Plantatsiyalar soni'}
+                  {activeTab === 'approved' ? 'Tasdiqlangan subyektlar' : 'Subyektlar soni'}
                 </span>}
-                value={activeTab === 'fruits' ? totals.total_fruits_count || totals.total_plantations : totals.total_plantations}
+                value={totals.total_plantations}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
           </Col>
-          {activeTab !== 'fruits' && (
-            <>
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                     title={<span style={{ color: '#9ca3af' }}>
-                      {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 
-                       activeTab === 'rejected' ? 'Rad etilgan investitsiyalar' :
-                       activeTab === 'moderation' ? 'Moderatsiyadagi investitsiyalar' : 
-                       'Jami investitsiyalar'}
+                      {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 'Jami investitsiyalar'}
                     </span>}
                 value={totals.total_investment}
                 precision={0}
@@ -814,10 +563,7 @@ const RegionDetailPage = () => {
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
                     title={<span style={{ color: '#9ca3af' }}>
-                      {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 
-                       activeTab === 'rejected' ? 'Rad etilgan subsidiyalar' :
-                       activeTab === 'moderation' ? 'Moderatsiyadagi subsidiyalar' : 
-                       'Jami subsidiyalar'}
+                      {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 'Jami subsidiyalar'}
                     </span>}
                 value={totals.total_subsidy}
                 precision={0}
@@ -826,8 +572,6 @@ const RegionDetailPage = () => {
               />
             </Card>
           </Col>
-            </>
-          )}
         </Row>
 
         {/* Main Table */}
