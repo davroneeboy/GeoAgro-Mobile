@@ -38,6 +38,10 @@ export interface Plantation {
   created_at: string;
   updated_at: string;
   is_checked: boolean;
+  is_rejected?: boolean;
+  moderated_at?: string | null;
+  moderated_by?: number | null;
+  moderation_comment?: string | null;
 }
 
 export interface PlantationFormData {

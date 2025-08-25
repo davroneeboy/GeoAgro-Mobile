@@ -35,7 +35,7 @@ export async function fetchPlantationsMap(districtId, accessToken) {
     }
 
     const response = await fetch(
-      `${API_BASE_URL2}api/plantations/map/?district_id=${key}&is_checked=True`,
+      `${API_BASE_URL2}api/plantations/map/?district_id=${key}`,
       { headers }
     );  
     if (!response.ok) {
@@ -137,18 +137,18 @@ export async function fetchRegionApprovedStatistics(regionId, params = {}, acces
     
     const queryString = queryParams.toString();
     
-    // Если regionId равен null, используем общий эндпоинт для всех регионов
-    let url;
-    if (regionId === null) {
-      // Добавляем параметр is_checked=true для получения только одобренных плантаций
-      queryParams.append('is_checked', 'true');
-      const finalQueryString = queryParams.toString();
-      url = `${API_BASE_URL2}api/statistics/all/?${finalQueryString}`;
-    } else {
-      url = queryString ? 
-        `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 
-        `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/`;
-    }
+      // Если regionId равен null, используем общий эндпоинт для всех регионов
+  let url;
+  if (regionId === null) {
+    const finalQueryString = queryParams.toString();
+    url = finalQueryString ? 
+      `${API_BASE_URL2}api/statistics/approved/?${finalQueryString}` : 
+      `${API_BASE_URL2}api/statistics/approved/`;
+  } else {
+    url = queryString ? 
+      `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/`;
+  }
     
     const response = await fetch(url, { headers });
     if (!response.ok) {
@@ -308,6 +308,37 @@ export async function fetchUsersStatistics(params = {}, accessToken) {
     return await response.json();
   } catch (error) {
     console.error("Ошибка при загрузке статистики пользователей:", error);
+    throw error;
+  }
+}
+
+export async function fetchRegionRejectedOverallStatistics(params = {}, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    const queryParams = new URLSearchParams();
+    if (params.est_date) queryParams.append('est_date', params.est_date);
+    if (params.planted_year) queryParams.append('planted_year', params.planted_year);
+    if (params.min_fertility) queryParams.append('min_fertility', params.min_fertility);
+    if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+
+    const queryString = queryParams.toString();
+    const url = queryString ? 
+      `${API_BASE_URL2}api/statistics/rejected/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/rejected/`;
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Ошибка при загрузке статистики отклоненных плантаций:", error);
     throw error;
   }
 }

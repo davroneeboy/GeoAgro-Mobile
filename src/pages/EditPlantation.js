@@ -63,12 +63,11 @@ const EditPlantation = () => {
         return;
       }
       
-      // Отправляем PATCH запрос для отклонения плантации
-      await apiRequest(`api/plantations/${plantation.id}/update/`, {
-        method: "PATCH",
+      // Отправляем POST запрос на отклонение плантации
+      await apiRequest(`api/plantations/${plantation.id}/reject/`, {
+        method: "POST",
         body: JSON.stringify({
-          is_checked: false,
-          moderation_comment: customReason.trim()
+          comment: customReason.trim()
         })
       }, refreshAccessToken, authState.accessToken);
 
@@ -366,7 +365,8 @@ const EditPlantation = () => {
       // Отправляем только координаты и is_checked: true для подтверждения
       const updateData = {
         coordinates: plantation.coordinates,
-        is_checked: true
+        is_checked: true,
+        is_rejected: false
       };
       
       await apiRequest(`api/plantations/${id}/update/`, {

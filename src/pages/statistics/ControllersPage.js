@@ -10,6 +10,7 @@ import {
   Statistic,
   Button,
   DatePicker,
+  ConfigProvider,
 } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
@@ -55,6 +56,8 @@ const ControllersPage = () => {
     customDateRange: null,
   });
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -349,6 +352,30 @@ const ControllersPage = () => {
 
   const dataWithTotal = [...sortedTableData, totalRow];
 
+  const paginationItemStyle = {
+    background: '#374151',
+    color: '#e5e7eb',
+    borderRadius: 6,
+    padding: '2px 8px',
+    border: '1px solid #4b5563',
+  };
+
+  const itemRender = (page, type, originalElement) => {
+    switch (type) {
+      case 'page':
+        return <a style={paginationItemStyle}>{page}</a>;
+      case 'prev':
+        return <a style={paginationItemStyle}>Orqaga</a>;
+      case 'next':
+        return <a style={paginationItemStyle}>Oldinga</a>;
+      case 'jump-prev':
+      case 'jump-next':
+        return <a style={paginationItemStyle}>...</a>;
+      default:
+        return originalElement;
+    }
+  };
+
   // Show loading state
   if (loading) {
     console.log("Showing loading state");
@@ -493,33 +520,45 @@ const ControllersPage = () => {
         </Row>
 
         {/* Main Table */}
-        <div className="overflow-x-auto">
-          <Table
-            loading={loading}
-            columns={columns}
-            dataSource={dataWithTotal}
-            onChange={(_, __, sorter) => {
-              const s = Array.isArray(sorter) ? sorter[0] : sorter;
-              const order = s?.order || null;
-              const fieldKey = s?.columnKey || null;
-              if (!order || !fieldKey) {
-                setSortConfig({ field: null, order: 'ascend' });
-              } else {
-                setSortConfig({ field: fieldKey, order });
-              }
-            }}
-            scroll={{ x: "max-content" }}
-            bordered
-            size="small"
-            pagination={{
-              pageSize: 20,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} записей`,
-            }}
-            className="region-statistics-table"
-            style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
-          />
+        <div className="overflow-x-auto controllers-table">
+          <ConfigProvider locale={{ Pagination: { items_per_page: 'Sahifa' } }}>
+            <Table
+              loading={loading}
+              columns={columns}
+              dataSource={dataWithTotal}
+              onChange={(_, __, sorter) => {
+                const s = Array.isArray(sorter) ? sorter[0] : sorter;
+                const order = s?.order || null;
+                const fieldKey = s?.columnKey || null;
+                if (!order || !fieldKey) {
+                  setSortConfig({ field: null, order: 'ascend' });
+                } else {
+                  setSortConfig({ field: fieldKey, order });
+                }
+              }}
+              scroll={{ x: "max-content" }}
+              bordered
+              size="small"
+              pagination={{
+                current: currentPage,
+                pageSize: pageSize,
+                total: dataWithTotal.length,
+                position: ['bottomCenter'],
+                showSizeChanger: true,
+                pageSizeOptions: ['10','20','50','100'],
+                showQuickJumper: true,
+                showLessItems: false,
+                itemRender,
+                onChange: (page, size) => {
+                  setCurrentPage(page);
+                  setPageSize(size);
+                },
+                showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} yozuv`,
+              }}
+              className="region-statistics-table"
+              style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
+            />
+          </ConfigProvider>
         </div>
       </div>
     </StatisticsLayout>

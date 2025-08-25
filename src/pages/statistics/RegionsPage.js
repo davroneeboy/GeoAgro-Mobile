@@ -4,7 +4,8 @@ import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { 
   fetchRegionsStatistics, 
-  fetchRegionApprovedStatistics
+  fetchRegionApprovedStatistics,
+  fetchRegionRejectedOverallStatistics
 } from "../../api/api";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
@@ -50,6 +51,7 @@ const RegionsPage = () => {
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved'
   const [approvedTotals, setApprovedTotals] = useState(null);
+  const [rejectedTotals, setRejectedTotals] = useState(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -68,6 +70,7 @@ const RegionsPage = () => {
         if (activeTab === 'all') {
           // Для всех плантаций используем новый API статистики регионов
           setApprovedTotals(null);
+          setRejectedTotals(null);
           
           // Подготавливаем параметры для нового API
           const params = {};
@@ -275,7 +278,6 @@ const RegionsPage = () => {
           setStatistics(data);
           setApprovedTotals(totalStats);
         } else if (activeTab === 'approved') {
-          // Для подтвержденных используем новый API статистики одобренных плантаций
           
           // Подготавливаем параметры для нового API
           const params = {};
@@ -306,15 +308,11 @@ const RegionsPage = () => {
 
           // Загружаем данные для всех регионов сразу
           const approvedData = await fetchRegionApprovedStatistics(null, params, authState.accessToken);
-          console.log('Approved data from API:', approvedData);
-          console.log('Approved data keys:', Object.keys(approvedData));
-          console.log('by_region_with_planted_area exists:', !!approvedData.by_region_with_planted_area);
-          console.log('by_region_with_planted_area length:', approvedData.by_region_with_planted_area?.length);
           
           // Преобразуем данные в нужный формат (используем ту же структуру, что и для 'all')
           data = {};
           
-          // Создаем массив всех регионов с нулевыми значениями
+          // Справочник регионов
           const allRegions = {
             1: "Tashkent",
             2: "Andijan", 
@@ -331,7 +329,7 @@ const RegionsPage = () => {
             13: "Xorazm",
           };
 
-          // Инициализируем все регионы с нулевыми значениями
+          // Инициализируем все регионы нулями
           Object.keys(allRegions).forEach(regionId => {
             data[regionId] = {
               region: allRegions[regionId],
@@ -339,14 +337,14 @@ const RegionsPage = () => {
               total_plantations: 0,
               total_fruitarea: 0,
               total_approved_fruitarea: 0,
-              // Данные по типам плантаций
+              // Типы
               bogs_count: 0,
               bogs_area: 0,
               uzumzors_count: 0,
               uzumzors_area: 0,
               issiqxonas_count: 0,
               issiqxonas_area: 0,
-              // Остальные данные
+              // Остальное
               investment_local: 0,
               investment_foreign: 0,
               subsidy_count: 0,
@@ -354,111 +352,202 @@ const RegionsPage = () => {
             };
           });
 
-          // Заполняем данные для регионов из by_region_with_planted_area
-          if (approvedData.by_region_with_planted_area) {
-            console.log('Processing approved by_region_with_planted_area:', approvedData.by_region_with_planted_area);
-            approvedData.by_region_with_planted_area.forEach(regionData => {
+          // Общая сводка по регионам (кол-во и площадь)
+          if (approvedData.approved_by_region) {
+            approvedData.approved_by_region.forEach(regionData => {
+              const regionId = regionData.district__region?.toString();
+              if (!regionId) return;
+              if (!data[regionId]) data[regionId] = { region: allRegions[regionId] || `Region ${regionId}` };
+              data[regionId] = {
+                ...data[regionId],
+                total_area: Number(regionData.total_area || 0),
+                total_plantations: Number(regionData.count || 0),
+              };
+            });
+          }
+
+          // Типы по регионам + вычисление total_approved_fruitarea
+          if (approvedData.approved_by_region_types) {
+            approvedData.approved_by_region_types.forEach(regionData => {
+              const regionId = regionData.district__region?.toString();
+              if (!regionId || !data[regionId]) return;
+              const bogsArea = Number(regionData.bogs_area || 0);
+              const uzumzorsArea = Number(regionData.uzumzors_area || 0);
+              const issiqxonasArea = Number(regionData.issiqxonas_area || 0);
+              const totalApprovedFruitArea = bogsArea + uzumzorsArea + issiqxonasArea;
+              data[regionId] = {
+                ...data[regionId],
+                bogs_count: Number(regionData.bogs_count || 0),
+                bogs_area: bogsArea,
+                uzumzors_count: Number(regionData.uzumzors_count || 0),
+                uzumzors_area: uzumzorsArea,
+                issiqxonas_count: Number(regionData.issiqxonas_count || 0),
+                issiqxonas_area: issiqxonasArea,
+                total_approved_fruitarea: totalApprovedFruitArea,
+              };
+            });
+          }
+
+          // Инвестиции
+          if (approvedData.approved_investments_by_region) {
+            approvedData.approved_investments_by_region.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
-              console.log(`Processing region ${regionId} with planted_area ${regionData.planted_area}`);
+              if (!regionId || !data[regionId]) return;
+              data[regionId] = {
+                ...data[regionId],
+                investment_local: Number(regionData.local || 0),
+                investment_foreign: Number(regionData.foreign || 0),
+              };
+            });
+          }
+
+          // Субсидии
+          if (approvedData.approved_subsidies_by_region) {
+            approvedData.approved_subsidies_by_region.forEach(regionData => {
+              const regionId = regionData.plantation__district__region?.toString();
+              if (!regionId || !data[regionId]) return;
+              data[regionId] = {
+                ...data[regionId],
+                subsidy_count: Number(regionData.beneficiary_count || 0),
+                total_subsidy: Number(regionData.total_amount || 0),
+              };
+            });
+          }
+
+          // Тоталы для карточек/экспорта
+          const totalStats = {
+            total_plantations: Number(approvedData.total_approved_plantations || 0),
+            total_area: Number(approvedData.total_approved_area || 0),
+            total_approved_fruitarea: Number(approvedData.total_approved_fruitarea || 0),
+            investment_local: Number(approvedData.approved_investments?.local || 0),
+            investment_foreign: Number(approvedData.approved_investments?.foreign || 0),
+            subsidy_count: Number(approvedData.approved_subsidies?.beneficiary_count || 0),
+            total_subsidy: Number(approvedData.approved_subsidies?.total_amount || 0),
+            low_fertility_count: 0,
+            low_fertility_area: Number(approvedData.approved_fertility_stats?.low_fertility_area || 0),
+            high_fertility_count: 0,
+            high_fertility_area: Number(approvedData.approved_fertility_stats?.high_fertility_area || 0),
+            irrigation_count: 0,
+            irrigation_area: 0,
+            // Суммы по типам
+            bogs_count: approvedData.approved_by_region_types?.reduce((s, r) => s + Number(r.bogs_count || 0), 0) || 0,
+            bogs_area: approvedData.approved_by_region_types?.reduce((s, r) => s + Number(r.bogs_area || 0), 0) || 0,
+            uzumzors_count: approvedData.approved_by_region_types?.reduce((s, r) => s + Number(r.uzumzors_count || 0), 0) || 0,
+            uzumzors_area: approvedData.approved_by_region_types?.reduce((s, r) => s + Number(r.uzumzors_area || 0), 0) || 0,
+            issiqxonas_count: approvedData.approved_by_region_types?.reduce((s, r) => s + Number(r.issiqxonas_count || 0), 0) || 0,
+            issiqxonas_area: approvedData.approved_by_region_types?.reduce((s, r) => s + Number(r.issiqxonas_area || 0), 0) || 0,
+          };
+          
+          setStatistics(data);
+          setApprovedTotals(totalStats);
+          setRejectedTotals(null);
+        } else if (activeTab === 'rejected') {
+          // Для отклонённых используем новый API статистики
+          // Подготавливаем параметры
+          const params = {};
+          if (filters.garden_established_year) params.est_date = filters.garden_established_year;
+          if (filters.planted_year) params.planted_year = filters.planted_year;
+          if (filters.min_fertility) params.min_fertility = filters.min_fertility;
+          if (filters.max_fertility) params.max_fertility = filters.max_fertility;
+          if (filters.sort_by !== 'plantations') params.sort_by = filters.sort_by;
+          if (filters.sort_direction !== 'desc') params.sort_direction = filters.sort_direction;
+
+          const rejectedData = await fetchRegionRejectedOverallStatistics(params, authState.accessToken);
+          // Преобразуем rejected по той же схеме, что и approved
+          data = {};
+          const allRegions = {
+            1: "Tashkent",
+            2: "Andijan", 
+            3: "Bukhara",
+            4: "Fergana",
+            5: "Jizzakh",
+            6: "Kashkadarya",
+            7: "Navoi",
+            8: "Namangan",
+            9: "Samarkand",
+            10: "Sirdarya",
+            11: "Surkhandarya",
+            12: "Karakalpakstan",
+            13: "Xorazm",
+          };
+
+          Object.keys(allRegions).forEach(regionId => {
+            data[regionId] = {
+              region: allRegions[regionId],
+              total_area: 0,
+              total_plantations: 0,
+              total_fruitarea: 0,
+              bogs_count: 0,
+              bogs_area: 0,
+              uzumzors_count: 0,
+              uzumzors_area: 0,
+              issiqxonas_count: 0,
+              issiqxonas_area: 0,
+              investment_local: 0,
+              investment_foreign: 0,
+              subsidy_count: 0,
+              total_subsidy: 0
+            };
+          });
+
+          if (rejectedData.by_region_with_planted_area) {
+            rejectedData.by_region_with_planted_area.forEach(regionData => {
+              const regionId = regionData.plantation__district__region?.toString();
               if (regionId) {
-                // Создаем запись для региона, если её нет
                 if (!data[regionId]) {
-                  data[regionId] = {
-                    region: allRegions[regionId] || `Region ${regionId}`,
-                    total_area: 0,
-                    total_plantations: 0,
-                    total_fruitarea: 0,
-                    total_approved_fruitarea: 0,
-                    bogs_count: 0,
-                    bogs_area: 0,
-                    uzumzors_count: 0,
-                    uzumzors_area: 0,
-                    issiqxonas_count: 0,
-                    issiqxonas_area: 0,
-                    investment_local: 0,
-                    investment_foreign: 0,
-                    subsidy_count: 0,
-                    total_subsidy: 0
-                  };
+                  data[regionId] = { region: allRegions[regionId] || `Region ${regionId}` };
                 }
-                
                 data[regionId] = {
                   ...data[regionId],
                   total_area: regionData.total_area ?? 0,
                   total_plantations: regionData.count ?? 0,
-                  total_approved_fruitarea: regionData.planted_area ?? 0,
+                  total_fruitarea: regionData.planted_area ?? 0,
                 };
-                console.log(`Approved Region ${regionId}: total_approved_fruitarea = ${regionData.planted_area}`);
-                console.log(`Updated data for region ${regionId}:`, data[regionId]);
               }
             });
           }
 
-          // Заполняем данные по типам плантаций из by_region_types
-          if (approvedData.by_region_types) {
-            approvedData.by_region_types.forEach(regionData => {
+          if (rejectedData.rejected_by_region) {
+            rejectedData.rejected_by_region.forEach(regionData => {
               const regionId = regionData.district__region?.toString();
               if (regionId) {
-                // Создаем запись для региона, если её нет
                 if (!data[regionId]) {
-                  data[regionId] = {
-                    region: allRegions[regionId] || `Region ${regionId}`,
-                    total_area: 0,
-                    total_plantations: 0,
-                    total_fruitarea: 0,
-                    total_approved_fruitarea: 0,
-                    bogs_count: 0,
-                    bogs_area: 0,
-                    uzumzors_count: 0,
-                    uzumzors_area: 0,
-                    issiqxonas_count: 0,
-                    issiqxonas_area: 0,
-                    investment_local: 0,
-                    investment_foreign: 0,
-                    subsidy_count: 0,
-                    total_subsidy: 0
-                  };
+                  data[regionId] = { region: allRegions[regionId] || `Region ${regionId}` };
                 }
-                
+                data[regionId] = {
+                  ...data[regionId],
+                  total_area: regionData.total_area ?? 0,
+                  total_plantations: regionData.count ?? 0,
+                  total_fruitarea: data[regionId]?.total_fruitarea ?? 0,
+                };
+              }
+            });
+          }
+
+          if (rejectedData.rejected_by_region_types) {
+            rejectedData.rejected_by_region_types.forEach(regionData => {
+              const regionId = regionData.district__region?.toString();
+              if (regionId && data[regionId]) {
+                const bogsArea = Number(regionData.bogs_area || 0);
+                const uzumzorsArea = Number(regionData.uzumzors_area || 0);
+                const issiqxonasArea = Number(regionData.issiqxonas_area || 0);
                 data[regionId] = {
                   ...data[regionId],
                   bogs_count: regionData.bogs_count ?? 0,
-                  bogs_area: regionData.bogs_area ?? 0,
+                  bogs_area: bogsArea,
                   uzumzors_count: regionData.uzumzors_count ?? 0,
-                  uzumzors_area: regionData.uzumzors_area ?? 0,
+                  uzumzors_area: uzumzorsArea,
                   issiqxonas_count: regionData.issiqxonas_count ?? 0,
-                  issiqxonas_area: regionData.issiqxonas_area ?? 0,
+                  issiqxonas_area: issiqxonasArea,
                 };
               }
             });
           }
 
-          // Заполняем данные по инвестициям из investments_by_region
-          if (approvedData.investments_by_region) {
-            approvedData.investments_by_region.forEach(regionData => {
+          if (rejectedData.rejected_investments_by_region) {
+            rejectedData.rejected_investments_by_region.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
-              if (regionId) {
-                // Создаем запись для региона, если её нет
-                if (!data[regionId]) {
-                  data[regionId] = {
-                    region: allRegions[regionId] || `Region ${regionId}`,
-                    total_area: 0,
-                    total_plantations: 0,
-                    total_fruitarea: 0,
-                    total_approved_fruitarea: 0,
-                    bogs_count: 0,
-                    bogs_area: 0,
-                    uzumzors_count: 0,
-                    uzumzors_area: 0,
-                    issiqxonas_count: 0,
-                    issiqxonas_area: 0,
-                    investment_local: 0,
-                    investment_foreign: 0,
-                    subsidy_count: 0,
-                    total_subsidy: 0
-                  };
-                }
-                
+              if (regionId && data[regionId]) {
                 data[regionId] = {
                   ...data[regionId],
                   investment_local: regionData.local ?? 0,
@@ -468,32 +557,10 @@ const RegionsPage = () => {
             });
           }
 
-          // Заполняем данные по субсидиям из subsidies_by_region
-          if (approvedData.subsidies_by_region) {
-            approvedData.subsidies_by_region.forEach(regionData => {
+          if (rejectedData.rejected_subsidies_by_region) {
+            rejectedData.rejected_subsidies_by_region.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
-              if (regionId) {
-                // Создаем запись для региона, если её нет
-                if (!data[regionId]) {
-                  data[regionId] = {
-                    region: allRegions[regionId] || `Region ${regionId}`,
-                    total_area: 0,
-                    total_plantations: 0,
-                    total_fruitarea: 0,
-                    total_approved_fruitarea: 0,
-                    bogs_count: 0,
-                    bogs_area: 0,
-                    uzumzors_count: 0,
-                    uzumzors_area: 0,
-                    issiqxonas_count: 0,
-                    issiqxonas_area: 0,
-                    investment_local: 0,
-                    investment_foreign: 0,
-                    subsidy_count: 0,
-                    total_subsidy: 0
-                  };
-                }
-                
+              if (regionId && data[regionId]) {
                 data[regionId] = {
                   ...data[regionId],
                   subsidy_count: regionData.beneficiary_count ?? 0,
@@ -503,39 +570,34 @@ const RegionsPage = () => {
             });
           }
 
-          // Добавляем общую статистику из корневых полей
           const totalStats = {
-            total_plantations: approvedData.total_plantations ?? 0,
-            total_area: approvedData.total_area ?? 0,
-            total_approved_fruitarea: approvedData.planted_area ?? approvedData.total_fruitarea ?? 0,
-            investment_local: approvedData.investments?.local ?? 0,
-            investment_foreign: approvedData.investments?.foreign ?? 0,
-            subsidy_count: approvedData.subsidies?.beneficiary_count ?? 0,
-            total_subsidy: approvedData.subsidies?.total_amount ?? 0,
+            total_plantations: rejectedData.total_rejected_plantations ?? 0,
+            total_area: rejectedData.total_rejected_area ?? 0,
+            total_fruitarea: rejectedData.total_rejected_fruitarea ?? 0,
+            investment_local: rejectedData.rejected_investments?.local ?? 0,
+            investment_foreign: rejectedData.rejected_investments?.foreign ?? 0,
+            subsidy_count: rejectedData.rejected_subsidies?.beneficiary_count ?? 0,
+            total_subsidy: rejectedData.rejected_subsidies?.total_amount ?? 0,
             low_fertility_count: 0,
-            low_fertility_area: approvedData.fertility_stats?.low_fertility_area ?? 0,
+            low_fertility_area: rejectedData.rejected_fertility_stats?.low_fertility_area ?? 0,
             high_fertility_count: 0,
-            high_fertility_area: approvedData.fertility_stats?.high_fertility_area ?? 0,
+            high_fertility_area: rejectedData.rejected_fertility_stats?.high_fertility_area ?? 0,
             irrigation_count: 0,
             irrigation_area: 0,
-            // Суммируем данные по типам плантаций из by_region_types
-            bogs_count: approvedData.by_region_types?.reduce((sum, region) => sum + (region.bogs_count ?? 0), 0) ?? 0,
-            bogs_area: approvedData.by_region_types?.reduce((sum, region) => sum + (region.bogs_area ?? 0), 0) ?? 0,
-            uzumzors_count: approvedData.by_region_types?.reduce((sum, region) => sum + (region.uzumzors_count ?? 0), 0) ?? 0,
-            uzumzors_area: approvedData.by_region_types?.reduce((sum, region) => sum + (region.uzumzors_area ?? 0), 0) ?? 0,
-            issiqxonas_count: approvedData.by_region_types?.reduce((sum, region) => sum + (region.issiqxonas_count ?? 0), 0) ?? 0,
-            issiqxonas_area: approvedData.by_region_types?.reduce((sum, region) => sum + (region.issiqxonas_area ?? 0), 0) ?? 0,
+            bogs_count: rejectedData.rejected_by_region_types?.reduce((sum, region) => sum + (region.bogs_count ?? 0), 0) ?? 0,
+            bogs_area: rejectedData.rejected_by_region_types?.reduce((sum, region) => sum + (region.bogs_area ?? 0), 0) ?? 0,
+            uzumzors_count: rejectedData.rejected_by_region_types?.reduce((sum, region) => sum + (region.uzumzors_count ?? 0), 0) ?? 0,
+            uzumzors_area: rejectedData.rejected_by_region_types?.reduce((sum, region) => sum + (region.uzumzors_area ?? 0), 0) ?? 0,
+            issiqxonas_count: rejectedData.rejected_by_region_types?.reduce((sum, region) => sum + (region.issiqxonas_count ?? 0), 0) ?? 0,
+            issiqxonas_area: rejectedData.rejected_by_region_types?.reduce((sum, region) => sum + (region.issiqxonas_area ?? 0), 0) ?? 0,
           };
-          
-          console.log('Approved total stats:', totalStats);
-          console.log('Setting approved statistics state with:', data);
-          console.log('Data keys after processing:', Object.keys(data));
-          console.log('Data entries after processing:', Object.entries(data));
           setStatistics(data);
-          setApprovedTotals(totalStats);
+          setRejectedTotals(totalStats);
+          setApprovedTotals(null);
         } else {
           // Для остальных случаев очищаем данные
           setApprovedTotals(null);
+          setRejectedTotals(null);
           data = {};
         }
         
@@ -585,7 +647,7 @@ const RegionsPage = () => {
       
       // Получаем данные для экспорта
       const exportData = sortedTableData;
-      const exportTotals = activeTab === 'approved' ? approvedTotals : {
+      const exportTotals = activeTab === 'approved' ? approvedTotals : activeTab === 'rejected' ? rejectedTotals : {
         total_area: exportData.reduce((sum, row) => sum + (row.total_area || 0), 0),
         total_plantations: exportData.reduce((sum, row) => sum + (row.total_plantations || 0), 0),
         total_fruitarea: exportData.reduce((sum, row) => sum + (row.total_fruitarea || 0), 0),
@@ -726,6 +788,12 @@ const RegionsPage = () => {
       ...approvedTotals
     };
     console.log('Total row for', activeTab, ':', totalRow);
+  } else if (activeTab === 'rejected' && rejectedTotals) {
+    totalRow = {
+      key: "total",
+      region: "Jami",
+      ...rejectedTotals
+    };
   } else {
     // Для остальных случаев вычисляем сумму
     totalRow = tableData.reduce(
@@ -954,6 +1022,16 @@ const RegionsPage = () => {
               }`}
             >
               Tasdiqlangan
+            </button>
+            <button
+              onClick={() => setActiveTab('rejected')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'rejected'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              Rad etilgan
             </button>
           </div>
           

@@ -21,7 +21,7 @@ const RejectedPlantations = () => {
     region: 'All',
     crop_type: 'All'
   });
-
+  
   const pageSize = 20;
   const totalPages = Math.ceil(count / pageSize);
 
@@ -489,6 +489,7 @@ const RejectedPlantations = () => {
                         <div className="text-white text-xs">{plantation.moderation_comment || plantation.comment || plantation.rejection_reason}</div>
                       </div>
                     )}
+                    
                   </div>
                 ))}
               </div>
@@ -706,6 +707,7 @@ const RejectedPlantations = () => {
                     <div className="text-white text-xs">{plantation.moderation_comment || plantation.comment || plantation.rejection_reason}</div>
                   </div>
                 )}
+                
               </div>
             ))}
           </div>

@@ -482,3 +482,39 @@ code {
 .ant-select .ant-select-clear:hover {
   color: #e5e7eb !important;
 }
+
+/* Dark theme overrides for AntD pagination in controllers table */
+.controllers-table .ant-pagination {
+  color: #e5e7eb !important;
+}
+.controllers-table .ant-pagination-item,
+.controllers-table .ant-pagination-prev .ant-pagination-item-link,
+.controllers-table .ant-pagination-next .ant-pagination-item-link,
+.controllers-table .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-link-icon,
+.controllers-table .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-link-icon {
+  background-color: #374151 !important; /* gray-700 */
+  border: 1px solid #4b5563 !important; /* gray-600 */
+  color: #e5e7eb !important; /* gray-200 */
+}
+.controllers-table .ant-pagination-item a {
+  color: #e5e7eb !important;
+}
+.controllers-table .ant-pagination-item-active {
+  background-color: #1f2937 !important; /* gray-800 */
+  border-color: #60a5fa !important; /* blue-400 */
+}
+.controllers-table .ant-pagination-options-quick-jumper input {
+  background-color: #1f2937 !important;
+  border: 1px solid #4b5563 !important;
+  color: #e5e7eb !important;
+}
+.controllers-table .ant-pagination-options {
+  color: #e5e7eb !important;
+}
+.controllers-table .ant-select-selector {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+.controllers-table .ant-select-arrow { color: #e5e7eb !important; }
+.controllers-table .ant-pagination-total-text { color: #e5e7eb !important; }

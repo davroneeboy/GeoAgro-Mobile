@@ -222,6 +222,7 @@ const ApprovedPlantations = () => {
           page: page.toString(),
           page_size: pageSize.toString(),
           is_checked: 'True',
+          is_rejected: 'False',
           region: filters.region !== "All" ? filters.region : undefined,
           district: filters.district !== "All" ? filters.district : undefined,
           crop_type: filters.crop_type !== "All" ? filters.crop_type : undefined,
