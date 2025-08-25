@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import { USER_ROLES, ROLE_PERMISSIONS } from "./constants";
 
 const AuthContext = createContext();
 
@@ -7,16 +8,33 @@ export const AuthProvider = ({ children }) => {
     accessToken: localStorage.getItem("accessToken"),
     refreshToken: localStorage.getItem("refreshToken"),
     username: localStorage.getItem("username"),
+    userInfo: JSON.parse(localStorage.getItem("userInfo") || "null"),
   });
 
   const login = (data) => {
     localStorage.setItem("accessToken", data.access);
     localStorage.setItem("refreshToken", data.refresh);
     localStorage.setItem("username", data.username);
+    
+    // Сохраняем информацию о пользователе
+    const userInfo = {
+      id: data.id,
+      username: data.username,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      role: data.role || USER_ROLES.MODERATOR, // По умолчанию moderator
+      is_headof_region: data.is_headof_region || false,
+      region_id: data.region_id,
+      permissions: ROLE_PERMISSIONS[data.role] || ROLE_PERMISSIONS[USER_ROLES.MODERATOR],
+    };
+    
+    localStorage.setItem("userInfo", JSON.stringify(userInfo));
+    
     setAuthState({
       accessToken: data.access,
       refreshToken: data.refresh,
       username: data.username,
+      userInfo,
     });
   };
 
@@ -24,10 +42,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("username");
+    localStorage.removeItem("userInfo");
     setAuthState({
       accessToken: null,
       refreshToken: null,
       username: null,
+      userInfo: null,
     });
   };
 
@@ -64,21 +84,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Функция для проверки прав доступа
+  const hasPermission = (permission) => {
+    return authState.userInfo?.permissions?.[permission] || false;
+  };
+
+  // Функция для проверки роли
+  const hasRole = (role) => {
+    return authState.userInfo?.role === role;
+  };
+
+  // Функция для получения региона пользователя (для headofregion)
+  const getUserRegion = () => {
+    return authState.userInfo?.region_id;
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
     const username = localStorage.getItem("username");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
+    
     if (accessToken && refreshToken && username) {
       setAuthState({
         accessToken,
         refreshToken,
         username,
+        userInfo,
       });
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ authState, login, logout, refreshAccessToken }}>
+    <AuthContext.Provider value={{ 
+      authState, 
+      login, 
+      logout, 
+      refreshAccessToken,
+      hasPermission,
+      hasRole,
+      getUserRegion,
+    }}>
       {children}
     </AuthContext.Provider>
   );

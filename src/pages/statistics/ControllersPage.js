@@ -9,6 +9,7 @@ import {
   Alert,
   Statistic,
   Button,
+  DatePicker,
 } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
@@ -16,6 +17,7 @@ import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
 
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const REGION_NAMES = {
   1: "Tashkent",
@@ -33,42 +35,56 @@ const REGION_NAMES = {
   13: "Xorazm",
 };
 
+const TIME_FILTER_OPTIONS = [
+  { value: 7, label: "So'nggi 7 kun" },
+  { value: 30, label: "So'nggi 30 kun" },
+  { value: 90, label: "So'nggi 90 kun" },
+  { value: 365, label: "So'nggi yil" },
+  { value: "custom", label: "Maxsus davr" },
+];
+
 const ControllersPage = () => {
-  console.log("ControllersPage component rendered"); // Debug log 1
+  console.log("ControllersPage component rendered");
 
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statistics, setStatistics] = useState({});
+  const [statistics, setStatistics] = useState([]);
   const [filters, setFilters] = useState({
-    regions: [],
+    timeFilter: 30, // По умолчанию 30 дней
+    customDateRange: null,
   });
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("Fetching data..."); // Debug log 2
-      console.log("API URL:", `${API_BASE_URL1}api/statistics/users/detailed/`); // Debug log 3
-
+      console.log("Fetching data...");
+      
       try {
         setLoading(true);
         let url = `${API_BASE_URL1}api/statistics/users/detailed/`;
         const queryParams = new URLSearchParams();
 
-        if (filters.regions.length > 0) {
-          queryParams.append("regions", filters.regions.join(","));
+        // Добавляем параметр времени
+        if (filters.timeFilter !== "custom") {
+          queryParams.append("days", filters.timeFilter);
+        } else if (filters.customDateRange && filters.customDateRange.length === 2) {
+          const [startDate, endDate] = filters.customDateRange;
+          queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
+          queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
         }
 
         if (queryParams.toString()) {
           url += `?${queryParams.toString()}`;
         }
 
+        console.log("API URL:", url);
         const data = await fetchStatisticsData(url, authState.accessToken);
-        console.log("Received data:", data); // Debug log 5
+        console.log("Received data:", data);
 
-        setStatistics(data);
+        setStatistics(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Error details:", err); // Debug log 6
+        console.error("Error details:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -78,18 +94,30 @@ const ControllersPage = () => {
     fetchData();
   }, [filters, authState.accessToken]);
 
-  console.log("Current state:", { loading, error, statistics }); // Debug log 7
-
   const handleResetFilters = () => {
     setFilters({
-      regions: [],
+      timeFilter: 30,
+      customDateRange: null,
     });
   };
 
-  // Error alert will be rendered inside the layout below
+  const handleTimeFilterChange = (value) => {
+    setFilters(prev => ({
+      ...prev,
+      timeFilter: value,
+      customDateRange: value === "custom" ? prev.customDateRange : null,
+    }));
+  };
 
-  // API возвращает массив пользователей; соберём строки таблицы напрямую
-  const tableData = (Array.isArray(statistics) ? statistics : []).map((user, idx) => ({
+  const handleCustomDateRangeChange = (dates) => {
+    setFilters(prev => ({
+      ...prev,
+      customDateRange: dates,
+    }));
+  };
+
+  // Подготовка данных для таблицы
+  const tableData = statistics.map((user, idx) => ({
     key: user.id ?? idx,
     ...user,
   }));
@@ -120,40 +148,21 @@ const ControllersPage = () => {
       : (REGION_NAMES[value] || String(value));
   };
 
-  const formatDistricts = (listLike) => {
-    if (listLike == null) return '—';
-    const list = Array.isArray(listLike) ? listLike : [listLike];
-    const normalized = list
-      .map((d) => {
-        if (d == null) return '';
-        if (typeof d === 'string') return d.trim();
-        if (typeof d === 'number') return String(d);
-        if (typeof d === 'object') {
-          return d.name || d.title || d.label || d.district || d.district_name || String(d.id ?? '');
-        }
-        return '';
-      })
-      .map((s) => s?.trim())
-      .filter(Boolean);
-    return normalized.join(', ') || '—';
-  };
-
-  const extractDistrictNames = (record) => {
-    const raw =
-      record?.districts ??
-      record?.district ??
-      record?.location?.districts ??
-      record?.location?.district ??
-      record?.district_names ??
-      record?.location?.district_name ??
-      record?.location?.districts_names ??
-      null;
-
-    if (typeof raw === 'string' && raw.includes(',')) {
-      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    try {
+      return new Date(dateString).toLocaleDateString('uz-UZ', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateString;
     }
-    return raw;
   };
+
   const sortedTableData = React.useMemo(() => {
     if (!sortConfig?.field) return tableData;
     const collator = new Intl.Collator('ru', { sensitivity: 'base' });
@@ -166,15 +175,19 @@ const ControllersPage = () => {
         case 'phone':
           return record.phone_number || '';
         case 'region':
-          return mapRegion(record.region ?? record.location?.region) || '';
-        case 'districts':
-          return formatDistricts(extractDistrictNames(record)) || '';
+          return mapRegion(record.location?.region) || '';
+        case 'district':
+          return record.location?.district || '';
+        case 'last_login':
+          return record.last_login || '';
         case 'total_plantations':
           return Number(record.plantations_stats?.total || 0);
         case 'approved_plantations':
           return Number(record.plantations_stats?.approved || 0);
         case 'rejected_plantations':
           return Number(record.plantations_stats?.rejected || 0);
+        case 'rejection_rate':
+          return Number(record.plantations_stats?.rejection_rate || 0);
         case 'kpi_points':
           return Number(record.kpi_current?.points || 0);
         case 'kpi_amount':
@@ -208,7 +221,9 @@ const ControllersPage = () => {
       sorter: true,
       sortOrder: sortConfig.field === 'full_name' ? sortConfig.order : null,
       render: (_value, record) => (
-        <span style={textLight}>{`${record.first_name || ""} ${record.last_name || ""}`}</span>
+        <span style={textLight}>
+          {`${record.first_name || ""} ${record.last_name || ""}`.trim() || "—"}
+        </span>
       ),
     },
     {
@@ -225,7 +240,7 @@ const ControllersPage = () => {
       key: "phone",
       sorter: true,
       sortOrder: sortConfig.field === 'phone' ? sortConfig.order : null,
-      render: (value) => <span style={textLight}>{value}</span>,
+      render: (value) => <span style={textLight}>{value || "—"}</span>,
     },
     {
       title: <span style={textLight}>Region</span>,
@@ -233,18 +248,26 @@ const ControllersPage = () => {
       sorter: true,
       sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
       render: (_v, record) => (
-        <span style={textLight}>{mapRegion(record.region ?? record.location?.region)}</span>
+        <span style={textLight}>{mapRegion(record.location?.region)}</span>
       ),
     },
     {
-      title: <span style={textLight}>Tumanlar</span>,
-      key: "districts",
+      title: <span style={textLight}>Tuman</span>,
+      key: "district",
       sorter: true,
-      sortOrder: sortConfig.field === 'districts' ? sortConfig.order : null,
-      render: (_v, record) => {
-        const list = extractDistrictNames(record);
-        return <span style={textLight}>{formatDistricts(list)}</span>;
-      },
+      sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
+      render: (_v, record) => (
+        <span style={textLight}>{record.location?.district || "—"}</span>
+      ),
+    },
+    {
+      title: <span style={textLight}>Oxirgi kirish</span>,
+      key: "last_login",
+      sorter: true,
+      sortOrder: sortConfig.field === 'last_login' ? sortConfig.order : null,
+      render: (_v, record) => (
+        <span style={textLight}>{formatDate(record.last_login)}</span>
+      ),
     },
     {
       title: <span style={textLight}>Plantatsiyalar</span>,
@@ -272,6 +295,14 @@ const ControllersPage = () => {
           sorter: true,
           sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
+        },
+        {
+          title: <span style={textLight}>Rad etish %</span>,
+          dataIndex: ["plantations_stats", "rejection_rate"],
+          key: "rejection_rate",
+          sorter: true,
+          sortOrder: sortConfig.field === 'rejection_rate' ? sortConfig.order : null,
+          render: (v) => <span style={textLight}>{v ? `${v.toFixed(1)}%` : "0%"}</span>,
         },
       ],
     },
@@ -308,6 +339,7 @@ const ControllersPage = () => {
       total: totals.total,
       approved: totals.approved,
       rejected: totals.rejected,
+      rejection_rate: totals.total > 0 ? (totals.rejected / totals.total) * 100 : 0,
     },
     kpi_current: {
       points: totals.kpiPoints,
@@ -319,7 +351,7 @@ const ControllersPage = () => {
 
   // Show loading state
   if (loading) {
-    console.log("Showing loading state"); // Debug log 8
+    console.log("Showing loading state");
     return (
       <StatisticsLayout>
         <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
@@ -329,7 +361,7 @@ const ControllersPage = () => {
     );
   }
 
-  console.log("Rendering table with data:", dataWithTotal); // Debug log 10
+  console.log("Rendering table with data:", dataWithTotal);
 
   return (
     <StatisticsLayout>
@@ -353,28 +385,40 @@ const ControllersPage = () => {
           />
         )}
 
+        {/* Фильтры */}
         <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[12, 12]}>
             <Col xs={24} md={8}>
               <div className="mb-2 sm:mb-4">
-                <label className="block mb-2 text-gray-200">Viloyatlar</label>
+                <label className="block mb-2 text-gray-200">Vaqt filtri</label>
                 <Select
-                  mode="multiple"
                   style={{ width: "100%" }}
-                  placeholder="Viloyatlarni tanlang"
-                  value={filters.regions}
-                  onChange={(value) =>
-                    setFilters({ ...filters, regions: value })
-                  }
+                  placeholder="Vaqt davrini tanlang"
+                  value={filters.timeFilter}
+                  onChange={handleTimeFilterChange}
                 >
-                  {Object.entries(REGION_NAMES).map(([id, name]) => (
-                    <Option key={id} value={id}>
-                      {name}
+                  {TIME_FILTER_OPTIONS.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
                     </Option>
                   ))}
                 </Select>
               </div>
             </Col>
+            {filters.timeFilter === "custom" && (
+              <Col xs={24} md={8}>
+                <div className="mb-2 sm:mb-4">
+                  <label className="block mb-2 text-gray-200">Maxsus davr</label>
+                  <RangePicker
+                    style={{ width: "100%" }}
+                    value={filters.customDateRange}
+                    onChange={handleCustomDateRangeChange}
+                    format="DD.MM.YYYY"
+                    placeholder={["Boshlanish sanasi", "Tugash sanasi"]}
+                  />
+                </div>
+              </Col>
+            )}
             <Col xs={24} md={8}>
               <div className="mb-2 sm:mb-4">
                 <label className="block mb-2 text-gray-200">Saralash ustuni</label>
@@ -389,10 +433,12 @@ const ControllersPage = () => {
                   <Option value="username">Login</Option>
                   <Option value="phone">Telefon raqami</Option>
                   <Option value="region">Region</Option>
-                  <Option value="districts">Tumanlar</Option>
+                  <Option value="district">Tuman</Option>
+                  <Option value="last_login">Oxirgi kirish</Option>
                   <Option value="total_plantations">Plantatsiyalar — Umumiy</Option>
                   <Option value="approved_plantations">Plantatsiyalar — Tasdiqlangan</Option>
                   <Option value="rejected_plantations">Plantatsiyalar — Rad etilgan</Option>
+                  <Option value="rejection_rate">Plantatsiyalar — Rad etish %</Option>
                   <Option value="kpi_points">KPI — Ballar</Option>
                   <Option value="kpi_amount">KPI — Summa</Option>
                 </Select>
@@ -403,6 +449,16 @@ const ControllersPage = () => {
 
         {/* Summary Cards */}
         <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>Jami nazoratchilar</span>}
+                value={tableData.length}
+                precision={0}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
@@ -418,16 +474,6 @@ const ControllersPage = () => {
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Tasdiqlangan</span>}
                 value={totals.approved}
-                precision={0}
-                valueStyle={{ color: '#e5e7eb' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
-              <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Rad etilgan</span>}
-                value={totals.rejected}
                 precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
@@ -465,7 +511,12 @@ const ControllersPage = () => {
             scroll={{ x: "max-content" }}
             bordered
             size="small"
-            pagination={false}
+            pagination={{
+              pageSize: 20,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} записей`,
+            }}
             className="region-statistics-table"
             style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
           />
