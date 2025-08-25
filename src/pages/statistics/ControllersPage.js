@@ -363,14 +363,14 @@ const ControllersPage = () => {
   const itemRender = (page, type, originalElement) => {
     switch (type) {
       case 'page':
-        return <a style={paginationItemStyle}>{page}</a>;
+        return <span style={paginationItemStyle}>{page}</span>;
       case 'prev':
-        return <a style={paginationItemStyle}>Orqaga</a>;
+        return <span style={paginationItemStyle}>Orqaga</span>;
       case 'next':
-        return <a style={paginationItemStyle}>Oldinga</a>;
+        return <span style={paginationItemStyle}>Oldinga</span>;
       case 'jump-prev':
       case 'jump-next':
-        return <a style={paginationItemStyle}>...</a>;
+        return <span style={paginationItemStyle}>...</span>;
       default:
         return originalElement;
     }
