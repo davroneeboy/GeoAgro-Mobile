@@ -7,6 +7,7 @@ import { ArrowLeftOutlined, DownloadOutlined } from "@ant-design/icons";
 import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
 import { exportToExcel } from "../../utils/excelExport";
+import { API_BASE_URL2 as API2 } from "../../config";
 
 const REGION_NAMES = {
   1: "Tashkent",
@@ -34,6 +35,25 @@ const RegionDetailPage = () => {
   const [statistics, setStatistics] = useState(null);
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved', 'rejected', 'fruits'
   const [exporting, setExporting] = useState(false);
+  const [districtNameToId, setDistrictNameToId] = useState({});
+
+  // Грузим справочник районов 1 раз
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API2}api/districts/`, {
+          headers: { Authorization: `Bearer ${authState.accessToken}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const items = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+          const map = {};
+          items.forEach(d => { if (d?.name && d?.id) map[d.name] = d.id; });
+          setDistrictNameToId(map);
+        }
+      } catch {}
+    })();
+  }, [authState.accessToken]);
 
   // Отслеживаем изменения в URL для обновления активной вкладки
   useEffect(() => {
@@ -133,7 +153,12 @@ const RegionDetailPage = () => {
                   bogs_count: 0, bogs_area: 0,
                   uzumzors_count: 0, uzumzors_area: 0,
                   issiqxonas_count: 0, issiqxonas_area: 0,
+                  district_id: d.district__id,
                 };
+              }
+              // сохраняем id района (не перезаписываем, если уже есть)
+              if (!districtStats[name].district_id && d.district__id) {
+                districtStats[name].district_id = d.district__id;
               }
               // Количество субъектов берём как сумма типов
               const count = Number(d.bogs_count || 0) + Number(d.uzumzors_count || 0) + Number(d.issiqxonas_count || 0);
@@ -224,8 +249,13 @@ const RegionDetailPage = () => {
                 high_fertility: { count: 0, area: 0 },
                 irrigation: { area: 0, count: 0 },
                 investment: { local: 0, foreign: 0, total: 0 },
-                subsidy: { subsidy_count: 0, total_subsidy: 0 }
+                subsidy: { subsidy_count: 0, total_subsidy: 0 },
+                district_id: plantation.district?.id,
               };
+            }
+            // запоминаем district_id, если появился
+            if (!districtStats[districtName].district_id && plantation.district?.id) {
+              districtStats[districtName].district_id = plantation.district.id;
             }
             
             const district = districtStats[districtName];
@@ -358,6 +388,7 @@ const RegionDetailPage = () => {
         uzumzors_area: data.uzumzors_area || 0,
         issiqxonas_count: data.issiqxonas_count || 0,
         issiqxonas_area: data.issiqxonas_area || 0,
+        district_id: data.district_id,
       };
     }
   );
@@ -416,7 +447,17 @@ const RegionDetailPage = () => {
       width: 150,
       render: (text, record) => (
         <span
-          style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}
+          style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", cursor: record.key !== 'total' ? 'pointer' : 'default', textDecoration: record.key !== 'total' ? 'underline' : 'none' }}
+          onClick={() => {
+            if (record.key === 'total') return;
+            // Переход на статистику фермеров по району (только при наличии id)
+            const did = record.district_id || districtNameToId[text];
+            if (!did) {
+              message.warning("Tuman ID topilmadi");
+              return;
+            }
+            navigate(`/statistics/districts/${did}/farmers`, { state: { districtName: text } });
+          }}
         >
           {text}
         </span>

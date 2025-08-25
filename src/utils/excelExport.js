@@ -350,3 +350,66 @@ export const exportToExcelWithProgress = async (tableData, totals, activeTab, re
     return false;
   }
 }; 
+
+// Экспорт таблицы фермеров по району
+export const exportFarmersToExcel = (rows, districtName, filename) => {
+  try {
+    const workbook = XLSX.utils.book_new();
+
+    const columns = [
+      { header: 'Fermer', key: 'name', width: 30 },
+      { header: 'Plantatsiyalar (jami)', key: 'total_plantations', width: 20 },
+      { header: 'Tasdiqlangan', key: 'approved_plantations', width: 18 },
+      { header: 'Umumiy maydon (GA)', key: 'total_area', width: 20 },
+      { header: 'Ekilgan maydon (GA)', key: 'planted_area', width: 20 },
+      { header: 'Tasdiqlash (%)', key: 'approve_percent', width: 18 },
+    ];
+
+    const formatted = (rows || []).map(r => ({
+      name: r.name || '',
+      total_plantations: Number(r.total_plantations || 0),
+      approved_plantations: Number(r.approved_plantations || 0),
+      total_area: Number(r.total_area || 0),
+      planted_area: Number(r.planted_area || 0),
+      approve_percent: Number(r.approve_percent || 0),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formatted);
+
+    // Заголовки
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1';
+      if (worksheet[address]) {
+        const key = worksheet[address].v;
+        const col = columns.find(c => c.key === key);
+        if (col) worksheet[address].v = col.header;
+      }
+    }
+
+    // Ширина колонок
+    worksheet['!cols'] = columns.map(c => ({ width: c.width }));
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Farmers');
+
+    // Summary лист
+    const summary = [
+      [''],
+      [`${districtName || 'District'} — Farmers Statistics`],
+      [''],
+      ['Export Date:', new Date().toLocaleDateString('ru-RU')],
+      ['Rows:', (rows || []).length],
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(summary);
+    XLSX.utils.book_append_sheet(workbook, ws2, 'Summary');
+
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const finalName = filename || `${(districtName || 'District').replace(/\s+/g, '_')}_farmers_${new Date().toISOString().split('T')[0]}.xlsx`;
+    saveAs(blob, finalName);
+    return true;
+  } catch (e) {
+    console.error('Farmers export error:', e);
+    return false;
+  }
+}; 

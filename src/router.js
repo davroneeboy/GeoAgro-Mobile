@@ -22,6 +22,7 @@ import FruitsPage from "./pages/statistics/FruitsPage";
 import FruitDetailPage from "./pages/statistics/FruitDetailPage";
 
 import ControllersPage from "./pages/statistics/ControllersPage";
+import DistrictFarmersPage from "./pages/statistics/DistrictFarmersPage";
 
 export default function AppRouter() {
   return (
@@ -44,6 +45,7 @@ export default function AppRouter() {
       <Route path="/statistics/fruits" element={<ProtectedRoute><FruitsPage /></ProtectedRoute>} />
       <Route path="/statistics/fruits/:id" element={<ProtectedRoute><FruitDetailPage /></ProtectedRoute>} />
       <Route path="/statistics/controllers" element={<ProtectedRoute><ControllersPage /></ProtectedRoute>} />
+      <Route path="/statistics/districts/:districtId/farmers" element={<ProtectedRoute><DistrictFarmersPage /></ProtectedRoute>} />
       <Route path="/farmers" element={<ProtectedRoute><Farmers /></ProtectedRoute>} />
       <Route path="/farmers/:id" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
       <Route path="/farmers/new" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />

@@ -387,26 +387,7 @@ const HomePage = () => {
               Tizimga kirgan foydalanuvchi: <span className="text-gray-200 font-semibold">{authState?.username || "Noma'lum foydalanuvchi"}</span>
             </p>
             
-            <div className="flex flex-wrap gap-4 mb-6">
-              <button className="bg-gray-700 border border-gray-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-gray-600 transition-colors">
-                <svg className="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
-                </svg>
-                Filtrlarni sozlash
-              </button>
-              <button className="bg-gray-700 border border-gray-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-gray-600 transition-colors">
-                <svg className="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Davr tanlash
-              </button>
-              <button className="bg-gray-700 border border-gray-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-gray-600 transition-colors">
-                <svg className="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-                Grafik yaratish
-              </button>
-            </div>
+            {/* removed quick action buttons */}
 
             {statistics ? (
               <div className="space-y-6">
@@ -514,26 +495,7 @@ const HomePage = () => {
             Kirgan foydalanuvchi: <span className="text-gray-300 font-medium">{authState?.username || "—"}</span>
           </p>
           
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg flex items-center text-sm hover:bg-gray-600 transition-colors">
-              <svg className="w-4 h-4 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
-              </svg>
-              Filtrlarni sozlash
-            </button>
-            <button className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg flex items-center text-sm hover:bg-gray-600 transition-colors">
-              <svg className="w-4 h-4 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Davr tanlash
-            </button>
-            <button className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg flex items-center text-sm hover:bg-gray-600 transition-colors">
-              <svg className="w-4 h-4 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-              </svg>
-              Grafik yaratish
-            </button>
-          </div>
+          {/* removed quick action buttons (mobile) */}
 
           {statistics ? (
             <div className="space-y-6">
