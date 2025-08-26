@@ -20,6 +20,7 @@ const DistrictFarmersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [exporting, setExporting] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,61 +108,121 @@ const DistrictFarmersPage = () => {
     fetchData();
   }, [districtId, authState.accessToken]);
 
-  if (loading) return <Spin size="large" />;
-  if (error) return <Alert message={error} type="error" showIcon />;
-
   // Динамические колонки на основе ключей первого объекта
   const textLight = { color: '#e5e7eb' };
+  const collator = new Intl.Collator('ru', { sensitivity: 'base' });
+
   const columns = [
     {
       title: <span style={textLight}>Fermer</span>,
       dataIndex: 'name',
       key: 'name',
       render: (v) => <span style={textLight}>{String(v || '')}</span>,
-      sorter: (a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ru'),
+      sorter: true,
       sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'name' ? sortConfig.order : null,
     },
     {
       title: <span style={textLight}>Subyektlar jami</span>,
       dataIndex: 'total_plantations',
       key: 'total_plantations',
       render: (v) => <span style={textLight}>{Number(v || 0).toLocaleString()}</span>,
-      sorter: (a, b) => Number(a.total_plantations || 0) - Number(b.total_plantations || 0),
+      sorter: true,
       sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
     },
     {
       title: <span style={textLight}>Tasdiqlangan</span>,
       dataIndex: 'approved_plantations',
       key: 'approved_plantations',
       render: (v) => <span style={textLight}>{Number(v || 0).toLocaleString()}</span>,
-      sorter: (a, b) => Number(a.approved_plantations || 0) - Number(b.approved_plantations || 0),
+      sorter: true,
       sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
     },
     {
       title: <span style={textLight}>Umumiy maydon (GA)</span>,
       dataIndex: 'total_area',
       key: 'total_area',
       render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span>,
-      sorter: (a, b) => Number(a.total_area || 0) - Number(b.total_area || 0),
+      sorter: true,
       sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
     },
     {
       title: <span style={textLight}>Ekilgan maydon (GA)</span>,
       dataIndex: 'planted_area',
       key: 'planted_area',
       render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span>,
-      sorter: (a, b) => Number(a.planted_area || 0) - Number(b.planted_area || 0),
+      sorter: true,
       sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'planted_area' ? sortConfig.order : null,
     },
     {
       title: <span style={textLight}>Tasdiqlash (%)</span>,
       dataIndex: 'approve_percent',
       key: 'approve_percent',
       render: (v) => <span style={textLight}>{Number(v || 0).toFixed(0)}%</span>,
-      sorter: (a, b) => Number(a.approve_percent || 0) - Number(b.approve_percent || 0),
+      sorter: true,
       sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'approve_percent' ? sortConfig.order : null,
     },
   ];
+
+  // Сортировка строк и итоговые суммы
+  const sortedRows = React.useMemo(() => {
+    if (!sortConfig?.field) return rows;
+    const getVal = (row) => {
+      switch (sortConfig.field) {
+        case 'name': return String(row.name || '');
+        case 'total_plantations': return Number(row.total_plantations || 0);
+        case 'approved_plantations': return Number(row.approved_plantations || 0);
+        case 'total_area': return Number(row.total_area || 0);
+        case 'planted_area': return Number(row.planted_area || 0);
+        case 'approve_percent': return Number(row.approve_percent || 0);
+        default: return '';
+      }
+    };
+    const data = [...rows];
+    data.sort((a, b) => {
+      const aVal = getVal(a);
+      const bVal = getVal(b);
+      let res;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        res = aVal - bVal;
+      } else {
+        res = collator.compare(String(aVal ?? ''), String(bVal ?? ''));
+      }
+      return sortConfig.order === 'descend' ? -res : res;
+    });
+    return data;
+  }, [rows, sortConfig]);
+
+  const totals = sortedRows.reduce((acc, r) => ({
+    total_plantations: (acc.total_plantations || 0) + Number(r.total_plantations || 0),
+    approved_plantations: (acc.approved_plantations || 0) + Number(r.approved_plantations || 0),
+    total_area: (acc.total_area || 0) + Number(r.total_area || 0),
+    planted_area: (acc.planted_area || 0) + Number(r.planted_area || 0),
+  }), {});
+
+  const totalApprovePercent = totals.total_plantations > 0
+    ? (totals.approved_plantations / totals.total_plantations) * 100
+    : 0;
+
+  const totalRow = {
+    key: 'total',
+    name: 'Jami',
+    total_plantations: totals.total_plantations || 0,
+    approved_plantations: totals.approved_plantations || 0,
+    total_area: totals.total_area || 0,
+    planted_area: totals.planted_area || 0,
+    approve_percent: totalApprovePercent,
+  };
+
+  const dataWithTotal = [...sortedRows.map((row, idx) => ({ key: row.farmer_id ?? row.id ?? idx, ...row })), totalRow];
+
+  if (loading) return <Spin size="large" />;
+  if (error) return <Alert message={error} type="error" showIcon />;
 
   const paginationItemStyle = {
     background: '#374151',
@@ -219,7 +280,7 @@ const DistrictFarmersPage = () => {
             <ConfigProvider locale={{ Pagination: { items_per_page: 'Sahifa' } }}>
               <Table
                 columns={columns}
-                dataSource={rows.map((row, idx) => ({ key: row.farmer_id ?? row.id ?? idx, ...row }))}
+                dataSource={dataWithTotal}
                 pagination={{
                   current: currentPage,
                   pageSize: pageSize,
@@ -239,6 +300,17 @@ const DistrictFarmersPage = () => {
                 size="small"
                 className="region-statistics-table"
                 style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
+                rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
+                onChange={(_, __, sorter) => {
+                  const s = Array.isArray(sorter) ? sorter[0] : sorter;
+                  const order = s?.order || null;
+                  const fieldKey = s?.columnKey || null;
+                  if (!order || !fieldKey) {
+                    setSortConfig({ field: null, order: 'ascend' });
+                  } else {
+                    setSortConfig({ field: fieldKey, order });
+                  }
+                }}
               />
             </ConfigProvider>
           </div>

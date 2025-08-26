@@ -442,7 +442,8 @@ code {
 /* Total row emphasis */
 .region-statistics-table .ant-table-tbody > tr.total-row > td {
   background-color: #0f172a !important; /* slightly darker */
-  font-weight: 600;
+  font-weight: 700;
+  border-top: 2px solid #4b5563 !important; /* stronger separator */
 }
 
 /* AntD Select dark styling within filters */

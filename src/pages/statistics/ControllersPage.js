@@ -222,6 +222,7 @@ const ControllersPage = () => {
       dataIndex: "full_name",
       key: "full_name",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'full_name' ? sortConfig.order : null,
       render: (_value, record) => (
         <span style={textLight}>
@@ -234,6 +235,7 @@ const ControllersPage = () => {
       dataIndex: "username",
       key: "username",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'username' ? sortConfig.order : null,
       render: (value) => <span style={textLight}>{value}</span>,
     },
@@ -242,6 +244,7 @@ const ControllersPage = () => {
       dataIndex: "phone_number",
       key: "phone",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'phone' ? sortConfig.order : null,
       render: (value) => <span style={textLight}>{value || "—"}</span>,
     },
@@ -249,6 +252,7 @@ const ControllersPage = () => {
       title: <span style={textLight}>Region</span>,
       key: "region",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
       render: (_v, record) => (
         <span style={textLight}>{mapRegion(record.location?.region)}</span>
@@ -258,6 +262,7 @@ const ControllersPage = () => {
       title: <span style={textLight}>Tuman</span>,
       key: "district",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
       render: (_v, record) => (
         <span style={textLight}>{record.location?.district || "—"}</span>
@@ -267,6 +272,7 @@ const ControllersPage = () => {
       title: <span style={textLight}>Oxirgi kirish</span>,
       key: "last_login",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'last_login' ? sortConfig.order : null,
       render: (_v, record) => (
         <span style={textLight}>{formatDate(record.last_login)}</span>
@@ -280,6 +286,7 @@ const ControllersPage = () => {
           dataIndex: ["plantations_stats", "total"],
           key: "total_plantations",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
@@ -288,6 +295,7 @@ const ControllersPage = () => {
           dataIndex: ["plantations_stats", "approved"],
           key: "approved_plantations",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
@@ -296,6 +304,7 @@ const ControllersPage = () => {
           dataIndex: ["plantations_stats", "rejected"],
           key: "rejected_plantations",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
@@ -304,6 +313,7 @@ const ControllersPage = () => {
           dataIndex: ["plantations_stats", "rejection_rate"],
           key: "rejection_rate",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejection_rate' ? sortConfig.order : null,
           render: (v) => <span style={textLight}>{v ? `${v.toFixed(1)}%` : "0%"}</span>,
         },
@@ -317,6 +327,7 @@ const ControllersPage = () => {
           dataIndex: ["kpi_current", "points"],
           key: "kpi_points",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'kpi_points' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{(value || 0).toFixed(1)}</span>,
         },
@@ -325,6 +336,7 @@ const ControllersPage = () => {
           dataIndex: ["kpi_current", "amount"],
           key: "kpi_amount",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'kpi_amount' ? sortConfig.order : null,
           render: (value) => (
             <span style={textLight}>{value?.toLocaleString() || 0}</span>
@@ -557,6 +569,7 @@ const ControllersPage = () => {
               }}
               className="region-statistics-table"
               style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
+              rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
             />
           </ConfigProvider>
         </div>

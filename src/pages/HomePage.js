@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL1, API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
-import NotificationsPanel from "../components/NotificationsPanel";
 import ContactsPanel from "../components/ContactsPanel";
 import { Pie } from "react-chartjs-2";
 import {
@@ -222,7 +221,6 @@ const HomePage = () => {
               </svg>
               Chiqish
             </button>
-            <NotificationsPanel />
             <ContactsPanel />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -380,7 +378,6 @@ const HomePage = () => {
               <span>Qishloq xo'jaligi statistikasi</span>
               <div className="flex items-center gap-2">
                 <ContactsPanel buttonClassName="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors" label="Kontaktlar" />
-                <NotificationsPanel />
               </div>
             </h1>
             <p className="text-sm text-gray-400 mb-6">

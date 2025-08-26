@@ -36,6 +36,7 @@ const RegionDetailPage = () => {
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'approved', 'rejected', 'fruits'
   const [exporting, setExporting] = useState(false);
   const [districtNameToId, setDistrictNameToId] = useState({});
+  const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
 
   // Грузим справочник районов 1 раз
   useEffect(() => {
@@ -360,15 +361,11 @@ const RegionDetailPage = () => {
     }
   };
 
-  if (loading) return <Spin size="large" />;
-  if (error) return <Alert message={error} type="error" />;
-  if (!statistics) return <Alert message="Ma'lumot topilmadi" type="info" />;
-
   // Transform data for table
   console.log('Processing statistics for table:', statistics);
   console.log('Active tab:', activeTab);
   
-  const tableData = Object.entries(statistics.data || {}).map(
+  const tableData = Object.entries(statistics?.data || {}).map(
     ([district, data]) => {
       console.log(`Processing district ${district}:`, data);
               return {
@@ -393,8 +390,62 @@ const RegionDetailPage = () => {
     }
   );
 
+  const sortedTableData = React.useMemo(() => {
+    if (!sortConfig?.field) return tableData;
+    const collator = new Intl.Collator('ru', { sensitivity: 'base' });
+    const getVal = (row) => {
+      switch (sortConfig.field) {
+        case 'district':
+          return row.district || '';
+        case 'total_area':
+          return Number(row.total_area || 0);
+        case 'total_plantations':
+          return Number(row.total_plantations || 0);
+        case 'planted_area':
+          return Number(row.planted_area || 0);
+        case 'bogs_count':
+          return Number(row.bogs_count || 0);
+        case 'bogs_area':
+          return Number(row.bogs_area || 0);
+        case 'uzumzors_count':
+          return Number(row.uzumzors_count || 0);
+        case 'uzumzors_area':
+          return Number(row.uzumzors_area || 0);
+        case 'issiqxonas_count':
+          return Number(row.issiqxonas_count || 0);
+        case 'issiqxonas_area':
+          return Number(row.issiqxonas_area || 0);
+        case 'investment_local':
+          return Number(row.investment_local || 0);
+        case 'investment_foreign':
+          return Number(row.investment_foreign || 0);
+        case 'investment_total':
+          return Number(row.investment_total || 0);
+        case 'subsidy_count':
+          return Number(row.subsidy_count || 0);
+        case 'total_subsidy':
+          return Number(row.total_subsidy || 0);
+        default:
+          return '';
+      }
+    };
+    const rows = [...tableData];
+    rows.sort((a, b) => {
+      const aVal = getVal(a);
+      const bVal = getVal(b);
+      let res;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        res = aVal - bVal;
+      } else {
+        res = collator.compare(String(aVal ?? ''), String(bVal ?? ''));
+      }
+      return sortConfig.order === 'descend' ? -res : res;
+    });
+    return rows;
+  }, [tableData, sortConfig]);
+
   // Calculate totals for summary cards
-  const totals = Object.values(statistics.data || {}).reduce(
+  const totals = Object.values(statistics?.data || {}).reduce(
     (acc, curr) => ({
       total_area: (acc.total_area || 0) + curr.total_area,
       total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || curr.total_plantations || 0),
@@ -417,16 +468,16 @@ const RegionDetailPage = () => {
     total_area: totals.total_area,
     total_plantations: totals.total_plantations,
     planted_area: totals.planted_area,
-    investment_local: Object.values(statistics.data || {}).reduce(
+    investment_local: Object.values(statistics?.data || {}).reduce(
       (acc, curr) => acc + curr.investment.local,
       0
     ),
-    investment_foreign: Object.values(statistics.data || {}).reduce(
+    investment_foreign: Object.values(statistics?.data || {}).reduce(
       (acc, curr) => acc + curr.investment.foreign,
       0
     ),
     investment_total: totals.total_investment,
-    subsidy_count: Object.values(statistics.data || {}).reduce(
+    subsidy_count: Object.values(statistics?.data || {}).reduce(
       (acc, curr) => acc + curr.subsidy.subsidy_count,
       0
     ),
@@ -434,7 +485,7 @@ const RegionDetailPage = () => {
   };
 
   // Add total row to tableData
-  const dataWithTotal = [...tableData, totalRow];
+  const dataWithTotal = [...sortedTableData, totalRow];
 
   const textLight = { color: '#e5e7eb' };
 
@@ -445,6 +496,9 @@ const RegionDetailPage = () => {
       key: "district",
       fixed: "left",
       width: 150,
+      sorter: true,
+      sortDirections: ['ascend','descend'],
+      sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
       render: (text, record) => (
         <span
           style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", cursor: record.key !== 'total' ? 'pointer' : 'default', textDecoration: record.key !== 'total' ? 'underline' : 'none' }}
@@ -470,6 +524,9 @@ const RegionDetailPage = () => {
           title: <span style={textLight}>Jami (GA)</span>,
           dataIndex: "total_area",
           key: "total_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
@@ -480,12 +537,18 @@ const RegionDetailPage = () => {
           title: <span style={textLight}>Subyektlar soni</span>,
           dataIndex: "total_plantations",
           key: "total_plantations",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{value}</span>,
         },
         {
           title: <span style={textLight}>Ekilgan maydoni (GA)</span>,
           dataIndex: "planted_area",
           key: "planted_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'planted_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
@@ -498,12 +561,12 @@ const RegionDetailPage = () => {
       {
         title: <span style={textLight}>Turlari (rad etilgan)</span>,
         children: [
-          { title: <span style={textLight}>Bog'lar — soni</span>, dataIndex: 'bogs_count', key: 'bogs_count', render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Bog'lar — maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-          { title: <span style={textLight}>Uzumzorlar — soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Uzumzorlar — maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-          { title: <span style={textLight}>Issiqxonalar — soni</span>, dataIndex: 'issiqxonas_count', key: 'issiqxonas_count', render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Issiqxonalar — maydon (GA)</span>, dataIndex: 'issiqxonas_area', key: 'issiqxonas_area', render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
+          { title: <span style={textLight}>Bog'lar — soni</span>, dataIndex: 'bogs_count', key: 'bogs_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
+          { title: <span style={textLight}>Bog'lar — maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
+          { title: <span style={textLight}>Uzumzorlar — soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
+          { title: <span style={textLight}>Uzumzorlar — maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
+          { title: <span style={textLight}>Issiqxonalar — soni</span>, dataIndex: 'issiqxonas_count', key: 'issiqxonas_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'issiqxonas_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
+          { title: <span style={textLight}>Issiqxonalar — maydon (GA)</span>, dataIndex: 'issiqxonas_area', key: 'issiqxonas_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'issiqxonas_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
         ],
       }
     ] : []),
@@ -514,6 +577,9 @@ const RegionDetailPage = () => {
           title: <span style={textLight}>Mahalliy</span>,
           dataIndex: "investment_local",
           key: "investment_local",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'investment_local' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
@@ -524,6 +590,9 @@ const RegionDetailPage = () => {
           title: <span style={textLight}>Xorijiy</span>,
           dataIndex: "investment_foreign",
           key: "investment_foreign",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'investment_foreign' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
@@ -534,6 +603,9 @@ const RegionDetailPage = () => {
           title: <span style={textLight}>Jami</span>,
           dataIndex: "investment_total",
           key: "investment_total",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'investment_total' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
@@ -549,12 +621,18 @@ const RegionDetailPage = () => {
           title: <span style={textLight}>Soni</span>,
           dataIndex: "subsidy_count",
           key: "subsidy_count",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'subsidy_count' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{value}</span>,
         },
         {
           title: <span style={textLight}>Jami summa</span>,
           dataIndex: "total_subsidy",
           key: "total_subsidy",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'total_subsidy' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toLocaleString()}
@@ -564,6 +642,10 @@ const RegionDetailPage = () => {
       ],
     },
   ];
+
+  if (loading) return <Spin size="large" />;
+  if (error) return <Alert message={error} type="error" />;
+  if (!statistics) return <Alert message="Ma'lumot topilmadi" type="info" />;
 
   return (
     <StatisticsLayout>
@@ -718,9 +800,9 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan subyektlar' : 'Subyektlar soni'}
-                </span>}
+                    title={<span style={{ color: '#9ca3af' }}>
+                      {activeTab === 'approved' ? 'Tasdiqlangan subyektlar' : 'Subyektlar soni'}
+                    </span>}
                 value={totals.total_plantations}
                 valueStyle={{ color: '#e5e7eb' }}
               />
@@ -766,6 +848,17 @@ const RegionDetailPage = () => {
           pagination={false}
           className="region-statistics-table"
             style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
+          rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
+          onChange={(_, __, sorter) => {
+            const s = Array.isArray(sorter) ? sorter[0] : sorter;
+            const order = s?.order || null;
+            const fieldKey = s?.columnKey || null;
+            if (!order || !fieldKey) {
+              setSortConfig({ field: null, order: 'ascend' });
+            } else {
+              setSortConfig({ field: fieldKey, order });
+            }
+          }}
         />
         </div>
       </div>

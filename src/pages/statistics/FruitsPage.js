@@ -142,6 +142,7 @@ const FruitsPage = () => {
       key: "fruit",
       fixed: "left",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'fruit' ? sortConfig.order : null,
       render: (text, record) => (
         <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -157,6 +158,7 @@ const FruitsPage = () => {
           dataIndex: "total_area",
           key: "total_area",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -169,6 +171,7 @@ const FruitsPage = () => {
           dataIndex: "outdated_ga",
           key: "outdated_ga",
           sorter: true,
+          sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'outdated_ga' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -189,6 +192,7 @@ const FruitsPage = () => {
               dataIndex: "low_fertility_count",
               key: "low_fertility_count",
               sorter: true,
+              sortDirections: ['ascend','descend'],
               sortOrder: sortConfig.field === 'low_fertility_count' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -201,6 +205,7 @@ const FruitsPage = () => {
               dataIndex: "low_fertility_area",
               key: "low_fertility_area",
               sorter: true,
+              sortDirections: ['ascend','descend'],
               sortOrder: sortConfig.field === 'low_fertility_area' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -218,6 +223,7 @@ const FruitsPage = () => {
               dataIndex: "high_fertility_count",
               key: "high_fertility_count",
               sorter: true,
+              sortDirections: ['ascend','descend'],
               sortOrder: sortConfig.field === 'high_fertility_count' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -230,6 +236,7 @@ const FruitsPage = () => {
               dataIndex: "high_fertility_area",
               key: "high_fertility_area",
               sorter: true,
+              sortDirections: ['ascend','descend'],
               sortOrder: sortConfig.field === 'high_fertility_area' ? sortConfig.order : null,
               render: (value, record) => (
                 <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -246,6 +253,7 @@ const FruitsPage = () => {
       dataIndex: "avg_fertility_score",
       key: "avg_fertility_score",
       sorter: true,
+      sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'avg_fertility_score' ? sortConfig.order : null,
       render: (value, record) => (
         <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
@@ -401,6 +409,7 @@ const FruitsPage = () => {
             pagination={false}
             className="region-statistics-table"
             style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
+            rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
           />
         </div>
       </div>

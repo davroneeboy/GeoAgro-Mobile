@@ -14,6 +14,7 @@ const FruitDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,17 +33,45 @@ const FruitDetailPage = () => {
     fetchData();
   }, [id, authState.accessToken]);
 
-  if (loading) return <Spin size="large" />;
-  if (error) return <Alert message={error} type="error" />;
-  if (!statistics) return <Alert message="Ma'lumot topilmadi" type="info" />;
-
-  const tableData = Object.entries(statistics.data || {}).map(([variety, data]) => ({
+  const tableData = Object.entries(statistics?.data || {}).map(([variety, data]) => ({
     key: variety,
     variety,
     total_area: data.total_area,
     outdated_ga: data.outdated_ga,
     avg_fertility_score: data.avg_fertility_score,
   }));
+
+  const sortedTableData = React.useMemo(() => {
+    if (!sortConfig?.field) return tableData;
+    const collator = new Intl.Collator('ru', { sensitivity: 'base' });
+    const getVal = (row) => {
+      switch (sortConfig.field) {
+        case 'variety':
+          return row.variety || '';
+        case 'total_area':
+          return Number(row.total_area || 0);
+        case 'outdated_ga':
+          return Number(row.outdated_ga || 0);
+        case 'avg_fertility_score':
+          return Number(row.avg_fertility_score || 0);
+        default:
+          return '';
+      }
+    };
+    const rows = [...tableData];
+    rows.sort((a, b) => {
+      const aVal = getVal(a);
+      const bVal = getVal(b);
+      let res;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        res = aVal - bVal;
+      } else {
+        res = collator.compare(String(aVal ?? ''), String(bVal ?? ''));
+      }
+      return sortConfig.order === 'descend' ? -res : res;
+    });
+    return rows;
+  }, [tableData, sortConfig]);
 
   // Calculate totals
   const totals = tableData.reduce((acc, curr) => ({
@@ -59,7 +88,7 @@ const FruitDetailPage = () => {
     avg_fertility_score: '-',
   };
 
-  const dataWithTotal = [...tableData, totalRow];
+  const dataWithTotal = [...sortedTableData, totalRow];
 
   const textLight = { color: '#e5e7eb' };
 
@@ -69,6 +98,9 @@ const FruitDetailPage = () => {
       dataIndex: 'variety',
       key: 'variety',
       fixed: 'left',
+      sorter: true,
+      sortDirections: ['ascend','descend'],
+      sortOrder: sortConfig.field === 'variety' ? sortConfig.order : null,
       render: (text, record) => (
         <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {text}
@@ -79,6 +111,9 @@ const FruitDetailPage = () => {
       title: <span style={textLight}>Umumiy Maydon (GA)</span>,
       dataIndex: 'total_area',
       key: 'total_area',
+      sorter: true,
+      sortDirections: ['ascend','descend'],
+      sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
       render: (value, record) => (
         <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {(value || 0).toFixed(1)}
@@ -89,6 +124,9 @@ const FruitDetailPage = () => {
       title: <span style={textLight}>Eskirgan Maydon (GA)</span>,
       dataIndex: 'outdated_ga',
       key: 'outdated_ga',
+      sorter: true,
+      sortDirections: ['ascend','descend'],
+      sortOrder: sortConfig.field === 'outdated_ga' ? sortConfig.order : null,
       render: (value, record) => (
         <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {(value || 0).toFixed(1)}
@@ -99,6 +137,9 @@ const FruitDetailPage = () => {
       title: <span style={textLight}>O'rtacha Hosildorlik</span>,
       dataIndex: 'avg_fertility_score',
       key: 'avg_fertility_score',
+      sorter: true,
+      sortDirections: ['ascend','descend'],
+      sortOrder: sortConfig.field === 'avg_fertility_score' ? sortConfig.order : null,
       render: (value, record) => (
         <span style={{ ...textLight, fontWeight: record.key === 'total' ? 'bold' : 'normal' }}>
           {record.key === 'total' ? '-' : (value || 0).toFixed(1)}
@@ -106,6 +147,10 @@ const FruitDetailPage = () => {
       ),
     },
   ];
+
+  if (loading) return <Spin size="large" />;
+  if (error) return <Alert message={error} type="error" />;
+  if (!statistics) return <Alert message="Ma'lumot topilmadi" type="info" />;
 
   return (
     <StatisticsLayout>
@@ -161,6 +206,16 @@ const FruitDetailPage = () => {
           className="region-statistics-table"
           style={{ background: '#1f2937', color: '#e5e7eb' }}
           rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
+          onChange={(_, __, sorter) => {
+            const s = Array.isArray(sorter) ? sorter[0] : sorter;
+            const order = s?.order || null;
+            const fieldKey = s?.columnKey || null;
+            if (!order || !fieldKey) {
+              setSortConfig({ field: null, order: 'ascend' });
+            } else {
+              setSortConfig({ field: fieldKey, order });
+            }
+          }}
         />
       </div>
     </StatisticsLayout>

@@ -828,6 +828,7 @@ const RegionsPage = () => {
       fixed: "left",
       sorter: true,
       sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
+      sortDirections: ['ascend','descend'],
       onCell: (record) => ({
         onClick: () => {
           if (record.key !== "total") {
@@ -862,6 +863,7 @@ const RegionsPage = () => {
           key: "total_area",
           sorter: true,
           sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
         {
@@ -870,6 +872,7 @@ const RegionsPage = () => {
           key: "total_plantations",
           sorter: true,
           sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
@@ -878,6 +881,7 @@ const RegionsPage = () => {
           key: activeTab === 'approved' ? "total_approved_fruitarea" : "total_fruitarea",
           sorter: true,
           sortOrder: sortConfig.field === (activeTab === 'approved' ? 'total_approved_fruitarea' : 'total_fruitarea') ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
 
@@ -892,6 +896,7 @@ const RegionsPage = () => {
           key: "bogs_count",
               sorter: true,
           sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
@@ -900,6 +905,7 @@ const RegionsPage = () => {
           key: "bogs_area",
               sorter: true,
           sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null,
+              sortDirections: ['ascend','descend'],
               render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
             },
           ],
@@ -913,6 +919,7 @@ const RegionsPage = () => {
           key: "uzumzors_count",
               sorter: true,
           sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
@@ -921,6 +928,7 @@ const RegionsPage = () => {
           key: "uzumzors_area",
               sorter: true,
           sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
               render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
       ],
@@ -934,6 +942,7 @@ const RegionsPage = () => {
           key: "issiqxonas_count",
           sorter: true,
           sortOrder: sortConfig.field === 'issiqxonas_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
         },
         {
@@ -942,6 +951,7 @@ const RegionsPage = () => {
           key: "issiqxonas_area",
           sorter: true,
           sortOrder: sortConfig.field === 'issiqxonas_area' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
       ],
@@ -956,6 +966,7 @@ const RegionsPage = () => {
           key: "investment_local",
           sorter: true,
           sortOrder: sortConfig.field === 'investment_local' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
         {
@@ -964,6 +975,7 @@ const RegionsPage = () => {
           key: "investment_foreign",
           sorter: true,
           sortOrder: sortConfig.field === 'investment_foreign' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
       ],
@@ -977,6 +989,7 @@ const RegionsPage = () => {
           key: "subsidy_count",
           sorter: true,
           sortOrder: sortConfig.field === 'subsidy_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
         },
         {
           title: "Jami summa",
@@ -984,6 +997,7 @@ const RegionsPage = () => {
           key: "total_subsidy",
           sorter: true,
           sortOrder: sortConfig.field === 'total_subsidy' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
       ],
@@ -1333,6 +1347,7 @@ const RegionsPage = () => {
               color: '#e5e7eb', 
               minWidth: 700
             }}
+            rowClassName={(record) => (record.key === 'total' ? 'total-row' : '')}
           />
         </div>
       </div>
