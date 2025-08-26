@@ -51,21 +51,7 @@ const centerTextPlugin = {
 
 ChartJS.register(centerTextPlugin);
 
-// Названия регионов по ID (для отображения location.region)
-const REGION_NAMES = {
-  1: "Tashkent",
-  2: "Andijan",
-  3: "Bukhara",
-  4: "Fergana",
-  5: "Jizzakh",
-  6: "Kashkadarya",
-  7: "Navoi",
-  8: "Namangan",
-  9: "Samarkand",
-  10: "Sirdarya",
-  11: "Surkhandarya",
-  12: "Karakalpakstan",
-};
+
 
 // формат локации убран — больше не используется на этой странице
 

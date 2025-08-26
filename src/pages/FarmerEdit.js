@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
-import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
+
 import AuthContext from "../context/AuthContext";
 
 const FarmerEdit = () => {
