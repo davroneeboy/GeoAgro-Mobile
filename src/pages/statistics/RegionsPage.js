@@ -388,6 +388,27 @@ const RegionsPage = () => {
             });
           }
 
+          // Если API возвращает planted_area для approved, используем его как источник «Tasdiqlangan ekilgan maydoni (GA)»
+          if (approvedData.approved_by_region_with_planted_area) {
+            approvedData.approved_by_region_with_planted_area.forEach(regionData => {
+              const regionId = regionData.plantation__district__region?.toString();
+              if (!regionId || !data[regionId]) return;
+              data[regionId] = {
+                ...data[regionId],
+                total_approved_fruitarea: Number(regionData.planted_area || 0),
+              };
+            });
+          } else if (approvedData.by_region_with_planted_area) {
+            approvedData.by_region_with_planted_area.forEach(regionData => {
+              const regionId = regionData.plantation__district__region?.toString();
+              if (!regionId || !data[regionId]) return;
+              data[regionId] = {
+                ...data[regionId],
+                total_approved_fruitarea: Number(regionData.planted_area || 0),
+              };
+            });
+          }
+
           // Инвестиции
           if (approvedData.approved_investments_by_region) {
             approvedData.approved_investments_by_region.forEach(regionData => {
@@ -418,7 +439,7 @@ const RegionsPage = () => {
           const totalStats = {
             total_plantations: Number(approvedData.total_approved_plantations || 0),
             total_area: Number(approvedData.total_approved_area || 0),
-            total_approved_fruitarea: Number(approvedData.total_approved_fruitarea || 0),
+            total_approved_fruitarea: Number((approvedData.planted_area ?? approvedData.total_approved_fruitarea) || 0),
             investment_local: Number(approvedData.approved_investments?.local || 0),
             investment_foreign: Number(approvedData.approved_investments?.foreign || 0),
             subsidy_count: Number(approvedData.approved_subsidies?.beneficiary_count || 0),

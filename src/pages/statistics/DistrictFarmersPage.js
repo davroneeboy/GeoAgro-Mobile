@@ -16,6 +16,7 @@ const DistrictFarmersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rows, setRows] = useState([]);
+  const [summaryStats, setSummaryStats] = useState(null);
   const [districtName, setDistrictName] = useState(location.state?.districtName || "");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -63,13 +64,11 @@ const DistrictFarmersPage = () => {
           } catch {}
         }
 
-        // Загружаем статистику фермеров по району
-        const url = `${API_BASE_URL2}api/statistics/farmers/?district_id=${effectiveId}`;
-        const response = await fetch(url, {
-          headers: { Authorization: `Bearer ${authState.accessToken}` },
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+        // Загружаем статистику фермеров по району — корректный эндпоинт
+        const headers = { Authorization: `Bearer ${authState.accessToken}` };
+        const res = await fetch(`${API_BASE_URL2}api/statistics/farmers/?district_id=${effectiveId}`, { headers });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
 
         // Поддерживаем разные структуры ответа
         let arr = [];
@@ -85,6 +84,26 @@ const DistrictFarmersPage = () => {
           arr = data.rows;
         } else if (Array.isArray(data?.farmers)) {
           arr = data.farmers;
+        } else if (data?.farmers && typeof data.farmers === 'object') {
+          // Структура вида { summary: {...}, farmers: { id: {...}, ... } }
+          arr = Object.entries(data.farmers).map(([farmerId, rec]) => ({ farmer_id: Number(farmerId), ...rec }));
+        } else if (Array.isArray(data?.by_farmers)) {
+          arr = data.by_farmers;
+        } else if (Array.isArray(data?.farmers_stats)) {
+          arr = data.farmers_stats;
+        } else {
+          // Поиск первой подходящей коллекции на глубину 2
+          const valuesLevel1 = data && typeof data === 'object' ? Object.values(data) : [];
+          const candidate1 = valuesLevel1.find(v => Array.isArray(v) && v.length && typeof v[0] === 'object');
+          if (candidate1) {
+            arr = candidate1;
+          } else {
+            const nestedArrays = valuesLevel1
+              .filter(v => v && typeof v === 'object')
+              .flatMap(o => Object.values(o))
+              .filter(v => Array.isArray(v) && v.length && typeof v[0] === 'object');
+            if (nestedArrays.length) arr = nestedArrays[0];
+          }
         }
 
         // Если пришёл объект вида { farmerId: { ... } }
@@ -97,7 +116,20 @@ const DistrictFarmersPage = () => {
           }
         }
 
-        setRows(arr);
+        // Нормализуем поля под ожидаемые столбцы
+        const normalize = (r) => {
+          const name = r.name || r.farmer_name || r.farmer?.name || r.farmer?.full_name || r.company_name || '';
+          const total_plantations = Number(r.total_plantations ?? r.plantations_count ?? r.total_count ?? r.count ?? 0);
+          const approved_plantations = Number(r.approved_plantations ?? r.approved ?? r.approved_count ?? 0);
+          const total_area = Number(r.total_area ?? r.area ?? r.total_ga ?? r.total_areas ?? 0);
+          const planted_area = Number(r.planted_area ?? r.total_fruitarea ?? r.fruitarea ?? r.total_planted_area ?? 0);
+          const approve_percent = Number(r.approve_percent ?? (total_plantations > 0 ? (approved_plantations / total_plantations) * 100 : 0));
+          const farmer_id = r.farmer_id ?? r.id ?? r.farmer?.id;
+          return { farmer_id, name, total_plantations, approved_plantations, total_area, planted_area, approve_percent };
+        };
+        const normalized = Array.isArray(arr) ? arr.map(normalize) : [];
+        setSummaryStats(data?.summary || null);
+        setRows(normalized);
       } catch (e) {
         setError(e.message);
       } finally {
@@ -198,7 +230,12 @@ const DistrictFarmersPage = () => {
     return data;
   }, [rows, sortConfig]);
 
-  const totals = sortedRows.reduce((acc, r) => ({
+  const totals = summaryStats ? {
+    total_plantations: Number(summaryStats.total_plantations || 0),
+    approved_plantations: Number(summaryStats.total_approved_plantations || 0),
+    total_area: Number(summaryStats.total_area || 0),
+    planted_area: Number(summaryStats.total_planted_area || 0),
+  } : sortedRows.reduce((acc, r) => ({
     total_plantations: (acc.total_plantations || 0) + Number(r.total_plantations || 0),
     approved_plantations: (acc.approved_plantations || 0) + Number(r.approved_plantations || 0),
     total_area: (acc.total_area || 0) + Number(r.total_area || 0),

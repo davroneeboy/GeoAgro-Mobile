@@ -514,7 +514,7 @@ const HomePage = () => {
                     </div>
                   </div>
                 </div>
-
+                
                 {/* Карточка с фермерами */}
                 <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6 border border-gray-600">
                   <div className="flex items-center justify-center">
@@ -544,7 +544,7 @@ const HomePage = () => {
                 </div>
               </div>
             )}
-          </div>
+        </div>
       </div>
 
       {/* Мобильная версия контента */}
@@ -674,7 +674,7 @@ const HomePage = () => {
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Yuqori: {formatNumber(fertilityHigh)} ga</span>
                 </div>
               </div>
- 
+              
               {/* Мобильная карточка с фермерами */}
               <div className="bg-gradient-to-r from-gray-700 to-gray-600 rounded-xl p-4 border border-gray-500">
                 <div className="flex items-center justify-center">
