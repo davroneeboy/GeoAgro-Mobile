@@ -308,6 +308,9 @@ const PlantationDetail = () => {
           const script = document.createElement("script");
           script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
           script.id = "googleMaps";
+          script.async = true;
+          script.defer = true;
+          script.setAttribute('loading', 'async');
           document.body.appendChild(script);
           script.onload = () => {
             if (typeof google !== "undefined") {
@@ -383,22 +386,19 @@ const PlantationDetail = () => {
               onClick={() => {
                 console.log('Navigating back...');
                 
-                // Определяем, с какой страницы пришел пользователь
-                const referrer = location.state?.from || document.referrer;
+                const referrer = location.state?.from || document.referrer || '';
                 
                 if (referrer.includes('/approved-plantations')) {
-                  // Если пришел с approved-plantations, возвращаемся туда
                   const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
                   navigate(`/approved-plantations?page=${currentPage}`);
                 } else if (referrer.includes('/moderation')) {
-                  // Если пришел с moderation, возвращаемся туда
                   const currentPage = localStorage.getItem('moderationPage') || 1;
                   navigate(`/moderation?page=${currentPage}`);
                 } else if (referrer.includes('/rejected-plantations')) {
-                  // Если пришел с rejected-plantations, возвращаемся туда
                   navigate('/rejected-plantations');
+                } else if (referrer.includes('/plantations/uz') || location.state?.from === '/plantations/uz') {
+                  navigate('/plantations/uz');
                 } else {
-                  // По умолчанию возвращаемся на главную
                   navigate('/');
                 }
               }}

@@ -369,16 +369,16 @@ const RegionDetailPage = () => {
     ([district, data]) => {
       console.log(`Processing district ${district}:`, data);
               return {
-        key: district,
-        district,
-        total_area: data.total_area,
+          key: district,
+          district,
+          total_area: data.total_area,
         total_plantations: data.plantation_count || data.total_plantations || 0,
-        planted_area: data.planted_area,
-        investment_local: data.investment.local,
-        investment_foreign: data.investment.foreign,
-        investment_total: (data.investment.local || 0) + (data.investment.foreign || 0),
-        subsidy_count: data.subsidy.subsidy_count,
-        total_subsidy: data.subsidy.total_subsidy,
+          planted_area: data.planted_area,
+          investment_local: data.investment.local,
+          investment_foreign: data.investment.foreign,
+          investment_total: (data.investment.local || 0) + (data.investment.foreign || 0),
+          subsidy_count: data.subsidy.subsidy_count,
+          total_subsidy: data.subsidy.total_subsidy,
         bogs_count: data.bogs_count || 0,
         bogs_area: data.bogs_area || 0,
         uzumzors_count: data.uzumzors_count || 0,
@@ -386,7 +386,7 @@ const RegionDetailPage = () => {
         issiqxonas_count: data.issiqxonas_count || 0,
         issiqxonas_area: data.issiqxonas_area || 0,
         district_id: data.district_id,
-      };
+        };
     }
   );
 
@@ -800,9 +800,9 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                    title={<span style={{ color: '#9ca3af' }}>
-                      {activeTab === 'approved' ? 'Tasdiqlangan subyektlar' : 'Subyektlar soni'}
-                    </span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan subyektlar' : 'Subyektlar soni'}
+                </span>}
                 value={totals.total_plantations}
                 valueStyle={{ color: '#e5e7eb' }}
               />

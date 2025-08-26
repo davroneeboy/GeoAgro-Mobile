@@ -199,6 +199,52 @@ export const useMapsHook = ({
     }
   };
 
+  // Программно восстановить регион и район
+  const restoreRegionAndDistrict = async (regionId, districtId, districtName) => {
+    try {
+      const response = await fetch(`/uzb-geojson/${regionId}.geojson`);
+      const geoData = await response.json();
+
+      // Очистить все слои кроме тайлов
+      map.eachLayer((layer) => {
+        if (!(layer instanceof L.TileLayer)) map.removeLayer(layer);
+      });
+
+      // Найти нужный район по id
+      const targetFeature = geoData.features?.find(
+        (f) => String(f.properties?.id) === String(districtId)
+      );
+
+      if (!targetFeature) {
+        // Если не нашли — просто загрузим регион
+        await loadRegionGeoJSON(regionId);
+        return;
+      }
+
+      // Добавить только выбранный район
+      const singleTumanLayer = L.geoJSON(targetFeature, {
+        style: {
+          fillColor: "transparent",
+          color: "#FFFFFF",
+          weight: 3,
+          fillOpacity: 0,
+        },
+      });
+
+      singleTumanLayer.addTo(map);
+      map.flyToBounds(singleTumanLayer.getBounds());
+      await loadTumanPlantations(districtId);
+      if (typeof onRegionClick === 'function') {
+        onRegionClick(regionId, undefined);
+      }
+      if (typeof onDistrictClick === 'function') {
+        onDistrictClick(districtId, districtName || targetFeature.properties?.name);
+      }
+    } catch (e) {
+      console.error('Error restoring region/district:', e);
+    }
+  };
+
   useEffect(() => {
     if (map) {
       initializeMap();
@@ -207,5 +253,5 @@ export const useMapsHook = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
-  return { mapRef, initializeMap, loadRegionGeoJSON, loading };
+  return { mapRef, initializeMap, loadRegionGeoJSON, restoreRegionAndDistrict, loading };
 };

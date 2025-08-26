@@ -296,41 +296,12 @@ const Farmers = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Header */}
-      <div className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div 
-              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate("/")}
-            >
-              <img
-                className="h-16 w-auto mr-4"
-                src={uzbekistanEmblem}
-                alt="O'zbekiston gerbi"
-              />
-              <p className="text-start font-extrabold text-white max-w-64">
-                Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish agentligi
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate("/")}
-                className="text-gray-300 hover:text-white"
-              >
-                Bosh sahifa
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-white">
-            Fermerlar ro'yxati
+            Fermerlar
           </h2>
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 sticky top-[64px] z-10 bg-gray-900/80 backdrop-blur-md p-3 md:p-0 md:bg-transparent">
             <input

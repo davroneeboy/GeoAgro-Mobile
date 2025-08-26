@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { API_BASE_URL1, API_BASE_URL2 } from "../config";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import ContactsPanel from "../components/ContactsPanel";
-import { Pie } from "react-chartjs-2";
+import { Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -19,6 +19,37 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+// Плагин для вывода текста по центру пончик-чарта
+const centerTextPlugin = {
+  id: 'centerText',
+  afterDraw(chart) {
+    const opts = chart.options?.plugins?.centerText;
+    if (!opts || !opts.display || !opts.text) return;
+    const { ctx, chartArea } = chart;
+    const { left, top, width, height } = chartArea;
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Крупное число
+    ctx.fillStyle = '#e5e7eb';
+    const mainFontSize = Math.max(Math.min(width, height) / 7, 14);
+    ctx.font = `700 ${mainFontSize}px ui-sans-serif, system-ui, -apple-system`;
+    ctx.fillText(opts.text, centerX, centerY);
+    // Подпись
+    if (opts.label) {
+      ctx.fillStyle = '#9ca3af';
+      const subFontSize = Math.max(Math.min(width, height) / 16, 10);
+      ctx.font = `500 ${subFontSize}px ui-sans-serif, system-ui, -apple-system`;
+      ctx.fillText(opts.label, centerX, centerY + mainFontSize * 0.75);
+    }
+    ctx.restore();
+  }
+};
+
+ChartJS.register(centerTextPlugin);
 
 // Названия регионов по ID (для отображения location.region)
 const REGION_NAMES = {
@@ -36,21 +67,27 @@ const REGION_NAMES = {
   12: "Karakalpakstan",
 };
 
-const formatUserLocation = (user) => {
-  const loc = user?.location;
-  if (!loc) return "No region/district assigned";
-  const regionName = REGION_NAMES[loc.region] || (loc.region ? `Region #${loc.region}` : "");
-  const districtName = loc.district || "";
-  const parts = [regionName, districtName].filter(Boolean);
-  return parts.length ? parts.join(", ") : "No region/district assigned";
+// формат локации убран — больше не используется на этой странице
+
+// Компактное форматирование больших сумм: ming / mln / mlrd / trln
+const formatCompact = (value) => {
+  const abs = Math.abs(value || 0);
+  const strip = (v) => v.toFixed(1).replace(/\.0$/, '');
+  if (abs >= 1e12) return `${strip(value / 1e12)} trln`;
+  if (abs >= 1e9) return `${strip(value / 1e9)} mlrd`;
+  if (abs >= 1e6) return `${strip(value / 1e6)} mln`;
+  if (abs >= 1e3) return `${strip(value / 1e3)} ming`;
+  return new Intl.NumberFormat('uz-UZ').format(Math.round(value));
 };
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
-  const [controllers, setControllers] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // удалены состояния контроллеров — панель перенесена в LeftNav
+  const isAt = (path) => location.pathname.startsWith(path);
 
   const handleLogout = () => {
     logout();
@@ -58,28 +95,6 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    const fetchControllers = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL1}api/users/`, {
-          headers: {
-            Authorization: `Bearer ${authState.accessToken}`,
-          },
-        });
-        const data = await response.json();
-        const sortedControllers = data
-          .filter((user) => user.last_login)
-          .sort(
-            (a, b) =>
-              new Date(b.last_login).getTime() -
-              new Date(a.last_login).getTime()
-          )
-          .slice(0, 5);
-        setControllers(sortedControllers);
-      } catch (error) {
-        console.error("Ошибка при загрузке контроллеров:", error);
-      }
-    };
-
     const fetchStatistics = async () => {
       try {
         const response = await fetch(`${API_BASE_URL2}api/statistics/`, {
@@ -95,10 +110,15 @@ const HomePage = () => {
     };
 
     if (authState.accessToken) {
-      fetchControllers();
       fetchStatistics();
     }
   }, [authState.accessToken]);
+
+  // Отображаемое имя пользователя (ФИО или логин)
+  const firstName = authState?.userInfo?.first_name?.trim() || "";
+  const lastName = authState?.userInfo?.last_name?.trim() || "";
+  const fullName = `${firstName} ${lastName}`.trim();
+  const displayName = fullName || authState?.userInfo?.username || authState?.username || "—";
 
   // Первый пай-чарт: Типы плантаций
   const plantationTypesData = {
@@ -150,9 +170,84 @@ const HomePage = () => {
     ],
   };
 
+  // Третий пай-чарт: Инвестиции (local vs foreign)
+  const investmentsData = {
+    labels: ["Mahalliy", "Xorijiy"],
+    datasets: [
+      {
+        label: "Investitsiyalar",
+        data: statistics && statistics.investments
+          ? [statistics.investments.local || 0, statistics.investments.foreign || 0]
+          : [],
+        backgroundColor: [
+          "rgba(16, 185, 129, 0.6)", // emerald-500
+          "rgba(59, 130, 246, 0.6)", // blue-500
+        ],
+        borderColor: [
+          "rgba(16, 185, 129, 0.9)",
+          "rgba(59, 130, 246, 0.9)",
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  // Ирригация (sug'oriladigan) против неирригации
+  const irrigationTotal = statistics?.irrigation_stats?.total_irrigation_area || 0;
+  const totalAreaAll = statistics?.total_area || 0;
+  const nonIrrigation = Math.max(totalAreaAll - irrigationTotal, 0);
+  const irrigationPercent = statistics?.irrigation_stats?.percentage_of_total ?? (totalAreaAll ? (irrigationTotal / totalAreaAll) * 100 : 0);
+  const irrigationData = {
+    labels: ["Sug'oriladigan", "Sug'orilmaydigan"],
+    datasets: [
+      {
+        label: "Sug'orish holati",
+        data: [irrigationTotal, nonIrrigation],
+        backgroundColor: [
+          "rgba(20, 184, 166, 0.6)", // teal-500
+          "rgba(75, 85, 99, 0.5)",   // gray-600
+        ],
+        borderColor: [
+          "rgba(20, 184, 166, 0.9)",
+          "rgba(75, 85, 99, 0.9)",
+        ],
+        borderWidth: 2,
+      }
+    ]
+  };
+
+  // Плодородие: низкая vs высокая, центр — средний балл
+  const fertilityLow = statistics?.fertility_stats?.low_fertility_area || 0;
+  const fertilityHigh = statistics?.fertility_stats?.high_fertility_area || 0;
+  const averageFertilityScore = statistics?.fertility_stats?.average_score || 0;
+  const fertilityData = {
+    labels: ["Past unumdorlik", "Yuqori unumdorlik"],
+    datasets: [
+      {
+        label: "Tuproq unumdorligi",
+        data: [fertilityLow, fertilityHigh],
+        backgroundColor: [
+          "rgba(239, 68, 68, 0.5)", // red-500
+          "rgba(34, 197, 94, 0.6)", // green-500
+        ],
+        borderColor: [
+          "rgba(239, 68, 68, 0.9)",
+          "rgba(34, 197, 94, 0.9)",
+        ],
+        borderWidth: 2,
+      }
+    ]
+  };
+
+  const formatNumber = (n) => new Intl.NumberFormat('uz-UZ').format(Math.round(n));
+  const plantationTotal = statistics ? (statistics.total_bogs + statistics.total_uzumzors + statistics.total_issiqxonas) : 0;
+  const areasTotal = statistics ? ((statistics.total_area || 0) + (statistics.total_fruit_areas || 0)) : 0;
+  const investmentsTotal = (statistics?.investments?.local || 0) + (statistics?.investments?.foreign || 0);
+
   const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '58%',
     plugins: {
       legend: {
         position: "bottom",
@@ -238,21 +333,21 @@ const HomePage = () => {
           <div className="mt-4 space-y-2">
             <Link
               to="/plantations/uz"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+              className={`block w-full ${isAt('/plantations/uz') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Bog'larga o'tish
             </Link>
             <Link
               to="/statistics/regions"
-              className="block w-full bg-green-500 text-white py-2 rounded-lg font-medium text-center hover:bg-green-600 transition-colors"
+              className={`block w-full ${isAt('/statistics') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               To'liq statistika
             </Link>
             <Link
               to="/farmers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+              className={`block w-full ${isAt('/farmers') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Fermerlar
@@ -260,28 +355,28 @@ const HomePage = () => {
             {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
             <Link
               to="/moderation"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+              className={`block w-full ${isAt('/moderation') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Moderatsiya
             </Link>
             <Link
               to="/approved-plantations"
-              className="block w-full bg-green-500 text-white py-2 rounded-lg font-medium text-center hover:bg-green-600 transition-colors"
+              className={`block w-full ${isAt('/approved-plantations') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Tasdiqlangan bog'lar
             </Link>
             <Link
               to="/rejected-plantations"
-              className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
+              className={`block w-full ${isAt('/rejected-plantations') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Rad etilgan bog'lar
             </Link>
             <Link
               to="/controllers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+              className={`block w-full ${isAt('/statistics/controllers') || isAt('/controllers') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Nazoratchilar
@@ -290,111 +385,49 @@ const HomePage = () => {
         )}
       </div>
 
-      {/* Десктопная версия */}
-      <div className="hidden lg:flex min-h-screen">
-        {/* Левая панель */}
-        <div className="w-1/4 p-4 border-r border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
-          <div className="flex justify-start items-center mb-5">
-            <img
-              className="h-20 w-auto mr-3"
-              src={uzbekistanEmblem}
-              alt="O'zbekiston gerbi"
-            />
-            <p className="text-start font-extrabold text-white max-w-64">
-              Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish
-              agentligi
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <Link
-              to="/plantations/uz"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
-              </svg>
-              Bog'larga o'tish
-            </Link>
-
-            <Link
-              to="/statistics/regions"
-              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              To'liq statistika
-            </Link>
-
-            <Link
-              to="/farmers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Fermerlar
-            </Link>
-          </div>
-
-          <div className="mt-8">
-            <h3 className="text-white font-semibold mb-4">Nazoratchilar</h3>
-            <div className="space-y-3">
-              {controllers.map((controller) => (
-                <Link
-                  to="/controllers"
-                  key={controller.id}
-                  className="p-4 border border-gray-600 rounded-lg flex items-center justify-between bg-gray-700 hover:bg-gray-600 transition-colors"
-                >
-                  <div>
-                    <h3 className="text-sm font-medium text-white">
-                      {controller.first_name || controller.last_name
-                        ? `${controller.first_name} ${controller.last_name}`
-                        : controller.username}
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      {(() => {
-                        const iso = (controller.last_login || "").replace(" ", "T");
-                        const d = new Date(iso);
-                        return isNaN(d) ? "—" : d.toLocaleString("uz-UZ", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
-                      })()}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {formatUserLocation(controller)}
-                    </p>
-                  </div>
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Центральная панель */}
-        <div className="flex-1 bg-gray-900 flex flex-col">
+      {/* Основная область (без левой панели — теперь она общая) */}
+      <div className="min-h-screen bg-gray-900 flex flex-col">
           <div className="p-4 sm:p-6">
             <h1 className="text-white text-3xl font-bold mb-2 flex items-center justify-between">
               <span>Qishloq xo'jaligi statistikasi</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center bg-gray-800 border border-gray-700 rounded-full px-3 py-1">
+                  <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center mr-2">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-gray-200 font-medium">{displayName}</span>
+                </div>
                 <ContactsPanel buttonClassName="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors" label="Kontaktlar" />
               </div>
             </h1>
-            <p className="text-sm text-gray-400 mb-6">
-              Tizimga kirgan foydalanuvchi: <span className="text-gray-200 font-semibold">{authState?.username || "Noma'lum foydalanuvchi"}</span>
-            </p>
             
             {/* removed quick action buttons */}
 
             {statistics ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                   <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">
                       Plantatsiya turlari
                     </h3>
                     <div className="h-72 sm:h-80">
-                      <Pie data={plantationTypesData} options={pieChartOptions} />
+                      <Doughnut
+                        data={plantationTypesData}
+                        options={{
+                          ...pieChartOptions,
+                          plugins: {
+                            ...pieChartOptions.plugins,
+                            centerText: { display: true, text: formatNumber(plantationTotal), label: 'Jami' }
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="mt-3 flex justify-center">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
+                        Jami: {formatNumber(plantationTotal)}
+                      </span>
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -402,11 +435,100 @@ const HomePage = () => {
                       Maydonlar
                     </h3>
                     <div className="h-72 sm:h-80">
-                      <Pie data={areasData} options={pieChartOptions} />
+                      <Doughnut
+                        data={areasData}
+                        options={{
+                          ...pieChartOptions,
+                          plugins: {
+                            ...pieChartOptions.plugins,
+                            centerText: { display: true, text: formatNumber(areasTotal), label: 'Jami' }
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="mt-3 flex justify-center">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
+                        Jami: {formatNumber(areasTotal)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-center">
+                      Investitsiyalar
+                    </h3>
+                    <div className="h-72 sm:h-80">
+                      <Doughnut
+                        data={investmentsData}
+                        options={{
+                          ...pieChartOptions,
+                          plugins: {
+                            ...pieChartOptions.plugins,
+                            tooltip: {
+                              ...pieChartOptions.plugins.tooltip,
+                              callbacks: {
+                                label: function(context) {
+                                  const formatter = new Intl.NumberFormat('uz-UZ');
+                                  const value = context.parsed;
+                                  return `${context.label}: ${formatter.format(value)} so'm`;
+                                }
+                              }
+                            },
+                            centerText: { display: true, text: `${formatCompact(investmentsTotal)}`, label: "so'm" }
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="mt-3 flex justify-center">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
+                        Jami: {formatNumber(investmentsTotal)} so'm
+                      </span>
                     </div>
                   </div>
                 </div>
                 
+                {/* Дополнительные диаграммы: Ирригация и Уруқдорлик */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Sug'orish</h3>
+                    <div className="h-72 sm:h-80">
+                      <Doughnut
+                        data={irrigationData}
+                        options={{
+                          ...pieChartOptions,
+                          plugins: {
+                            ...pieChartOptions.plugins,
+                            centerText: { display: true, text: `${irrigationPercent.toFixed(1)}%`, label: "Sug'oriladigan" }
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Jami maydon: {formatNumber(totalAreaAll)} ga</span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Sug'oriladigan: {formatNumber(irrigationTotal)} ga</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Tuproq unumdorligi</h3>
+                    <div className="h-72 sm:h-80">
+                      <Doughnut
+                        data={fertilityData}
+                        options={{
+                          ...pieChartOptions,
+                          plugins: {
+                            ...pieChartOptions.plugins,
+                            centerText: { display: true, text: `${averageFertilityScore.toFixed(1)}`, label: "o'rtacha ball" }
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Past: {formatNumber(fertilityLow)} ga</span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Yuqori: {formatNumber(fertilityHigh)} ga</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Карточка с фермерами */}
                 <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6 border border-gray-600">
                   <div className="flex items-center justify-center">
@@ -437,49 +559,6 @@ const HomePage = () => {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Правая панель */}
-        <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
-          <div className="space-y-3">
-            <button
-              onClick={handleLogout}
-              className="block w-full bg-green-500 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
-            >
-              Chiqish
-            </button>
-            
-                <Link
-                  to="/moderation"
-              className="block w-full bg-gray-700 border border-gray-600 text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-                >
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Moderatsiya
-            </Link>
-            
-            <Link
-              to="/approved-plantations"
-              className="block w-full bg-green-500 text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              Tasdiqlangan bog'lar
-                </Link>
-                
-            <Link
-              to="/rejected-plantations"
-              className="block w-full bg-red-500 text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Rad etilgan bog'lar
-            </Link>
-          </div>
-        </div>
       </div>
 
       {/* Мобильная версия контента */}
@@ -488,9 +567,6 @@ const HomePage = () => {
           <h2 className="text-xl font-semibold text-white mb-2 text-center">
             Qishloq xo'jaligi statistikasi
           </h2>
-          <p className="text-xs text-gray-400 mb-4 text-center">
-            Kirgan foydalanuvchi: <span className="text-gray-300 font-medium">{authState?.username || "—"}</span>
-          </p>
           
           {/* removed quick action buttons (mobile) */}
 
@@ -501,7 +577,21 @@ const HomePage = () => {
                   Plantatsiya turlari
                 </h3>
                 <div className="h-64">
-                  <Pie data={plantationTypesData} options={pieChartOptions} />
+                  <Doughnut
+                    data={plantationTypesData}
+                    options={{
+                      ...pieChartOptions,
+                      plugins: {
+                        ...pieChartOptions.plugins,
+                        centerText: { display: true, text: formatNumber(plantationTotal), label: 'Jami' }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-center">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
+                    Jami: {formatNumber(plantationTotal)}
+                  </span>
                 </div>
               </div>
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
@@ -509,10 +599,96 @@ const HomePage = () => {
                   Maydonlar
                 </h3>
                 <div className="h-64">
-                  <Pie data={areasData} options={pieChartOptions} />
+                  <Doughnut
+                    data={areasData}
+                    options={{
+                      ...pieChartOptions,
+                      plugins: {
+                        ...pieChartOptions.plugins,
+                        centerText: { display: true, text: formatNumber(areasTotal), label: 'Jami' }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-center">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
+                    Jami: {formatNumber(areasTotal)}
+                  </span>
                 </div>
               </div>
-              
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">
+                  Investitsiyalar
+                </h3>
+                <div className="h-64">
+                  <Doughnut
+                    data={investmentsData}
+                    options={{
+                      ...pieChartOptions,
+                      plugins: {
+                        ...pieChartOptions.plugins,
+                        tooltip: {
+                          ...pieChartOptions.plugins.tooltip,
+                          callbacks: {
+                            label: function(context) {
+                              const formatter = new Intl.NumberFormat('uz-UZ');
+                              const value = context.parsed;
+                              return `${context.label}: ${formatter.format(value)} so'm`;
+                            }
+                          }
+                        },
+                        centerText: { display: true, text: `${formatCompact(investmentsTotal)}`, label: "so'm" }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-center">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
+                    Jami: {formatNumber(investmentsTotal)} so'm
+                  </span>
+                </div>
+              </div>
+              {/* Mobile: Ирригация и Уруқдорлик */}
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">Sug'orish</h3>
+                <div className="h-64">
+                  <Doughnut
+                    data={irrigationData}
+                    options={{
+                      ...pieChartOptions,
+                      plugins: {
+                        ...pieChartOptions.plugins,
+                        centerText: { display: true, text: `${irrigationPercent.toFixed(1)}%`, label: "Sug'oriladigan" }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Jami: {formatNumber(totalAreaAll)} ga</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Sug'oriladigan: {formatNumber(irrigationTotal)} ga</span>
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">Tuproq unumdorligi</h3>
+                <div className="h-64">
+                  <Doughnut
+                    data={fertilityData}
+                    options={{
+                      ...pieChartOptions,
+                      plugins: {
+                        ...pieChartOptions.plugins,
+                        centerText: { display: true, text: `${averageFertilityScore.toFixed(1)}`, label: "o'rtacha ball" }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Past: {formatNumber(fertilityLow)} ga</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Yuqori: {formatNumber(fertilityHigh)} ga</span>
+                </div>
+              </div>
+ 
               {/* Мобильная карточка с фермерами */}
               <div className="bg-gradient-to-r from-gray-700 to-gray-600 rounded-xl p-4 border border-gray-500">
                 <div className="flex items-center justify-center">

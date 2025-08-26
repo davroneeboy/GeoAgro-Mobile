@@ -139,6 +139,9 @@ const UzbekistanMap = () => {
         const script = document.createElement("script");
         script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}`;
         script.id = "googleMaps";
+        script.async = true;
+        script.defer = true;
+        script.setAttribute('loading', 'async');
         script.onload = initializeMap;
         document.body.appendChild(script);
       } else {

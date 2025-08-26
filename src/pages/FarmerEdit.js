@@ -114,43 +114,22 @@ const FarmerEdit = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Header */}
-      <div className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-                <img
-                  className="h-16 w-auto mr-4"
-                  src={uzbekistanEmblem}
-                  alt="O'zbekiston gerbi"
-                />
-                <h1 className="text-xl text-start font-extrabold text-white max-w-64 leading-tight">
-                  Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish agentligi
-                </h1>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate("/farmers")}
-                className="text-gray-300 hover:text-white"
-              >
-                Orqaga
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="h-0.5 bg-green-500" />
+      {/* Header removed to avoid duplication with LeftNav */}
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            {id === "new"
-              ? "Yangi fermer qo'shish"
-              : "Fermer ma'lumotlarini tahrirlash"}
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">
+              {id === "new" ? "Yangi fermer" : "Fermer"}
+            </h2>
+            <button
+              onClick={() => navigate("/farmers")}
+              className="px-3 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
+            >
+              Orqaga
+            </button>
+          </div>
 
           <form
             onSubmit={handleSubmit}

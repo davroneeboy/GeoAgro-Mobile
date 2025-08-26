@@ -393,7 +393,7 @@ const RegionsPage = () => {
             approvedData.approved_investments_by_region.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
               if (!regionId || !data[regionId]) return;
-              data[regionId] = {
+                  data[regionId] = {
                 ...data[regionId],
                 investment_local: Number(regionData.local || 0),
                 investment_foreign: Number(regionData.foreign || 0),
@@ -474,20 +474,20 @@ const RegionsPage = () => {
           Object.keys(allRegions).forEach(regionId => {
             data[regionId] = {
               region: allRegions[regionId],
-              total_area: 0,
-              total_plantations: 0,
-              total_fruitarea: 0,
-              bogs_count: 0,
-              bogs_area: 0,
-              uzumzors_count: 0,
-              uzumzors_area: 0,
-              issiqxonas_count: 0,
-              issiqxonas_area: 0,
-              investment_local: 0,
-              investment_foreign: 0,
-              subsidy_count: 0,
-              total_subsidy: 0
-            };
+                    total_area: 0,
+                    total_plantations: 0,
+                    total_fruitarea: 0,
+                    bogs_count: 0,
+                    bogs_area: 0,
+                    uzumzors_count: 0,
+                    uzumzors_area: 0,
+                    issiqxonas_count: 0,
+                    issiqxonas_area: 0,
+                    investment_local: 0,
+                    investment_foreign: 0,
+                    subsidy_count: 0,
+                    total_subsidy: 0
+                  };
           });
 
           if (rejectedData.by_region_with_planted_area) {
@@ -514,7 +514,7 @@ const RegionsPage = () => {
                 if (!data[regionId]) {
                   data[regionId] = { region: allRegions[regionId] || `Region ${regionId}` };
                 }
-                data[regionId] = {
+                  data[regionId] = {
                   ...data[regionId],
                   total_area: regionData.total_area ?? 0,
                   total_plantations: regionData.count ?? 0,

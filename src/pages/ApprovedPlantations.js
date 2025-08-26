@@ -479,67 +479,8 @@ const ApprovedPlantations = () => {
         )}
       </div>
 
-      {/* Десктопная версия */}
-      <div className="hidden lg:flex min-h-screen">
-        {/* Левая панель */}
-        <div className="w-1/4 p-4 border-r border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
-          <div className="flex justify-start items-center mb-5">
-            <img
-              className="h-20 w-auto mr-3"
-              src={uzbekistanEmblem}
-              alt="O'zbekiston gerbi"
-            />
-            <p className="text-start font-extrabold text-white max-w-64">
-              Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish
-              agentligi
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <Link
-              to="/"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Bosh sahifa
-            </Link>
-
-            <Link
-              to="/plantations/uz"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
-              </svg>
-              Bog'larga o'tish
-            </Link>
-
-            <Link
-              to="/moderation"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Moderatsiya
-            </Link>
-
-            <Link
-              to="/rejected-plantations"
-              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Rad etilgan bog'lar
-            </Link>
-          </div>
-        </div>
-
-        {/* Центральная панель */}
-        <div className="flex-1 bg-gray-900 flex flex-col">
+      {/* Контент */}
+      <div className="min-h-screen bg-gray-900 flex flex-col">
           <div className="p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -814,8 +755,7 @@ const ApprovedPlantations = () => {
                 </p>
               </div>
             )}
-          </div>
-        </div>
+                </div>
       </div>
 
       {/* Мобильная версия контента */}

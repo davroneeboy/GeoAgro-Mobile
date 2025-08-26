@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { useMapsHook } from "./mapsHook";
 import L from "leaflet"; // Для работы с координатами на карте
 import { useNavigate, Link } from "react-router-dom";
@@ -32,14 +32,23 @@ export default function MapContainer() {
   };
 
   const handleRegionClick = (regionId, regionName) => {
-    setSelectedRegion({ id: regionId, name: regionName });
+    const region = { id: regionId, name: regionName };
+    setSelectedRegion(region);
+    try {
+      localStorage.setItem('mapSelectedRegion', JSON.stringify(region));
+      localStorage.removeItem('mapSelectedDistrict');
+    } catch (e) {}
     setSelectedDistrict(null);
     setPlantations([]);
     setSelectedPlantation(null);
   };
 
   const handleDistrictClick = async (districtId, districtName = "Tumani") => {
-    setSelectedDistrict({ id: districtId, name: districtName });
+    const district = { id: districtId, name: districtName };
+    setSelectedDistrict(district);
+    try {
+      localStorage.setItem('mapSelectedDistrict', JSON.stringify(district));
+    } catch (e) {}
     setSelectedPlantation(null);
 
     try {
@@ -98,13 +107,26 @@ export default function MapContainer() {
     }
   };
 
-  const { mapRef, initializeMap, loadRegionGeoJSON, loading } = useMapsHook({
+  const { mapRef, initializeMap, loadRegionGeoJSON, restoreRegionAndDistrict, loading } = useMapsHook({
     onRegionClick: handleRegionClick,
     onDistrictClick: handleDistrictClick,
     onPlantationClick: handlePlantationClick,
     onMapLoad: handleMapLoad,
     accessToken: authState.accessToken,
   });
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (!mapInstance || restoredRef.current) return;
+    try {
+      const savedRegion = JSON.parse(localStorage.getItem('mapSelectedRegion') || 'null');
+      const savedDistrict = JSON.parse(localStorage.getItem('mapSelectedDistrict') || 'null');
+      if (savedRegion && savedDistrict) {
+        restoredRef.current = true;
+        restoreRegionAndDistrict(savedRegion.id, savedDistrict.id, savedDistrict.name);
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapInstance]);
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -225,88 +247,11 @@ export default function MapContainer() {
       </div>
 
       {/* Десктопная версия */}
-      <div className="hidden lg:flex h-screen">
-        {/* Левая панель */}
-        <div className="w-1/4 p-4 border-r border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
-          <div
-            className="flex justify-start items-center mb-5 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/")}
-          >
-            <img
-              className="h-20 w-auto mr-3"
-              src={uzbekistanEmblem}
-              alt="O'zbekiston gerbi"
-            />
-            <p className="text-start font-extrabold text-white max-w-64">
-              Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish
-              agentligi
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <Link
-              to="/plantations/uz"
-              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3"
-                />
-              </svg>
-              Bog'larga o'tish
-            </Link>
-
-            <Link
-              to="/statistics/regions"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              To'liq statistika
-            </Link>
-
-            <Link
-              to="/farmers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              Fermerlar
-            </Link>
-          </div>
-
+      <div className="hidden lg:flex h-screen px-3 gap-3">
+        {/* Левая панель (только список/контент) */}
+        <div className="w-64 p-4 border-r border-gray-700 bg-gray-800 shadow-lg overflow-y-auto rounded-md">
           {/* Контент левой панели */}
-          <div className="mt-6">
+          <div className="mt-2">
             {loading ? (
               <p className="text-gray-400 font-bold text-center">
                 Yuklanmoqda...
@@ -375,7 +320,7 @@ export default function MapContainer() {
         </div>
 
         {/* Центральная панель с картой */}
-        <div className="flex-1 bg-gray-900">
+        <div className="flex-1 bg-gray-900 rounded-md overflow-hidden">
           <div
             id="map"
             ref={isLarge ? mapRef : null}
@@ -384,7 +329,7 @@ export default function MapContainer() {
         </div>
 
         {/* Правая панель */}
-        <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto">
+        <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto rounded-md">
           <div className="space-y-4">
             {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
             <button
@@ -509,9 +454,13 @@ export default function MapContainer() {
                 <div className="flex justify-center mt-4">
                   <button
                     className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-                    onClick={() =>
-                      navigate(`/plantations/${selectedPlantation.id}`)
-                    }
+                    onClick={() => {
+                      try {
+                        if (selectedRegion) localStorage.setItem('mapSelectedRegion', JSON.stringify(selectedRegion));
+                        if (selectedDistrict) localStorage.setItem('mapSelectedDistrict', JSON.stringify(selectedDistrict));
+                      } catch (e) {}
+                      navigate(`/plantations/${selectedPlantation.id}`, { state: { from: '/plantations/uz' } });
+                    }}
                   >
                     Batafsil
                   </button>
@@ -551,6 +500,10 @@ export default function MapContainer() {
                 <button
                   className="w-full bg-blue-500 font-bold text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
                   onClick={() => {
+                    try {
+                      localStorage.removeItem('mapSelectedRegion');
+                      localStorage.removeItem('mapSelectedDistrict');
+                    } catch (e) {}
                     setSelectedRegion(null);
                     initializeMap();
                   }}

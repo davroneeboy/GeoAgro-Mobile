@@ -137,18 +137,18 @@ export async function fetchRegionApprovedStatistics(regionId, params = {}, acces
     
     const queryString = queryParams.toString();
     
-      // Если regionId равен null, используем общий эндпоинт для всех регионов
-  let url;
-  if (regionId === null) {
-    const finalQueryString = queryParams.toString();
+    // Если regionId равен null, используем общий эндпоинт для всех регионов
+    let url;
+    if (regionId === null) {
+      const finalQueryString = queryParams.toString();
     url = finalQueryString ? 
       `${API_BASE_URL2}api/statistics/approved/?${finalQueryString}` : 
       `${API_BASE_URL2}api/statistics/approved/`;
-  } else {
-    url = queryString ? 
-      `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 
-      `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/`;
-  }
+    } else {
+      url = queryString ? 
+        `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 
+        `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/`;
+    }
     
     const response = await fetch(url, { headers });
     if (!response.ok) {

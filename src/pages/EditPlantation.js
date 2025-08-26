@@ -444,6 +444,9 @@ const EditPlantation = () => {
           const script = document.createElement("script");
           script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=geometry`;
           script.id = "googleMaps";
+          script.async = true;
+          script.defer = true;
+          script.setAttribute('loading', 'async');
           document.body.appendChild(script);
           script.onload = () => {
             if (typeof google !== "undefined") {
@@ -545,6 +548,9 @@ const EditPlantation = () => {
                 } else if (fromPage === '/rejected-plantations') {
                   // Если пришел с rejected-plantations, возвращаемся туда
                   window.location.href = '/rejected-plantations';
+                } else if (fromPage === '/plantations/uz') {
+                  // Если пришли с карты плантаций, возвращаемся на неё
+                  window.location.href = '/plantations/uz';
                 } else {
                   // По умолчанию возвращаемся на moderation
                 console.log('Navigating to moderation...');

@@ -483,81 +483,9 @@ const Moderation = () => {
         )}
       </div>
 
-      {/* Десктопная версия */}
-      <div className="hidden lg:flex h-screen bg-gray-900 w-full" style={{backgroundColor: '#111827'}}>
-        {/* Левая панель */}
-        <div className="w-1/4 p-4 border-r border-gray-700 bg-gray-800 shadow-lg h-screen flex flex-col">
-          <div 
-            className="flex justify-start items-center mb-5 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/")}
-          >
-            <img
-              className="h-20 w-auto mr-3"
-              src={uzbekistanEmblem}
-              alt="O'zbekiston gerbi"
-            />
-            <p className="text-start font-extrabold text-white max-w-64">
-              Qishloq xo'jaligi Vazirligi huzuridagi Agrosanoatni rivojlantirish
-              agentligi
-            </p>
-          </div>
-
-          <div className="space-y-3 flex-1 overflow-y-auto">
-            <Link
-              to="/plantations/uz"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
-              </svg>
-              Bog'larga o'tish
-            </Link>
-
-            <Link
-              to="/statistics/regions"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              To'liq statistika
-            </Link>
-
-            <Link
-              to="/farmers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-3 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Fermerlar
-            </Link>
-
-            <Link
-              to="/approved-plantations"
-              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              Tasdiqlangan bog'lar
-            </Link>
-
-            <Link
-              to="/rejected-plantations"
-              className="block w-full bg-red-500 text-white py-3 rounded-lg font-medium text-center hover:bg-red-600 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Rad etilgan bog'lar
-            </Link>
-          </div>
-        </div>
-
-        {/* Центральная панель */}
-        <div className="flex-1 bg-gray-900 flex flex-col overflow-y-auto" style={{backgroundColor: '#111827'}}>
-          <div className="p-4 sm:p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
+      {/* Контент */}
+      <div className="min-h-screen bg-gray-900 w-full" style={{backgroundColor: '#111827'}}>
+        <div className="p-4 sm:p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
             <h1 className="text-white text-3xl font-bold mb-4 sm:mb-6">
               Moderatsiya
             </h1>
@@ -925,7 +853,6 @@ const Moderation = () => {
             </button>
           </div>
         </div>
-      </div>
 
       {/* Мобильная версия контента */}
       <div className="lg:hidden p-4 bg-gray-900 min-h-screen pb-24" style={{backgroundColor: '#111827'}}>
