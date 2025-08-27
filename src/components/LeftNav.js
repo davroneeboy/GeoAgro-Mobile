@@ -138,14 +138,25 @@ const LeftNav = () => {
           const isStats = item.to === '/statistics/regions';
           return (
             <div key={item.to}>
-              <Link
-                to={item.to}
-                className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 transition-colors rounded-lg border ${active ? 'bg-green-600 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
-                title={collapsed ? item.label : undefined}
-              >
-                <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
-                {!collapsed && <span className="truncate">{item.label}</span>}
-              </Link>
+              {item.to === '/controllers' ? (
+                <div
+                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 rounded-lg border bg-gray-700 text-gray-400 border-gray-600 opacity-60 cursor-not-allowed pointer-events-none`}
+                  title={collapsed ? item.label : 'Nazoratchilar (faol emas)'}
+                  aria-disabled="true"
+                >
+                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </div>
+              ) : (
+                <Link
+                  to={item.to}
+                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 transition-colors rounded-lg border ${active ? 'bg-green-600 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </Link>
+              )}
               {!collapsed && location.pathname.startsWith('/statistics') && isStats && (
                 <div className="ml-2 mt-1 space-y-2">
                   {statsSubItems.map(sub => (
