@@ -294,7 +294,7 @@ const RejectedPlantations = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-white text-3xl font-bold mb-2">Rad etilgan bog'lar</h1>
-              </div>
+        </div>
             </div>
 
             {/* Фильтры */}
@@ -513,8 +513,8 @@ const RejectedPlantations = () => {
             )}
 
 
-          </div>
         </div>
+      </div>
 
       {/* Мобильная версия контента */}
       <div className="lg:hidden p-4">

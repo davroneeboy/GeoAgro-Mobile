@@ -122,7 +122,7 @@ const FarmerEdit = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white">
               {id === "new" ? "Yangi fermer" : "Fermer"}
-            </h2>
+          </h2>
             <button
               onClick={() => navigate("/farmers")}
               className="px-3 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"

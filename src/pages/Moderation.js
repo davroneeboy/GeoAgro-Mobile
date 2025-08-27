@@ -485,7 +485,7 @@ const Moderation = () => {
 
       {/* Контент */}
       <div className="min-h-screen bg-gray-900 w-full" style={{backgroundColor: '#111827'}}>
-        <div className="p-4 sm:p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
+          <div className="p-4 sm:p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
             <h1 className="text-white text-3xl font-bold mb-4 sm:mb-6">
               Moderatsiya
             </h1>
@@ -844,13 +844,6 @@ const Moderation = () => {
         {/* Правая панель */}
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg h-screen flex flex-col">
           <div className="space-y-4 flex-1 overflow-y-auto">
-            {/* Кнопка выхода */}
-            <button
-              onClick={handleLogout}
-              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
-            >
-              Chiqish
-            </button>
           </div>
         </div>
 

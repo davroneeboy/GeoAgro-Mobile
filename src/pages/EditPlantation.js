@@ -854,10 +854,10 @@ const EditPlantation = () => {
                   {plantation.images.map((img, idx) => (
                     <img
                       key={idx}
-                      src={img}
+                      src={img.image_url}
                       alt={`Изображение ${idx + 1}`}
                       className="w-full h-24 object-cover border border-gray-600 rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setSelectedImage(img)}
+                      onClick={() => setSelectedImage(img.image_url)}
                     />
                   ))}
                 </div>

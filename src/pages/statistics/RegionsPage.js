@@ -402,7 +402,7 @@ const RegionsPage = () => {
             approvedData.by_region_with_planted_area.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
               if (!regionId || !data[regionId]) return;
-              data[regionId] = {
+                  data[regionId] = {
                 ...data[regionId],
                 total_approved_fruitarea: Number(regionData.planted_area || 0),
               };

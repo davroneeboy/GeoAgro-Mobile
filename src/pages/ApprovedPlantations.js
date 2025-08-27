@@ -755,7 +755,7 @@ const ApprovedPlantations = () => {
                 </p>
               </div>
             )}
-                </div>
+        </div>
       </div>
 
       {/* Мобильная версия контента */}
