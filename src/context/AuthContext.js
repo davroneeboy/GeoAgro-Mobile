@@ -3,18 +3,33 @@ import { USER_ROLES, ROLE_PERMISSIONS } from "./constants";
 
 const AuthContext = createContext();
 
+// Ключ для подсчёта активных вкладок
+const TABS_KEY = 'activeTabCount';
+
+function getActiveTabCount() {
+  const raw = localStorage.getItem(TABS_KEY);
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function setActiveTabCount(n) {
+  const safe = Math.max(0, Number(n) || 0);
+  if (safe === 0) localStorage.removeItem(TABS_KEY);
+  else localStorage.setItem(TABS_KEY, String(safe));
+}
+
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    accessToken: sessionStorage.getItem("accessToken"),
-    refreshToken: sessionStorage.getItem("refreshToken"),
-    username: sessionStorage.getItem("username"),
-    userInfo: JSON.parse(sessionStorage.getItem("userInfo") || "null"),
+    accessToken: localStorage.getItem("accessToken"),
+    refreshToken: localStorage.getItem("refreshToken"),
+    username: localStorage.getItem("username"),
+    userInfo: JSON.parse(localStorage.getItem("userInfo") || "null"),
   });
 
   const login = (data) => {
-    sessionStorage.setItem("accessToken", data.access);
-    sessionStorage.setItem("refreshToken", data.refresh);
-    sessionStorage.setItem("username", data.username);
+    localStorage.setItem("accessToken", data.access);
+    localStorage.setItem("refreshToken", data.refresh);
+    localStorage.setItem("username", data.username);
     
     // Сохраняем информацию о пользователе
     const userInfo = {
@@ -28,7 +43,7 @@ export const AuthProvider = ({ children }) => {
       permissions: ROLE_PERMISSIONS[data.role] || ROLE_PERMISSIONS[USER_ROLES.MODERATOR],
     };
     
-    sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
+    localStorage.setItem("userInfo", JSON.stringify(userInfo));
     
     setAuthState({
       accessToken: data.access,
@@ -38,11 +53,15 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const clearTokens = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("username");
+    localStorage.removeItem("userInfo");
+  };
+
   const logout = () => {
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("refreshToken");
-    sessionStorage.removeItem("username");
-    sessionStorage.removeItem("userInfo");
+    clearTokens();
     setAuthState({
       accessToken: null,
       refreshToken: null,
@@ -53,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = sessionStorage.getItem("refreshToken");
+      const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
         throw new Error("No refresh token available");
       }
@@ -68,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        sessionStorage.setItem("accessToken", data.access);
+        localStorage.setItem("accessToken", data.access);
         setAuthState(prev => ({
           ...prev,
           accessToken: data.access,
@@ -100,10 +119,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken");
-    const refreshToken = sessionStorage.getItem("refreshToken");
-    const username = sessionStorage.getItem("username");
-    const userInfo = JSON.parse(sessionStorage.getItem("userInfo") || "null");
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+    const username = localStorage.getItem("username");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
     
     if (accessToken && refreshToken && username) {
       setAuthState({
@@ -113,6 +132,53 @@ export const AuthProvider = ({ children }) => {
         userInfo,
       });
     }
+
+    // Учёт активных вкладок: инкремент при монтировании
+    try {
+      setActiveTabCount(getActiveTabCount() + 1);
+    } catch {}
+
+    const handleBeforeUnload = () => {
+      try {
+        const next = getActiveTabCount() - 1;
+        setActiveTabCount(next);
+        // Если это была последняя вкладка — чистим токены
+        if (next <= 0) {
+          clearTokens();
+        }
+      } catch {}
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Синхронизация между вкладками (login/logout/refresh)
+    const onStorage = (e) => {
+      if (!e.key) return;
+      if (["accessToken","refreshToken","username","userInfo"].includes(e.key)) {
+        const at = localStorage.getItem("accessToken");
+        const rt = localStorage.getItem("refreshToken");
+        const un = localStorage.getItem("username");
+        const ui = JSON.parse(localStorage.getItem("userInfo") || "null");
+        setAuthState({ accessToken: at, refreshToken: rt, username: un, userInfo: ui });
+      }
+      if (e.key === TABS_KEY) {
+        // Ничего не делаем тут: счётчик нужен только для очистки на последней вкладке
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // На случай, если размонтирование без beforeunload (навигация внутри SPA): также уменьшим счётчик
+      try {
+        const next = getActiveTabCount() - 1;
+        setActiveTabCount(next);
+        if (next <= 0) {
+          clearTokens();
+        }
+      } catch {}
+    };
   }, []);
 
   return (

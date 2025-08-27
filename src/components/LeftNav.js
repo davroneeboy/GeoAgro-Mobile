@@ -149,14 +149,26 @@ const LeftNav = () => {
               {!collapsed && location.pathname.startsWith('/statistics') && isStats && (
                 <div className="ml-2 mt-1 space-y-2">
                   {statsSubItems.map(sub => (
-                    <Link
-                      key={sub.to}
-                      to={sub.to}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
-                    >
-                      <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
-                      <span className="truncate">{sub.label}</span>
-                    </Link>
+                    sub.to === '/statistics/controllers' ? (
+                      <div
+                        key={sub.to}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full bg-gray-700 text-gray-400 border-gray-600 opacity-60 cursor-not-allowed pointer-events-none`}
+                        aria-disabled="true"
+                        title="Nazoratchilar (tez orada)"
+                      >
+                        <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
+                        <span className="truncate">{sub.label}</span>
+                      </div>
+                    ) : (
+                      <Link
+                        key={sub.to}
+                        to={sub.to}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
+                      >
+                        <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
+                        <span className="truncate">{sub.label}</span>
+                      </Link>
+                    )
                   ))}
                 </div>
               )}
