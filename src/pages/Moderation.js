@@ -841,11 +841,7 @@ const Moderation = () => {
           </div>
         </div>
 
-        {/* Правая панель */}
-        <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg h-screen flex flex-col">
-          <div className="space-y-4 flex-1 overflow-y-auto">
-          </div>
-        </div>
+        
 
       {/* Мобильная версия контента */}
       <div className="lg:hidden p-4 bg-gray-900 min-h-screen pb-24" style={{backgroundColor: '#111827'}}>

@@ -5,16 +5,16 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    accessToken: localStorage.getItem("accessToken"),
-    refreshToken: localStorage.getItem("refreshToken"),
-    username: localStorage.getItem("username"),
-    userInfo: JSON.parse(localStorage.getItem("userInfo") || "null"),
+    accessToken: sessionStorage.getItem("accessToken"),
+    refreshToken: sessionStorage.getItem("refreshToken"),
+    username: sessionStorage.getItem("username"),
+    userInfo: JSON.parse(sessionStorage.getItem("userInfo") || "null"),
   });
 
   const login = (data) => {
-    localStorage.setItem("accessToken", data.access);
-    localStorage.setItem("refreshToken", data.refresh);
-    localStorage.setItem("username", data.username);
+    sessionStorage.setItem("accessToken", data.access);
+    sessionStorage.setItem("refreshToken", data.refresh);
+    sessionStorage.setItem("username", data.username);
     
     // Сохраняем информацию о пользователе
     const userInfo = {
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       permissions: ROLE_PERMISSIONS[data.role] || ROLE_PERMISSIONS[USER_ROLES.MODERATOR],
     };
     
-    localStorage.setItem("userInfo", JSON.stringify(userInfo));
+    sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
     
     setAuthState({
       accessToken: data.access,
@@ -39,10 +39,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("username");
-    localStorage.removeItem("userInfo");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("username");
+    sessionStorage.removeItem("userInfo");
     setAuthState({
       accessToken: null,
       refreshToken: null,
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = sessionStorage.getItem("refreshToken");
       if (!refreshToken) {
         throw new Error("No refresh token available");
       }
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("accessToken", data.access);
+        sessionStorage.setItem("accessToken", data.access);
         setAuthState(prev => ({
           ...prev,
           accessToken: data.access,
@@ -100,10 +100,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const refreshToken = localStorage.getItem("refreshToken");
-    const username = localStorage.getItem("username");
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
+    const accessToken = sessionStorage.getItem("accessToken");
+    const refreshToken = sessionStorage.getItem("refreshToken");
+    const username = sessionStorage.getItem("username");
+    const userInfo = JSON.parse(sessionStorage.getItem("userInfo") || "null");
     
     if (accessToken && refreshToken && username) {
       setAuthState({
