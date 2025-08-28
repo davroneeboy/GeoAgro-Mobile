@@ -612,22 +612,6 @@ const Moderation = () => {
               </button>
               <select
                 className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
-                value={filters.type}
-                onChange={(e) => {
-                  const newFilters = { ...filters, type: e.target.value };
-                  setFilters(newFilters);
-                  setPage(1);
-                  localStorage.setItem('moderationPage', '1');
-                  saveFiltersToUrl(newFilters, 1);
-                }}
-              >
-                <option value="All">Turi</option>
-                <option value="garden">Bog'lar</option>
-                <option value="greenhouse">Issiqxonalar</option>
-                <option value="vineyard">Uzumzorlar</option>
-              </select>
-              <select
-                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                 value={filters.region}
                 onChange={(e) => {
                   const newFilters = { ...filters, region: e.target.value, district: "All" };
@@ -673,6 +657,165 @@ const Moderation = () => {
                   saveFiltersToUrl(newFilters, 1);
                 }}
               />
+
+              {/* Turi (land type keyword or id) */}
+              <select
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                value={filters.land_type}
+                onChange={(e) => {
+                  const newFilters = { ...filters, land_type: e.target.value };
+                  setFilters(newFilters);
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  saveFiltersToUrl(newFilters, 1);
+                }}
+              >
+                <option value="All">Yer turi</option>
+                <option value="1">{landTypeMapping[1]}</option>
+                <option value="2">{landTypeMapping[2]}</option>
+                <option value="3">{landTypeMapping[3]}</option>
+                <option value="4">{landTypeMapping[4]}</option>
+              </select>
+
+              {/* Area min/max */}
+              <input
+                type="number"
+                min="0"
+                placeholder="Min maydon"
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                value={filters.min_area === "All" ? "" : filters.min_area}
+                onChange={(e) => {
+                  const newFilters = { ...filters, min_area: e.target.value || "All" };
+                  setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage', '1'); saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+              <input
+                type="number"
+                min="0"
+                placeholder="Max maydon"
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                value={filters.max_area === "All" ? "" : filters.max_area}
+                onChange={(e) => {
+                  const newFilters = { ...filters, max_area: e.target.value || "All" };
+                  setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage', '1'); saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+
+              {/* Fertility min/max */}
+              <input
+                type="number"
+                min="0"
+                placeholder="Min unumdorlik"
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                value={filters.min_fertility_score === "All" ? "" : filters.min_fertility_score}
+                onChange={(e) => {
+                  const newFilters = { ...filters, min_fertility_score: e.target.value || "All" };
+                  setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage', '1'); saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+              <input
+                type="number"
+                min="0"
+                placeholder="Max unumdorlik"
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                value={filters.max_fertility_score === "All" ? "" : filters.max_fertility_score}
+                onChange={(e) => {
+                  const newFilters = { ...filters, max_fertility_score: e.target.value || "All" };
+                  setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage', '1'); saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+
+              {/* Irrigation min/max */}
+              <input
+                type="number"
+                min="0"
+                placeholder="Min sug'orish"
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                value={filters.min_irrigation_area === "All" ? "" : filters.min_irrigation_area}
+                onChange={(e) => {
+                  const newFilters = { ...filters, min_irrigation_area: e.target.value || "All" };
+                  setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage', '1'); saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+              <input
+                type="number"
+                min="0"
+                placeholder="Max sug'orish"
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                value={filters.max_irrigation_area === "All" ? "" : filters.max_irrigation_area}
+                onChange={(e) => {
+                  const newFilters = { ...filters, max_irrigation_area: e.target.value || "All" };
+                  setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage', '1'); saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+
+              {/* Booleans */}
+              <select
+                className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm"
+                value={filters.is_fertile}
+                onChange={(e) => { const newFilters = { ...filters, is_fertile: e.target.value }; setFilters(newFilters); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(newFilters,1); }}
+              >
+                <option value="All">Unumdor</option>
+                <option value="true">Ha</option>
+                <option value="false">Yo'q</option>
+              </select>
+              <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.is_checked} onChange={(e)=>{ const f={...filters,is_checked:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
+                <option value="All">Tasdiqlangan</option>
+                <option value="true">Ha</option>
+                <option value="false">Yo'q</option>
+              </select>
+              <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.is_rejected} onChange={(e)=>{ const f={...filters,is_rejected:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
+                <option value="All">Rad etilgan</option>
+                <option value="true">Ha</option>
+                <option value="false">Yo'q</option>
+              </select>
+              <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.is_deleting} onChange={(e)=>{ const f={...filters,is_deleting:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
+                <option value="All">O'chirishga</option>
+                <option value="true">Ha</option>
+                <option value="false">Yo'q</option>
+              </select>
+
+              {/* Dates */}
+              <input type="date" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.created_after === "All" ? "" : filters.created_after} onChange={(e)=>{ const f={...filters,created_after:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="date" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.created_before === "All" ? "" : filters.created_before} onChange={(e)=>{ const f={...filters,created_before:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="date" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.moderated_after === "All" ? "" : filters.moderated_after} onChange={(e)=>{ const f={...filters,moderated_after:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="date" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.moderated_before === "All" ? "" : filters.moderated_before} onChange={(e)=>{ const f={...filters,moderated_before:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+
+              {/* Years */}
+              <input type="number" placeholder="Bogli yili" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.garden_established_year === "All" ? "" : filters.garden_established_year} onChange={(e)=>{ const f={...filters,garden_established_year:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="number" placeholder="Min yil" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.min_established_year === "All" ? "" : filters.min_established_year} onChange={(e)=>{ const f={...filters,min_established_year:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="number" placeholder="Max yil" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.max_established_year === "All" ? "" : filters.max_established_year} onChange={(e)=>{ const f={...filters,max_established_year:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+
+              {/* Users */}
+              <input type="number" placeholder="Created by (ID)" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.created_by === "All" ? "" : filters.created_by} onChange={(e)=>{ const f={...filters,created_by:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="text" placeholder="Created by (username)" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.created_by_username === "All" ? "" : filters.created_by_username} onChange={(e)=>{ const f={...filters,created_by_username:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="number" placeholder="Moderated by (ID)" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.moderated_by === "All" ? "" : filters.moderated_by} onChange={(e)=>{ const f={...filters,moderated_by:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+              <input type="text" placeholder="Moderated by (username)" className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.moderated_by_username === "All" ? "" : filters.moderated_by_username} onChange={(e)=>{ const f={...filters,moderated_by_username:e.target.value||"All"}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }} />
+
+              {/* Moderation comment */}
+              <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.has_moderation_comment} onChange={(e)=>{ const f={...filters,has_moderation_comment:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
+                <option value="All">Komment bor?</option>
+                <option value="true">Ha</option>
+                <option value="false">Yo'q</option>
+              </select>
+
+              {/* Sorting */}
+              <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.sort_by} onChange={(e)=>{ const f={...filters,sort_by:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
+                <option value="created_at">Created at</option>
+                <option value="created_by__username">Created by</option>
+                <option value="farmer__name">Farmer</option>
+                <option value="district__name">District</option>
+                <option value="total_area">Total area</option>
+                <option value="fertility_score">Fertility</option>
+                <option value="garden_established_year">Est. year</option>
+                <option value="land_type">Land type</option>
+                <option value="moderated_at">Moderated at</option>
+                <option value="moderated_by__username">Moderator</option>
+              </select>
+              <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.sort_order} onChange={(e)=>{ const f={...filters,sort_order:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
+                <option value="asc">Asc</option>
+                <option value="desc">Desc</option>
+              </select>
             </div>
 
             {/* Сообщение об ошибке */}

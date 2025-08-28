@@ -129,8 +129,58 @@ const EditPlantation = () => {
       }, refreshAccessToken, authState.accessToken);
 
       setIsDeleted(true);
-      setSuccessMessage(`Plantatsiya (ID: ${plantation?.id || id}, fermer: ${plantation?.farmer?.name || '—'}) muvaffaqiyatli o'chirildi.`);
       closeDeleteModal();
+
+      // Перенаправляем обратно на страницу модерации/списков с восстановлением фильтров
+      const fromPage = location.state?.from;
+      if (fromPage === '/approved-plantations') {
+        const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
+        window.location.href = `/approved-plantations?page=${currentPage}`;
+      } else if (fromPage === '/rejected-plantations') {
+        window.location.href = '/rejected-plantations';
+      } else {
+        const currentPage = localStorage.getItem('moderationPage') || 1;
+        const savedFilters = location.state?.filters;
+        const searchParams = new URLSearchParams();
+        searchParams.set('page', currentPage.toString());
+        if (savedFilters) {
+          if (savedFilters.action && savedFilters.action !== 'All') searchParams.set('action', savedFilters.action);
+          if (savedFilters.status && savedFilters.status !== 'All') searchParams.set('status', savedFilters.status);
+          if (savedFilters.type && savedFilters.type !== 'All') searchParams.set('type', savedFilters.type);
+          if (savedFilters.region && savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+          if (savedFilters.district && savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+          if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          // новые фильтры
+          if (savedFilters.farmer_id && savedFilters.farmer_id !== 'All') searchParams.set('farmer_id', savedFilters.farmer_id);
+          if (savedFilters.min_area && savedFilters.min_area !== 'All') searchParams.set('min_area', savedFilters.min_area);
+          if (savedFilters.max_area && savedFilters.max_area !== 'All') searchParams.set('max_area', savedFilters.max_area);
+          if (savedFilters.min_fertility_score && savedFilters.min_fertility_score !== 'All') searchParams.set('min_fertility_score', savedFilters.min_fertility_score);
+          if (savedFilters.max_fertility_score && savedFilters.max_fertility_score !== 'All') searchParams.set('max_fertility_score', savedFilters.max_fertility_score);
+          if (savedFilters.min_irrigation_area && savedFilters.min_irrigation_area !== 'All') searchParams.set('min_irrigation_area', savedFilters.min_irrigation_area);
+          if (savedFilters.max_irrigation_area && savedFilters.max_irrigation_area !== 'All') searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);
+          if (savedFilters.is_fertile && savedFilters.is_fertile !== 'All') searchParams.set('is_fertile', savedFilters.is_fertile);
+          if (savedFilters.is_checked && savedFilters.is_checked !== 'All') searchParams.set('is_checked', savedFilters.is_checked);
+          if (savedFilters.is_rejected && savedFilters.is_rejected !== 'All') searchParams.set('is_rejected', savedFilters.is_rejected);
+          if (savedFilters.is_deleting && savedFilters.is_deleting !== 'All') searchParams.set('is_deleting', savedFilters.is_deleting);
+          if (savedFilters.land_type && savedFilters.land_type !== 'All') searchParams.set('land_type', savedFilters.land_type);
+          if (savedFilters.created_after && savedFilters.created_after !== 'All') searchParams.set('created_after', savedFilters.created_after);
+          if (savedFilters.created_before && savedFilters.created_before !== 'All') searchParams.set('created_before', savedFilters.created_before);
+          if (savedFilters.moderated_after && savedFilters.moderated_after !== 'All') searchParams.set('moderated_after', savedFilters.moderated_after);
+          if (savedFilters.moderated_before && savedFilters.moderated_before !== 'All') searchParams.set('moderated_before', savedFilters.moderated_before);
+          if (savedFilters.garden_established_year && savedFilters.garden_established_year !== 'All') searchParams.set('garden_established_year', savedFilters.garden_established_year);
+          if (savedFilters.min_established_year && savedFilters.min_established_year !== 'All') searchParams.set('min_established_year', savedFilters.min_established_year);
+          if (savedFilters.max_established_year && savedFilters.max_established_year !== 'All') searchParams.set('max_established_year', savedFilters.max_established_year);
+          if (savedFilters.created_by && savedFilters.created_by !== 'All') searchParams.set('created_by', savedFilters.created_by);
+          if (savedFilters.created_by_username && savedFilters.created_by_username !== 'All') searchParams.set('created_by_username', savedFilters.created_by_username);
+          if (savedFilters.moderated_by && savedFilters.moderated_by !== 'All') searchParams.set('moderated_by', savedFilters.moderated_by);
+          if (savedFilters.moderated_by_username && savedFilters.moderated_by_username !== 'All') searchParams.set('moderated_by_username', savedFilters.moderated_by_username);
+          if (savedFilters.has_moderation_comment && savedFilters.has_moderation_comment !== 'All') searchParams.set('has_moderation_comment', savedFilters.has_moderation_comment);
+          if (savedFilters.sort_by) searchParams.set('sort_by', savedFilters.sort_by);
+          if (savedFilters.sort_order) searchParams.set('sort_order', savedFilters.sort_order);
+        }
+        const newUrl = `/moderation?${searchParams.toString()}`;
+        window.location.href = newUrl;
+      }
     } catch (e) {
       console.error("Error deleting plantation:", e);
       setError("Plantatsiyani o'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
