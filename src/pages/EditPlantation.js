@@ -32,6 +32,8 @@ const EditPlantation = () => {
   const [regionPolygons, setRegionPolygons] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [regionLabels, setRegionLabels] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
 
 
   // Функция для открытия модального окна
@@ -52,6 +54,18 @@ const EditPlantation = () => {
     setCustomReason("");
   };
 
+  const openDeleteModal = () => setIsDeleteModalOpen(true);
+  const closeDeleteModal = () => setIsDeleteModalOpen(false);
+
+  useEffect(() => {
+    if (!isDeleteModalOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeDeleteModal();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isDeleteModalOpen]);
+
   const handleConfirm = async () => {
     try {
       setError(null);
@@ -59,7 +73,7 @@ const EditPlantation = () => {
       
       // Проверяем, что комментарий введен
       if (!customReason.trim()) {
-        setError("Iltimos, o'chirish sababini kiriting!");
+        setError("Iltimos, rad etish sababini kiriting!");
         return;
       }
       
@@ -86,6 +100,24 @@ const EditPlantation = () => {
     } catch (error) {
       console.error("Error rejecting plantation:", error);
       setError("Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setError(null);
+      setSuccessMessage(null);
+
+      await apiRequest(`api/plantations/${id}/`, {
+        method: "DELETE",
+      }, refreshAccessToken, authState.accessToken);
+
+      setIsDeleted(true);
+      setSuccessMessage(`Plantatsiya (ID: ${plantation?.id || id}, fermer: ${plantation?.farmer?.name || '—'}) muvaffaqiyatli o'chirildi.`);
+      closeDeleteModal();
+    } catch (e) {
+      console.error("Error deleting plantation:", e);
+      setError("Plantatsiyani o'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
     }
   };
 
@@ -863,19 +895,32 @@ const EditPlantation = () => {
                 </div>
               </div>
             )}
-            <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4">
-              <button
-                className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
-                onClick={handleApprove}
-              >
-                Tasdiqlash
-              </button>
-              <button
-                className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
-                onClick={openModal}
-              >
-                O'chirish
-              </button>
+            <div className="flex flex-col gap-2 sm:gap-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
+                <button
+                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
+                  onClick={handleApprove}
+                  disabled={isDeleted}
+                >
+                  Tasdiqlash
+                </button>
+                <button
+                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
+                  onClick={openModal}
+                  disabled={isDeleted}
+                >
+                  Rad etish
+                </button>
+              </div>
+              <div className="sm:flex-none mt-2 sm:mt-2">
+                <button
+                  className="w-full sm:w-auto bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-800 transition-colors"
+                  onClick={openDeleteModal}
+                  disabled={isDeleted}
+                >
+                  O'chirish
+                </button>
+              </div>
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                   <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
@@ -898,6 +943,28 @@ const EditPlantation = () => {
                       <button
                         className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
                         onClick={closeModal}
+                      >
+                        Bekor qilish
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {isDeleteModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
+                  <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                    <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
+                    <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
+                    <div className="flex justify-end space-x-4">
+                      <button
+                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                        onClick={handleDeleteConfirm}
+                      >
+                        O'chirish
+                      </button>
+                      <button
+                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                        onClick={closeDeleteModal}
                       >
                         Bekor qilish
                       </button>
