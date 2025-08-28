@@ -500,38 +500,6 @@ const Moderation = () => {
               </button>
               <select
                 className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
-                value={filters.action}
-                onChange={(e) => {
-                  const newFilters = { ...filters, action: e.target.value };
-                  setFilters(newFilters);
-                  setPage(1);
-                  localStorage.setItem('moderationPage', '1');
-                  saveFiltersToUrl(newFilters, 1);
-                }}
-              >
-                <option value="All">O'zgarishlar</option>
-                <option value="Yangilangan">Yangilangan</option>
-                <option value="Bekor qilinganlar">Bekor qilinganlar</option>
-                <option value="Yaratilgan">Yaratilgan</option>
-              </select>
-              <select
-                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
-                value={filters.status}
-                onChange={(e) => {
-                  const newFilters = { ...filters, status: e.target.value };
-                  setFilters(newFilters);
-                  setPage(1);
-                  localStorage.setItem('moderationPage', '1');
-                  saveFiltersToUrl(newFilters, 1);
-                }}
-              >
-                <option value="All">Holati</option>
-                <option value="Good">Yaxshi</option>
-                <option value="Normal">O'rtacha</option>
-                <option value="Bad">Sifatsiz</option>
-              </select>
-              <select
-                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                 value={filters.type}
                 onChange={(e) => {
                   const newFilters = { ...filters, type: e.target.value };
@@ -542,9 +510,9 @@ const Moderation = () => {
                 }}
               >
                 <option value="All">Turi</option>
-                <option value="Bog'lar">Bog'lar</option>
-                <option value="Issiqxonalar">Issiqxonalar</option>
-                <option value="Uzumzorlar">Uzumzorlar</option>
+                <option value="garden">Bog'lar</option>
+                <option value="greenhouse">Issiqxonalar</option>
+                <option value="vineyard">Uzumzorlar</option>
               </select>
               <select
                 className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"

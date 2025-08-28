@@ -385,7 +385,6 @@ const HomePage = () => {
                   </div>
                   <span className="text-sm text-gray-200 font-medium">{displayName}</span>
                 </div>
-                <ContactsPanel buttonClassName="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors" label="Kontaktlar" />
               </div>
             </h1>
             

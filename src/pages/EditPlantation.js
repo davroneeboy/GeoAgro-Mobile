@@ -5,7 +5,6 @@ import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
 import {
   landTypeMapping,
-  subsidyTypeMapping,
   trellisTypeMapping,
   reservoirTypeMapping,
 } from "../context/constants";
@@ -89,14 +88,31 @@ const EditPlantation = () => {
       setSuccessMessage("Plantatsiya muvaffaqiyatli rad etildi!");
       closeModal();
       
-      // Перенаправляем обратно на предыдущую страницу
+      // Перенаправляем обратно на предыдущую страницу с восстановлением фильтров
       setTimeout(() => {
-        if (location.state?.from) {
-          navigate(location.state.from);
+        const fromPage = location.state?.from;
+        if (fromPage === '/approved-plantations') {
+          const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
+          window.location.href = `/approved-plantations?page=${currentPage}`;
+        } else if (fromPage === '/rejected-plantations') {
+          window.location.href = '/rejected-plantations';
         } else {
-          navigate('/moderation');
+          const currentPage = localStorage.getItem('moderationPage') || 1;
+          const savedFilters = location.state?.filters;
+          const searchParams = new URLSearchParams();
+          searchParams.set('page', currentPage.toString());
+          if (savedFilters) {
+            if (savedFilters.action !== 'All') searchParams.set('action', savedFilters.action);
+            if (savedFilters.status !== 'All') searchParams.set('status', savedFilters.status);
+            if (savedFilters.type !== 'All') searchParams.set('type', savedFilters.type);
+            if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+            if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+            if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          }
+          const newUrl = `/moderation?${searchParams.toString()}`;
+          window.location.href = newUrl;
         }
-      }, 2000);
+      }, 1000);
     } catch (error) {
       console.error("Error rejecting plantation:", error);
       setError("Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
@@ -609,9 +625,7 @@ const EditPlantation = () => {
             >
               ✕
             </button>
-            <h1 className="text-3xl font-bold mb-4 pr-12 text-white">
-              {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
-            </h1>
+            <h1 className="text-xl font-semibold text-white mb-4 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
             
             {error && (
               <div className="mb-4 p-3 bg-red-900 border border-red-600 rounded-md">
@@ -659,11 +673,6 @@ const EditPlantation = () => {
                 <p className="text-white">{plantation.pump_station_count}</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Fermer INN'si:</p>
-                <p className="text-white">{plantation.farmer?.inn}</p>
-              </div>
-
-              <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Qo'shilgan vaqti:</p>
                 <p className="text-white">
                   {plantation.created_at 
@@ -679,9 +688,7 @@ const EditPlantation = () => {
                 </p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">
-                  Tomchilab sug'oriladigan maydon:
-                </p>
+                <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
                 <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
               {plantation.investments && plantation.investments.length > 0 && (
@@ -714,43 +721,63 @@ const EditPlantation = () => {
             {/* Секция с комментарием модерации */}
             {plantation.moderation_comment && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <h2 className="font-semibold text-lg mb-3 text-white">
-                  Moderatsiya kommenti:
-                </h2>
-                <div className="bg-gray-800 p-3 rounded-lg border-l-4 border-yellow-500">
-                  <p className="text-white font-medium">{plantation.moderation_comment}</p>
+                <div className="flex items-center gap-2 mb-2 text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="font-semibold">Moderatsiya kommenti</span>
+                </div>
+                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50">
+                  <p className="text-gray-200 text-sm">{plantation.moderation_comment}</p>
                 </div>
               </div>
             )}
 
-            {plantation.farmer && (
-              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
-                  onClick={() => toggleSection("farmer")}
-                >
-                  Fermer:
-                </h2>
-                {expandedSections.farmer && (
-                  <div className="space-y-2 text-gray-300">
+            {/* Двойной ряд: Fermer + Mevali hududlar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {plantation.farmer && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2 text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    <span className="font-semibold">Fermer</span>
+                  </div>
+                  <div className="space-y-1 text-gray-300 text-sm">
                     <p>Asoschi: {plantation.farmer.founder_name}</p>
                     <p>Direktor: {plantation.farmer.director_name}</p>
                     <p>Telefon: {plantation.farmer.phone_number}</p>
                     <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+              {plantation.fruit_areas.length > 0 && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2 text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" /></svg>
+                    <span className="font-semibold">Mevali hududlar</span>
+                  </div>
+                  <div className="max-h-40 overflow-y-auto pr-1 space-y-2">
+                    {plantation.fruit_areas.map((area, idx) => (
+                      <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
+                        <p>Meva: {area.fruit}</p>
+                        <p>Nav: {area.variety}</p>
+                        <p>Maydoni: {area.area} GA</p>
+                        <p>Ekilgan yili: {area.planted_year}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {/* Секция с информацией о пользователе, который создал плантацию */}
             {createdByUser && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
                   className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("user")}
                 >
-                  Qo'shgan foydalanuvchi:
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    Qo'shgan foydalanuvchi:
+                  </span>
                 </h2>
                 {expandedSections.user && (
                   <div className="space-y-2 text-gray-300">
@@ -785,36 +812,16 @@ const EditPlantation = () => {
                 )}
               </div>
             )}
-
-            {plantation.subsidies.length > 0 && (
-              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
-                  onClick={() => toggleSection("subsidies")}
-                >
-                  Subsidiyalar:
-                </h2>
-                {expandedSections.subsidies && (
-                  <div>
-                    {plantation.subsidies.map((subsidy, idx) => (
-                      <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
-                        <p>Yil: {subsidy.year}</p>
-                        <p>Yo'nalishi: {subsidyTypeMapping[subsidy.direction]}</p>
-                        <p>Miqdori: {subsidy.amount} UZS</p>
-                        <p>Samaradorligi: {subsidy.efficiency}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
             {plantation.trellises.length > 0 && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
                   className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("trellises")}
                 >
-                  Shpallar:
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" /></svg>
+                    Shpallar:
+                  </span>
                 </h2>
                 {expandedSections.trellises && (
                   <div>
@@ -840,7 +847,10 @@ const EditPlantation = () => {
                   className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
                   onClick={() => toggleSection("reservoirs")}
                 >
-                  Suv Xovuzlari:
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15s3-2 9-2 9 2 9 2-3 2-9 2-9-2-9-2z" /></svg>
+                    Suv Xovузlari:
+                  </span>
                 </h2>
                 {expandedSections.reservoirs && (
                   <div>
@@ -851,28 +861,6 @@ const EditPlantation = () => {
                           {reservoirTypeMapping[reservoir.reservoir_type]}
                         </p>
                         <p>Hajmi: {reservoir.reservoir_volume}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            {plantation.fruit_areas.length > 0 && (
-              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
-                  onClick={() => toggleSection("fruitAreas")}
-                >
-                  Mevali hududlar:
-                </h2>
-                {expandedSections.fruitAreas && (
-                  <div>
-                    {plantation.fruit_areas.map((area, idx) => (
-                      <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
-                        <p>Meva: {area.fruit}</p>
-                        <p>Nav: {area.variety}</p>
-                        <p>Maydoni: {area.area} GA</p>
-                        <p>Ekilgan yili: {area.planted_year}</p>
                       </div>
                     ))}
                   </div>
@@ -898,32 +886,36 @@ const EditPlantation = () => {
             <div className="flex flex-col gap-2 sm:gap-4">
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
                 <button
-                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors"
+                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center gap-2"
                   onClick={handleApprove}
                   disabled={isDeleted}
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                   Tasdiqlash
                 </button>
                 <button
-                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors"
+                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center gap-2"
                   onClick={openModal}
                   disabled={isDeleted}
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                   Rad etish
                 </button>
               </div>
               <div className="sm:flex-none mt-2 sm:mt-2">
                 <button
-                  className="w-full sm:w-auto bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-800 transition-colors"
+                  className="w-full sm:w-auto bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-800 transition-colors inline-flex items-center gap-2"
                   onClick={openDeleteModal}
                   disabled={isDeleted}
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg>
                   O'chirish
                 </button>
               </div>
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
+                  <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
+                    <button onClick={closeModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
                     <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
                     <p className="text-gray-300 mb-4">Bu plantatsiyani rad etishni xohlaysizmi? Rad etish sababi majburiy.</p>
                     <textarea
@@ -952,7 +944,8 @@ const EditPlantation = () => {
               )}
               {isDeleteModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
-                  <div className="bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                  <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={closeDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
                     <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
                     <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
                     <div className="flex justify-end space-x-4">

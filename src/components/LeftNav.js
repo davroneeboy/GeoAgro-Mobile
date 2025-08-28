@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { API_BASE_URL1 } from "../config";
 import AuthContext from "../context/AuthContext";
+import ContactsPanel from "./ContactsPanel";
 
 const MENU_ITEMS = [
   { to: "/plantations/uz", label: "Bog'lar", icon: (
@@ -189,7 +190,10 @@ const LeftNav = () => {
       </nav>
 
       {location.pathname === '/' && (
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-3 space-y-2">
+                     <div>
+                           <ContactsPanel buttonClassName={`w-full ${collapsed ? 'justify-center' : 'justify-between'} flex items-center text-white font-medium bg-gray-700 hover:bg-gray-600 transition-colors px-3 py-2 rounded-lg border border-gray-600`} label={collapsed ? '' : 'Kontaktlar'} variant="full" />
+           </div>
           <button onClick={() => setControllersOpen(v => !v)} className={`w-full ${collapsed ? 'justify-center' : 'justify-between'} flex items-center text-white font-medium mb-2 bg-gray-700 hover:bg-gray-600 transition-colors px-3 py-2 rounded-lg border border-gray-600`} title={collapsed ? 'Nazoratchilar' : undefined}>
             <span className={`flex items-center gap-2 ${collapsed ? 'sr-only' : ''}`}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10a4 4 0 118 0" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>

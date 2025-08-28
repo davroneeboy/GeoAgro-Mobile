@@ -406,9 +406,7 @@ const PlantationDetail = () => {
             >
               ✕
             </button>
-            <h1 className="text-3xl font-bold mb-4 pr-12 text-white">
-              {plantation.farmer ? plantation.farmer.name : "Nomalum fermer"}
-            </h1>
+            <h1 className="text-xl font-semibold text-white mb-4 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yer turi:</p>
@@ -437,10 +435,6 @@ const PlantationDetail = () => {
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Quduqlar soni:</p>
                 <p className="text-white">{plantation.pump_station_count}</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Fermer INN'si:</p>
-                <p className="text-white">{plantation.farmer?.inn}</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
@@ -476,34 +470,51 @@ const PlantationDetail = () => {
             {/* Секция с комментарием модерации */}
             {plantation.moderation_comment && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <h2 className="font-semibold text-lg mb-3 text-white">
-                  Moderatsiya kommenti:
-                </h2>
-                <div className="bg-gray-800 p-3 rounded-lg border-l-4 border-yellow-500">
-                  <p className="text-white font-medium">{plantation.moderation_comment}</p>
+                <div className="flex items-center gap-2 mb-2 text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="font-semibold">Moderatsiya kommenti</span>
+                </div>
+                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50">
+                  <p className="text-gray-200 text-sm">{plantation.moderation_comment}</p>
                 </div>
               </div>
             )}
 
-            {plantation.farmer && (
-              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <h2
-                  className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
-                  onClick={() => toggleSection("farmer")}
-                >
-                  Fermer:
-                </h2>
-                {expandedSections.farmer && (
-                  <div className="space-y-2 text-gray-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {plantation.farmer && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2 text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    <span className="font-semibold">Fermer</span>
+                  </div>
+                  <div className="space-y-1 text-gray-300 text-sm">
                     <p>Asoschi: {plantation.farmer.founder_name}</p>
                     <p>Direktor: {plantation.farmer.director_name}</p>
                     <p>Telefon: {plantation.farmer.phone_number}</p>
                     <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+              {plantation.fruit_areas?.length > 0 && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2 text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" /></svg>
+                    <span className="font-semibold">Mevali hududlar</span>
+                  </div>
+                  <div className="max-h-40 overflow-y-auto pr-1 space-y-2">
+                    {plantation.fruit_areas.map((area, idx) => (
+                      <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
+                        <p>Meva: {area.fruit}</p>
+                        <p>Nav: {area.variety}</p>
+                        <p>Maydoni: {area.area} GA</p>
+                        <p>Ekilgan yili: {area.planted_year}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Секция с информацией о пользователе, который создал плантацию */}
             {createdByUser && (

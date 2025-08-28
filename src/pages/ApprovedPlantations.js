@@ -424,15 +424,7 @@ const ApprovedPlantations = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button
-              onClick={handleLogout}
-              className="px-2 py-1 bg-green-500 text-white rounded text-xs flex items-center"
-            >
-              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-              </svg>
-              Chiqish
-            </button>
+
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
@@ -491,12 +483,7 @@ const ApprovedPlantations = () => {
                   Jami: <span className="text-gray-200 font-semibold">{count}</span> ta tasdiqlangan bog'
                 </p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Chiqish
-              </button>
+
             </div>
 
             {/* Фильтры */}
