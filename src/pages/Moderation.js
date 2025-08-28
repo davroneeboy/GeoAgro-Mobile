@@ -15,6 +15,34 @@ const Moderation = () => {
     region: "All",
     district: "All",
     farmer: "All",
+    // новые фильтры
+    farmer_id: "All",
+    min_area: "All",
+    max_area: "All",
+    min_fertility_score: "All",
+    max_fertility_score: "All",
+    min_irrigation_area: "All",
+    max_irrigation_area: "All",
+    is_fertile: "All",
+    is_checked: "All",
+    is_rejected: "All",
+    is_deleting: "All",
+    land_type: "All",
+    created_after: "All",
+    created_before: "All",
+    moderated_after: "All",
+    moderated_before: "All",
+    garden_established_year: "All",
+    min_established_year: "All",
+    max_established_year: "All",
+    created_by: "All",
+    created_by_username: "All",
+    moderated_by: "All",
+    moderated_by_username: "All",
+    has_moderation_comment: "All",
+    // сортировка
+    sort_by: "created_at",
+    sort_order: "asc",
   });
 
   const navigate = useNavigate();
@@ -31,6 +59,34 @@ const Moderation = () => {
       region: searchParams.get('region') || "All",
       district: searchParams.get('district') || "All",
       farmer: searchParams.get('farmer') || "All",
+      // новые
+      farmer_id: searchParams.get('farmer_id') || "All",
+      min_area: searchParams.get('min_area') || "All",
+      max_area: searchParams.get('max_area') || "All",
+      min_fertility_score: searchParams.get('min_fertility_score') || "All",
+      max_fertility_score: searchParams.get('max_fertility_score') || "All",
+      min_irrigation_area: searchParams.get('min_irrigation_area') || "All",
+      max_irrigation_area: searchParams.get('max_irrigation_area') || "All",
+      is_fertile: searchParams.get('is_fertile') || "All",
+      is_checked: searchParams.get('is_checked') || "All",
+      is_rejected: searchParams.get('is_rejected') || "All",
+      is_deleting: searchParams.get('is_deleting') || "All",
+      land_type: searchParams.get('land_type') || "All",
+      created_after: searchParams.get('created_after') || "All",
+      created_before: searchParams.get('created_before') || "All",
+      moderated_after: searchParams.get('moderated_after') || "All",
+      moderated_before: searchParams.get('moderated_before') || "All",
+      garden_established_year: searchParams.get('garden_established_year') || "All",
+      min_established_year: searchParams.get('min_established_year') || "All",
+      max_established_year: searchParams.get('max_established_year') || "All",
+      created_by: searchParams.get('created_by') || "All",
+      created_by_username: searchParams.get('created_by_username') || "All",
+      moderated_by: searchParams.get('moderated_by') || "All",
+      moderated_by_username: searchParams.get('moderated_by_username') || "All",
+      has_moderation_comment: searchParams.get('has_moderation_comment') || "All",
+      // сортировка
+      sort_by: searchParams.get('sort_by') || 'created_at',
+      sort_order: searchParams.get('sort_order') || 'asc',
     };
   };
 
@@ -48,6 +104,34 @@ const Moderation = () => {
     if (newFilters.region !== "All") searchParams.set('region', newFilters.region);
     if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
     if (newFilters.farmer !== "All") searchParams.set('farmer', newFilters.farmer);
+    // новые
+    if (newFilters.farmer_id !== "All") searchParams.set('farmer_id', newFilters.farmer_id);
+    if (newFilters.min_area !== "All") searchParams.set('min_area', newFilters.min_area);
+    if (newFilters.max_area !== "All") searchParams.set('max_area', newFilters.max_area);
+    if (newFilters.min_fertility_score !== "All") searchParams.set('min_fertility_score', newFilters.min_fertility_score);
+    if (newFilters.max_fertility_score !== "All") searchParams.set('max_fertility_score', newFilters.max_fertility_score);
+    if (newFilters.min_irrigation_area !== "All") searchParams.set('min_irrigation_area', newFilters.min_irrigation_area);
+    if (newFilters.max_irrigation_area !== "All") searchParams.set('max_irrigation_area', newFilters.max_irrigation_area);
+    if (newFilters.is_fertile !== "All") searchParams.set('is_fertile', newFilters.is_fertile);
+    if (newFilters.is_checked !== "All") searchParams.set('is_checked', newFilters.is_checked);
+    if (newFilters.is_rejected !== "All") searchParams.set('is_rejected', newFilters.is_rejected);
+    if (newFilters.is_deleting !== "All") searchParams.set('is_deleting', newFilters.is_deleting);
+    if (newFilters.land_type !== "All") searchParams.set('land_type', newFilters.land_type);
+    if (newFilters.created_after !== "All") searchParams.set('created_after', newFilters.created_after);
+    if (newFilters.created_before !== "All") searchParams.set('created_before', newFilters.created_before);
+    if (newFilters.moderated_after !== "All") searchParams.set('moderated_after', newFilters.moderated_after);
+    if (newFilters.moderated_before !== "All") searchParams.set('moderated_before', newFilters.moderated_before);
+    if (newFilters.garden_established_year !== "All") searchParams.set('garden_established_year', newFilters.garden_established_year);
+    if (newFilters.min_established_year !== "All") searchParams.set('min_established_year', newFilters.min_established_year);
+    if (newFilters.max_established_year !== "All") searchParams.set('max_established_year', newFilters.max_established_year);
+    if (newFilters.created_by !== "All") searchParams.set('created_by', newFilters.created_by);
+    if (newFilters.created_by_username !== "All") searchParams.set('created_by_username', newFilters.created_by_username);
+    if (newFilters.moderated_by !== "All") searchParams.set('moderated_by', newFilters.moderated_by);
+    if (newFilters.moderated_by_username !== "All") searchParams.set('moderated_by_username', newFilters.moderated_by_username);
+    if (newFilters.has_moderation_comment !== "All") searchParams.set('has_moderation_comment', newFilters.has_moderation_comment);
+    // Сортировка сохраняется всегда для предсказуемости ссылок
+    if (newFilters.sort_by) searchParams.set('sort_by', newFilters.sort_by);
+    if (newFilters.sort_order) searchParams.set('sort_order', newFilters.sort_order);
     
     const newUrl = `/moderation?${searchParams.toString()}`;
     navigate(newUrl, { replace: true });
@@ -226,6 +310,34 @@ const Moderation = () => {
           region: filters.region !== "All" ? filters.region : undefined,
           district: filters.district !== "All" ? filters.district : undefined,
           farmer: filters.farmer !== "All" ? filters.farmer : undefined,
+          // новые
+          farmer_id: filters.farmer_id !== "All" ? filters.farmer_id : undefined,
+          min_area: filters.min_area !== "All" ? filters.min_area : undefined,
+          max_area: filters.max_area !== "All" ? filters.max_area : undefined,
+          min_fertility_score: filters.min_fertility_score !== "All" ? filters.min_fertility_score : undefined,
+          max_fertility_score: filters.max_fertility_score !== "All" ? filters.max_fertility_score : undefined,
+          min_irrigation_area: filters.min_irrigation_area !== "All" ? filters.min_irrigation_area : undefined,
+          max_irrigation_area: filters.max_irrigation_area !== "All" ? filters.max_irrigation_area : undefined,
+          is_fertile: filters.is_fertile !== "All" ? filters.is_fertile : undefined,
+          is_checked: filters.is_checked !== "All" ? filters.is_checked : undefined,
+          is_rejected: filters.is_rejected !== "All" ? filters.is_rejected : undefined,
+          is_deleting: filters.is_deleting !== "All" ? filters.is_deleting : undefined,
+          land_type: filters.land_type !== "All" ? filters.land_type : undefined,
+          created_after: filters.created_after !== "All" ? filters.created_after : undefined,
+          created_before: filters.created_before !== "All" ? filters.created_before : undefined,
+          moderated_after: filters.moderated_after !== "All" ? filters.moderated_after : undefined,
+          moderated_before: filters.moderated_before !== "All" ? filters.moderated_before : undefined,
+          garden_established_year: filters.garden_established_year !== "All" ? filters.garden_established_year : undefined,
+          min_established_year: filters.min_established_year !== "All" ? filters.min_established_year : undefined,
+          max_established_year: filters.max_established_year !== "All" ? filters.max_established_year : undefined,
+          created_by: filters.created_by !== "All" ? filters.created_by : undefined,
+          created_by_username: filters.created_by_username !== "All" ? filters.created_by_username : undefined,
+          moderated_by: filters.moderated_by !== "All" ? filters.moderated_by : undefined,
+          moderated_by_username: filters.moderated_by_username !== "All" ? filters.moderated_by_username : undefined,
+          has_moderation_comment: filters.has_moderation_comment !== "All" ? filters.has_moderation_comment : undefined,
+          // сортировка
+          sort_by: filters.sort_by || 'created_at',
+          sort_order: filters.sort_order || 'asc',
         };
         
         const response = await axios.get(
@@ -334,10 +446,10 @@ const Moderation = () => {
     };
 
     fetchModerations();
-  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, navigate, authState.accessToken, logout]);
+  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
-    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All", farmer: "All" };
+    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All", farmer: "All", sort_by: "created_at", sort_order: "asc" };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('moderationPage', '1');
