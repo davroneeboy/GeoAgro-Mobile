@@ -142,10 +142,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const next = getActiveTabCount() - 1;
         setActiveTabCount(next);
-        // Если это была последняя вкладка — чистим токены
-        if (next <= 0) {
-          clearTokens();
-        }
+        // Токены не очищаем на закрытии/обновлении вкладки
       } catch {}
     };
 
@@ -170,13 +167,10 @@ export const AuthProvider = ({ children }) => {
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // На случай, если размонтирование без beforeunload (навигация внутри SPA): также уменьшим счётчик
+      // На случай размонтирования без beforeunload: просто уменьшим счётчик
       try {
         const next = getActiveTabCount() - 1;
         setActiveTabCount(next);
-        if (next <= 0) {
-          clearTokens();
-        }
       } catch {}
     };
   }, []);
