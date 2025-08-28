@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
@@ -13,7 +13,7 @@ import {
 const EditPlantation = () => {
   const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
+
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
   // const [coordinatesChanged, setCoordinatesChanged] = useState(false);
