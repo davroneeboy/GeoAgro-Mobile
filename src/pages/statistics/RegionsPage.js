@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { Table, Card, Select, Row, Col, Alert, Statistic, Button, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
@@ -7,7 +7,7 @@ import {
   fetchRegionApprovedStatistics,
   fetchRegionRejectedOverallStatistics
 } from "../../api/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
 import { exportToExcel } from "../../utils/excelExport";
 
@@ -34,6 +34,7 @@ const REGION_NAMES = {
 
 const RegionsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,8 +58,133 @@ const RegionsPage = () => {
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
+  const isSyncingUrlRef = useRef(false);
 
+  const areArraysEqual = (a, b) => {
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (String(a[i]) !== String(b[i])) return false;
+    }
+    return true;
+  };
 
+  const areFiltersEqual = (a, b) => {
+    return (
+      areArraysEqual(a.plantation_type || [], b.plantation_type || []) &&
+      areArraysEqual(a.regions || [], b.regions || []) &&
+      String(a.garden_established_year || '') === String(b.garden_established_year || '') &&
+      String(a.planted_year || '') === String(b.planted_year || '') &&
+      String(a.min_fertility || '') === String(b.min_fertility || '') &&
+      String(a.max_fertility || '') === String(b.max_fertility || '') &&
+      String(a.sort_by || '') === String(b.sort_by || '') &&
+      String(a.sort_direction || '') === String(b.sort_direction || '')
+    );
+  };
+
+  // Считать фильтры и активную вкладку из URL при загрузке/изменении URL
+  useEffect(() => {
+    if (isSyncingUrlRef.current) {
+      // пропускаем один цикл, если это мы же обновили URL
+      isSyncingUrlRef.current = false;
+      return;
+    }
+    const params = new URLSearchParams(location.search);
+    const urlTab = params.get('data_type');
+    if (urlTab && (urlTab === 'all' || urlTab === 'approved' || urlTab === 'rejected')) {
+      if (urlTab !== activeTab) setActiveTab(urlTab);
+    } else if (!urlTab && activeTab !== 'all') {
+      setActiveTab('all');
+    }
+
+    const nextFilters = {
+      plantation_type: [],
+      garden_established_year: null,
+      regions: [],
+      planted_year: null,
+      min_fertility: null,
+      max_fertility: null,
+      sort_by: 'plantations',
+      sort_direction: 'desc',
+    };
+
+    const plantation_type = params.get('plantation_type');
+    if (plantation_type) nextFilters.plantation_type = plantation_type.split(',').filter(Boolean);
+
+    const regions = params.get('regions');
+    if (regions) nextFilters.regions = regions.split(',').filter(Boolean);
+
+    const est_date = params.get('est_date');
+    if (est_date) nextFilters.garden_established_year = isNaN(Number(est_date)) ? null : Number(est_date);
+
+    const planted_year = params.get('planted_year');
+    if (planted_year) nextFilters.planted_year = isNaN(Number(planted_year)) ? null : Number(planted_year);
+
+    const min_fertility = params.get('min_fertility');
+    if (min_fertility) nextFilters.min_fertility = isNaN(Number(min_fertility)) ? null : Number(min_fertility);
+
+    const max_fertility = params.get('max_fertility');
+    if (max_fertility) nextFilters.max_fertility = isNaN(Number(max_fertility)) ? null : Number(max_fertility);
+
+    const sort_by = params.get('sort_by');
+    if (sort_by) nextFilters.sort_by = sort_by;
+
+    const sort_direction = params.get('sort_direction');
+    if (sort_direction) nextFilters.sort_direction = sort_direction;
+
+    // Обновляем только если реально поменялись значения
+    setFilters(prev => (areFiltersEqual(prev, nextFilters) ? prev : { ...prev, ...nextFilters }));
+  }, [location.search]);
+
+  // Синхронизировать URL при изменении filters или activeTab
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    // Активная вкладка
+    if (activeTab && activeTab !== 'all') {
+      params.set('data_type', activeTab);
+    }
+
+    // Фильтры
+    if (filters.plantation_type?.length) {
+      params.set('plantation_type', filters.plantation_type.join(','));
+    }
+
+    if (filters.regions?.length) {
+      params.set('regions', filters.regions.join(','));
+    }
+
+    if (filters.garden_established_year) {
+      params.set('est_date', String(filters.garden_established_year));
+    }
+
+    if (filters.planted_year) {
+      params.set('planted_year', String(filters.planted_year));
+    }
+
+    if (filters.min_fertility) {
+      params.set('min_fertility', String(filters.min_fertility));
+    }
+
+    if (filters.max_fertility) {
+      params.set('max_fertility', String(filters.max_fertility));
+    }
+
+    if (filters.sort_by && filters.sort_by !== 'plantations') {
+      params.set('sort_by', filters.sort_by);
+    }
+
+    if (filters.sort_direction && filters.sort_direction !== 'desc') {
+      params.set('sort_direction', filters.sort_direction);
+    }
+
+    const newSearch = params.toString();
+    const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search;
+    if (newSearch !== currentSearch) {
+      isSyncingUrlRef.current = true;
+      navigate({ pathname: location.pathname, search: newSearch ? `?${newSearch}` : '' }, { replace: true });
+    }
+  }, [filters, activeTab]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -866,20 +992,7 @@ const RegionsPage = () => {
       onCell: (record) => ({
         onClick: () => {
           if (record.key !== "total") {
-            const params = new URLSearchParams();
-            if (filters.garden_established_year) {
-              params.append("est_date", filters.garden_established_year);
-            }
-            if (filters.plantation_type.length > 0) {
-              params.append("plantation_type", filters.plantation_type.join(","));
-            }
-            if (filters.regions.length > 0) {
-              params.append("regions", filters.regions.join(","));
-            }
-            // Добавляем информацию о типе данных
-            if (activeTab !== 'all') {
-              params.append("data_type", activeTab);
-            }
+            const params = new URLSearchParams(location.search);
             const queryString = params.toString();
             navigate(`/statistics/regions/${record.key}${queryString ? `?${queryString}` : ''}`);
           }
