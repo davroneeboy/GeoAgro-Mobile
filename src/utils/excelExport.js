@@ -17,12 +17,15 @@ const formatCurrency = (value) => {
 };
 
 // Генерация колонок для обычных табов (all, approved, rejected)
-const generateStandardColumns = (isRegionPage = false) => {
+const generateStandardColumns = (isRegionPage = false, activeTab = 'all') => {
   if (isRegionPage) {
+    const fruitAreaKey = activeTab === 'approved' ? 'total_approved_fruitarea' : 'total_fruitarea';
+    const fruitAreaHeader = activeTab === 'approved' ? 'Tasdiqlangan ekilgan maydoni (GA)' : 'Ekilgan maydoni (GA)';
     return [
       { header: 'Viloyat', key: 'region', width: 20 },
       { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
       { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
+      { header: fruitAreaHeader, key: fruitAreaKey, width: 18 },
       { header: 'Bog\'lar soni', key: 'bogs_count', width: 15 },
       { header: 'Bog\'lar maydoni (GA)', key: 'bogs_area', width: 20 },
       { header: 'Uzumzorlar soni', key: 'uzumzors_count', width: 15 },
@@ -40,6 +43,7 @@ const generateStandardColumns = (isRegionPage = false) => {
       { header: 'Tuman', key: 'district', width: 20 },
       { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
       { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
+      { header: "Ekilgan maydoni (GA)", key: 'planted_area', width: 18 },
       { header: 'Eskirgan (GA)', key: 'outdated_ga', width: 15 },
       { header: 'Past hosildorlik - Soni', key: 'low_fertility_count', width: 20 },
       { header: 'Past hosildorlik - Maydon (GA)', key: 'low_fertility_area', width: 25 },
@@ -80,10 +84,12 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
       'high_fertility_area': formatNumber(row.high_fertility_area)
     }));
   } else if (isRegionPage) {
+    const fruitAreaKey = activeTab === 'approved' ? 'total_approved_fruitarea' : 'total_fruitarea';
     return tableData.map(row => ({
       'region': row.region || 'Noma\'lum',
       'total_area': formatNumber(row.total_area),
       'total_plantations': row.total_plantations || 0,
+      [fruitAreaKey]: formatNumber(activeTab === 'approved' ? row.total_approved_fruitarea : row.total_fruitarea),
       'bogs_count': row.bogs_count || 0,
       'bogs_area': formatNumber(row.bogs_area),
       'uzumzors_count': row.uzumzors_count || 0,
@@ -101,6 +107,7 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
       'district': row.district || 'Noma\'lum',
       'total_area': formatNumber(row.total_area),
       'total_plantations': row.total_plantations || 0,
+      'planted_area': formatNumber(row.planted_area),
       'outdated_ga': formatNumber(row.outdated_ga),
       'low_fertility_count': row.low_fertility_count || 0,
       'low_fertility_area': formatNumber(row.low_fertility_area),
@@ -130,10 +137,13 @@ const createTotalRow = (totals, activeTab, isRegionPage = false) => {
       'high_fertility_area': '-'
     };
   } else if (isRegionPage) {
+    const fruitAreaKey = activeTab === 'approved' ? 'total_approved_fruitarea' : 'total_fruitarea';
+    const fruitAreaVal = activeTab === 'approved' ? totals.total_approved_fruitarea : (totals.total_fruitarea || totals.planted_area);
     return {
       'region': 'JAMI',
       'total_area': formatNumber(totals.total_area),
       'total_plantations': totals.total_plantations || 0,
+      [fruitAreaKey]: formatNumber(fruitAreaVal),
       'bogs_count': totals.bogs_count || 0,
       'bogs_area': formatNumber(totals.bogs_area),
       'uzumzors_count': totals.uzumzors_count || 0,
@@ -151,6 +161,7 @@ const createTotalRow = (totals, activeTab, isRegionPage = false) => {
       'district': 'JAMI',
       'total_area': formatNumber(totals.total_area),
       'total_plantations': totals.total_plantations || 0,
+      'planted_area': formatNumber(totals.planted_area),
       'outdated_ga': formatNumber(totals.outdated_ga),
       'low_fertility_count': '-',
       'low_fertility_area': '-',
@@ -225,10 +236,11 @@ export const exportToExcel = (tableData, totals, activeTab, regionName, filename
     formattedData.push(totalRow);
     
     // Получаем колонки
-    const columns = activeTab === 'fruits' ? generateFruitsColumns() : generateStandardColumns(isRegionPage);
+    const columns = activeTab === 'fruits' ? generateFruitsColumns() : generateStandardColumns(isRegionPage, activeTab);
     
-    // Создаем лист с данными, используя правильные заголовки
-    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    // Создаем лист с данными, принудительно задавая порядок и наличие колонок
+    const headerKeys = columns.map(c => c.key);
+    const worksheet = XLSX.utils.json_to_sheet(formattedData, { header: headerKeys });
     
     // Заменяем заголовки на правильные названия
     const range = XLSX.utils.decode_range(worksheet['!ref']);
