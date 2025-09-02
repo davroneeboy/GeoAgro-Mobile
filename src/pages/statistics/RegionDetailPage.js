@@ -25,6 +25,28 @@ const REGION_NAMES = {
   13: "Xorazm",
 };
 
+// Функция для получения названия района по ID региона
+const getDistrictNameByRegionId = (regionId) => {
+  // Маппинг region ID -> district name
+  const districtNames = {
+    1: "Tashkent District",
+    2: "Andijan District", 
+    3: "Bukhara District",
+    4: "Fergana District",
+    5: "Jizzakh District",
+    6: "Kashkadarya District",
+    7: "Navoi District",
+    8: "Namangan District",
+    9: "Samarkand District",
+    10: "Sirdarya District",
+    11: "Surkhandarya District",
+    12: "Karakalpakstan District",
+    13: "Xorazm District"
+  };
+  
+  return districtNames[regionId] || `District_${regionId}`;
+};
+
 const RegionDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -60,7 +82,6 @@ const RegionDetailPage = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const dataType = searchParams.get('data_type');
-    console.log('URL changed, dataType:', dataType);
     
     if (dataType) {
       setActiveTab(dataType);
@@ -71,11 +92,13 @@ const RegionDetailPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+
       try {
         setLoading(true);
         
         // Читаем фильтры из URL параметров
         const searchParams = new URLSearchParams(location.search);
+        console.log('fetchData called with activeTab:', activeTab, 'dataType:', searchParams.get('data_type'));
         const estDate = searchParams.get('est_date');
         const plantationType = searchParams.get('plantation_type');
         const regions = searchParams.get('regions');
@@ -87,25 +110,33 @@ const RegionDetailPage = () => {
         
         if (!dataType || dataType === 'all') {
           // Для всех плантаций используем обычный API статистики
-        let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
-        const queryParams = new URLSearchParams();
-        
-        if (estDate) {
-          queryParams.append("est_date", estDate);
-        }
-        if (plantationType) {
-          queryParams.append("plantation_type", plantationType);
-        }
-        if (regions) {
-          queryParams.append("regions", regions);
-        }
-        
-        if (queryParams.toString()) {
-          url += `?${queryParams.toString()}`;
-        }
-        
+          let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
+          const queryParams = new URLSearchParams();
+          
+          if (estDate) {
+            queryParams.append("est_date", estDate);
+          }
+          if (plantationType) {
+            queryParams.append("plantation_type", plantationType);
+          }
+          if (regions) {
+            queryParams.append("regions", regions);
+          }
+          
+          if (queryParams.toString()) {
+            url += `?${queryParams.toString()}`;
+          }
+          
           data = await fetchStatisticsData(url, authState.accessToken);
-          console.log('API Response for region detail:', data);
+          console.log('Raw API response for region:', id, data);
+          
+          // Если данные приходят в формате by_region, оставляем их как есть
+          // НЕ преобразуем в формат { data: districtStats }
+          if (data && data.by_region && Array.isArray(data.by_region)) {
+            // Данные остаются в исходном формате с by_region
+          } else {
+            // Данные в другом формате
+          }
         } else if (dataType === 'approved') {
           // Для подтвержденных используем новый API endpoint
           let approvedUrl = `${API_BASE_URL1}api/statistics/regions/${id}/approved/`;
@@ -311,20 +342,24 @@ const RegionDetailPage = () => {
             }
           };
         }
-        console.log('Setting statistics data:', data);
         // Проверяем структуру данных и преобразуем если нужно
-        console.log('Raw API data:', data);
         
         // Если данные приходят в формате { district1: {...}, district2: {...} }
         // то нужно обернуть их в объект с полем data
         let processedData = data;
-        if (data && typeof data === 'object' && !data.data && !data.fruits_by_name) {
+        if (data && typeof data === 'object' && !data.data && !data.fruits_by_name && !data.by_region) {
           // Это данные районов, оборачиваем в правильную структуру
+          // НО НЕ для вкладки "all", где есть by_region
           processedData = { data: data };
         }
         
-        console.log('Processed data:', processedData);
         setStatistics(processedData);
+        console.log('Statistics state set with:', processedData);
+        console.log('Data structure:', {
+          hasData: !!processedData.data,
+          dataKeys: processedData.data ? Object.keys(processedData.data) : [],
+          sampleData: processedData.data ? processedData.data['Parkent'] : null
+        });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -332,8 +367,9 @@ const RegionDetailPage = () => {
       }
     };
 
-    fetchData();
-  }, [id, authState.accessToken, location.search, activeTab]);
+            console.log('useEffect triggered with:', { id, authState: !!authState.accessToken, locationSearch: location.search, activeTab });
+            fetchData();
+      }, [id, authState.accessToken, location.search, activeTab]);
 
   // Функция для экспорта в Excel
   const handleExportToExcel = async () => {
@@ -345,8 +381,16 @@ const RegionDetailPage = () => {
       const regionName = REGION_NAMES[id] || `Region_${id}`;
       const filename = `${regionName}_${activeTab}_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
       
+      console.log('Exporting data:', {
+        exportData: exportData,
+        totals: totals,
+        activeTab: activeTab,
+        regionName: regionName,
+        filename: filename
+      });
+      
       // Экспортируем
-      const success = await exportToExcel(exportData, totals, activeTab, regionName, filename);
+      const success = await exportToExcel(exportData, totals, activeTab, regionName, filename, true);
       
       if (success) {
         message.success('Excel fayl muvaffaqiyatli yuklandi!');
@@ -362,33 +406,122 @@ const RegionDetailPage = () => {
   };
 
   // Transform data for table
-  console.log('Processing statistics for table:', statistics);
-  console.log('Active tab:', activeTab);
   
-  const tableData = Object.entries(statistics?.data || {}).map(
+  let tableData;
+  
+  if (activeTab === 'all') {
+    // Для вкладки "all" обрабатываем данные в любом формате
+    
+    if (statistics?.by_region && Array.isArray(statistics.by_region)) {
+      // Если есть by_region, используем его
+      
+      tableData = statistics.by_region.map((item, index) => {
+        const districtName = getDistrictNameByRegionId(item.plantation__district__region);
+        
+        // Находим данные об инвестициях и субсидиях для этого региона
+        const investmentData = statistics.investments_by_region?.find(inv => inv.plantation__district__region === item.plantation__district__region);
+        const subsidyData = statistics.subsidies_by_region?.find(sub => sub.plantation__district__region === item.plantation__district__region);
+        const typeData = statistics.by_region_types?.find(type => type.district__region === item.plantation__district__region);
+        
+        // Проверяем, что значения не undefined/null
+        const totalArea = item.total_area !== undefined && item.total_area !== null ? item.total_area : 0;
+        const totalPlantations = item.count !== undefined && item.count !== null ? item.count : 0;
+        const plantedArea = item.planted_area !== undefined && item.planted_area !== null ? item.planted_area : 0;
+        
+        const row = {
+          key: districtName,
+          district: districtName,
+          total_area: totalArea,
+          total_plantations: totalPlantations,
+          planted_area: plantedArea,
+          investment_local: investmentData?.local || 0,
+          investment_foreign: investmentData?.foreign || 0,
+          investment_total: investmentData?.total || 0,
+          subsidy_count: subsidyData?.beneficiary_count || 0,
+          total_subsidy: subsidyData?.total_amount || 0,
+          bogs_count: typeData?.bogs_count || 0,
+          bogs_area: typeData?.bogs_area || 0,
+          uzumzors_count: typeData?.uzumzors_count || 0,
+          uzumzors_area: typeData?.uzumzors_area || 0,
+          issiqxonas_count: typeData?.issiqxonas_count || 0,
+          issiqxonas_area: typeData?.issiqxonas_area || 0,
+          district_id: null,
+        };
+        
+        return row;
+      });
+    } else if (statistics?.data && typeof statistics.data === 'object') {
+      // Если есть data, но нет by_region, создаем данные из доступных полей
+      
+      // Создаем массив районов из доступных данных
+      const districts = Object.keys(statistics.data);
+      tableData = districts.map(districtName => {
+        const districtData = statistics.data[districtName];
+        
+        const row = {
+          key: districtName,
+          district: districtName,
+          total_area: districtData.total_area || 0,
+          total_plantations: districtData.total_plantations || 0,
+          planted_area: districtData.planted_area || 0,
+          investment_local: districtData.investment?.local || 0,
+          investment_foreign: districtData.investment?.foreign || 0,
+          investment_total: (districtData.investment?.local || 0) + (districtData.investment?.foreign || 0),
+          subsidy_count: districtData.subsidy?.subsidy_count || 0,
+          total_subsidy: districtData.subsidy?.total_subsidy || 0,
+          bogs_count: districtData.bogs_count || 0,
+          bogs_area: districtData.bogs_area || 0,
+          uzumzors_count: districtData.uzumzors_count || 0,
+          uzumzors_area: districtData.uzumzors_area || 0,
+          issiqxonas_count: districtData.issiqxonas_count || 0,
+          issiqxonas_area: districtData.issiqxonas_area || 0,
+          district_id: districtData.district_id,
+        };
+        
+        return row;
+      });
+    } else {
+      tableData = [];
+    }
+    
+  } else {
+    // Для других вкладок обрабатываем данные как обычно
+    tableData = Object.entries(statistics?.data || {}).map(
     ([district, data]) => {
       console.log(`Processing district ${district}:`, data);
-              return {
+      console.log(`Investment data for ${district}:`, data.investment);
+      console.log(`Subsidy data for ${district}:`, data.subsidy);
+      console.log(`Plantation count for ${district}:`, {
+        plantation_count: data.plantation_count,
+        total_plantations: data.total_plantations,
+        result: data.plantation_count || data.total_plantations || 0
+      });
+        
+        const row = {
           key: district,
           district,
           total_area: data.total_area,
-        total_plantations: data.plantation_count || data.total_plantations || 0,
+          total_plantations: data.plantation_count || data.total_plantations || 0,
           planted_area: data.planted_area,
-          investment_local: data.investment.local,
-          investment_foreign: data.investment.foreign,
-          investment_total: (data.investment.local || 0) + (data.investment.foreign || 0),
-          subsidy_count: data.subsidy.subsidy_count,
-          total_subsidy: data.subsidy.total_subsidy,
-        bogs_count: data.bogs_count || 0,
-        bogs_area: data.bogs_area || 0,
-        uzumzors_count: data.uzumzors_count || 0,
-        uzumzors_area: data.uzumzors_area || 0,
-        issiqxonas_count: data.issiqxonas_count || 0,
-        issiqxonas_area: data.issiqxonas_area || 0,
-        district_id: data.district_id,
+          investment_local: data.investment?.local || 0,
+          investment_foreign: data.investment?.foreign || 0,
+          investment_total: (data.investment?.local || 0) + (data.investment?.foreign || 0),
+          subsidy_count: data.subsidy?.subsidy_count || 0,
+          total_subsidy: data.subsidy?.total_subsidy || 0,
+          bogs_count: data.bogs_count || 0,
+          bogs_area: data.bogs_area || 0,
+          uzumzors_count: data.uzumzors_count || 0,
+          uzumzors_area: data.uzumzors_area || 0,
+          issiqxonas_count: data.issiqxonas_count || 0,
+          issiqxonas_area: data.issiqxonas_area || 0,
+          district_id: data.district_id,
         };
-    }
-  );
+        
+        console.log(`Processed row for ${district}:`, row);
+        return row;
+      }
+    );
+  }
 
   const sortedTableData = React.useMemo(() => {
     if (!sortConfig?.field) return tableData;
@@ -445,16 +578,91 @@ const RegionDetailPage = () => {
   }, [tableData, sortConfig]);
 
   // Calculate totals for summary cards
-  const totals = Object.values(statistics?.data || {}).reduce(
+  let totals;
+  
+  if (activeTab === 'all') {
+    // Для вкладки "all" рассчитываем итоги из любых доступных данных
+    console.log('Calculating totals for all tab');
+    
+    if (statistics?.by_region && Array.isArray(statistics.by_region)) {
+      // Если есть by_region, используем его
+      
+      totals = statistics.by_region.reduce(
+        (acc, curr) => ({
+          total_area: (acc.total_area || 0) + (curr.total_area || 0),
+          total_plantations: (acc.total_plantations || 0) + (curr.count || 0),
+          planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
+          total_investment: 0, // Будет рассчитано отдельно
+          total_subsidy: 0, // Будет рассчитано отдельно
+          // Добавляем поля для совместимости с экспортом
+          investment_local: 0,
+          investment_foreign: 0,
+          investment_total: 0,
+          subsidy_count: 0,
+        }),
+        {}
+      );
+      
+      // Добавляем итоги по инвестициям и субсидиям
+      if (statistics.investments_by_region) {
+        totals.investment_local = statistics.investments_by_region.reduce((sum, inv) => sum + (inv.local || 0), 0);
+        totals.investment_foreign = statistics.investments_by_region.reduce((sum, inv) => sum + (inv.foreign || 0), 0);
+        totals.investment_total = statistics.investments_by_region.reduce((sum, inv) => sum + (inv.total || 0), 0);
+        totals.total_investment = totals.investment_total;
+      }
+      
+      if (statistics.subsidies_by_region) {
+        totals.subsidy_count = statistics.subsidies_by_region.reduce((sum, sub) => sum + (sub.beneficiary_count || 0), 0);
+        totals.total_subsidy = statistics.subsidies_by_region.reduce((sum, sub) => sum + (sub.total_amount || 0), 0);
+      }
+    } else if (statistics?.data && typeof statistics.data === 'object') {
+      // Если есть data, рассчитываем из него
+      totals = Object.values(statistics.data).reduce(
+        (acc, curr) => ({
+          total_area: (acc.total_area || 0) + (curr.total_area || 0),
+          total_plantations: (acc.total_plantations || 0) + (curr.total_plantations || 0),
+          planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
+          total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
+          total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),
+          // Добавляем поля для совместимости с экспортом
+          investment_local: (acc.investment_local || 0) + (curr.investment?.local || 0),
+          investment_foreign: (acc.investment_foreign || 0) + (curr.investment?.foreign || 0),
+          investment_total: (acc.investment_total || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
+          subsidy_count: (acc.subsidy_count || 0) + (curr.subsidy?.subsidy_count || 0),
+        }),
+        {}
+      );
+    } else {
+      totals = {
+        total_area: 0,
+        total_plantations: 0,
+        planted_area: 0,
+        total_investment: 0,
+        total_subsidy: 0,
+        investment_local: 0,
+        investment_foreign: 0,
+        investment_total: 0,
+        subsidy_count: 0,
+      };
+    }
+  } else {
+    // Для других вкладок рассчитываем итоги как обычно
+    totals = Object.values(statistics?.data || {}).reduce(
     (acc, curr) => ({
       total_area: (acc.total_area || 0) + curr.total_area,
       total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || curr.total_plantations || 0),
       planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
-      total_investment: (acc.total_investment || 0) + ((curr.investment.local || 0) + (curr.investment.foreign || 0)),
-      total_subsidy: (acc.total_subsidy || 0) + curr.subsidy.total_subsidy,
+      total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
+      total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),
+      // Добавляем поля для совместимости с экспортом
+      investment_local: (acc.investment_local || 0) + (curr.investment?.local || 0),
+      investment_foreign: (acc.investment_foreign || 0) + (curr.investment?.foreign || 0),
+      investment_total: (acc.investment_total || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
+              subsidy_count: (acc.subsidy_count || 0) + (curr.subsidy?.subsidy_count || 0),
     }),
     {}
   );
+  }
 
   // Если вкладка rejected, подменяем planted_area на тотал из API
   if (activeTab === 'rejected' && statistics.meta?.total_rejected_fruitarea !== undefined) {
@@ -462,27 +670,46 @@ const RegionDetailPage = () => {
   }
 
   // Add total row
-  const totalRow = {
+  let totalRow;
+  
+  if (activeTab === 'all' && statistics?.by_region) {
+    // Для вкладки "all" используем уже рассчитанные totals
+    totalRow = {
     key: "total",
     district: "Jami",
     total_area: totals.total_area,
     total_plantations: totals.total_plantations,
     planted_area: totals.planted_area,
-    investment_local: Object.values(statistics?.data || {}).reduce(
-      (acc, curr) => acc + curr.investment.local,
-      0
-    ),
-    investment_foreign: Object.values(statistics?.data || {}).reduce(
-      (acc, curr) => acc + curr.investment.foreign,
+      investment_local: totals.investment_local,
+      investment_foreign: totals.investment_foreign,
+      investment_total: totals.investment_total,
+      subsidy_count: totals.subsidy_count,
+      total_subsidy: totals.total_subsidy,
+    };
+  } else {
+    // Для других вкладок рассчитываем как обычно
+    totalRow = {
+      key: "total",
+      district: "Jami",
+      total_area: totals.total_area,
+      total_plantations: totals.total_plantations,
+      planted_area: totals.planted_area,
+      investment_local: Object.values(statistics?.data || {}).reduce(
+        (acc, curr) => acc + (curr.investment?.local || 0),
+        0
+      ),
+      investment_foreign: Object.values(statistics?.data || {}).reduce(
+        (acc, curr) => acc + (curr.investment?.foreign || 0),
       0
     ),
     investment_total: totals.total_investment,
-    subsidy_count: Object.values(statistics?.data || {}).reduce(
-      (acc, curr) => acc + curr.subsidy.subsidy_count,
+      subsidy_count: Object.values(statistics?.data || {}).reduce(
+        (acc, curr) => acc + (curr.subsidy?.subsidy_count || 0),
       0
     ),
     total_subsidy: totals.total_subsidy,
   };
+  }
 
   // Add total row to tableData
   const dataWithTotal = [...sortedTableData, totalRow];

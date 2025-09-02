@@ -38,25 +38,42 @@ const generateStandardColumns = (isRegionPage = false, activeTab = 'all') => {
       { header: 'Subsidiya soni', key: 'subsidy_count', width: 15 },
       { header: 'Jami subsidiyalar (UZS)', key: 'total_subsidy', width: 25 }
     ];
-  } else {
-    return [
-      { header: 'Tuman', key: 'district', width: 20 },
-      { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
-      { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
-      { header: "Ekilgan maydoni (GA)", key: 'planted_area', width: 18 },
-      { header: 'Eskirgan (GA)', key: 'outdated_ga', width: 15 },
-      { header: 'Past hosildorlik - Soni', key: 'low_fertility_count', width: 20 },
-      { header: 'Past hosildorlik - Maydon (GA)', key: 'low_fertility_area', width: 25 },
-      { header: 'Yuqori hosildorlik - Soni', key: 'high_fertility_count', width: 20 },
-      { header: 'Yuqori hosildorlik - Maydon (GA)', key: 'high_fertility_area', width: 25 },
-      { header: 'Sug\'orish maydoni (GA)', key: 'irrigation_area', width: 20 },
-      { header: 'Sug\'orish soni', key: 'irrigation_count', width: 15 },
-      { header: 'Mahalliy investitsiyalar (UZS)', key: 'investment_local', width: 25 },
-      { header: 'Chet el investitsiyalari (UZS)', key: 'investment_foreign', width: 25 },
-      { header: 'Jami investitsiyalar (UZS)', key: 'investment_total', width: 25 },
-      { header: 'Subsidiya soni', key: 'subsidy_count', width: 15 },
-      { header: 'Jami subsidiyalar (UZS)', key: 'total_subsidy', width: 25 }
-    ];
+    } else {
+    // Для детальных таблиц районов генерируем колонки в зависимости от activeTab
+    if (isRegionPage && activeTab === 'all') {
+      // Для вкладки "all" используем стандартную структуру
+      return [
+        { header: 'Tuman', key: 'district', width: 20 },
+        { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
+        { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
+        { header: "Ekilgan maydoni (GA)", key: 'planted_area', width: 18 },
+        { header: 'Mahalliy investitsiyalar (UZS)', key: 'investment_local', width: 25 },
+        { header: 'Chet el investitsiyalari (UZS)', key: 'investment_foreign', width: 25 },
+        { header: 'Jami investitsiyalar (UZS)', key: 'investment_total', width: 25 },
+        { header: 'Subsidiya soni', key: 'subsidy_count', width: 15 },
+        { header: 'Jami subsidiyalar (UZS)', key: 'total_subsidy', width: 25 }
+      ];
+    } else {
+      // Для обычных таблиц используем полную структуру
+      return [
+        { header: 'Tuman', key: 'district', width: 20 },
+        { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
+        { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
+        { header: "Ekilgan maydoni (GA)", key: 'planted_area', width: 18 },
+        { header: 'Eskirgan (GA)', key: 'outdated_ga', width: 15 },
+        { header: 'Past hosildorlik - Soni', key: 'low_fertility_count', width: 20 },
+        { header: 'Past hosildorlik - Maydon (GA)', key: 'low_fertility_area', width: 25 },
+        { header: 'Yuqori hosildorlik - Soni', key: 'high_fertility_count', width: 20 },
+        { header: 'Yuqori hosildorlik - Maydon (GA)', key: 'high_fertility_area', width: 25 },
+        { header: 'Sug\'orish maydoni (GA)', key: 'irrigation_area', width: 20 },
+        { header: 'Sug\'orish soni', key: 'irrigation_count', width: 15 },
+        { header: 'Mahalliy investitsiyalar (UZS)', key: 'investment_local', width: 25 },
+        { header: 'Chet el investitsiyalari (UZS)', key: 'investment_foreign', width: 25 },
+        { header: 'Jami investitsiyalar (UZS)', key: 'investment_total', width: 25 },
+        { header: 'Subsidiya soni', key: 'subsidy_count', width: 15 },
+        { header: 'Jami subsidiyalar (UZS)', key: 'total_subsidy', width: 25 }
+      ];
+    }
   }
 };
 
@@ -73,6 +90,8 @@ const generateFruitsColumns = () => [
 
 // Форматирование данных для Excel
 const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
+  console.log('formatDataForExcel called with:', { tableData, activeTab, isRegionPage });
+  
   if (activeTab === 'fruits') {
     return tableData.map(row => ({
       'fruit__name': row.fruit__name || 'Noma\'lum',
@@ -84,24 +103,48 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
       'high_fertility_area': formatNumber(row.high_fertility_area)
     }));
   } else if (isRegionPage) {
-    const fruitAreaKey = activeTab === 'approved' ? 'total_approved_fruitarea' : 'total_fruitarea';
-    return tableData.map(row => ({
-      'region': row.region || 'Noma\'lum',
-      'total_area': formatNumber(row.total_area),
-      'total_plantations': row.total_plantations || 0,
-      [fruitAreaKey]: formatNumber(activeTab === 'approved' ? row.total_approved_fruitarea : row.total_fruitarea),
-      'bogs_count': row.bogs_count || 0,
-      'bogs_area': formatNumber(row.bogs_area),
-      'uzumzors_count': row.uzumzors_count || 0,
-      'uzumzors_area': formatNumber(row.uzumzors_area),
-      'issiqxonas_count': row.issiqxonas_count || 0,
-      'issiqxonas_area': formatNumber(row.issiqxonas_area),
-      'avg_fertility': formatNumber(row.avg_fertility),
-      'investment_local': formatCurrency(row.investment_local),
-      'investment_foreign': formatCurrency(row.investment_foreign),
-      'subsidy_count': row.subsidy_count || 0,
-      'total_subsidy': formatCurrency(row.total_subsidy)
-    }));
+    // Для детальных таблиц районов обрабатываем данные в зависимости от activeTab
+    if (activeTab === 'all') {
+      console.log('Processing "all" tab data for region page');
+      // Для вкладки "all" используем стандартную структуру
+      const result = tableData.map(row => {
+        const formattedRow = {
+          'district': row.district || 'Noma\'lum',
+          'total_area': formatNumber(row.total_area),
+          'total_plantations': row.total_plantations || 0,
+          'planted_area': formatNumber(row.planted_area),
+          'investment_local': formatCurrency(row.investment_local || 0),
+          'investment_foreign': formatCurrency(row.investment_foreign || 0),
+          'investment_total': formatCurrency(row.investment_total || 0),
+          'subsidy_count': row.subsidy_count || 0,
+          'total_subsidy': formatCurrency(row.total_subsidy || 0)
+        };
+        console.log('Formatted row for "all":', formattedRow);
+        return formattedRow;
+      });
+      console.log('Final result for "all":', result);
+      return result;
+    } else {
+      console.log('Processing "approved/rejected" tab data for region page');
+      // Для вкладок "approved" и "rejected" используем расширенную структуру
+      return tableData.map(row => ({
+        'district': row.district || 'Noma\'lum',
+        'total_area': formatNumber(row.total_area),
+        'total_plantations': row.total_plantations || 0,
+        'planted_area': formatNumber(row.planted_area),
+        'investment_local': formatCurrency(row.investment_local || 0),
+        'investment_foreign': formatCurrency(row.investment_foreign || 0),
+        'investment_total': formatCurrency(row.investment_total || 0),
+        'subsidy_count': row.subsidy_count || 0,
+        'total_subsidy': formatCurrency(row.total_subsidy || 0),
+        'bogs_count': row.bogs_count || 0,
+        'bogs_area': formatNumber(row.bogs_area || 0),
+        'uzumzors_count': row.uzumzors_count || 0,
+        'uzumzors_area': formatNumber(row.uzumzors_area || 0),
+        'issiqxonas_count': row.issiqxonas_count || 0,
+        'issiqxonas_area': formatNumber(row.issiqxonas_area || 0)
+      }));
+    }
   } else {
     return tableData.map(row => ({
       'district': row.district || 'Noma\'lum',
@@ -137,25 +180,40 @@ const createTotalRow = (totals, activeTab, isRegionPage = false) => {
       'high_fertility_area': '-'
     };
   } else if (isRegionPage) {
-    const fruitAreaKey = activeTab === 'approved' ? 'total_approved_fruitarea' : 'total_fruitarea';
-    const fruitAreaVal = activeTab === 'approved' ? totals.total_approved_fruitarea : (totals.total_fruitarea || totals.planted_area);
-    return {
-      'region': 'JAMI',
-      'total_area': formatNumber(totals.total_area),
-      'total_plantations': totals.total_plantations || 0,
-      [fruitAreaKey]: formatNumber(fruitAreaVal),
-      'bogs_count': totals.bogs_count || 0,
-      'bogs_area': formatNumber(totals.bogs_area),
-      'uzumzors_count': totals.uzumzors_count || 0,
-      'uzumzors_area': formatNumber(totals.uzumzors_area),
-      'issiqxonas_count': totals.issiqxonas_count || 0,
-      'issiqxonas_area': formatNumber(totals.issiqxonas_area),
-      'avg_fertility': formatNumber(totals.fertility_stats?.average_score || 0),
-      'investment_local': formatCurrency(totals.investment_local),
-      'investment_foreign': formatCurrency(totals.investment_foreign),
-      'subsidy_count': totals.subsidy_count || 0,
-      'total_subsidy': formatCurrency(totals.total_subsidy)
-    };
+    // Для детальных таблиц районов обрабатываем итоги в зависимости от activeTab
+    if (activeTab === 'all') {
+      // Для вкладки "all" используем стандартную структуру
+      return {
+        'district': 'JAMI',
+        'total_area': formatNumber(totals.total_area),
+        'total_plantations': totals.total_plantations || 0,
+        'planted_area': formatNumber(totals.planted_area),
+        'investment_local': formatCurrency(totals.investment_local || 0),
+        'investment_foreign': formatCurrency(totals.investment_foreign || 0),
+        'investment_total': formatCurrency(totals.investment_total || 0),
+        'subsidy_count': totals.subsidy_count || 0,
+        'total_subsidy': formatCurrency(totals.total_subsidy || 0)
+      };
+    } else {
+      // Для вкладок "approved" и "rejected" используем расширенную структуру
+      return {
+        'district': 'JAMI',
+        'total_area': formatNumber(totals.total_area),
+        'total_plantations': totals.total_plantations || 0,
+        'planted_area': formatNumber(totals.planted_area),
+        'investment_local': formatCurrency(totals.investment_local || 0),
+        'investment_foreign': formatCurrency(totals.investment_foreign || 0),
+        'investment_total': formatCurrency(totals.investment_total || 0),
+        'subsidy_count': totals.subsidy_count || 0,
+        'total_subsidy': formatCurrency(totals.total_subsidy || 0),
+        'bogs_count': totals.bogs_count || 0,
+        'bogs_area': formatNumber(totals.bogs_area || 0),
+        'uzumzors_count': totals.uzumzors_count || 0,
+        'uzumzors_area': formatNumber(totals.uzumzors_area || 0),
+        'issiqxonas_count': totals.issiqxonas_count || 0,
+        'issiqxonas_area': formatNumber(totals.issiqxonas_area || 0)
+      };
+    }
   } else {
     return {
       'district': 'JAMI',
@@ -198,19 +256,34 @@ const createSummarySheet = (totals, activeTab, regionName, isRegionPage = false)
     summaryData.push(['Mevali turlari:', totals.total_fruits_count || totals.total_plantations || 0]);
     summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
   } else if (isRegionPage) {
-    summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
-    summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
-    summaryData.push(['Bog\'lar soni:', totals.bogs_count || 0]);
-    summaryData.push(['Bog\'lar maydoni:', `${formatNumber(totals.bogs_area)} GA`]);
-    summaryData.push(['Uzumzorlar soni:', totals.uzumzors_count || 0]);
-    summaryData.push(['Uzumzorlar maydoni:', `${formatNumber(totals.uzumzors_area)} GA`]);
-    summaryData.push(['Issiqxonalar soni:', totals.issiqxonas_count || 0]);
-    summaryData.push(['Issiqxonalar maydoni:', `${formatNumber(totals.issiqxonas_area)} GA`]);
-    summaryData.push(['O\'rtacha hosildorlik:', `${formatNumber(totals.fertility_stats?.average_score || 0)} ball`]);
-    summaryData.push(['Past hosildorlik maydoni:', `${formatNumber(totals.fertility_stats?.low_fertility_area || 0)} GA`]);
-    summaryData.push(['Yuqori hosildorlik maydoni:', `${formatNumber(totals.fertility_stats?.high_fertility_area || 0)} GA`]);
-    summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.investment_local + totals.investment_foreign)]);
-    summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy)]);
+    // Для детальных таблиц районов обрабатываем итоги в зависимости от activeTab
+    if (activeTab === 'all') {
+      // Для вкладки "all" используем стандартную структуру
+      summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
+      summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
+      summaryData.push(['Ekilgan maydoni:', `${formatNumber(totals.planted_area)} GA`]);
+      summaryData.push(['Mahalliy investitsiyalar:', formatCurrency(totals.investment_local || 0)]);
+      summaryData.push(['Chet el investitsiyalari:', formatCurrency(totals.investment_foreign || 0)]);
+      summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.investment_total || 0)]);
+      summaryData.push(['Subsidiya soni:', totals.subsidy_count || 0]);
+      summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy || 0)]);
+    } else {
+      // Для вкладок "approved" и "rejected" используем расширенную структуру
+      summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
+      summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
+      summaryData.push(['Ekilgan maydoni:', `${formatNumber(totals.planted_area)} GA`]);
+      summaryData.push(['Bog\'lar soni:', totals.bogs_count || 0]);
+      summaryData.push(['Bog\'lar maydoni:', `${formatNumber(totals.bogs_area)} GA`]);
+      summaryData.push(['Uzumzorlar soni:', totals.uzumzors_count || 0]);
+      summaryData.push(['Uzumzorlar maydoni:', `${formatNumber(totals.uzumzors_area)} GA`]);
+      summaryData.push(['Issiqxonalar soni:', totals.issiqxonas_count || 0]);
+      summaryData.push(['Issiqxonalar maydoni:', `${formatNumber(totals.issiqxonas_area)} GA`]);
+      summaryData.push(['Mahalliy investitsiyalar:', formatCurrency(totals.investment_local || 0)]);
+      summaryData.push(['Chet el investitsiyalari:', formatCurrency(totals.investment_foreign || 0)]);
+      summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.investment_total || 0)]);
+      summaryData.push(['Subsidiya soni:', totals.subsidy_count || 0]);
+      summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy || 0)]);
+    }
   } else {
     summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
     summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);

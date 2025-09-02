@@ -783,7 +783,7 @@ const EditPlantation = () => {
 
             {/* Двойной ряд: Fermer + Mevali hududlar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {plantation.farmer && (
+            {plantation.farmer && (
                 <div className="bg-gray-700 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2 text-white">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -796,8 +796,8 @@ const EditPlantation = () => {
                     <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
                   </div>
-                </div>
-              )}
+                  </div>
+                )}
               {plantation.fruit_areas.length > 0 && (
                 <div className="bg-gray-700 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2 text-white">
@@ -814,8 +814,8 @@ const EditPlantation = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+              </div>
+            )}
             </div>
 
             {createdByUser && (
@@ -826,7 +826,7 @@ const EditPlantation = () => {
                 >
                   <span className="inline-flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Qo'shgan foydalanuvchi:
+                  Qo'shgan foydalanuvchi:
                   </span>
                 </h2>
                 {expandedSections.user && (
@@ -870,7 +870,7 @@ const EditPlantation = () => {
                 >
                   <span className="inline-flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" /></svg>
-                    Shpallar:
+                  Shpallar:
                   </span>
                 </h2>
                 {expandedSections.trellises && (
@@ -935,17 +935,17 @@ const EditPlantation = () => {
             )}
             <div className="flex flex-col gap-2 sm:gap-4">
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
-                <button
+              <button
                   className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center gap-2"
-                  onClick={handleApprove}
+                onClick={handleApprove}
                   disabled={isDeleted}
-                >
+              >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                  Tasdiqlash
-                </button>
-                <button
+                Tasdiqlash
+              </button>
+              <button
                   className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center gap-2"
-                  onClick={openModal}
+                onClick={openModal}
                   disabled={isDeleted}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -959,8 +959,8 @@ const EditPlantation = () => {
                   disabled={isDeleted}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg>
-                  O'chirish
-                </button>
+                O'chirish
+              </button>
               </div>
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

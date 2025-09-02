@@ -275,11 +275,8 @@ const RegionsPage = () => {
 
           // Заполняем данные для регионов из by_region_with_planted_area
           if (allData.by_region_with_planted_area) {
-            console.log('Processing by_region_with_planted_area:', allData.by_region_with_planted_area);
-            console.log('Available region IDs in data:', Object.keys(data));
             allData.by_region_with_planted_area.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
-              console.log(`Processing region ${regionId} with planted_area ${regionData.planted_area}`);
               if (regionId) {
                 // Создаем запись для региона, если её нет
                 if (!data[regionId]) {
@@ -305,10 +302,50 @@ const RegionsPage = () => {
                 data[regionId] = {
                   ...data[regionId],
                   total_area: regionData.total_area ?? 0,
-                  total_plantations: regionData.count ?? 0,
+                  total_plantations: regionData.plantation_count ?? regionData.count ?? 0,
                   total_fruitarea: regionData.planted_area ?? 0,
                 };
-                console.log(`Region ${regionId}: total_fruitarea = ${regionData.planted_area}`);
+              }
+            });
+          }
+          
+          // Заполняем данные для регионов из by_region (основной массив)
+          if (allData.by_region) {
+            console.log('Processing by_region data:', allData.by_region);
+            allData.by_region.forEach(regionData => {
+              const regionId = regionData.plantation__district__region?.toString();
+              console.log('Processing region:', regionId, 'data:', regionData);
+              if (regionId) {
+                // Создаем запись для региона, если её нет
+                if (!data[regionId]) {
+                  data[regionId] = {
+                    region: REGION_NAMES[regionId] || `Region ${regionId}`,
+                    total_area: 0,
+                    total_plantations: 0,
+                    total_fruitarea: 0,
+                    total_approved_fruitarea: 0,
+                    bogs_count: 0,
+                    bogs_area: 0,
+                    uzumzors_count: 0,
+                    uzumzors_area: 0,
+                    issiqxonas_count: 0,
+                    issiqxonas_area: 0,
+                    investment_local: 0,
+                    investment_foreign: 0,
+                    subsidy_count: 0,
+                    total_subsidy: 0
+                  };
+                }
+                
+                const plantationsCount = regionData.plantation_count ?? regionData.count ?? 0;
+                console.log(`Setting total_plantations for region ${regionId}:`, plantationsCount, 'from:', regionData);
+                
+                data[regionId] = {
+                  ...data[regionId],
+                  total_area: regionData.total_area ?? 0,
+                  total_plantations: plantationsCount,
+                  total_fruitarea: regionData.planted_area ?? 0,
+                };
               }
             });
           }
@@ -400,6 +437,7 @@ const RegionsPage = () => {
           });
 
           console.log('Final processed data:', data);
+          console.log('Sample region data (Parkent - ID 11):', data['11']);
           console.log('Setting statistics state with:', data);
           setStatistics(data);
           setApprovedTotals(totalStats);
@@ -660,7 +698,7 @@ const RegionsPage = () => {
                 data[regionId] = {
                   ...data[regionId],
                   total_area: regionData.total_area ?? 0,
-                  total_plantations: regionData.count ?? 0,
+                  total_plantations: regionData.plantation_count ?? regionData.count ?? 0,
                   total_fruitarea: regionData.planted_area ?? 0,
                 };
               }
@@ -677,7 +715,7 @@ const RegionsPage = () => {
                   data[regionId] = {
                   ...data[regionId],
                   total_area: regionData.total_area ?? 0,
-                  total_plantations: regionData.count ?? 0,
+                  total_plantations: regionData.plantation_count ?? regionData.count ?? 0,
                   total_fruitarea: data[regionId]?.total_fruitarea ?? 0,
                 };
               }
@@ -840,16 +878,23 @@ const RegionsPage = () => {
 
   const safeNumber = (value) => (typeof value === "number" ? value : 0);
 
-  console.log('Current statistics state:', statistics);
-  console.log('Active tab:', activeTab);
-  console.log('Statistics entries:', Object.entries(statistics));
   const tableData = Object.entries(statistics).map(([regionId, data]) => {
-    console.log(`Table data for region ${regionId}:`, data);
+    if (regionId === '11') { // Parkent
+      console.log('Processing Parkent in tableData:', data);
+      console.log('total_plantations calculation:', {
+        total_plantations: data.total_plantations,
+        plantation_count: data.plantation_count,
+        plantations_count: data.plantations_count,
+        count: data.count,
+        result: safeNumber(data.total_plantations || data.plantation_count || data.plantations_count || data.count || 0)
+      });
+    }
+    
     return {
     key: regionId,
     region: REGION_NAMES[regionId],
     total_area: safeNumber(data.total_area),
-      total_plantations: safeNumber(data.total_plantations || data.plantations_count || data.count || 0),
+      total_plantations: safeNumber(data.total_plantations || data.plantation_count || data.plantations_count || data.count || 0),
       total_fruitarea: activeTab === 'approved' ? safeNumber(data.total_approved_fruitarea) : safeNumber(data.total_fruitarea || data.total_approved_fruitarea),
       total_approved_fruitarea: safeNumber(data.total_approved_fruitarea),
       bogs_count: safeNumber(data.bogs_count),

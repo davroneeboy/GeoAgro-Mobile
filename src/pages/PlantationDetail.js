@@ -481,7 +481,7 @@ const PlantationDetail = () => {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {plantation.farmer && (
+            {plantation.farmer && (
                 <div className="bg-gray-700 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2 text-white">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -494,8 +494,8 @@ const PlantationDetail = () => {
                     <p>Manzil: {plantation.farmer.address}</p>
                     <p>INN: {plantation.farmer.inn}</p>
                   </div>
-                </div>
-              )}
+                  </div>
+                )}
               {plantation.fruit_areas?.length > 0 && (
                 <div className="bg-gray-700 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2 text-white">
@@ -512,8 +512,8 @@ const PlantationDetail = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+              </div>
+            )}
             </div>
 
             {/* Секция с информацией о пользователе, который создал плантацию */}
