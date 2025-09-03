@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Table, Card, Select, Row, Col, Alert, Statistic, Button } from "antd";
+import { Table, Card, Select, Row, Col, Alert, Statistic, Button, message } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
 import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
+import { exportToExcel } from "../../utils/excelExport";
 
 const { Option } = Select;
 
@@ -32,6 +34,7 @@ const FruitsPage = () => {
     regions: [],
   });
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,6 +68,44 @@ const FruitsPage = () => {
       regions: [],
     });
     setSortConfig({ field: null, order: 'ascend' });
+  };
+
+  // Функция для экспорта в Excel
+  const handleExportToExcel = async () => {
+    try {
+      setExporting(true);
+      
+      // Получаем данные для экспорта
+      const exportData = sortedTableData;
+      const exportTotals = {
+        total_area: totals.total_area || 0,
+        outdated_ga: totals.outdated_ga || 0,
+        low_fertility_count: totals.low_fertility_count || 0,
+        low_fertility_area: totals.low_fertility_area || 0,
+        high_fertility_count: totals.high_fertility_count || 0,
+        high_fertility_area: totals.high_fertility_area || 0,
+      };
+      
+      // Генерируем имя файла
+      const regionName = filters.regions.length > 0 
+        ? filters.regions.map(id => REGION_NAMES[id]).join('_')
+        : 'All_Regions';
+      const filename = `${regionName}_fruits_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Экспортируем
+      const success = await exportToExcel(exportData, exportTotals, 'fruits', regionName, filename, false);
+      
+      if (success) {
+        message.success('Excel fayl muvaffaqiyatli yuklandi!');
+      } else {
+        message.error('Excel fayl yuklashda xatolik yuz berdi.');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Excel fayl yuklashda xatolik yuz berdi.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Transform to table rows
@@ -278,9 +319,21 @@ const FruitsPage = () => {
       <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-white">Mevalar bo'yicha statistika</h1>
-          <Button type="primary" danger onClick={handleResetFilters}>
-            Filterni tozalash
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleExportToExcel}
+              loading={exporting}
+              className="bg-green-600 hover:bg-green-700 border-green-600"
+              size="large"
+            >
+              Excel ga eksport qilish
+            </Button>
+            <Button type="primary" danger onClick={handleResetFilters}>
+              Filterni tozalash
+            </Button>
+          </div>
         </div>
 
         {error && (

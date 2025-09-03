@@ -29,22 +29,22 @@ const REGION_NAMES = {
 const getDistrictNameByRegionId = (regionId) => {
   // Маппинг region ID -> district name
   const districtNames = {
-    1: "Tashkent District",
-    2: "Andijan District", 
-    3: "Bukhara District",
-    4: "Fergana District",
-    5: "Jizzakh District",
-    6: "Kashkadarya District",
-    7: "Navoi District",
-    8: "Namangan District",
-    9: "Samarkand District",
-    10: "Sirdarya District",
-    11: "Surkhandarya District",
-    12: "Karakalpakstan District",
-    13: "Xorazm District"
+    1: "Toshkent",
+    2: "Andijon", 
+    3: "Buxoro",
+    4: "Farg'ona",
+    5: "Jizzax",
+    6: "Qashqadaryo",
+    7: "Navoiy",
+    8: "Namangan",
+    9: "Samarqand",
+    10: "Sirdaryo",
+    11: "Surxondaryo",
+    12: "Qoraqalpog'iston",
+    13: "Xorazm"
   };
   
-  return districtNames[regionId] || `District_${regionId}`;
+  return districtNames[regionId] || `Tuman_${regionId}`;
 };
 
 const RegionDetailPage = () => {
@@ -128,7 +128,7 @@ const RegionDetailPage = () => {
           }
           
           data = await fetchStatisticsData(url, authState.accessToken);
-          console.log('Raw API response for region:', id, data);
+  
           
           // Если данные приходят в формате by_region, оставляем их как есть
           // НЕ преобразуем в формат { data: districtStats }
@@ -354,12 +354,6 @@ const RegionDetailPage = () => {
         }
         
         setStatistics(processedData);
-        console.log('Statistics state set with:', processedData);
-        console.log('Data structure:', {
-          hasData: !!processedData.data,
-          dataKeys: processedData.data ? Object.keys(processedData.data) : [],
-          sampleData: processedData.data ? processedData.data['Parkent'] : null
-        });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -367,7 +361,7 @@ const RegionDetailPage = () => {
       }
     };
 
-            console.log('useEffect triggered with:', { id, authState: !!authState.accessToken, locationSearch: location.search, activeTab });
+
             fetchData();
       }, [id, authState.accessToken, location.search, activeTab]);
 
@@ -425,8 +419,16 @@ const RegionDetailPage = () => {
         
         // Проверяем, что значения не undefined/null
         const totalArea = item.total_area !== undefined && item.total_area !== null ? item.total_area : 0;
-        const totalPlantations = item.count !== undefined && item.count !== null ? item.count : 0;
-        const plantedArea = item.planted_area !== undefined && item.planted_area !== null ? item.planted_area : 0;
+        const totalPlantations = item.plantation_count !== undefined && item.plantation_count !== null ? item.plantation_count : 0;
+        
+        // Пробуем разные варианты названий поля для посаженной площади
+        const plantedArea = item.planted_area !== undefined && item.planted_area !== null ? item.planted_area : 
+                           item.fruit_area !== undefined && item.fruit_area !== null ? item.fruit_area :
+                           item.total_fruitarea !== undefined && item.total_fruitarea !== null ? item.total_fruitarea : 0;
+        
+
+        
+
         
         const row = {
           key: districtName,
@@ -458,11 +460,13 @@ const RegionDetailPage = () => {
       tableData = districts.map(districtName => {
         const districtData = statistics.data[districtName];
         
+
+        
         const row = {
           key: districtName,
           district: districtName,
           total_area: districtData.total_area || 0,
-          total_plantations: districtData.total_plantations || 0,
+          total_plantations: districtData.plantation_count || 0,
           planted_area: districtData.planted_area || 0,
           investment_local: districtData.investment?.local || 0,
           investment_foreign: districtData.investment?.foreign || 0,
@@ -488,14 +492,7 @@ const RegionDetailPage = () => {
     // Для других вкладок обрабатываем данные как обычно
     tableData = Object.entries(statistics?.data || {}).map(
     ([district, data]) => {
-      console.log(`Processing district ${district}:`, data);
-      console.log(`Investment data for ${district}:`, data.investment);
-      console.log(`Subsidy data for ${district}:`, data.subsidy);
-      console.log(`Plantation count for ${district}:`, {
-        plantation_count: data.plantation_count,
-        total_plantations: data.total_plantations,
-        result: data.plantation_count || data.total_plantations || 0
-      });
+      
         
         const row = {
           key: district,
@@ -590,7 +587,7 @@ const RegionDetailPage = () => {
       totals = statistics.by_region.reduce(
         (acc, curr) => ({
           total_area: (acc.total_area || 0) + (curr.total_area || 0),
-          total_plantations: (acc.total_plantations || 0) + (curr.count || 0),
+          total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || 0),
           planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
           total_investment: 0, // Будет рассчитано отдельно
           total_subsidy: 0, // Будет рассчитано отдельно
@@ -620,7 +617,7 @@ const RegionDetailPage = () => {
       totals = Object.values(statistics.data).reduce(
         (acc, curr) => ({
           total_area: (acc.total_area || 0) + (curr.total_area || 0),
-          total_plantations: (acc.total_plantations || 0) + (curr.total_plantations || 0),
+          total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || 0),
           planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
           total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
           total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),

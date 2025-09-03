@@ -845,14 +845,36 @@ const RegionsPage = () => {
       
       // Получаем данные для экспорта
       const exportData = sortedTableData;
+      
+      // Отладочная информация для вкладки "all"
+      if (activeTab !== 'approved' && activeTab !== 'rejected') {
+        console.log('Export data for "all" tab:', exportData);
+        console.log('Sample row data:', exportData[0]);
+      }
+      
       const exportTotals = activeTab === 'approved' ? approvedTotals : activeTab === 'rejected' ? rejectedTotals : {
         total_area: exportData.reduce((sum, row) => sum + (row.total_area || 0), 0),
         total_plantations: exportData.reduce((sum, row) => sum + (row.total_plantations || 0), 0),
         total_fruitarea: exportData.reduce((sum, row) => sum + (row.total_fruitarea || 0), 0),
         outdated_ga: exportData.reduce((sum, row) => sum + (row.outdated_ga || 0), 0),
         total_investment: exportData.reduce((sum, row) => sum + (row.investment_local || 0) + (row.investment_foreign || 0), 0),
-        total_subsidy: exportData.reduce((sum, row) => sum + (row.total_subsidy || 0), 0)
+        total_subsidy: exportData.reduce((sum, row) => sum + (row.total_subsidy || 0), 0),
+        // Добавляем недостающие поля для вкладки "all"
+        bogs_count: exportData.reduce((sum, row) => sum + (row.bogs_count || 0), 0),
+        bogs_area: exportData.reduce((sum, row) => sum + (row.bogs_area || 0), 0),
+        uzumzors_count: exportData.reduce((sum, row) => sum + (row.uzumzors_count || 0), 0),
+        uzumzors_area: exportData.reduce((sum, row) => sum + (row.uzumzors_area || 0), 0),
+        issiqxonas_count: exportData.reduce((sum, row) => sum + (row.issiqxonas_count || 0), 0),
+        issiqxonas_area: exportData.reduce((sum, row) => sum + (row.issiqxonas_area || 0), 0),
+        investment_local: exportData.reduce((sum, row) => sum + (row.investment_local || 0), 0),
+        investment_foreign: exportData.reduce((sum, row) => sum + (row.investment_foreign || 0), 0),
+        subsidy_count: exportData.reduce((sum, row) => sum + (row.subsidy_count || 0), 0)
       };
+      
+      // Отладочная информация для итогов
+      if (activeTab !== 'approved' && activeTab !== 'rejected') {
+        console.log('Calculated exportTotals:', exportTotals);
+      }
       
       // Генерируем имя файла
       const regionName = filters.regions.length > 0 

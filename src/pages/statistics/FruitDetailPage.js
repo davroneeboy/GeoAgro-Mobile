@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Table, Card, Row, Col, Spin, Alert, Statistic, Button } from 'antd';
+import { Table, Card, Row, Col, Spin, Alert, Statistic, Button, message } from 'antd';
 import StatisticsLayout from '../../layouts/StatisticsLayout';
 import { API_BASE_URL1 } from "../../config";
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons';
 import AuthContext from '../../context/AuthContext';
 import { fetchStatisticsData } from '../../utils/apiUtils';
+import { exportToExcel } from '../../utils/excelExport';
 
 const FruitDetailPage = () => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ const FruitDetailPage = () => {
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState(null);
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +34,38 @@ const FruitDetailPage = () => {
 
     fetchData();
   }, [id, authState.accessToken]);
+
+  // Функция для экспорта в Excel
+  const handleExportToExcel = async () => {
+    try {
+      setExporting(true);
+      
+      // Получаем данные для экспорта
+      const exportData = sortedTableData;
+      const exportTotals = {
+        total_area: totals.total_area || 0,
+        outdated_ga: totals.outdated_ga || 0,
+      };
+      
+      // Генерируем имя файла
+      const fruitName = statistics?.fruit || 'fruit';
+      const filename = `${fruitName}_varieties_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Экспортируем
+      const success = await exportToExcel(exportData, exportTotals, 'fruit_detail', fruitName, filename, false);
+      
+      if (success) {
+        message.success('Excel fayl muvaffaqiyatli yuklandi!');
+      } else {
+        message.error('Excel fayl yuklashda xatolik yuz berdi.');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Excel fayl yuklashda xatolik yuz berdi.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const tableData = Object.entries(statistics?.data || {}).map(([variety, data]) => ({
     key: variety,
@@ -166,6 +200,18 @@ const FruitDetailPage = () => {
           <h1 className="text-2xl font-bold ml-4 text-white">
             {statistics.fruit_name} statistikasi
           </h1>
+          <div className="ml-auto">
+            <Button 
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleExportToExcel}
+              loading={exporting}
+              className="bg-green-600 hover:bg-green-700 border-green-600"
+              size="large"
+            >
+              Excel ga eksport qilish
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}

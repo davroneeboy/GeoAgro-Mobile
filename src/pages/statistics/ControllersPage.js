@@ -11,11 +11,14 @@ import {
   Button,
   DatePicker,
   ConfigProvider,
+  message,
 } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL1 } from "../../config";
 import AuthContext from "../../context/AuthContext";
 import { fetchStatisticsData } from "../../utils/apiUtils";
+import { exportToExcel } from "../../utils/excelExport";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -58,6 +61,7 @@ const ControllersPage = () => {
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,6 +121,41 @@ const ControllersPage = () => {
       ...prev,
       customDateRange: dates,
     }));
+  };
+
+  // Функция для экспорта в Excel
+  const handleExportToExcel = async () => {
+    try {
+      setExporting(true);
+      
+      // Получаем данные для экспорта
+      const exportData = sortedTableData;
+      const exportTotals = {
+        total_plantations: totals.total || 0,
+        approved_plantations: totals.approved || 0,
+        rejected_plantations: totals.rejected || 0,
+        kpi_points: totals.kpiPoints || 0,
+        kpi_amount: totals.kpiAmount || 0,
+      };
+      
+      // Генерируем имя файла
+      const timeFilter = filters.timeFilter === 'custom' ? 'custom' : filters.timeFilter;
+      const filename = `controllers_statistics_${timeFilter}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Экспортируем
+      const success = await exportToExcel(exportData, exportTotals, 'controllers', 'Controllers', filename, false);
+      
+      if (success) {
+        message.success('Excel fayl muvaffaqiyatli yuklandi!');
+      } else {
+        message.error('Excel fayl yuklashda xatolik yuz berdi.');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Excel fayl yuklashda xatolik yuz berdi.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Подготовка данных для таблицы
@@ -409,9 +448,21 @@ const ControllersPage = () => {
           <h1 className="text-xl sm:text-2xl font-bold text-white">
             Nazoratchilar bo'yicha statistika
           </h1>
-          <Button type="primary" danger onClick={handleResetFilters}>
-            Filterni tozalash
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleExportToExcel}
+              loading={exporting}
+              className="bg-green-600 hover:bg-green-700 border-green-600"
+              size="large"
+            >
+              Excel ga eksport qilish
+            </Button>
+            <Button type="primary" danger onClick={handleResetFilters}>
+              Filterni tozalash
+            </Button>
+          </div>
         </div>
 
         {error && (

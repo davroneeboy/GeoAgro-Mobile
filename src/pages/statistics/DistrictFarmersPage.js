@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Table, Card, Spin, Alert, Button, ConfigProvider } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
 import { API_BASE_URL2 } from "../../config";
 import AuthContext from "../../context/AuthContext";
@@ -294,8 +294,10 @@ const DistrictFarmersPage = () => {
           </h1>
           <Button
             type="primary"
+            icon={<DownloadOutlined />}
             className="bg-green-600 hover:bg-green-700 border-green-600"
             loading={exporting}
+            size="large"
             onClick={async () => {
               try {
                 setExporting(true);
@@ -308,7 +310,7 @@ const DistrictFarmersPage = () => {
               }
             }}
           >
-            Excel ga eksport
+            Excel ga eksport qilish
           </Button>
         </div>
 
