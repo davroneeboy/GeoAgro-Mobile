@@ -1,25 +1,28 @@
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
-// Форматирование чисел с разделителями тысяч
+// Форматирование чисел для Excel - возвращаем числовые значения
 const formatNumber = (value) => {
-  if (value === null || value === undefined) return '0';
-  return Number(value).toLocaleString('ru-RU', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 2
-  });
+  if (value === null || value === undefined) return 0;
+  const num = Number(value);
+  if (isNaN(num)) return 0;
+  return num;
 };
 
-// Форматирование валюты
+// Форматирование валюты для Excel - возвращаем числовые значения
 const formatCurrency = (value) => {
-  if (value === null || value === undefined) return '0 UZS';
-  return `${Number(value).toLocaleString('ru-RU')} UZS`;
+  if (value === null || value === undefined) return 0;
+  const num = Number(value);
+  if (isNaN(num)) return 0;
+  return num;
 };
 
-// Форматирование числа без валюты для инвестиций
+// Форматирование числа без валюты для инвестиций для Excel - возвращаем числовые значения
 const formatInvestment = (value) => {
   if (value === null || value === undefined) return 0;
-  return Number(value).toLocaleString('ru-RU');
+  const num = Number(value);
+  if (isNaN(num)) return 0;
+  return num;
 };
 
 // Генерация колонок для обычных табов (all, approved, rejected)
@@ -352,7 +355,7 @@ const createSummarySheet = (totals, activeTab, regionName, isRegionPage = false)
   
   // Статистика
   if (activeTab === 'fruits') {
-    summaryData.push(['Mevali maydon:', `${formatNumber(totals.total_fruitarea || totals.total_area)} GA`]);
+    summaryData.push(['Mevali maydon:', formatNumber(totals.total_fruitarea || totals.total_area)]);
     summaryData.push(['Mevali turlari:', totals.total_fruits_count || totals.total_plantations || 0]);
     summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
   } else if (activeTab === 'controllers') {
@@ -360,55 +363,55 @@ const createSummarySheet = (totals, activeTab, regionName, isRegionPage = false)
     summaryData.push(['Tasdiqlangan plantatsiyalar:', totals.approved_plantations || 0]);
     summaryData.push(['Rad etilgan plantatsiyalar:', totals.rejected_plantations || 0]);
     summaryData.push(['Jami KPI ballar:', totals.kpi_points || 0]);
-    summaryData.push(['Jami KPI summa:', `${formatCurrency(totals.kpi_amount || 0)}`]);
+    summaryData.push(['Jami KPI summa:', formatCurrency(totals.kpi_amount || 0)]);
   } else if (activeTab === 'fruit_detail') {
-    summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
-    summaryData.push(['Eskirgan maydon:', `${formatNumber(totals.outdated_ga)} GA`]);
+    summaryData.push(['Jami maydon:', formatNumber(totals.total_area)]);
+    summaryData.push(['Eskirgan maydon:', formatNumber(totals.outdated_ga)]);
   } else if (isRegionPage) {
     // Для детальных таблиц районов обрабатываем итоги в зависимости от activeTab
     if (activeTab === 'all') {
       // Для вкладки "all" используем стандартную структуру
-      summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
+      summaryData.push(['Jami maydon:', formatNumber(totals.total_area)]);
       summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
-      summaryData.push(['Ekilgan maydoni:', `${formatNumber(totals.planted_area || totals.total_fruitarea || 0)} GA`]);
+      summaryData.push(['Ekilgan maydoni:', formatNumber(totals.planted_area || totals.total_fruitarea || 0)]);
       summaryData.push(['Bog\'lar soni:', totals.bogs_count || 0]);
-      summaryData.push(['Bog\'lar maydoni:', `${formatNumber(totals.bogs_area)} GA`]);
+      summaryData.push(['Bog\'lar maydoni:', formatNumber(totals.bogs_area)]);
       summaryData.push(['Uzumzorlar soni:', totals.uzumzors_count || 0]);
-      summaryData.push(['Uzumzorlar maydoni:', `${formatNumber(totals.uzumzors_area)} GA`]);
+      summaryData.push(['Uzumzorlar maydoni:', formatNumber(totals.uzumzors_area)]);
       summaryData.push(['Issiqxonalar soni:', totals.issiqxonas_count || 0]);
-      summaryData.push(['Issiqxonalar maydoni:', `${formatNumber(totals.issiqxonas_area)} GA`]);
+      summaryData.push(['Issiqxonalar maydoni:', formatNumber(totals.issiqxonas_area)]);
       summaryData.push(['Mahalliy investitsiyalar:', formatCurrency(totals.investment_local || 0)]);
       summaryData.push(['Chet el investitsiyalar:', formatCurrency(totals.investment_foreign || 0)]);
-      summaryData.push(['Jami investitsiyalar (UZS):', formatCurrency(totals.investment_total || 0)]);
+      summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.investment_total || 0)]);
       summaryData.push(['Subsidiya soni:', totals.subsidy_count || 0]);
-      summaryData.push(['Jami subsidiyalar (UZS):', formatCurrency(totals.total_subsidy || 0)]);
+      summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy || 0)]);
     } else {
       // Для вкладок "approved" и "rejected" используем расширенную структуру
-      summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
+      summaryData.push(['Jami maydon:', formatNumber(totals.total_area)]);
       summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
-      summaryData.push(['Ekilgan maydoni:', `${formatNumber(totals.planted_area || totals.total_fruitarea || 0)} GA`]);
+      summaryData.push(['Ekilgan maydoni:', formatNumber(totals.planted_area || totals.total_fruitarea || 0)]);
       summaryData.push(['Bog\'lar soni:', totals.bogs_count || 0]);
-      summaryData.push(['Bog\'lar maydoni:', `${formatNumber(totals.bogs_area)} GA`]);
+      summaryData.push(['Bog\'lar maydoni:', formatNumber(totals.bogs_area)]);
       summaryData.push(['Uzumzorlar soni:', totals.uzumzors_count || 0]);
-      summaryData.push(['Uzumzorlar maydoni:', `${formatNumber(totals.uzumzors_area)} GA`]);
+      summaryData.push(['Uzumzorlar maydoni:', formatNumber(totals.uzumzors_area)]);
       summaryData.push(['Issiqxonalar soni:', totals.issiqxonas_count || 0]);
-      summaryData.push(['Issiqxonalar maydoni:', `${formatNumber(totals.issiqxonas_area)} GA`]);
+      summaryData.push(['Issiqxonalar maydoni:', formatNumber(totals.issiqxonas_area)]);
       summaryData.push(['Mahalliy investitsiyalar:', formatCurrency(totals.investment_local || 0)]);
       summaryData.push(['Chet el investitsiyalar:', formatCurrency(totals.investment_foreign || 0)]);
-      summaryData.push(['Jami investitsiyalar (UZS):', formatCurrency(totals.investment_total || 0)]);
+      summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.investment_total || 0)]);
       summaryData.push(['Subsidiya soni:', totals.subsidy_count || 0]);
-      summaryData.push(['Jami subsidiyalar (UZS):', formatCurrency(totals.total_subsidy || 0)]);
+      summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy || 0)]);
     }
-  } else {
-    summaryData.push(['Jami maydon:', `${formatNumber(totals.total_area)} GA`]);
-    summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
-    summaryData.push(['Eskirgan maydon:', `${formatNumber(totals.outdated_ga)} GA`]);
-    summaryData.push(['Mahalliy investitsiyalar:', formatInvestment(totals.investment_local || 0)]);
-    summaryData.push(['Chet el investitsiyalar:', formatInvestment(totals.investment_foreign || 0)]);
-    summaryData.push(['Jami investitsiyalar (UZS):', formatCurrency(totals.total_investment)]);
-    summaryData.push(['Subsidiya soni:', totals.subsidy_count || 0]);
-    summaryData.push(['Jami subsidiyalar (UZS):', formatCurrency(totals.total_subsidy)]);
-  }
+      } else {
+      summaryData.push(['Jami maydon:', formatNumber(totals.total_area)]);
+      summaryData.push(['Plantatsiyalar soni:', totals.total_plantations || 0]);
+      summaryData.push(['Eskirgan maydon:', formatNumber(totals.outdated_ga)]);
+      summaryData.push(['Mahalliy investitsiyalar:', formatInvestment(totals.investment_local || 0)]);
+      summaryData.push(['Chet el investitsiyalar:', formatInvestment(totals.investment_foreign || 0)]);
+      summaryData.push(['Jami investitsiyalar:', formatCurrency(totals.total_investment)]);
+      summaryData.push(['Subsidiya soni:', totals.subsidy_count || 0]);
+      summaryData.push(['Jami subsidiyalar:', formatCurrency(totals.total_subsidy)]);
+    }
   
   return summaryData;
 };
