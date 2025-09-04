@@ -789,8 +789,6 @@ const RegionDetailPage = () => {
           { title: <span style={textLight}>Bog'lar — maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
           { title: <span style={textLight}>Uzumzorlar — soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
           { title: <span style={textLight}>Uzumzorlar — maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-          { title: <span style={textLight}>Issiqxonalar — soni</span>, dataIndex: 'issiqxonas_count', key: 'issiqxonas_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'issiqxonas_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Issiqxonalar — maydon (GA)</span>, dataIndex: 'issiqxonas_area', key: 'issiqxonas_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'issiqxonas_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
         ],
       }
     ] : []),

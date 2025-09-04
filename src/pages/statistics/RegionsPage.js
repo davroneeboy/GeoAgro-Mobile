@@ -1147,29 +1147,6 @@ const RegionsPage = () => {
         },
       ],
     },
-    {
-      title: "Issiqxonalar",
-      children: [
-        {
-          title: "Soni",
-          dataIndex: "issiqxonas_count",
-          key: "issiqxonas_count",
-          sorter: true,
-          sortOrder: sortConfig.field === 'issiqxonas_count' ? sortConfig.order : null,
-          sortDirections: ['ascend','descend'],
-          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value)}</span>,
-        },
-        {
-          title: "Maydon (GA)",
-          dataIndex: "issiqxonas_area",
-          key: "issiqxonas_area",
-          sorter: true,
-          sortOrder: sortConfig.field === 'issiqxonas_area' ? sortConfig.order : null,
-          sortDirections: ['ascend','descend'],
-          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
-        },
-      ],
-    },
 
     {
       title: "Investitsiyalar",
@@ -1486,19 +1463,6 @@ const RegionsPage = () => {
                   (activeTab === 'approved' ? totalRow.total_approved_fruitarea : totalRow.total_fruitarea)}
                 suffix="GA"
                 precision={1}
-                valueStyle={{ color: '#e5e7eb' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
-              <Statistic
-                title={<span style={{ color: '#9ca3af' }}>
-                  {(activeTab === 'approved' || activeTab === 'all') ? 'Issiqxona soni' : 'Issiqxonalar'}
-                </span>}
-                value={(activeTab === 'approved' || activeTab === 'all') && approvedTotals ? approvedTotals.issiqxonas_count : totalRow.issiqxonas_count}
-                suffix=""
-                precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
