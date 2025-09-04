@@ -209,11 +209,23 @@ const EditPlantation = () => {
       setError(null);
       const data = await apiRequest(`api/plantations/${id}/`, {}, refreshAccessToken, authState.accessToken);
       
-      setPlantation(data);
+      // Нормализация массивов и фолбэки ключей
+      const normalized = {
+        ...data,
+        trellises: Array.isArray(data.trellises) ? data.trellises : (Array.isArray(data.trellis_list) ? data.trellis_list : []),
+        reservoirs: Array.isArray(data.reservoirs) ? data.reservoirs : (Array.isArray(data.reservoir_list) ? data.reservoir_list : []),
+      };
+
+      // Подсчет reservoir_count, если отсутствует
+      if (normalized.reservoir_count == null) {
+        normalized.reservoir_count = Array.isArray(normalized.reservoirs) ? normalized.reservoirs.length : 0;
+      }
+
+      setPlantation(normalized);
       
       // Получаем информацию о пользователе, который создал плантацию
-      if (data.created_by) {
-        const userDetails = await fetchUserDetails(data.created_by);
+      if (normalized.created_by) {
+        const userDetails = await fetchUserDetails(normalized.created_by);
         setCreatedByUser(userDetails);
       }
       
@@ -862,7 +874,10 @@ const EditPlantation = () => {
                 )}
               </div>
             )}
-            {plantation.trellises.length > 0 && (
+            {(plantation?.trellises?.filter(t => t && (
+              (t.trellis_installed_area != null && t.trellis_installed_area !== '' && Number(t.trellis_installed_area) > 0) ||
+              (t.trellis_count != null && t.trellis_count !== '' && Number(t.trellis_count) > 0)
+            ))?.length > 0) && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
                   className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
@@ -875,7 +890,12 @@ const EditPlantation = () => {
                 </h2>
                 {expandedSections.trellises && (
                   <div>
-                    {plantation.trellises.map((trellis, idx) => (
+                    {plantation.trellises
+                      .filter(trellis => trellis && (
+                        (trellis.trellis_installed_area != null && trellis.trellis_installed_area !== '' && Number(trellis.trellis_installed_area) > 0) ||
+                        (trellis.trellis_count != null && trellis.trellis_count !== '' && Number(trellis.trellis_count) > 0)
+                      ))
+                      .map((trellis, idx) => (
                       <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
                         <p>
                           Shpalla turi:{" "}
@@ -891,7 +911,7 @@ const EditPlantation = () => {
                 )}
               </div>
             )}
-            {plantation.reservoirs.length > 0 && (
+            {(plantation?.reservoirs?.filter(r => r && r.reservoir_volume != null && r.reservoir_volume !== '' && Number(r.reservoir_volume) > 0)?.length > 0) && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <h2
                   className="font-semibold text-lg mb-2 cursor-pointer text-white hover:text-green-400 transition-colors"
@@ -904,7 +924,9 @@ const EditPlantation = () => {
                 </h2>
                 {expandedSections.reservoirs && (
                   <div>
-                    {plantation.reservoirs.map((reservoir, idx) => (
+                    {plantation.reservoirs
+                      .filter(reservoir => reservoir && reservoir.reservoir_volume != null && reservoir.reservoir_volume !== '' && Number(reservoir.reservoir_volume) > 0)
+                      .map((reservoir, idx) => (
                       <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
                         <p>
                           Ombor turi:{" "}
