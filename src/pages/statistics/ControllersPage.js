@@ -69,7 +69,7 @@ const ControllersPage = () => {
       
       try {
         setLoading(true);
-        let url = `${API_BASE_URL1}api/statistics/users/detailed/`;
+        let url = `${API_BASE_URL1}api/statistics/users/`;
         const queryParams = new URLSearchParams();
 
         // Добавляем параметр времени
