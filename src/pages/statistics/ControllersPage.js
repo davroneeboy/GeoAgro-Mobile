@@ -209,20 +209,6 @@ const ControllersPage = () => {
       : (REGION_NAMES[value] || String(value));
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    try {
-      return new Date(dateString).toLocaleDateString('uz-UZ', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return dateString;
-    }
-  };
 
   const sortedTableData = React.useMemo(() => {
     if (!sortConfig?.field) return tableData;
