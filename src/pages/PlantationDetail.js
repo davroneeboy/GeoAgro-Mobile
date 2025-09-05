@@ -448,6 +448,35 @@ const PlantationDetail = () => {
                 <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
                 <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Qo'shilgan vaqti:</p>
+                <p className="text-white">
+                  {plantation.created_at 
+                    ? new Date(plantation.created_at).toLocaleString("ru-RU", {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : "—"
+                  }
+                </p>
+                {plantation.updated_at && (
+                  <div className="mt-2 text-xs text-amber-300 flex items-center gap-2">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-900/50 border border-amber-600/60">Yangilangan</span>
+                    <span className="text-white">
+                      {new Date(plantation.updated_at).toLocaleString("ru-RU", {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
               {plantation.investments && plantation.investments.length > 0 && (
                 <div className="bg-gray-700 p-3 rounded-lg">
                   <p className="font-semibold text-gray-300 mb-2">Investitsiyalar:</p>

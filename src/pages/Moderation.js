@@ -400,6 +400,7 @@ const Moderation = () => {
                 region: `${regionName}, ${districtName}`,
                 status: plantation.status || "—",
                 createdAt: plantation.created_at || null,
+                updatedAt: plantation.updated_at || null,
                 is_checked: Boolean(plantation.is_checked),
                 action,
                 prev_data: plantation.prev_data || null,
@@ -799,11 +800,17 @@ const Moderation = () => {
                       <div className="text-xs text-gray-400 mb-1">Qo'shilgan</div>
                       <div className="text-white font-semibold text-xs sm:text-sm">
                         {plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}
-                          </div>
                       </div>
+                      {plantation.updatedAt && (
+                        <div className="mt-1 text-[10px] sm:text-xs text-amber-300 flex items-center gap-1">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-900/50 border border-amber-600/60">Yangilangan</span>
+                          <span>{new Date(plantation.updatedAt).toLocaleString("ru-RU")}</span>
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                      {plantation.action === "Обновленный" && plantation.prev_data && (
+                  {plantation.action === "Обновленный" && plantation.prev_data && (
                     <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4 mb-4">
                           <h4 className="text-sm font-bold text-blue-200 mb-3 flex items-center">
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1159,7 +1166,13 @@ const Moderation = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     <span>{plantation.createdAt ? new Date(plantation.createdAt).toLocaleString("ru-RU") : "—"}</span>
-                    </div>
+                    {plantation.updatedAt && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-amber-300">
+                        <span className="inline-flex items-center px-1 py-0.5 rounded bg-amber-900/50 border border-amber-600/60 text-[10px]">Yangilangan</span>
+                        <span className="text-[10px]">{new Date(plantation.updatedAt).toLocaleString("ru-RU")}</span>
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center text-blue-400 text-xs font-medium group-hover:text-blue-300 transition-colors">
                     <span>Tahrirlash</span>
                     <svg className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
