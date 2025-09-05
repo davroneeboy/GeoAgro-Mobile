@@ -13,6 +13,7 @@ const ApprovedPlantations = () => {
     region: "All",
     district: "All",
     crop_type: "All",
+    farmer: "All",
   });
   const [districts, setDistricts] = useState([]);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
@@ -53,6 +54,7 @@ const ApprovedPlantations = () => {
       region: searchParams.get('region') || "All",
       district: searchParams.get('district') || "All",
       crop_type: searchParams.get('crop_type') || "All",
+      farmer: searchParams.get('farmer') || "All",
     };
   };
 
@@ -67,6 +69,7 @@ const ApprovedPlantations = () => {
     if (newFilters.region !== "All") searchParams.set('region', newFilters.region);
     if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
     if (newFilters.crop_type !== "All") searchParams.set('crop_type', newFilters.crop_type);
+    if (newFilters.farmer && newFilters.farmer !== "All") searchParams.set('farmer', newFilters.farmer);
     
     const newUrl = `/approved-plantations?${searchParams.toString()}`;
     navigate(newUrl, { replace: true });
@@ -226,6 +229,7 @@ const ApprovedPlantations = () => {
           region: filters.region !== "All" ? filters.region : undefined,
           district: filters.district !== "All" ? filters.district : undefined,
           crop_type: filters.crop_type !== "All" ? filters.crop_type : undefined,
+          farmer: filters.farmer && filters.farmer !== "All" ? filters.farmer : undefined,
         };
 
         // Используем endpoint для плантаций с пагинацией
@@ -397,7 +401,7 @@ const ApprovedPlantations = () => {
 
 
   const handleResetFilters = () => {
-    const resetFilters = { region: "All", district: "All", crop_type: "All" };
+    const resetFilters = { region: "All", district: "All", crop_type: "All", farmer: "All" };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('approvedPlantationsPage', '1');
@@ -494,6 +498,13 @@ const ApprovedPlantations = () => {
               >
                 Filterlarni tozalash
               </button>
+              <input
+                type="text"
+                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="Fermer INN yoki ID"
+                value={filters.farmer === "All" ? "" : filters.farmer}
+                onChange={(e) => handleFilterChange('farmer', e.target.value.trim() || "All")}
+              />
               <select
                 className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 value={filters.region}
@@ -767,11 +778,23 @@ const ApprovedPlantations = () => {
           {/* Мобильные фильтры */}
           <div className="space-y-3 mb-4">
             <button
-              className="w-full px-4 py-2 rounded-lg border border-gray-600 bg-green-500 text-white hover:bg-green-600 transition-colors text-sm font-medium"
+              className="w-full px-4 py-2 rounded-lg border border-gray-600 bg-green-500 text-white hover:bg-green-600 transition-colors"
               onClick={handleResetFilters}
             >
               Filterlarni tozalash
             </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Fermer (INN/ID)
+              </label>
+              <input
+                type="text"
+                value={filters.farmer === "All" ? "" : filters.farmer}
+                onChange={(e) => handleFilterChange('farmer', e.target.value.trim() || "All")}
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+                placeholder="Masalan: 305123456"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Viloyat

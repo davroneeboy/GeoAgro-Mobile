@@ -53,11 +53,13 @@ const ControllersPage = () => {
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statistics, setStatistics] = useState([]);
+  const [statistics, setStatistics] = useState([]); // regional_distribution
+  const [headerTotals, setHeaderTotals] = useState({ total_users: 0, active_users: 0, inactive_users: 0 });
   const [filters, setFilters] = useState({
-    timeFilter: 30, // По умолчанию 30 дней
+    timeFilter: null, // по умолчанию не выбран
     customDateRange: null,
   });
+  const [timeFilterApplied, setTimeFilterApplied] = useState(false);
   const [sortConfig, setSortConfig] = useState({ field: null, order: 'ascend' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -66,19 +68,20 @@ const ControllersPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       console.log("Fetching data...");
-      
       try {
         setLoading(true);
         let url = `${API_BASE_URL1}api/statistics/users/`;
         const queryParams = new URLSearchParams();
 
-        // Добавляем параметр времени
-        if (filters.timeFilter !== "custom") {
-          queryParams.append("days", filters.timeFilter);
-        } else if (filters.customDateRange && filters.customDateRange.length === 2) {
-          const [startDate, endDate] = filters.customDateRange;
-          queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
-          queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
+        // Добавляем параметры времени только после явного выбора пользователем
+        if (timeFilterApplied) {
+          if (filters.timeFilter !== "custom") {
+            queryParams.append("days", filters.timeFilter);
+          } else if (filters.customDateRange && filters.customDateRange.length === 2) {
+            const [startDate, endDate] = filters.customDateRange;
+            queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
+            queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
+          }
         }
 
         if (queryParams.toString()) {
@@ -89,7 +92,18 @@ const ControllersPage = () => {
         const data = await fetchStatisticsData(url, authState.accessToken);
         console.log("Received data:", data);
 
-        setStatistics(Array.isArray(data) ? data : []);
+        if (data && data.regional_distribution) {
+          setStatistics(Array.isArray(data.regional_distribution) ? data.regional_distribution : []);
+          setHeaderTotals({
+            total_users: Number(data.total_users || 0),
+            active_users: Number(data.active_users || 0),
+            inactive_users: Number(data.inactive_users || 0),
+          });
+        } else {
+          // Fallback на старую структуру (массив пользователей)
+          setStatistics(Array.isArray(data) ? data : []);
+          setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
+        }
       } catch (err) {
         console.error("Error details:", err);
         setError(err.message);
@@ -99,21 +113,28 @@ const ControllersPage = () => {
     };
 
     fetchData();
-  }, [filters, authState.accessToken]);
+  }, [filters, timeFilterApplied, authState.accessToken]);
 
   const handleResetFilters = () => {
     setFilters({
-      timeFilter: 30,
+      timeFilter: null,
       customDateRange: null,
     });
+    setTimeFilterApplied(false);
   };
 
   const handleTimeFilterChange = (value) => {
+    if (value === undefined || value === null) {
+      setFilters(prev => ({ ...prev, timeFilter: null, customDateRange: null }));
+      setTimeFilterApplied(false);
+      return;
+    }
     setFilters(prev => ({
       ...prev,
       timeFilter: value,
       customDateRange: value === "custom" ? prev.customDateRange : null,
     }));
+    setTimeFilterApplied(true);
   };
 
   const handleCustomDateRangeChange = (dates) => {
@@ -121,14 +142,13 @@ const ControllersPage = () => {
       ...prev,
       customDateRange: dates,
     }));
+    setTimeFilterApplied(true);
   };
 
   // Функция для экспорта в Excel
   const handleExportToExcel = async () => {
     try {
       setExporting(true);
-      
-      // Получаем данные для экспорта
       const exportData = sortedTableData;
       const exportTotals = {
         total_plantations: totals.total || 0,
@@ -137,14 +157,11 @@ const ControllersPage = () => {
         kpi_points: totals.kpiPoints || 0,
         kpi_amount: totals.kpiAmount || 0,
       };
-      
-      // Генерируем имя файла
-      const timeFilter = filters.timeFilter === 'custom' ? 'custom' : filters.timeFilter;
+      const timeFilter = timeFilterApplied 
+        ? (filters.timeFilter === 'custom' ? 'custom' : filters.timeFilter)
+        : 'none';
       const filename = `controllers_statistics_${timeFilter}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      
-      // Экспортируем
       const success = await exportToExcel(exportData, exportTotals, 'controllers', 'Controllers', filename, false);
-      
       if (success) {
         message.success('Excel fayl muvaffaqiyatli yuklandi!');
       } else {
@@ -158,37 +175,39 @@ const ControllersPage = () => {
     }
   };
 
-  // Подготовка данных для таблицы
-  const tableData = statistics.map((user, idx) => ({
-    key: user.id ?? idx,
-    ...user,
-  }));
+  // Подготовка данных для таблицы (новая структура по district/regional_distribution)
+  const tableData = Array.isArray(statistics)
+    ? statistics.map((row, idx) => ({
+        key: row?.location?.district_id ?? `${row?.district__region || 'nr'}-${row?.district__name || idx}`,
+        region_code: row?.district__region ?? row?.location?.region ?? null,
+        region_name: mapRegion(row?.district__region ?? row?.location?.region),
+        district_name: row?.district__name ?? row?.location?.district ?? "—",
+        total_plantations: Number(row?.total_plantations || 0),
+        approved_plantations: Number(row?.approved_plantations || 0),
+        rejected_plantations: Number(row?.rejected_plantations || 0),
+        rejected_percentage: Number(row?.rejected_percentage || 0),
+      }))
+    : [];
 
-  // Итоги по plantatsiyalar и KPI
+  // Итоги по plantatsiyalar
   const totals = tableData.reduce(
-    (acc, curr) => {
-      const p = curr.plantations_stats || {};
-      const k = curr.kpi_current || {};
-      return {
-        total: acc.total + (p.total || 0),
-        approved: acc.approved + (p.approved || 0),
-        rejected: acc.rejected + (p.rejected || 0),
-        kpiPoints: acc.kpiPoints + (k.points || 0),
-        kpiAmount: acc.kpiAmount + (k.amount || 0),
-      };
-    },
-    { total: 0, approved: 0, rejected: 0, kpiPoints: 0, kpiAmount: 0 }
+    (acc, curr) => ({
+      total: acc.total + (curr.total_plantations || 0),
+      approved: acc.approved + (curr.approved_plantations || 0),
+      rejected: acc.rejected + (curr.rejected_plantations || 0),
+    }),
+    { total: 0, approved: 0, rejected: 0 }
   );
 
   const textLight = { color: '#e5e7eb' };
 
-  const mapRegion = (value) => {
+  function mapRegion(value) {
     if (value == null) return "—";
     const num = Number(value);
     return Number.isFinite(num) && REGION_NAMES[num]
       ? REGION_NAMES[num]
       : (REGION_NAMES[value] || String(value));
-  };
+  }
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -210,30 +229,18 @@ const ControllersPage = () => {
     const collator = new Intl.Collator('ru', { sensitivity: 'base' });
     const getVal = (record) => {
       switch (sortConfig.field) {
-        case 'full_name':
-          return `${record.first_name || ''} ${record.last_name || ''}`.trim();
-        case 'username':
-          return record.username || '';
-        case 'phone':
-          return record.phone_number || '';
         case 'region':
-          return mapRegion(record.location?.region) || '';
+          return record.region_name || '';
         case 'district':
-          return record.location?.district || '';
-        case 'last_login':
-          return record.last_login || '';
+          return record.district_name || '';
         case 'total_plantations':
-          return Number(record.plantations_stats?.total || 0);
+          return Number(record.total_plantations || 0);
         case 'approved_plantations':
-          return Number(record.plantations_stats?.approved || 0);
+          return Number(record.approved_plantations || 0);
         case 'rejected_plantations':
-          return Number(record.plantations_stats?.rejected || 0);
+          return Number(record.rejected_plantations || 0);
         case 'rejection_rate':
-          return Number(record.plantations_stats?.rejection_rate || 0);
-        case 'kpi_points':
-          return Number(record.kpi_current?.points || 0);
-        case 'kpi_amount':
-          return Number(record.kpi_current?.amount || 0);
+          return Number(record.rejected_percentage || 0);
         default:
           return '';
       }
@@ -257,73 +264,30 @@ const ControllersPage = () => {
 
   const columns = [
     {
-      title: <span style={textLight}>F.I.Sh</span>,
-      dataIndex: "full_name",
-      key: "full_name",
-      sorter: true,
-      sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'full_name' ? sortConfig.order : null,
-      render: (_value, record) => (
-        <span style={textLight}>
-          {`${record.first_name || ""} ${record.last_name || ""}`.trim() || "—"}
-        </span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Login</span>,
-      dataIndex: "username",
-      key: "username",
-      sorter: true,
-      sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'username' ? sortConfig.order : null,
-      render: (value) => <span style={textLight}>{value}</span>,
-    },
-    {
-      title: <span style={textLight}>Telefon raqami</span>,
-      dataIndex: "phone_number",
-      key: "phone",
-      sorter: true,
-      sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'phone' ? sortConfig.order : null,
-      render: (value) => <span style={textLight}>{value || "—"}</span>,
-    },
-    {
       title: <span style={textLight}>Region</span>,
-      key: "region",
+      dataIndex: 'region_name',
+      key: 'region',
       sorter: true,
       sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
-      render: (_v, record) => (
-        <span style={textLight}>{mapRegion(record.location?.region)}</span>
-      ),
+      render: (value) => <span style={textLight}>{value || '—'}</span>,
     },
     {
       title: <span style={textLight}>Tuman</span>,
-      key: "district",
+      dataIndex: 'district_name',
+      key: 'district',
       sorter: true,
       sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
-      render: (_v, record) => (
-        <span style={textLight}>{record.location?.district || "—"}</span>
-      ),
-    },
-    {
-      title: <span style={textLight}>Oxirgi kirish</span>,
-      key: "last_login",
-      sorter: true,
-      sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'last_login' ? sortConfig.order : null,
-      render: (_v, record) => (
-        <span style={textLight}>{formatDate(record.last_login)}</span>
-      ),
+      render: (value) => <span style={textLight}>{value || '—'}</span>,
     },
     {
       title: <span style={textLight}>Plantatsiyalar</span>,
       children: [
         {
           title: <span style={textLight}>Umumiy</span>,
-          dataIndex: ["plantations_stats", "total"],
-          key: "total_plantations",
+          dataIndex: 'total_plantations',
+          key: 'total_plantations',
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
@@ -331,8 +295,8 @@ const ControllersPage = () => {
         },
         {
           title: <span style={textLight}>Tasdiqlangan</span>,
-          dataIndex: ["plantations_stats", "approved"],
-          key: "approved_plantations",
+          dataIndex: 'approved_plantations',
+          key: 'approved_plantations',
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
@@ -340,8 +304,8 @@ const ControllersPage = () => {
         },
         {
           title: <span style={textLight}>Rad etilgan</span>,
-          dataIndex: ["plantations_stats", "rejected"],
-          key: "rejected_plantations",
+          dataIndex: 'rejected_plantations',
+          key: 'rejected_plantations',
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
@@ -349,37 +313,12 @@ const ControllersPage = () => {
         },
         {
           title: <span style={textLight}>Rad etish %</span>,
-          dataIndex: ["plantations_stats", "rejection_rate"],
-          key: "rejection_rate",
+          dataIndex: 'rejected_percentage',
+          key: 'rejection_rate',
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejection_rate' ? sortConfig.order : null,
-          render: (v) => <span style={textLight}>{v ? `${v.toFixed(1)}%` : "0%"}</span>,
-        },
-      ],
-    },
-    {
-      title: <span style={textLight}>KPI</span>,
-      children: [
-        {
-          title: <span style={textLight}>Ballar</span>,
-          dataIndex: ["kpi_current", "points"],
-          key: "kpi_points",
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'kpi_points' ? sortConfig.order : null,
-          render: (value) => <span style={textLight}>{(value || 0).toFixed(1)}</span>,
-        },
-        {
-          title: <span style={textLight}>Summa</span>,
-          dataIndex: ["kpi_current", "amount"],
-          key: "kpi_amount",
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'kpi_amount' ? sortConfig.order : null,
-          render: (value) => (
-            <span style={textLight}>{value?.toLocaleString() || 0}</span>
-          ),
+          render: (v) => <span style={textLight}>{v ? `${Number(v).toFixed(1)}%` : '0%'}</span>,
         },
       ],
     },
@@ -387,18 +326,13 @@ const ControllersPage = () => {
 
   // Итоговая строка таблицы
   const totalRow = {
-    key: "total",
-    username: "Jami",
-    plantations_stats: {
-      total: totals.total,
-      approved: totals.approved,
-      rejected: totals.rejected,
-      rejection_rate: totals.total > 0 ? (totals.rejected / totals.total) * 100 : 0,
-    },
-    kpi_current: {
-      points: totals.kpiPoints,
-      amount: totals.kpiAmount,
-    },
+    key: 'total',
+    region_name: 'Jami',
+    district_name: '',
+    total_plantations: totals.total,
+    approved_plantations: totals.approved,
+    rejected_plantations: totals.rejected,
+    rejected_percentage: totals.total > 0 ? (totals.rejected / totals.total) * 100 : 0,
   };
 
   const dataWithTotal = [...sortedTableData, totalRow];
@@ -482,9 +416,10 @@ const ControllersPage = () => {
               <div className="mb-2 sm:mb-4">
                 <label className="block mb-2 text-gray-200">Vaqt filtri</label>
                 <Select
+                  allowClear
                   style={{ width: "100%" }}
                   placeholder="Vaqt davrini tanlang"
-                  value={filters.timeFilter}
+                  value={filters.timeFilter ?? undefined}
                   onChange={handleTimeFilterChange}
                 >
                   {TIME_FILTER_OPTIONS.map(option => (
@@ -519,18 +454,12 @@ const ControllersPage = () => {
                   value={sortConfig.field}
                   onChange={(value) => setSortConfig((prev) => ({ ...prev, field: value || null }))}
                 >
-                  <Option value="full_name">F.I.Sh</Option>
-                  <Option value="username">Login</Option>
-                  <Option value="phone">Telefon raqami</Option>
                   <Option value="region">Region</Option>
                   <Option value="district">Tuman</Option>
-                  <Option value="last_login">Oxirgi kirish</Option>
                   <Option value="total_plantations">Plantatsiyalar — Umumiy</Option>
                   <Option value="approved_plantations">Plantatsiyalar — Tasdiqlangan</Option>
                   <Option value="rejected_plantations">Plantatsiyalar — Rad etilgan</Option>
                   <Option value="rejection_rate">Plantatsiyalar — Rad etish %</Option>
-                  <Option value="kpi_points">KPI — Ballar</Option>
-                  <Option value="kpi_amount">KPI — Summa</Option>
                 </Select>
               </div>
             </Col>
@@ -542,8 +471,28 @@ const ControllersPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Jami nazoratchilar</span>}
-                value={tableData.length}
+                title={<span style={{ color: '#9ca3af' }}>Jami foydalanuvchilar</span>}
+                value={headerTotals.total_users}
+                precision={0}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>Faol</span>}
+                value={headerTotals.active_users}
+                precision={0}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>Nofaol</span>}
+                value={headerTotals.inactive_users}
                 precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
@@ -555,27 +504,6 @@ const ControllersPage = () => {
                 title={<span style={{ color: '#9ca3af' }}>Jami plantatsiyalar</span>}
                 value={totals.total}
                 precision={0}
-                valueStyle={{ color: '#e5e7eb' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
-              <Statistic
-                title={<span style={{ color: '#9ca3af' }}>Tasdiqlangan</span>}
-                value={totals.approved}
-                precision={0}
-                valueStyle={{ color: '#e5e7eb' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
-              <Statistic
-                title={<span style={{ color: '#9ca3af' }}>KPI (summa)</span>}
-                value={totals.kpiAmount}
-                precision={0}
-                formatter={(value) => `${Number(value).toLocaleString()} UZS`}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
