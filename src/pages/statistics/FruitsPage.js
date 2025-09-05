@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { Table, Card, Select, Row, Col, Alert, Statistic, Button, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
@@ -27,6 +28,7 @@ const REGION_NAMES = {
 
 const FruitsPage = () => {
   const { authState } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState({});
@@ -109,16 +111,19 @@ const FruitsPage = () => {
   };
 
   // Transform to table rows
-  const tableData = Object.entries(statistics || {}).map(([fruit, data]) => ({
-    key: fruit,
-    fruit,
-    total_area: data.total_area || 0,
-    outdated_ga: data.outdated_ga || 0,
-    low_fertility_count: data.low_fertility?.count || 0,
-    low_fertility_area: data.low_fertility?.area || 0,
-    high_fertility_count: data.high_fertility?.count || 0,
-    high_fertility_area: data.high_fertility?.area || 0,
-    avg_fertility_score: data.avg_fertility_score || 0,
+  const tableData = Object.entries(statistics || {}).map(([fruitId, data]) => ({
+    key: fruitId,
+    id: Number(fruitId) || data.id || data.fruit_id || null,
+    fruit: data.name || fruitId,
+    total_area: data.total_area || data.area_total || 0,
+    plantation_count: data.plantation_count || 0,
+    outdated_ga: data.outdated_ga || data.outdated_area || 0,
+    // сохраняем поля для обратной совместимости, если они есть
+    low_fertility_count: data.low_fertility?.count || data.low_fertility_count || 0,
+    low_fertility_area: data.low_fertility?.area || data.low_fertility_area || 0,
+    high_fertility_count: data.high_fertility?.count || data.high_fertility_count || 0,
+    high_fertility_area: data.high_fertility?.area || data.high_fertility_area || 0,
+    avg_fertility_score: data.avg_fertility_score || data.average_fertility_score || 0,
     regions: data.regions || {},
   }));
 
@@ -166,12 +171,13 @@ const FruitsPage = () => {
   // Calculate totals
   const totals = tableData.reduce(
     (acc, curr) => ({
-      total_area: (acc.total_area || 0) + curr.total_area,
-      outdated_ga: (acc.outdated_ga || 0) + curr.outdated_ga,
-      low_fertility_count: (acc.low_fertility_count || 0) + curr.low_fertility_count,
-      low_fertility_area: (acc.low_fertility_area || 0) + curr.low_fertility_area,
-      high_fertility_count: (acc.high_fertility_count || 0) + curr.high_fertility_count,
-      high_fertility_area: (acc.high_fertility_area || 0) + curr.high_fertility_area,
+      total_area: (acc.total_area || 0) + (curr.total_area || 0),
+      plantation_count: (acc.plantation_count || 0) + (curr.plantation_count || 0),
+      outdated_ga: (acc.outdated_ga || 0) + (curr.outdated_ga || 0),
+      low_fertility_count: (acc.low_fertility_count || 0) + (curr.low_fertility_count || 0),
+      low_fertility_area: (acc.low_fertility_area || 0) + (curr.low_fertility_area || 0),
+      high_fertility_count: (acc.high_fertility_count || 0) + (curr.high_fertility_count || 0),
+      high_fertility_area: (acc.high_fertility_area || 0) + (curr.high_fertility_area || 0),
     }),
     {}
   );
@@ -185,6 +191,10 @@ const FruitsPage = () => {
       sorter: true,
       sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'fruit' ? sortConfig.order : null,
+      onCell: (record) => record.id ? ({
+        onClick: () => navigate(`/statistics/fruits/${record.id}`, { state: { fruitName: record.fruit } }),
+        style: { cursor: 'pointer' }
+      }) : {},
       render: (text, record) => (
         <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
           {text}
@@ -223,71 +233,17 @@ const FruitsPage = () => {
       ],
     },
     {
-      title: <span style={{ color: '#e5e7eb' }}>Hosildorlik</span>,
-      children: [
-        {
-          title: <span style={{ color: '#e5e7eb' }}>Past</span>,
-          children: [
-            {
-              title: <span style={{ color: '#e5e7eb' }}>Soni</span>,
-              dataIndex: "low_fertility_count",
-              key: "low_fertility_count",
-              sorter: true,
-              sortDirections: ['ascend','descend'],
-              sortOrder: sortConfig.field === 'low_fertility_count' ? sortConfig.order : null,
-              render: (value, record) => (
-                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
-                  {value}
-                </span>
-              ),
-            },
-            {
-              title: <span style={{ color: '#e5e7eb' }}>Maydon</span>,
-              dataIndex: "low_fertility_area",
-              key: "low_fertility_area",
-              sorter: true,
-              sortDirections: ['ascend','descend'],
-              sortOrder: sortConfig.field === 'low_fertility_area' ? sortConfig.order : null,
-              render: (value, record) => (
-                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
-                  {(value || 0).toFixed(1)}
-                </span>
-              ),
-            },
-          ],
-        },
-        {
-          title: <span style={{ color: '#e5e7eb' }}>Yuqori</span>,
-          children: [
-            {
-              title: <span style={{ color: '#e5e7eb' }}>Soni</span>,
-              dataIndex: "high_fertility_count",
-              key: "high_fertility_count",
-              sorter: true,
-              sortDirections: ['ascend','descend'],
-              sortOrder: sortConfig.field === 'high_fertility_count' ? sortConfig.order : null,
-              render: (value, record) => (
-                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
-                  {value}
-                </span>
-              ),
-            },
-            {
-              title: <span style={{ color: '#e5e7eb' }}>Maydon</span>,
-              dataIndex: "high_fertility_area",
-              key: "high_fertility_area",
-              sorter: true,
-              sortDirections: ['ascend','descend'],
-              sortOrder: sortConfig.field === 'high_fertility_area' ? sortConfig.order : null,
-              render: (value, record) => (
-                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
-                  {(value || 0).toFixed(1)}
-                </span>
-              ),
-            },
-          ],
-        },
-      ],
+      title: <span style={{ color: '#e5e7eb' }}>Subyektlar</span>,
+      dataIndex: "plantation_count",
+      key: "plantation_count",
+      sorter: true,
+      sortDirections: ['ascend','descend'],
+      sortOrder: sortConfig.field === 'plantation_count' ? sortConfig.order : null,
+      render: (value, record) => (
+        <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
+          {value || 0}
+        </span>
+      ),
     },
     {
       title: <span style={{ color: '#e5e7eb' }}>O'rtacha Hosildorlik</span>,
