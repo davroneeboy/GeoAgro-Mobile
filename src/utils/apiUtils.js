@@ -1,6 +1,36 @@
 import { API_BASE_URL2 } from '../config';
 import axios from 'axios';
 
+// In-flight cache для дедупликации параллельных GET-запросов
+const inFlightRequests = new Map();
+
+const buildRequestKey = (url, config = {}) => {
+  const method = (config.method || 'GET').toUpperCase();
+  const headers = Object.entries(config.headers || {})
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}:${String(v)}`)
+    .join('|');
+  // Для GET тело игнорируем
+  return `${method} ${url} | ${headers}`;
+};
+
+const dedupeFetch = async (url, config = {}) => {
+  const method = (config.method || 'GET').toUpperCase();
+  if (method !== 'GET') {
+    const resp = await fetch(url, config);
+    return resp;
+  }
+  const key = buildRequestKey(url, config);
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key);
+  }
+  const promise = fetch(url, config).finally(() => {
+    inFlightRequests.delete(key);
+  });
+  inFlightRequests.set(key, promise);
+  return promise;
+};
+
 export const apiRequest = async (endpoint, options = {}, refreshToken, accessToken) => {
   const url = `${API_BASE_URL2}${endpoint}`;
   
@@ -15,6 +45,7 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
 
   const config = {
     ...options,
+    method: options.method || 'GET',
     headers: {
       ...defaultHeaders,
       ...options.headers,
@@ -22,14 +53,12 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
   };
 
   try {
-    const response = await fetch(url, config);
+    // Дедупликация только для GET
+    const response = await dedupeFetch(url, config);
 
     if (response.status === 401 && refreshToken) {
-      console.log("Token expired, attempting to refresh...");
       try {
         const newToken = await refreshToken();
-        
-        // Повторяем запрос с новым токеном
         const retryConfig = {
           ...config,
           headers: {
@@ -37,13 +66,10 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
             Authorization: `Bearer ${newToken}`,
           },
         };
-        
-        const retryResponse = await fetch(url, retryConfig);
-        
+        const retryResponse = await dedupeFetch(url, retryConfig);
         if (retryResponse.ok) {
           return await retryResponse.json();
         } else {
-          console.error("Failed after token refresh");
           throw new Error(`HTTP ${retryResponse.status}: ${retryResponse.statusText}`);
         }
       } catch (refreshError) {
@@ -54,12 +80,11 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
     }
 
     if (response.ok) {
-      // Для DELETE запросов может не быть тела ответа
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         return await response.json();
       } else {
-        return null; // Для запросов без тела ответа
+        return null;
       }
     } else {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -86,7 +111,6 @@ export const createAuthenticatedAxios = (accessToken) => {
     async (error) => {
       if (error.response?.status === 401) {
         console.log("Unauthorized request detected");
-        // Здесь можно добавить логику обновления токена
         window.location.href = '/login';
       }
       return Promise.reject(error);
@@ -112,12 +136,9 @@ export const createAuthHeaders = (accessToken) => {
 // Функция для выполнения API запросов к статистическим эндпоинтам
 export const fetchStatisticsData = async (url, accessToken) => {
   const headers = createAuthHeaders(accessToken);
-  
-  const response = await fetch(url, { headers });
-  
+  const response = await dedupeFetch(url, { headers });
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
-  
   return await response.json();
 }; 
