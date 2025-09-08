@@ -3,6 +3,8 @@ import axios from 'axios';
 
 // In-flight cache для дедупликации параллельных GET-запросов
 const inFlightRequests = new Map();
+// Отдельный кэш промисов JSON, чтобы не возвращать один и тот же Response
+const inFlightJsonRequests = new Map();
 
 const buildRequestKey = (url, config = {}) => {
   const method = (config.method || 'GET').toUpperCase();
@@ -29,6 +31,32 @@ const dedupeFetch = async (url, config = {}) => {
   });
   inFlightRequests.set(key, promise);
   return promise;
+};
+
+// Дедупликация, возвращающая уже распарсенный JSON (исключает повторное чтение body)
+const dedupeFetchJson = async (url, config = {}) => {
+  const method = (config.method || 'GET').toUpperCase();
+  if (method !== 'GET') {
+    const resp = await fetch(url, config);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    return resp.json();
+  }
+  const key = buildRequestKey(url, config);
+  if (inFlightJsonRequests.has(key)) {
+    return inFlightJsonRequests.get(key);
+  }
+  const promise = (async () => {
+    const resp = await fetch(url, config);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    return resp.json();
+  })();
+  inFlightJsonRequests.set(key, promise);
+  try {
+    const data = await promise;
+    return data;
+  } finally {
+    inFlightJsonRequests.delete(key);
+  }
 };
 
 export const apiRequest = async (endpoint, options = {}, refreshToken, accessToken) => {
@@ -136,9 +164,5 @@ export const createAuthHeaders = (accessToken) => {
 // Функция для выполнения API запросов к статистическим эндпоинтам
 export const fetchStatisticsData = async (url, accessToken) => {
   const headers = createAuthHeaders(accessToken);
-  const response = await dedupeFetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-  return await response.json();
+  return await dedupeFetchJson(url, { headers });
 }; 
