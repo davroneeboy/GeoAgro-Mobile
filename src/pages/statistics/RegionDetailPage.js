@@ -238,10 +238,14 @@ const RegionDetailPage = () => {
           data = {
             data: districtStats,
             totals: {
-              total_area: Object.values(districtStats).reduce((s, d) => s + (d.total_area || 0), 0),
-              total_plantations: Object.values(districtStats).reduce((s, d) => s + (d.total_plantations || 0), 0),
-              total_investment: Object.values(districtStats).reduce((s, d) => s + ((d.investment.local || 0) + (d.investment.foreign || 0)), 0),
-              total_subsidy: Object.values(districtStats).reduce((s, d) => s + (d.subsidy.total_subsidy || 0), 0),
+              total_area: Number(rejectedData.total_rejected_area || 0),
+              total_plantations: Number(rejectedData.total_rejected_plantations || 0),
+              investment_local: Number(rejectedData.rejected_investments?.local || 0),
+              investment_foreign: Number(rejectedData.rejected_investments?.foreign || 0),
+              total_investment: Number((rejectedData.rejected_investments?.local || 0) + (rejectedData.rejected_investments?.foreign || 0)),
+              subsidy_count: Number(rejectedData.rejected_subsidies?.beneficiary_count || 0),
+              total_subsidy: Number(rejectedData.rejected_subsidies?.total_amount || 0),
+              planted_area: Number(rejectedData.total_rejected_fruitarea || 0),
             },
             meta: {
               total_rejected_fruitarea: Number(rejectedData.total_rejected_fruitarea || 0),
@@ -1055,7 +1059,7 @@ const RegionDetailPage = () => {
             <Col xs={12} md={6}>
               <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
                 <Statistic
-                  title={<span style={{ color: '#9ca3af' }}>Ekilgan maydon (GA)</span>}
+                  title={<span style={{ color: '#9ca3af' }}>Ekilgan maydoni (GA)</span>}
                   value={totals.planted_area}
                   suffix="GA"
                   precision={1}

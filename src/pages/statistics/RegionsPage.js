@@ -716,7 +716,7 @@ const RegionsPage = () => {
                   ...data[regionId],
                   total_area: regionData.total_area ?? 0,
                   total_plantations: regionData.plantation_count ?? regionData.count ?? 0,
-                  total_fruitarea: data[regionId]?.total_fruitarea ?? 0,
+                  total_fruitarea: regionData.planted_area ?? data[regionId]?.total_fruitarea ?? 0,
                 };
               }
             });
@@ -771,7 +771,10 @@ const RegionsPage = () => {
           const totalStats = {
             total_plantations: rejectedData.total_rejected_plantations ?? 0,
             total_area: rejectedData.total_rejected_area ?? 0,
-            total_fruitarea: rejectedData.total_rejected_fruitarea ?? 0,
+            // Ekilgan maydoni (GA) — суммируем по rejected_by_region.planted_area
+            total_fruitarea: Array.isArray(rejectedData.rejected_by_region)
+              ? rejectedData.rejected_by_region.reduce((sum, r) => sum + (Number(r.planted_area) || 0), 0)
+              : (rejectedData.total_rejected_fruitarea ?? 0),
             investment_local: rejectedData.rejected_investments?.local ?? 0,
             investment_foreign: rejectedData.rejected_investments?.foreign ?? 0,
             subsidy_count: rejectedData.rejected_subsidies?.beneficiary_count ?? 0,
