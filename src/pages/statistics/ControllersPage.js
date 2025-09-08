@@ -93,7 +93,14 @@ const ControllersPage = () => {
         console.log("Received data:", data);
 
         if (data && data.regional_distribution) {
-          setStatistics(Array.isArray(data.regional_distribution) ? data.regional_distribution : []);
+          const rows = Array.isArray(data.regional_distribution) ? data.regional_distribution : [];
+          const filtered = rows.filter((r) => {
+            const allNullMain = r.district__region == null && r.district__name == null && r.total_plantations == null && r.approved_plantations == null && r.rejected_plantations == null && r.rejected_percentage == null;
+            const loc = r.location || {};
+            const allNullLoc = loc.region == null && loc.district == null && loc.district_id == null;
+            return !(allNullMain && allNullLoc);
+          });
+          setStatistics(filtered);
           setHeaderTotals({
             total_users: Number(data.total_users || 0),
             active_users: Number(data.active_users || 0),
@@ -101,7 +108,14 @@ const ControllersPage = () => {
           });
         } else {
           // Fallback на старую структуру (массив пользователей)
-        setStatistics(Array.isArray(data) ? data : []);
+        const rows = Array.isArray(data) ? data : [];
+        const filtered = rows.filter((r) => {
+          const allNullMain = r.district__region == null && r.district__name == null && r.total_plantations == null && r.approved_plantations == null && r.rejected_plantations == null && r.rejected_percentage == null;
+          const loc = r.location || {};
+          const allNullLoc = loc.region == null && loc.district == null && loc.district_id == null;
+          return !(allNullMain && allNullLoc);
+        });
+        setStatistics(filtered);
           setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
         }
       } catch (err) {
