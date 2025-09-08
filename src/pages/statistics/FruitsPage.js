@@ -111,21 +111,35 @@ const FruitsPage = () => {
   };
 
   // Transform to table rows
-  const tableData = Object.entries(statistics || {}).map(([fruitId, data]) => ({
-    key: fruitId,
-    id: Number(fruitId) || data.id || data.fruit_id || null,
-    fruit: data.name || fruitId,
-    total_area: data.total_area || data.area_total || 0,
-    plantation_count: data.plantation_count || 0,
-    outdated_ga: data.outdated_ga || data.outdated_area || 0,
-    // сохраняем поля для обратной совместимости, если они есть
-    low_fertility_count: data.low_fertility?.count || data.low_fertility_count || 0,
-    low_fertility_area: data.low_fertility?.area || data.low_fertility_area || 0,
-    high_fertility_count: data.high_fertility?.count || data.high_fertility_count || 0,
-    high_fertility_area: data.high_fertility?.area || data.high_fertility_area || 0,
-    avg_fertility_score: data.avg_fertility_score || data.average_fertility_score || 0,
-    regions: data.regions || {},
-  }));
+  const tableData = Array.isArray(statistics)
+    ? statistics.map((item) => ({
+        key: item.fruit_id ?? item.fruit ?? Math.random().toString(36).slice(2),
+        id: item.fruit_id ?? item.id ?? null,
+        fruit: item.fruit ?? item.name ?? '—',
+        total_area: Number(item.total_area || item.area_total || 0),
+        plantation_count: Number(item.plantation_count || 0),
+        outdated_ga: Number(item.outdated_ga || item.outdated_area || 0),
+        low_fertility_count: Number(item.low_fertility?.count || item.low_fertility_count || 0),
+        low_fertility_area: Number(item.low_fertility?.area || item.low_fertility_area || 0),
+        high_fertility_count: Number(item.high_fertility?.count || item.high_fertility_count || 0),
+        high_fertility_area: Number(item.high_fertility?.area || item.high_fertility_area || 0),
+        avg_fertility_score: Number(item.avg_fertility_score || item.average_fertility_score || 0),
+        regions: item.regions || {},
+      }))
+    : Object.entries(statistics || {}).map(([fruitId, data]) => ({
+        key: fruitId,
+        id: Number(fruitId) || data.id || data.fruit_id || null,
+        fruit: data.fruit || data.name || fruitId,
+        total_area: Number(data.total_area || data.area_total || 0),
+        plantation_count: Number(data.plantation_count || 0),
+        outdated_ga: Number(data.outdated_ga || data.outdated_area || 0),
+        low_fertility_count: Number(data.low_fertility?.count || data.low_fertility_count || 0),
+        low_fertility_area: Number(data.low_fertility?.area || data.low_fertility_area || 0),
+        high_fertility_count: Number(data.high_fertility?.count || data.high_fertility_count || 0),
+        high_fertility_area: Number(data.high_fertility?.area || data.high_fertility_area || 0),
+        avg_fertility_score: Number(data.avg_fertility_score || data.average_fertility_score || 0),
+        regions: data.regions || {},
+      }));
 
   // Sorted data
   const sortedTableData = React.useMemo(() => {

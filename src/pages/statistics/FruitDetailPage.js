@@ -49,7 +49,9 @@ const FruitDetailPage = () => {
       };
       
       // Генерируем имя файла
-      const fruitName = statistics?.fruit || 'fruit';
+      const fruitName = (location.state?.fruitName)
+        || (Array.isArray(statistics) ? (statistics[0]?.fruit || 'fruit')
+        : (() => { const first = Object.values(statistics || {})[0]; return (first && first.fruit) || 'fruit'; })());
       const filename = `${fruitName}_varieties_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
       
       // Экспортируем
@@ -68,18 +70,31 @@ const FruitDetailPage = () => {
     }
   };
 
-  const tableData = Object.entries(statistics || {}).map(([varietyId, data]) => ({
-    key: varietyId,
-    variety: data.name || varietyId,
-    total_area: Number(data.total_area || 0),
-    plantation_count: Number(data.plantation_count || 0),
-    outdated_ga: Number(data.outdated_ga || 0),
-    low_fertility_count: Number(data.low_fertility?.count || 0),
-    low_fertility_area: Number(data.low_fertility?.area || 0),
-    high_fertility_count: Number(data.high_fertility?.count || 0),
-    high_fertility_area: Number(data.high_fertility?.area || 0),
-    avg_fertility_score: Number(data.avg_fertility_score || 0),
-  }));
+  const tableData = Array.isArray(statistics)
+    ? statistics.map((item, idx) => ({
+        key: item.id || item.variety_id || item.name || idx,
+        variety: item.name || item.variety || '—',
+        total_area: Number(item.total_area || 0),
+        plantation_count: Number(item.plantation_count || 0),
+        outdated_ga: Number(item.outdated_ga || 0),
+        low_fertility_count: Number(item.low_fertility?.count || 0),
+        low_fertility_area: Number(item.low_fertility?.area || 0),
+        high_fertility_count: Number(item.high_fertility?.count || 0),
+        high_fertility_area: Number(item.high_fertility?.area || 0),
+        avg_fertility_score: Number(item.avg_fertility_score || 0),
+      }))
+    : Object.entries(statistics || {}).map(([varietyId, data]) => ({
+        key: varietyId,
+        variety: data.name || varietyId,
+        total_area: Number(data.total_area || 0),
+        plantation_count: Number(data.plantation_count || 0),
+        outdated_ga: Number(data.outdated_ga || 0),
+        low_fertility_count: Number(data.low_fertility?.count || 0),
+        low_fertility_area: Number(data.low_fertility?.area || 0),
+        high_fertility_count: Number(data.high_fertility?.count || 0),
+        high_fertility_area: Number(data.high_fertility?.area || 0),
+        avg_fertility_score: Number(data.avg_fertility_score || 0),
+      }));
 
   const sortedTableData = React.useMemo(() => {
     if (!sortConfig?.field) return tableData;

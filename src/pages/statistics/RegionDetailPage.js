@@ -344,6 +344,51 @@ const RegionDetailPage = () => {
         }
         // Проверяем структуру данных и преобразуем если нужно
         
+        // Новый формат API: массив объектов по районам
+        if (Array.isArray(data)) {
+          const dataMap = {};
+          data.forEach((item) => {
+            const districtName = item.district || `District_${item.district_id || ''}`;
+            dataMap[districtName] = {
+              total_area: Number(item.total_area || 0),
+              plantation_count: Number(item.plantation_count || 0),
+              planted_area: Number(item.planted_area || 0),
+              // Инвестиции и субсидии приходят вложенными объектами
+              investment: {
+                local: Number(item.investment?.local || 0),
+                foreign: Number(item.investment?.foreign || 0),
+              },
+              subsidy: {
+                subsidy_count: Number(item.subsidy?.subsidy_count || 0),
+                total_subsidy: Number(item.subsidy?.total_subsidy || 0),
+              },
+              // Дополнительные поля (если понадобятся в будущем)
+              outdated_ga: Number(item.outdated_ga || 0),
+              low_fertility: {
+                count: Number(item.low_fertility?.count || 0),
+                area: Number(item.low_fertility?.area || 0),
+              },
+              high_fertility: {
+                count: Number(item.high_fertility?.count || 0),
+                area: Number(item.high_fertility?.area || 0),
+              },
+              irrigation: {
+                area: Number(item.irrigation?.area || 0),
+                count: Number(item.irrigation?.count || 0),
+              },
+              // Поля типов, которых нет в новом ответе — оставляем нулями для совместимости
+              bogs_count: 0,
+              bogs_area: 0,
+              uzumzors_count: 0,
+              uzumzors_area: 0,
+              issiqxonas_count: 0,
+              issiqxonas_area: 0,
+              district_id: item.district_id || null,
+            };
+          });
+          data = { data: dataMap };
+        }
+
         // Если данные приходят в формате { district1: {...}, district2: {...} }
         // то нужно обернуть их в объект с полем data
         let processedData = data;
