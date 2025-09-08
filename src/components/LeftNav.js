@@ -1,4 +1,3 @@
-﻿// eslint-disable-next-line unicode-bom
 import React, { useEffect, useMemo, useState, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
