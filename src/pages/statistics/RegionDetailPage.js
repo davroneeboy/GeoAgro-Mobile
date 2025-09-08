@@ -707,8 +707,8 @@ const RegionDetailPage = () => {
   }
 
   // Если вкладка rejected, подменяем planted_area на тотал из API
-  if (activeTab === 'rejected' && statistics.meta?.total_rejected_fruitarea !== undefined) {
-    totals.planted_area = Number(statistics.meta.total_rejected_fruitarea || 0);
+  if (activeTab === 'rejected' && statistics?.meta?.total_rejected_fruitarea !== undefined) {
+    totals.planted_area = Number(statistics?.meta?.total_rejected_fruitarea || 0);
   }
 
   // Add total row

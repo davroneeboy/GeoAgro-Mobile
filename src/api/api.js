@@ -60,7 +60,7 @@ export async function fetchPlantationsMap(districtId, accessToken) {
     const data = await dedupeFetchJson(
       `${API_BASE_URL2}api/plantations/map/?district_id=${key}`,
       { headers }
-    );
+    );  
 
     if (!data || !data.results) {
       console.warn("API вернул неожиданную структуру данных:", data);
@@ -141,9 +141,9 @@ export async function fetchRegionApprovedStatistics(regionId, params = {}, acces
     let url;
     if (regionId === null) {
       const finalQueryString = queryParams.toString();
-      url = finalQueryString ? 
-        `${API_BASE_URL2}api/statistics/approved/?${finalQueryString}` : 
-        `${API_BASE_URL2}api/statistics/approved/`;
+    url = finalQueryString ? 
+      `${API_BASE_URL2}api/statistics/approved/?${finalQueryString}` : 
+      `${API_BASE_URL2}api/statistics/approved/`;
     } else {
       url = queryString ? 
         `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 

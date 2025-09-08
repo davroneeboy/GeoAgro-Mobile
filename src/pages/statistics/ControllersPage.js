@@ -75,12 +75,12 @@ const ControllersPage = () => {
 
         // Добавляем параметры времени только после явного выбора пользователем
         if (timeFilterApplied) {
-          if (filters.timeFilter !== "custom") {
-            queryParams.append("days", filters.timeFilter);
-          } else if (filters.customDateRange && filters.customDateRange.length === 2) {
-            const [startDate, endDate] = filters.customDateRange;
-            queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
-            queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
+        if (filters.timeFilter !== "custom") {
+          queryParams.append("days", filters.timeFilter);
+        } else if (filters.customDateRange && filters.customDateRange.length === 2) {
+          const [startDate, endDate] = filters.customDateRange;
+          queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
+          queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
           }
         }
 
@@ -101,7 +101,7 @@ const ControllersPage = () => {
           });
         } else {
           // Fallback на старую структуру (массив пользователей)
-          setStatistics(Array.isArray(data) ? data : []);
+        setStatistics(Array.isArray(data) ? data : []);
           setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
         }
       } catch (err) {
