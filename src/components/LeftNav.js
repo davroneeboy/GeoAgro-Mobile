@@ -133,7 +133,7 @@ const LeftNav = () => {
         </button>
       </div>
 
-      <nav className="py-3 px-3 space-y-2">
+      <nav className="py-3 px-2 space-y-3 mt-2">
         {items.map(item => {
           const active = isActive(item.to);
           const isStats = item.to === '/statistics/regions';
@@ -151,7 +151,7 @@ const LeftNav = () => {
               ) : (
                 <Link
                   to={item.to}
-                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 transition-colors rounded-lg border ${active ? 'bg-green-600 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
+                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-3 py-4 transition-colors rounded-xl border-2 ${active ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
                   title={collapsed ? item.label : undefined}
                 >
                   <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
@@ -165,7 +165,7 @@ const LeftNav = () => {
                       <Link
                         key={sub.to}
                         to={sub.to}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
                       >
                         <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
                         <span className="truncate">{sub.label}</span>
@@ -174,7 +174,7 @@ const LeftNav = () => {
                       <Link
                         key={sub.to}
                         to={sub.to}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
                       >
                         <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
                         <span className="truncate">{sub.label}</span>
@@ -185,15 +185,15 @@ const LeftNav = () => {
               )}
                {/* В свернутом состоянии показываем подменю статистики сразу под иконкой статистики */}
                {collapsed && location.pathname.startsWith('/statistics') && isStats && (
-                <div className='px-3 space-y-2'>
+                <div className='px-2 space-y-3 mt-2'>
                   {statsSubItems.map(sub => (
                     <Link
                       key={sub.to}
                       to={sub.to}
-                      className={`block w-full flex items-center justify-center gap-3 px-4 py-3 transition-colors rounded-lg border ${location.pathname.startsWith(sub.to) ? 'bg-green-600 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'}`}
+                      className={`block w-full flex items-center justify-center gap-3 px-3 py-4 transition-colors rounded-xl border-2 ${location.pathname.startsWith(sub.to) ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
                       title={sub.label}
                     >
-                      <span className='inline-flex items-center justify-center w-8 h-6 text-white'>{sub.icon}</span>
+                      <span className='inline-flex items-center justify-center w-6 h-6 text-white'>{sub.icon}</span>
                     </Link>
                   ))}
                 </div>
@@ -267,6 +267,7 @@ const LeftNav = () => {
 };
 
 export default LeftNav; 
+
 
 
 
