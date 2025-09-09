@@ -1146,7 +1146,7 @@ const RegionsPage = () => {
               sorter: true,
           sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null,
           sortDirections: ['ascend','descend'],
-              render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
+          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
       ],
     },

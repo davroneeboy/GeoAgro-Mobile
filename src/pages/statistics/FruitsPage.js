@@ -138,8 +138,8 @@ const FruitsPage = () => {
         high_fertility_count: Number(data.high_fertility?.count || data.high_fertility_count || 0),
         high_fertility_area: Number(data.high_fertility?.area || data.high_fertility_area || 0),
         avg_fertility_score: Number(data.avg_fertility_score || data.average_fertility_score || 0),
-        regions: data.regions || {},
-      }));
+    regions: data.regions || {},
+  }));
 
   // Sorted data
   const sortedTableData = React.useMemo(() => {
@@ -250,14 +250,14 @@ const FruitsPage = () => {
       title: <span style={{ color: '#e5e7eb' }}>Subyektlar</span>,
       dataIndex: "plantation_count",
       key: "plantation_count",
-      sorter: true,
-      sortDirections: ['ascend','descend'],
+              sorter: true,
+              sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'plantation_count' ? sortConfig.order : null,
-      render: (value, record) => (
-        <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
+              render: (value, record) => (
+                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
           {value || 0}
-        </span>
-      ),
+                </span>
+              ),
     },
     {
       title: <span style={{ color: '#e5e7eb' }}>O'rtacha Hosildorlik</span>,

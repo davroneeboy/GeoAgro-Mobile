@@ -94,7 +94,7 @@ const FruitDetailPage = () => {
         high_fertility_count: Number(data.high_fertility?.count || 0),
         high_fertility_area: Number(data.high_fertility?.area || 0),
         avg_fertility_score: Number(data.avg_fertility_score || 0),
-      }));
+  }));
 
   const sortedTableData = React.useMemo(() => {
     if (!sortConfig?.field) return tableData;
