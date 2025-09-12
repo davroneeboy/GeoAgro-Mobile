@@ -17,6 +17,9 @@ const buildRequestKey = (url, config = {}) => {
 };
 
 const dedupeFetch = async (url, config = {}) => {
+  if (!url) {
+    throw new Error('URL is not defined');
+  }
   const method = (config.method || 'GET').toUpperCase();
   if (method !== 'GET') {
     const resp = await fetch(url, config);
@@ -60,6 +63,12 @@ const dedupeFetchJson = async (url, config = {}) => {
 };
 
 export const apiRequest = async (endpoint, options = {}, refreshToken, accessToken) => {
+  if (!API_BASE_URL2) {
+    throw new Error('API_BASE_URL2 is not defined');
+  }
+  if (!endpoint) {
+    throw new Error('Endpoint is not defined');
+  }
   const url = `${API_BASE_URL2}${endpoint}`;
   
   const defaultHeaders = {
@@ -166,3 +175,84 @@ export const fetchStatisticsData = async (url, accessToken) => {
   const headers = createAuthHeaders(accessToken);
   return await dedupeFetchJson(url, { headers });
 }; 
+
+// ================= RBAC & Auth Utils =================
+
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+const USER_ROLE_KEY = "user_role";
+const REGION_ID_KEY = "region_id";
+const USER_INFO_KEY = "user_info";
+
+export function setAuthTokens({ accessToken, refreshToken }) {
+  if (accessToken) localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+}
+
+export function getAccessToken() {
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function getRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function removeAuthTokens() {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+export function setUserRole(role) {
+  localStorage.setItem(USER_ROLE_KEY, role);
+}
+
+export function getUserRole() {
+  return localStorage.getItem(USER_ROLE_KEY);
+}
+
+export function setRegionId(regionId) {
+  if (regionId !== undefined && regionId !== null) {
+    localStorage.setItem(REGION_ID_KEY, String(regionId));
+  }
+}
+
+export function getRegionId() {
+  return localStorage.getItem(REGION_ID_KEY);
+}
+
+export function setUserInfo(userInfo) {
+  if (userInfo) {
+    localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+  }
+}
+
+export function getUserInfo() {
+  const raw = localStorage.getItem(USER_INFO_KEY);
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function removeUserData() {
+  removeAuthTokens();
+  localStorage.removeItem(USER_ROLE_KEY);
+  localStorage.removeItem(REGION_ID_KEY);
+  localStorage.removeItem(USER_INFO_KEY);
+} 
+
+export function handleApiError(error, navigate) {
+  if (!error || !error.response) return;
+  const status = error.response.status;
+  if (status === 401) {
+    // Токен истёк — редирект на логин
+    if (navigate) navigate("/login");
+    else window.location.href = "/login";
+  } else if (status === 403) {
+    // Нет прав — показываем сообщение и редиректим
+    alert("Сизда ушбу саҳифага рухсат йўқ");
+    if (navigate) navigate("/");
+    else window.location.href = "/";
+  }
+} 

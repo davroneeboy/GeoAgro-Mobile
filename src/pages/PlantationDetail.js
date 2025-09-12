@@ -786,20 +786,24 @@ const PlantationDetail = () => {
                 </div>
               </div>
             )}
-            <div className="flex justify-end space-x-4 mt-6">
-              <button
-                className="w-full sm:w-auto py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                onClick={() => {
-                  // Передаем информацию о том, откуда пришли
-                  const fromPage = location.state?.from || '/moderation';
-                  navigate(`/plantations/edit/${plantation.id}`, {
-                    state: { from: fromPage }
-                  });
-                }}
-              >
-                Tahrirlash
-              </button>
-            </div>
+            {/* RBAC: кнопка редактирования только для superuser и headof_region */}
+            {/* RBAC: кнопка редактирования только для superuser */}
+            {authState.userRole === "superuser" && (
+              <div className="flex justify-end space-x-4 mt-6">
+                <button
+                  className="w-full sm:w-auto py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  onClick={() => {
+                    // Передаем информацию о том, откуда пришли
+                    const fromPage = location.state?.from || '/moderation';
+                    navigate(`/plantations/edit/${plantation.id}`, {
+                      state: { from: fromPage }
+                    });
+                  }}
+                >
+                  Tahrirlash
+                </button>
+              </div>
+            )}
           </div>
         </>
       ) : (

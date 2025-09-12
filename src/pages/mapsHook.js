@@ -5,6 +5,7 @@ import { fetchPlantationsMap } from "../api/api.js";
 const CENTER = [41.2995, 69.2401];
 const ZOOM = 6;
 
+
 export const useMapsHook = ({
   onRegionClick,
   onDistrictClick,
@@ -37,14 +38,18 @@ export const useMapsHook = ({
 
   const initializeMap = async () => {
     try {
-      const response = await fetch("/regions.geojson");
+      const url = "/regions.geojson";
+      if (!url) {
+        throw new Error('Regions GeoJSON URL is not defined');
+      }
+      const response = await fetch(url);
       const geoData = await response.json();
 
       const geoLayer = L.geoJSON(geoData, {
         style: {
           fillColor: "#52ADEC",
           color: "#fff",
-          weight: 1,
+          weight: 2,
           fillOpacity: 0.5,
         },
         onEachFeature: (feature, layer) => {
@@ -110,7 +115,7 @@ export const useMapsHook = ({
         const polygon = L.polygon(coordinates, {
           color: "red",
           fillColor: "red",
-          weight: 2,
+          weight: 3,
           isPlantation: true, // Флаг для идентификации полигонов плантаций
         }).addTo(map);
 
@@ -136,7 +141,14 @@ export const useMapsHook = ({
 
   const loadRegionGeoJSON = async (regionId) => {
     try {
-      const response = await fetch(`/uzb-geojson/${regionId}.geojson`);
+      if (!regionId) {
+        throw new Error('Region ID is not defined');
+      }
+      const url = `/uzb-geojson/${regionId}.geojson`;
+      if (!url) {
+        throw new Error('Region GeoJSON URL is not defined');
+      }
+      const response = await fetch(url);
       const geoData = await response.json();
 
       // Удаляем все слои кроме базовой карты
@@ -149,14 +161,14 @@ export const useMapsHook = ({
         style: {
           fillColor: "#52ADEC",
           color: "#fff",
-          weight: 1,
+          weight: 2,
           fillOpacity: 0.5,
         },
-        onEachFeature: (feature, layer) => {
-          const tumanName = feature.properties?.name || "Noma'lum";
-          const tumanId = feature.properties?.id;
+         onEachFeature: (feature, layer) => {
+           const tumanName = feature.properties?.name || "Noma'lum";
+           const tumanId = feature.properties?.id;
 
-          layer.on({
+           layer.on({
             mouseover() {
               layer
                 .bindPopup(`<div><strong>${tumanName}</strong></div>`)
@@ -178,14 +190,15 @@ export const useMapsHook = ({
                 style: {
                   fillColor: "transparent",
                   color: "#FFFFFF",
-                  weight: 3,
+                  weight: 4,
                   fillOpacity: 0,
                 },
               });
 
-              singleTumanLayer.addTo(map);
-              map.flyToBounds(singleTumanLayer.getBounds());
-              await loadTumanPlantations(tumanId); // Tumanning `id` bilan funksiyani chaqiramiz
+               singleTumanLayer.addTo(map);
+               map.flyToBounds(singleTumanLayer.getBounds());
+               
+               await loadTumanPlantations(tumanId); // Tumanning `id` bilan funksiyani chaqiramiz
               onDistrictClick(tumanId, tumanName);
             },
           });
@@ -202,7 +215,14 @@ export const useMapsHook = ({
   // Программно восстановить регион и район
   const restoreRegionAndDistrict = async (regionId, districtId, districtName) => {
     try {
-      const response = await fetch(`/uzb-geojson/${regionId}.geojson`);
+      if (!regionId) {
+        throw new Error('Region ID is not defined in restore');
+      }
+      const url = `/uzb-geojson/${regionId}.geojson`;
+      if (!url) {
+        throw new Error('Region GeoJSON URL is not defined in restore');
+      }
+      const response = await fetch(url);
       const geoData = await response.json();
 
       // Очистить все слои кроме тайлов
@@ -226,14 +246,15 @@ export const useMapsHook = ({
         style: {
           fillColor: "transparent",
           color: "#FFFFFF",
-          weight: 3,
+          weight: 4,
           fillOpacity: 0,
         },
       });
 
-      singleTumanLayer.addTo(map);
-      map.flyToBounds(singleTumanLayer.getBounds());
-      await loadTumanPlantations(districtId);
+       singleTumanLayer.addTo(map);
+       map.flyToBounds(singleTumanLayer.getBounds());
+       
+       await loadTumanPlantations(districtId);
       if (typeof onRegionClick === 'function') {
         onRegionClick(regionId, undefined);
       }

@@ -969,89 +969,93 @@ const EditPlantation = () => {
                 </div>
               </div>
             )}
-            <div className="flex flex-col gap-2 sm:gap-4">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
-              <button
-                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center gap-2"
-                onClick={handleApprove}
-                  disabled={isDeleted}
-              >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                Tasdiqlash
-              </button>
-              <button
-                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center gap-2"
-                onClick={openModal}
-                  disabled={isDeleted}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                  Rad etish
-                </button>
-              </div>
-              <div className="sm:flex-none mt-2 sm:mt-2">
+            {/* RBAC: кнопки модерации только для superuser */}
+            {authState.userRole === "superuser" && (
+              <div className="flex flex-col gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
                 <button
-                  className="w-full sm:w-auto bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-800 transition-colors inline-flex items-center gap-2"
-                  onClick={openDeleteModal}
-                  disabled={isDeleted}
+                    className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+                  onClick={handleApprove}
+                    disabled={isDeleted}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg>
-                O'chirish
-              </button>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                  Tasdiqlash
+                </button>
+                <button
+                    className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center gap-2"
+                  onClick={openModal}
+                    disabled={isDeleted}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    Rad etish
+                  </button>
+                </div>
+                <div className="sm:flex-none mt-2 sm:mt-2">
+                  <button
+                    className="w-full sm:w-auto bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-800 transition-colors inline-flex items-center gap-2"
+                    onClick={openDeleteModal}
+                    disabled={isDeleted}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg>
+                  O'chirish
+                </button>
+                </div>
               </div>
-              {isModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
-                    <button onClick={closeModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
-                    <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
-                    <p className="text-gray-300 mb-4">Bu plantatsiyani rad etishni xohlaysizmi? Rad etish sababi majburiy.</p>
-                    <textarea
-                      className="w-full p-2 mb-4 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
-                      value={customReason}
-                      onChange={(e) => setCustomReason(e.target.value)}
-                      placeholder="Rad etish sababini kiriting (majburiy)"
-                      rows={4}
-                    />
-                    <div className="flex justify-end space-x-4">
-                      <button
-                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
-                        onClick={handleConfirm}
-                      >
-                        Rad etish
-                      </button>
-                      <button
-                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-                        onClick={closeModal}
-                      >
-                        Bekor qilish
-                      </button>
-                    </div>
+            )}
+            {/* RBAC: модальные окна только для superuser */}
+            {authState.userRole === "superuser" && isModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
+                  <button onClick={closeModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                  <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
+                  <p className="text-gray-300 mb-4">Bu plantatsiyani rad etishni xohlaysizmi? Rad etish sababi majburiy.</p>
+                  <textarea
+                    className="w-full p-2 mb-4 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    placeholder="Rad etish sababini kiriting (majburiy)"
+                    rows={4}
+                  />
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+                      onClick={handleConfirm}
+                    >
+                      Rad etish
+                    </button>
+                    <button
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                      onClick={closeModal}
+                    >
+                      Bekor qilish
+                    </button>
                   </div>
                 </div>
-              )}
-              {isDeleteModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
-                  <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={closeDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
-                    <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
-                    <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
-                    <div className="flex justify-end space-x-4">
-                      <button
-                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-                        onClick={handleDeleteConfirm}
-                      >
-                        O'chirish
-                      </button>
-                      <button
-                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-                        onClick={closeDeleteModal}
-                      >
-                        Bekor qilish
-                      </button>
-                    </div>
+              </div>
+            )}
+            {authState.userRole === "superuser" && isDeleteModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
+                <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={closeDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                  <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
+                  <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                      onClick={handleDeleteConfirm}
+                    >
+                      O'chirish
+                    </button>
+                    <button
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                      onClick={closeDeleteModal}
+                    >
+                      Bekor qilish
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </>
       ) : (

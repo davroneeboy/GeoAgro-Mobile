@@ -52,7 +52,17 @@ export default function MapContainer() {
     setSelectedPlantation(null);
 
     try {
-      const plantations = await fetchPlantationsMap(districtId, authState.accessToken);
+      // RBAC: для обычного пользователя загружаем все плантации региона, а не только тумана
+      let plantations;
+      if (authState.userRole === "user" && authState.regionId) {
+        // Загружаем все плантации региона для обычного пользователя
+        plantations = await fetchPlantationsMap(authState.regionId, authState.accessToken);
+        // Фильтруем только подтверждённые плантации
+        plantations = plantations.filter(plantation => plantation.is_checked === true);
+      } else {
+        // Для superuser и headof_region загружаем плантации конкретного тумана
+        plantations = await fetchPlantationsMap(districtId, authState.accessToken);
+      }
       setPlantations(plantations);
 
       // Отображение координат на карте
@@ -73,7 +83,7 @@ export default function MapContainer() {
           // Добавляем полигон или маркер на карту
           const polygon = L.polygon(coordinates, {
             color: "red",
-            weight: 2,
+            weight: 3,
             isPlantation: true, // Флаг для идентификации полигонов плантаций
           }).addTo(mapInstance);
 
@@ -86,6 +96,18 @@ export default function MapContainer() {
       }
     } catch (error) {
       console.error("Error fetching plantations:", error);
+      
+      // Показываем пользователю понятное сообщение об ошибке
+      if (error.message && error.message.includes('404')) {
+        alert('❌ Bu tumanga kirish huquqi yo\'q!\n\nSiz faqat o\'z viloyatingizdagi tumanlarni ko\'rishingiz mumkin.');
+      } else if (error.message && error.message.includes('403')) {
+        alert('❌ Ruxsat yo\'q!\n\nBu tumanni ko\'rish uchun ruxsatingiz yo\'q.');
+      } else {
+        alert('❌ Xatolik!\n\nTuman bog\'larini yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+      }
+      
+      // Очищаем плантации при ошибке
+      setPlantations([]);
     }
   };
 
@@ -102,6 +124,18 @@ export default function MapContainer() {
       karta.fitBounds(L.polygon(coordinates).getBounds());
     } catch (error) {
       console.error("Error fetching plantation details:", error);
+      
+      // Показываем пользователю понятное сообщение об ошибке
+      if (error.message && error.message.includes('404')) {
+        alert('❌ Bu bog\'ga kirish huquqi yo\'q!\n\nSiz faqat o\'z viloyatingizdagi bog\'larni ko\'rishingiz mumkin.');
+      } else if (error.message && error.message.includes('403')) {
+        alert('❌ Ruxsat yo\'q!\n\nBu bog\'ni ko\'rish uchun ruxsatingiz yo\'q.');
+      } else {
+        alert('❌ Xatolik!\n\nBog\' ma\'lumotlarini yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+      }
+      
+      // Очищаем выбранную плантацию при ошибке
+      setSelectedPlantation(null);
     } finally {
       setLoading(false);
     }
@@ -160,23 +194,6 @@ export default function MapContainer() {
               Ko'rish
             </button>
             <button
-              onClick={handleLogout}
-              className="px-2 py-1 bg-green-500 text-white rounded text-xs flex items-center"
-            >
-              <svg
-                className="w-3 h-3 mr-1"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Chiqish
-            </button>
-            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
             >
@@ -207,41 +224,41 @@ export default function MapContainer() {
             >
               Bog'larga o'tish
             </Link>
-            <Link
-              to="/statistics/regions"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              To'liq statistika
-            </Link>
-            <Link
-              to="/farmers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Fermerlar
-            </Link>
-            <Link
-              to="/contacts"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Kontaktlar
-            </Link>
-            <Link
-              to="/moderation"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Moderatsiya
-            </Link>
-            <Link
-              to="/controllers"
-              className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Nazoratchilar
-            </Link>
+            {/* RBAC: скрываем недоступные пункты для обычного пользователя */}
+            {authState.userRole !== "user" && (
+              <>
+                <Link
+                  to={authState.userRole === "headof_region" ? "/statistics/controllers" : "/statistics/regions"}
+                  className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  To'liq statistika
+                </Link>
+                <Link
+                  to="/farmers"
+                  className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Fermerlar
+                </Link>
+                <Link
+                  to="/moderation"
+                  className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Moderatsiya
+                </Link>
+                {authState.userRole === "superuser" && (
+                  <Link
+                    to="/controllers"
+                    className="block w-full bg-gray-700 border border-gray-600 text-white py-2 rounded-lg font-medium text-center hover:bg-gray-600 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Nazoratchilar
+                  </Link>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -290,7 +307,7 @@ export default function MapContainer() {
                   Tumanlarga qaytish
                 </button>
                 <h4 className="text-gray-300 font-bold text-center">
-                  Bog'lar ({selectedDistrict.name}):
+                  Bog'lar ({authState.userRole === "user" ? selectedRegion?.name || "Viloyat" : selectedDistrict.name}):
                 </h4>
                 <div className="space-y-2 mt-4">
                   {plantations.length > 0 ? (
@@ -332,12 +349,6 @@ export default function MapContainer() {
         <div className="w-1/4 p-4 border-l border-gray-700 bg-gray-800 shadow-lg overflow-y-auto rounded-md">
           <div className="space-y-4">
             {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
-            <button
-              onClick={handleLogout}
-              className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
-            >
-              Chiqish
-            </button>
           </div>
 
           {/* Контент правой панели */}
@@ -464,6 +475,23 @@ export default function MapContainer() {
                   >
                     Batafsil
                   </button>
+                  {/* RBAC: кнопка редактирования только для superuser */}
+                  {authState.userRole === "superuser" && (
+                    <>
+                      <button
+                        className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors ml-2"
+                        onClick={() => {
+                          try {
+                            if (selectedRegion) localStorage.setItem('mapSelectedRegion', JSON.stringify(selectedRegion));
+                            if (selectedDistrict) localStorage.setItem('mapSelectedDistrict', JSON.stringify(selectedDistrict));
+                          } catch (e) {}
+                          navigate(`/plantations/edit/${selectedPlantation.id}`, { state: { from: '/plantations/uz' } });
+                        }}
+                      >
+                        Tahrirlash
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -529,7 +557,7 @@ export default function MapContainer() {
                   Tumanlarga qaytish
                 </button>
                 <h4 className="text-gray-300 font-bold text-center">
-                  Bog'lar ({selectedDistrict.name}):
+                  Bog'lar ({authState.userRole === "user" ? selectedRegion?.name || "Viloyat" : selectedDistrict.name}):
                 </h4>
                 <div className="space-y-2 mt-4">
                   {plantations.length > 0 ? (

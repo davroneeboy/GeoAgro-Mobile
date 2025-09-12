@@ -63,11 +63,9 @@ const RejectedPlantations = () => {
     setPage(1);
   };
 
-  // Проверяем является ли пользователь админом (пока все пользователи считаются админами)
+  // Проверяем является ли пользователь админом или главой региона
   const isAdmin = () => {
-    // TODO: Добавить логику проверки роли пользователя
-    // Например: return authState.user?.role === 'admin' || authState.user?.is_superuser;
-    return true; // Временно все пользователи считаются админами
+    return authState.userRole === 'superuser' || authState.userRole === 'headof_region';
   };
 
   // Функция для получения названия региона
@@ -130,13 +128,17 @@ const RejectedPlantations = () => {
       setError(null);
 
       // Определяем какой endpoint использовать в зависимости от роли пользователя
+      // Примечание: обычный пользователь (user) не имеет доступа к этой странице
       let plantationsEndpoint;
       
-      if (isAdmin()) {
-        // Для админов используем API для просмотра всех отклоненных плантаций
+      if (authState.userRole === 'superuser') {
+        // Для суперпользователя используем API для просмотра всех отклоненных плантаций
         plantationsEndpoint = `${API_BASE_URL1}api/plantations/moderation/rejected/`;
+      } else if (authState.userRole === 'headof_region') {
+        // Для главы региона используем API для их региона с фильтрацией по региону
+        plantationsEndpoint = `${API_BASE_URL1}api/plantations/forme/rejected/`;
       } else {
-        // Для обычных пользователей используем API для их района
+        // Для обычных пользователей используем API для их района (но они не имеют доступа к этой странице)
         plantationsEndpoint = `${API_BASE_URL1}api/plantations/forme/rejected/`;
       }
 
@@ -155,6 +157,11 @@ const RejectedPlantations = () => {
       }
       if (filters.farmer && filters.farmer !== 'All') {
         params.append('farmer', filters.farmer);
+      }
+
+      // RBAC: Для headof_region принудительно устанавливаем фильтр по региону
+      if (authState.userRole === 'headof_region' && authState.regionId) {
+        params.set('region', authState.regionId.toString());
       }
       
       const response = await axios.get(`${plantationsEndpoint}?${params.toString()}`, {
@@ -204,6 +211,16 @@ const RejectedPlantations = () => {
       state: { from: '/rejected-plantations' } 
     });
   };
+
+  // RBAC: Автоматически устанавливаем фильтр региона для главы региона
+  useEffect(() => {
+    if (authState.userRole === 'headof_region' && authState.regionId && filters.region === 'All') {
+      setFilters(prev => ({
+        ...prev,
+        region: authState.regionId.toString()
+      }));
+    }
+  }, [authState.userRole, authState.regionId, filters.region]);
 
   useEffect(() => {
     if (authState?.accessToken) {

@@ -228,9 +228,6 @@ const RegionsPage = () => {
           // Загружаем данные через новый API
           const allData = await fetchRegionsStatistics(params, authState.accessToken);
           
-          console.log("All data from API:", allData);
-          console.log("Investments by region:", allData.investments_by_region);
-          console.log("Subsidies by region:", allData.subsidies_by_region);
           
           // Преобразуем данные в нужный формат для таблицы
           data = {};
@@ -311,10 +308,8 @@ const RegionsPage = () => {
           
           // Заполняем данные для регионов из by_region (основной массив)
           if (allData.by_region) {
-            console.log('Processing by_region data:', allData.by_region);
             allData.by_region.forEach(regionData => {
               const regionId = regionData.plantation__district__region?.toString();
-              console.log('Processing region:', regionId, 'data:', regionData);
               if (regionId) {
                 // Создаем запись для региона, если её нет
                 if (!data[regionId]) {
@@ -338,7 +333,6 @@ const RegionsPage = () => {
                 }
                 
                 const plantationsCount = regionData.plantation_count ?? regionData.count ?? 0;
-                console.log(`Setting total_plantations for region ${regionId}:`, plantationsCount, 'from:', regionData);
                 
                 data[regionId] = {
                   ...data[regionId],
@@ -427,18 +421,7 @@ const RegionsPage = () => {
               return sum + (region.planted_area ?? 0);
             }, 0);
           }
-          console.log('Sum of planted_area by regions:', totalPlantedArea);
-          
-          console.log('Total stats from API:', {
-            total_plantations: allData.total_plantations,
-            total_area: allData.total_area,
-            total_fruitarea: allData.total_fruitarea,
-            planted_area: allData.planted_area
-          });
 
-          console.log('Final processed data:', data);
-          console.log('Sample region data (Parkent - ID 11):', data['11']);
-          console.log('Setting statistics state with:', data);
           setStatistics(data);
           setApprovedTotals(totalStats);
         } else if (activeTab === 'approved') {
@@ -851,8 +834,6 @@ const RegionsPage = () => {
       
       // Отладочная информация для вкладки "all"
       if (activeTab !== 'approved' && activeTab !== 'rejected') {
-        console.log('Export data for "all" tab:', exportData);
-        console.log('Sample row data:', exportData[0]);
       }
       
       const exportTotals = activeTab === 'approved' ? approvedTotals : activeTab === 'rejected' ? rejectedTotals : {
@@ -876,7 +857,6 @@ const RegionsPage = () => {
       
       // Отладочная информация для итогов
       if (activeTab !== 'approved' && activeTab !== 'rejected') {
-        console.log('Calculated exportTotals:', exportTotals);
       }
       
       // Генерируем имя файла
@@ -905,14 +885,6 @@ const RegionsPage = () => {
 
   const tableData = Object.entries(statistics).map(([regionId, data]) => {
     if (regionId === '11') { // Parkent
-      console.log('Processing Parkent in tableData:', data);
-      console.log('total_plantations calculation:', {
-        total_plantations: data.total_plantations,
-        plantation_count: data.plantation_count,
-        plantations_count: data.plantations_count,
-        count: data.count,
-        result: safeNumber(data.total_plantations || data.plantation_count || data.plantations_count || data.count || 0)
-      });
     }
     
     return {
@@ -1017,7 +989,6 @@ const RegionsPage = () => {
       region: "Jami",
       ...approvedTotals
     };
-    console.log('Total row for', activeTab, ':', totalRow);
   } else if (activeTab === 'rejected' && rejectedTotals) {
     totalRow = {
       key: "total",

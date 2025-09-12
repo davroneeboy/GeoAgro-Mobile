@@ -325,7 +325,7 @@ const HomePage = () => {
               Bog'larga o'tish
             </Link>
             <Link
-              to="/statistics/regions"
+              to={authState.userRole === "headof_region" ? "/statistics/controllers" : "/statistics/regions"}
               className={`block w-full ${isAt('/statistics') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
               onClick={() => setIsMobileMenuOpen(false)}
             >

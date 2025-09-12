@@ -6,7 +6,7 @@ import AuthContext from "../context/AuthContext";
 const Contacts = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
+  const { logout, authState } = useContext(AuthContext);
 
   const handleLogout = () => {
     logout();
@@ -134,7 +134,7 @@ const Contacts = () => {
             </Link>
 
             <Link
-              to="/statistics/regions"
+              to={authState?.userRole === "headof_region" ? "/statistics/controllers" : "/statistics/regions"}
               className="block w-full bg-green-500 text-white py-3 rounded-lg font-medium text-center hover:bg-green-600 transition-colors flex items-center justify-center"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

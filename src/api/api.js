@@ -35,6 +35,9 @@ export function clearPlantationsCache(districtId) {
 }
 
 export async function fetchPlantationsMap(districtId, accessToken) {
+  if (!API_BASE_URL2) {
+    throw new Error('API_BASE_URL2 is not defined in fetchPlantationsMap');
+  }
   const key = Number(districtId);
   if (!Number.isFinite(key)) {
     console.warn(
@@ -268,6 +271,37 @@ export async function fetchUsersStatistics(params = {}, accessToken) {
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики пользователей:", error);
+    throw error;
+  }
+}
+
+// RBAC: выбор эндпоинта статистики пользователей по роли
+export function getUsersStatisticsUrlByRole(role) {
+  if (role === "superuser") {
+    return `${API_BASE_URL2}api/statistics/users/detailed/`;
+  } else if (role === "headof_region") {
+    return `${API_BASE_URL2}api/statistics/users/forme/`;
+  }
+  // Для обычного пользователя — нет доступа
+  return null;
+}
+
+export async function fetchUsersStatisticsByRole(role, params = {}, accessToken) {
+  const url = getUsersStatisticsUrlByRole(role);
+  if (!url) throw new Error("Sizda statistikaga ruxsat yo'q");
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const queryParams = new URLSearchParams();
+    if (params.user_id) queryParams.append('user_id', params.user_id);
+    if (params.days) queryParams.append('days', params.days);
+    const queryString = queryParams.toString();
+    const finalUrl = queryString ? `${url}?${queryString}` : url;
+    return await dedupeFetchJson(finalUrl, { headers });
+  } catch (error) {
+    console.error("RBAC: Ошибка при загрузке статистики пользователей:", error);
     throw error;
   }
 }

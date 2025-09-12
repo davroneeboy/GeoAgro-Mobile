@@ -98,7 +98,6 @@ const RegionDetailPage = () => {
         
         // Читаем фильтры из URL параметров
         const searchParams = new URLSearchParams(location.search);
-        console.log('fetchData called with activeTab:', activeTab, 'dataType:', searchParams.get('data_type'));
         const estDate = searchParams.get('est_date');
         const plantationType = searchParams.get('plantation_type');
         const regions = searchParams.get('regions');
@@ -424,14 +423,6 @@ const RegionDetailPage = () => {
       const regionName = REGION_NAMES[id] || `Region_${id}`;
       const filename = `${regionName}_${activeTab}_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
       
-      console.log('Exporting data:', {
-        exportData: exportData,
-        totals: totals,
-        activeTab: activeTab,
-        regionName: regionName,
-        filename: filename
-      });
-      
       // Экспортируем
       const success = await exportToExcel(exportData, totals, activeTab, regionName, filename, true);
       
@@ -563,7 +554,6 @@ const RegionDetailPage = () => {
           district_id: data.district_id,
         };
         
-        console.log(`Processed row for ${district}:`, row);
         return row;
       }
     );
@@ -628,7 +618,6 @@ const RegionDetailPage = () => {
   
   if (activeTab === 'all') {
     // Для вкладки "all" рассчитываем итоги из любых доступных данных
-    console.log('Calculating totals for all tab');
     
     if (statistics?.by_region && Array.isArray(statistics.by_region)) {
       // Если есть by_region, используем его
@@ -941,10 +930,8 @@ const RegionDetailPage = () => {
         {/* Вкладки для переключения типов данных */}
         <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <div className="flex flex-wrap gap-2">
-            {console.log('Current activeTab:', activeTab)}
             <button
               onClick={() => {
-                console.log('Clicking on Barcha planatsiyalar tab');
                 const searchParams = new URLSearchParams(location.search);
                 searchParams.delete('data_type');
                 const queryString = searchParams.toString();
@@ -960,7 +947,6 @@ const RegionDetailPage = () => {
             </button>
             <button
               onClick={() => {
-                console.log('Clicking on Tasdiqlangan tab');
                 const searchParams = new URLSearchParams(location.search);
                 searchParams.set('data_type', 'approved');
                 const queryString = searchParams.toString();

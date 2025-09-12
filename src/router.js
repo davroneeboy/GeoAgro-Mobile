@@ -27,28 +27,28 @@ import DistrictFarmersPage from "./pages/statistics/DistrictFarmersPage";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><HomePage /></ProtectedRoute>} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/plantations" element={<ProtectedRoute><MapContainer /></ProtectedRoute>} />
-      <Route path="/controllers" element={<ProtectedRoute><ControllersList /></ProtectedRoute>} />
+      <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><HomePage /></ProtectedRoute>} />
+      <Route path="/plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><MapContainer /></ProtectedRoute>} />
+      <Route path="/controllers" element={<ProtectedRoute allowedRoles={["superuser"]}><ControllersList /></ProtectedRoute>} />
       {/* <Route path="/contacts" element={<Contacts />} /> */}
-      <Route path="/moderation" element={<ProtectedRoute><Moderation /></ProtectedRoute>} />
-      <Route path="/rejected-plantations" element={<ProtectedRoute><RejectedPlantations /></ProtectedRoute>} />
-      <Route path="/approved-plantations" element={<ProtectedRoute><ApprovedPlantations /></ProtectedRoute>} />
-      <Route path="/plantations/uz" element={<ProtectedRoute><MapContainer /></ProtectedRoute>} />
-      <Route path="/plantations/:id" element={<ProtectedRoute><PlantationDetail /></ProtectedRoute>} />
-      <Route path="/plantations/edit/:id" element={<ProtectedRoute><EditPlantation /></ProtectedRoute>} />
-      <Route path="/user/:id" element={<ProtectedRoute><UserInfo /></ProtectedRoute>} />
-      <Route path="/statistics/regions" element={<ProtectedRoute><RegionsPage /></ProtectedRoute>} />
-      <Route path="/statistics/regions/:id" element={<ProtectedRoute><RegionDetailPage /></ProtectedRoute>} />
-      <Route path="/statistics/fruits" element={<ProtectedRoute><FruitsPage /></ProtectedRoute>} />
-      <Route path="/statistics/fruits/:id" element={<ProtectedRoute><FruitDetailPage /></ProtectedRoute>} />
-      <Route path="/statistics/controllers" element={<ProtectedRoute><ControllersPage /></ProtectedRoute>} />
-      <Route path="/statistics/districts/:districtId/farmers" element={<ProtectedRoute><DistrictFarmersPage /></ProtectedRoute>} />
-      <Route path="/farmers" element={<ProtectedRoute><Farmers /></ProtectedRoute>} />
-      <Route path="/farmers/:id" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
-      <Route path="/farmers/new" element={<ProtectedRoute><FarmerEdit /></ProtectedRoute>} />
+      <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Moderation /></ProtectedRoute>} />
+      <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><RejectedPlantations /></ProtectedRoute>} />
+      <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ApprovedPlantations /></ProtectedRoute>} />
+      <Route path="/plantations/uz" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><MapContainer /></ProtectedRoute>} />
+      <Route path="/plantations/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><PlantationDetail /></ProtectedRoute>} />
+      <Route path="/plantations/edit/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><EditPlantation /></ProtectedRoute>} />
+      <Route path="/user/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><UserInfo /></ProtectedRoute>} />
+      <Route path="/statistics/regions" element={<ProtectedRoute allowedRoles={["superuser"]}><RegionsPage /></ProtectedRoute>} />
+      <Route path="/statistics/regions/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><RegionDetailPage /></ProtectedRoute>} />
+      <Route path="/statistics/fruits" element={<ProtectedRoute allowedRoles={["superuser"]}><FruitsPage /></ProtectedRoute>} />
+      <Route path="/statistics/fruits/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FruitDetailPage /></ProtectedRoute>} />
+      <Route path="/statistics/controllers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ControllersPage /></ProtectedRoute>} />
+      <Route path="/statistics/districts/:districtId/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><DistrictFarmersPage /></ProtectedRoute>} />
+      <Route path="/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Farmers /></ProtectedRoute>} />
+      <Route path="/farmers/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
+      <Route path="/farmers/new" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
     </Routes>
   );
 }

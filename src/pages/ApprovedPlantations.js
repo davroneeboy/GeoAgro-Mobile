@@ -210,6 +210,16 @@ const ApprovedPlantations = () => {
     saveFiltersToUrl(filters, lastPage);
   };
 
+  // RBAC: Автоматически устанавливаем фильтр региона для главы региона
+  useEffect(() => {
+    if (authState.userRole === 'headof_region' && authState.regionId && filters.region === "All") {
+      setFilters(prev => ({
+        ...prev,
+        region: authState.regionId.toString()
+      }));
+    }
+  }, [authState.userRole, authState.regionId, filters.region]);
+
   // Загружаем данные при изменении страницы или фильтров
   useEffect(() => {
     if (!authState.accessToken) return;
@@ -232,9 +242,21 @@ const ApprovedPlantations = () => {
           farmer: filters.farmer && filters.farmer !== "All" ? filters.farmer : undefined,
         };
 
+        // RBAC: Определяем endpoint в зависимости от роли пользователя
+        // Примечание: обычный пользователь (user) не имеет доступа к этой странице
+        let plantationsEndpoint;
+        if (authState.userRole === 'headof_region' && authState.regionId) {
+          // Для главы региона используем endpoint с фильтрацией по региону
+          plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;
+          params.region = authState.regionId;
+        } else {
+          // Для суперпользователя используем общий endpoint
+          plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;
+        }
+
         // Используем endpoint для плантаций с пагинацией
         const response = await axios.get(
-          `${API_BASE_URL2}api/plantations/`,
+          plantationsEndpoint,
           {
             params,
             headers: {

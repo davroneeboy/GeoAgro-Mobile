@@ -38,7 +38,15 @@ const LoginPage = () => {
         const data = await response.json();
         console.log("Login successful, data:", data);
         login({ ...data, username });
-        navigate("/");
+        // --- RBAC redirect logic ---
+        const userInfo = data.user_info || data;
+        if (userInfo.is_superuser) {
+          navigate("/statistics/controllers");
+        } else if (userInfo.is_headof_region) {
+          navigate("/statistics/controllers");
+        } else {
+          navigate("/plantations/uz");
+        }
       } else {
         const errorData = await response.text();
         console.error("Login failed:", response.status, errorData);

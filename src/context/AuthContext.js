@@ -1,5 +1,18 @@
 import React, { createContext, useState, useEffect } from "react";
-import { USER_ROLES, ROLE_PERMISSIONS } from "./constants";
+import { API_BASE_URL2 } from '../config';
+// import { USER_ROLES, ROLE_PERMISSIONS } from "./constants"; // Не используется в текущей реализации
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAuthTokens,
+  getUserRole,
+  setUserRole,
+  getRegionId,
+  setRegionId,
+  getUserInfo,
+  setUserInfo,
+  removeUserData
+} from '../utils/apiUtils';
 
 const AuthContext = createContext();
 
@@ -18,120 +31,153 @@ function setActiveTabCount(n) {
   else localStorage.setItem(TABS_KEY, String(safe));
 }
 
+// Функция для показа уведомления о входе
+function showLoginNotification(userRole, userInfo) {
+  const roleNames = {
+    'superuser': 'Суперфойдаланувчи (Администратор)',
+    'headof_region': 'Вилоят раҳбари',
+    'user': 'Оддий фойдаланувчи'
+  };
+
+  const roleColors = {
+    'superuser': 'bg-red-600',
+    'headof_region': 'bg-blue-600', 
+    'user': 'bg-green-600'
+  };
+
+  const roleName = roleNames[userRole] || 'Номаълум рол';
+  const roleColor = roleColors[userRole] || 'bg-gray-600';
+  const userName = userInfo?.first_name && userInfo?.last_name 
+    ? `${userInfo.first_name} ${userInfo.last_name}`
+    : userInfo?.username || 'Фойдаланувчи';
+
+  // Создаем элемент уведомления
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 z-50 max-w-sm w-full ${roleColor} text-white p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out`;
+  notification.style.transform = 'translateX(100%)';
+  
+  notification.innerHTML = `
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="ml-3 flex-1">
+        <h3 class="text-sm font-medium">Хуш келибсиз!</h3>
+        <div class="mt-1 text-sm">
+          <p><strong>${userName}</strong></p>
+          <p>Рол: <strong>${roleName}</strong></p>
+        </div>
+      </div>
+      <button class="ml-4 flex-shrink-0 text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  `;
+
+  // Добавляем в DOM
+  document.body.appendChild(notification);
+
+  // Анимация появления
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 100);
+
+  // Автоматическое скрытие через 5 секунд
+  setTimeout(() => {
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 5000);
+}
+
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    accessToken: localStorage.getItem("accessToken"),
-    refreshToken: localStorage.getItem("refreshToken"),
-    username: localStorage.getItem("username"),
-    userInfo: JSON.parse(localStorage.getItem("userInfo") || "null"),
+    accessToken: getAccessToken(),
+    refreshToken: getRefreshToken(),
+    userRole: getUserRole(),
+    regionId: getRegionId(),
+    userInfo: getUserInfo(),
   });
 
   const login = (data) => {
-    localStorage.setItem("accessToken", data.access);
-    localStorage.setItem("refreshToken", data.refresh);
-    localStorage.setItem("username", data.username);
-    
-    // Сохраняем информацию о пользователе
-    const userInfo = {
-      id: data.id,
-      username: data.username,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      role: data.role || USER_ROLES.MODERATOR, // По умолчанию moderator
-      is_headof_region: data.is_headof_region || false,
-      region_id: data.region_id,
-      permissions: ROLE_PERMISSIONS[data.role] || ROLE_PERMISSIONS[USER_ROLES.MODERATOR],
-    };
-    
-    localStorage.setItem("userInfo", JSON.stringify(userInfo));
-    
+    setAuthTokens({ accessToken: data.access, refreshToken: data.refresh });
+    // Проверяем роли в user_info, если они не в корне
+    const userInfo = data.user_info || data;
+    const userRole = userInfo.is_superuser
+      ? 'superuser'
+      : userInfo.is_headof_region
+      ? 'headof_region'
+      : 'user';
+    setUserRole(userRole);
+    setRegionId(data.region_id);
+    setUserInfo(data.user_info || data);
     setAuthState({
       accessToken: data.access,
       refreshToken: data.refresh,
-      username: data.username,
-      userInfo,
+      userRole: userRole,
+      regionId: getRegionId(),
+      userInfo: getUserInfo(),
     });
-  };
 
-  const clearTokens = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("username");
-    localStorage.removeItem("userInfo");
+    // Показываем уведомление о входе
+    showLoginNotification(userRole, userInfo);
   };
 
   const logout = () => {
-    clearTokens();
+    removeUserData();
     setAuthState({
       accessToken: null,
       refreshToken: null,
-      username: null,
+      userRole: null,
+      regionId: null,
       userInfo: null,
     });
   };
 
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        throw new Error("No refresh token available");
-      }
-
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL2 || 'https://luxa.uz/'}api/token/refresh/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) throw new Error('No refresh token available');
+      const response = await fetch(`${API_BASE_URL2}api/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: refreshToken }),
       });
-
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("accessToken", data.access);
-        setAuthState(prev => ({
-          ...prev,
-          accessToken: data.access,
-        }));
+        setAuthTokens({ accessToken: data.access, refreshToken });
+        setAuthState((prev) => ({ ...prev, accessToken: data.access }));
         return data.access;
       } else {
-        throw new Error("Failed to refresh token");
+        throw new Error('Failed to refresh token');
       }
     } catch (error) {
-      console.error("Error refreshing token:", error);
+      console.error('Error refreshing token:', error);
       logout();
       throw error;
     }
   };
 
-  // Функция для проверки прав доступа
-  const hasPermission = (permission) => {
-    return authState.userInfo?.permissions?.[permission] || false;
-  };
-
-  // Функция для проверки роли
-  const hasRole = (role) => {
-    return authState.userInfo?.role === role;
-  };
-
-  // Функция для получения региона пользователя (для headofregion)
-  const getUserRegion = () => {
-    return authState.userInfo?.region_id;
-  };
+  // Проверка прав доступа (по userRole)
+  const hasRole = (role) => authState.userRole === role;
+  const hasAnyRole = (roles) => roles.includes(authState.userRole);
+  const getUserRegion = () => authState.regionId;
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const refreshToken = localStorage.getItem("refreshToken");
-    const username = localStorage.getItem("username");
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
-    
-    if (accessToken && refreshToken && username) {
-      setAuthState({
-        accessToken,
-        refreshToken,
-        username,
-        userInfo,
-      });
-    }
+    setAuthState({
+      accessToken: getAccessToken(),
+      refreshToken: getRefreshToken(),
+      userRole: getUserRole(),
+      regionId: getRegionId(),
+      userInfo: getUserInfo(),
+    });
 
     // Учёт активных вкладок: инкремент при монтировании
     try {
@@ -176,15 +222,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      authState, 
-      login, 
-      logout, 
-      refreshAccessToken,
-      hasPermission,
-      hasRole,
-      getUserRegion,
-    }}>
+    <AuthContext.Provider
+      value={{
+        authState,
+        login,
+        logout,
+        refreshAccessToken,
+        hasRole,
+        hasAnyRole,
+        getUserRegion,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

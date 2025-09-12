@@ -15,10 +15,10 @@ import {
 } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
-import { API_BASE_URL1 } from "../../config";
 import AuthContext from "../../context/AuthContext";
-import { fetchStatisticsData } from "../../utils/apiUtils";
+import { handleApiError } from "../../utils/apiUtils";
 import { exportToExcel } from "../../utils/excelExport";
+import { fetchUsersStatisticsByRole } from "../../api/api";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -48,7 +48,6 @@ const TIME_FILTER_OPTIONS = [
 ];
 
 const ControllersPage = () => {
-  console.log("ControllersPage component rendered");
 
   const { authState } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
@@ -67,67 +66,79 @@ const ControllersPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("Fetching data...");
       try {
         setLoading(true);
-        let url = `${API_BASE_URL1}api/statistics/users/`;
-        const queryParams = new URLSearchParams();
-
-        // Добавляем параметры времени только после явного выбора пользователем
-        if (timeFilterApplied) {
-        if (filters.timeFilter !== "custom") {
-          queryParams.append("days", filters.timeFilter);
-        } else if (filters.customDateRange && filters.customDateRange.length === 2) {
-          const [startDate, endDate] = filters.customDateRange;
-          queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
-          queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
+        setError(null);
+        // RBAC: выбираем эндпоинт по роли
+        const data = await fetchUsersStatisticsByRole(authState.userRole, {}, authState.accessToken);
+        
+        if (data) {
+          // Для superuser: данные в формате regional_distribution
+          if (data.regional_distribution) {
+            const rows = Array.isArray(data.regional_distribution) ? data.regional_distribution : [];
+            const filtered = rows.filter((r) => {
+              const allNullMain = r.district__region == null && r.district__name == null && r.total_plantations == null && r.approved_plantations == null && r.rejected_plantations == null && r.rejected_percentage == null;
+              const loc = r.location || {};
+              const allNullLoc = loc.region == null && loc.district == null && loc.district_id == null;
+              return !(allNullMain && allNullLoc);
+            });
+            setStatistics(filtered);
+            setHeaderTotals({
+              total_users: Number(data.total_users || 0),
+              active_users: Number(data.active_users || 0),
+              inactive_users: Number(data.inactive_users || 0),
+            });
           }
-        }
-
-        if (queryParams.toString()) {
-          url += `?${queryParams.toString()}`;
-        }
-
-        console.log("API URL:", url);
-        const data = await fetchStatisticsData(url, authState.accessToken);
-        console.log("Received data:", data);
-
-        if (data && data.regional_distribution) {
-          const rows = Array.isArray(data.regional_distribution) ? data.regional_distribution : [];
-          const filtered = rows.filter((r) => {
-            const allNullMain = r.district__region == null && r.district__name == null && r.total_plantations == null && r.approved_plantations == null && r.rejected_plantations == null && r.rejected_percentage == null;
-            const loc = r.location || {};
-            const allNullLoc = loc.region == null && loc.district == null && loc.district_id == null;
-            return !(allNullMain && allNullLoc);
-          });
-          setStatistics(filtered);
-          setHeaderTotals({
-            total_users: Number(data.total_users || 0),
-            active_users: Number(data.active_users || 0),
-            inactive_users: Number(data.inactive_users || 0),
-          });
+          // Для headof_region: данные в формате results (массив пользователей)
+          else if (data.results) {
+            const users = Array.isArray(data.results) ? data.results : [];
+            // Преобразуем формат пользователей в формат regional_distribution
+            const transformedData = users.map(user => ({
+              id: user.id,
+              username: user.username,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              phone_number: user.phone_number,
+              location: user.location,
+              last_login: user.last_login,
+              kpi_current: user.kpi_current,
+              plantations_stats: user.plantations_stats,
+              // Добавляем поля для совместимости с существующим кодом
+              district__region: user.location?.region,
+              district__name: user.location?.district,
+              district_id: user.location?.district_id,
+              total_plantations: user.plantations_stats?.total || 0,
+              approved_plantations: user.plantations_stats?.approved || 0,
+              rejected_plantations: user.plantations_stats?.rejected || 0,
+              rejected_percentage: user.plantations_stats?.rejection_rate || 0,
+            }));
+            setStatistics(transformedData);
+            setHeaderTotals({
+              total_users: Number(data.count || 0),
+              active_users: Number(data.count || 0), // Для headof_region все пользователи активны
+              inactive_users: 0,
+            });
+          }
+          else {
+            setStatistics([]);
+            setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
+          }
         } else {
-          // Fallback на старую структуру (массив пользователей)
-        const rows = Array.isArray(data) ? data : [];
-        const filtered = rows.filter((r) => {
-          const allNullMain = r.district__region == null && r.district__name == null && r.total_plantations == null && r.approved_plantations == null && r.rejected_plantations == null && r.rejected_percentage == null;
-          const loc = r.location || {};
-          const allNullLoc = loc.region == null && loc.district == null && loc.district_id == null;
-          return !(allNullMain && allNullLoc);
-        });
-        setStatistics(filtered);
+          setStatistics([]);
           setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
         }
       } catch (err) {
         console.error("Error details:", err);
-        setError(err.message);
+        handleApiError(err);
+        setError(err.message || "Маълумотларни юклашда хатолик" );
+        setStatistics([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [filters, timeFilterApplied, authState.accessToken]);
+  }, [authState.userRole, authState.accessToken]);
 
   const handleResetFilters = () => {
     setFilters({
@@ -189,18 +200,43 @@ const ControllersPage = () => {
     }
   };
 
-  // Подготовка данных для таблицы (новая структура по district/regional_distribution)
+  // Подготовка данных для таблицы (адаптировано для обеих ролей)
   const tableData = Array.isArray(statistics)
-    ? statistics.map((row, idx) => ({
-        key: row?.location?.district_id ?? `${row?.district__region || 'nr'}-${row?.district__name || idx}`,
-        region_code: row?.district__region ?? row?.location?.region ?? null,
-        region_name: mapRegion(row?.district__region ?? row?.location?.region),
-        district_name: row?.district__name ?? row?.location?.district ?? "—",
-        total_plantations: Number(row?.total_plantations || 0),
-        approved_plantations: Number(row?.approved_plantations || 0),
-        rejected_plantations: Number(row?.rejected_plantations || 0),
-        rejected_percentage: Number(row?.rejected_percentage || 0),
-      }))
+    ? statistics.map((row, idx) => {
+        // Для headof_region: показываем данные по пользователям
+        if (authState.userRole === "headof_region") {
+          return {
+            key: row?.id ?? idx,
+            user_id: row?.id,
+            username: row?.username ?? "—",
+            full_name: `${row?.first_name || ""} ${row?.last_name || ""}`.trim() || "—",
+            phone_number: row?.phone_number ?? "—",
+            region_code: row?.location?.region ?? null,
+            region_name: mapRegion(row?.location?.region),
+            district_name: row?.location?.district ?? "—",
+            last_login: row?.last_login,
+            kpi_points: Number(row?.kpi_current?.points || 0),
+            kpi_amount: Number(row?.kpi_current?.amount || 0),
+            total_plantations: Number(row?.total_plantations || 0),
+            approved_plantations: Number(row?.approved_plantations || 0),
+            rejected_plantations: Number(row?.rejected_plantations || 0),
+            rejected_percentage: Number(row?.rejected_percentage || 0),
+          };
+        }
+        // Для superuser: показываем данные по районам (существующая логика)
+        else {
+          return {
+            key: row?.location?.district_id ?? `${row?.district__region || 'nr'}-${row?.district__name || idx}`,
+            region_code: row?.district__region ?? row?.location?.region ?? null,
+            region_name: mapRegion(row?.district__region ?? row?.location?.region),
+            district_name: row?.district__name ?? row?.location?.district ?? "—",
+            total_plantations: Number(row?.total_plantations || 0),
+            approved_plantations: Number(row?.approved_plantations || 0),
+            rejected_plantations: Number(row?.rejected_plantations || 0),
+            rejected_percentage: Number(row?.rejected_percentage || 0),
+          };
+        }
+      })
     : [];
 
   // Итоги по plantatsiyalar
@@ -233,6 +269,10 @@ const ControllersPage = () => {
           return record.region_name || '';
         case 'district':
           return record.district_name || '';
+        case 'username':
+          return record.username || '';
+        case 'phone_number':
+          return record.phone_number || '';
         case 'total_plantations':
           return Number(record.total_plantations || 0);
         case 'approved_plantations':
@@ -241,6 +281,10 @@ const ControllersPage = () => {
           return Number(record.rejected_plantations || 0);
         case 'rejection_rate':
           return Number(record.rejected_percentage || 0);
+        case 'kpi_points':
+          return Number(record.kpi_points || 0);
+        case 'kpi_amount':
+          return Number(record.kpi_amount || 0);
         default:
           return '';
       }
@@ -262,26 +306,75 @@ const ControllersPage = () => {
     return rows;
   }, [tableData, sortConfig]);
 
-  const columns = [
-    {
-      title: <span style={textLight}>Region</span>,
-      dataIndex: 'region_name',
-      key: 'region',
-      sorter: true,
-      sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
-      render: (value) => <span style={textLight}>{value || '—'}</span>,
-    },
-    {
-      title: <span style={textLight}>Tuman</span>,
-      dataIndex: 'district_name',
-      key: 'district',
-      sorter: true,
-      sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
-      render: (value) => <span style={textLight}>{value || '—'}</span>,
-    },
-    {
+  // Динамические колонки в зависимости от роли
+  const columns = React.useMemo(() => {
+    const baseColumns = [];
+    
+    // Для headof_region: показываем информацию о пользователях
+    if (authState.userRole === "headof_region") {
+      baseColumns.push(
+        {
+          title: <span style={textLight}>Foydalanuvchi</span>,
+          dataIndex: 'username',
+          key: 'username',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'username' ? sortConfig.order : null,
+          render: (value, record) => (
+            <div>
+              <div style={textLight}>{value || '—'}</div>
+              <div style={{...textLight, fontSize: '12px', opacity: 0.7}}>
+                {record.full_name}
+              </div>
+            </div>
+          ),
+        },
+        {
+          title: <span style={textLight}>Telefon</span>,
+          dataIndex: 'phone_number',
+          key: 'phone_number',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'phone_number' ? sortConfig.order : null,
+          render: (value) => <span style={textLight}>{value || '—'}</span>,
+        },
+        {
+          title: <span style={textLight}>Tuman</span>,
+          dataIndex: 'district_name',
+          key: 'district',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
+          render: (value) => <span style={textLight}>{value || '—'}</span>,
+        }
+      );
+    }
+    // Для superuser: показываем данные по регионам
+    else {
+      baseColumns.push(
+        {
+          title: <span style={textLight}>Region</span>,
+          dataIndex: 'region_name',
+          key: 'region',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
+          render: (value) => <span style={textLight}>{value || '—'}</span>,
+        },
+        {
+          title: <span style={textLight}>Tuman</span>,
+          dataIndex: 'district_name',
+          key: 'district',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
+          render: (value) => <span style={textLight}>{value || '—'}</span>,
+        }
+      );
+    }
+    
+    // Добавляем колонки Plantatsiyalar для обеих ролей
+    baseColumns.push({
       title: <span style={textLight}>Plantatsiyalar</span>,
       children: [
         {
@@ -321,19 +414,66 @@ const ControllersPage = () => {
           render: (v) => <span style={textLight}>{v ? `${Number(v).toFixed(1)}%` : '0%'}</span>,
         },
       ],
-    },
-  ];
+    });
 
-  // Итоговая строка таблицы
-  const totalRow = {
-    key: 'total',
-    region_name: 'Jami',
-    district_name: '',
-    total_plantations: totals.total,
-    approved_plantations: totals.approved,
-    rejected_plantations: totals.rejected,
-    rejected_percentage: totals.total > 0 ? (totals.rejected / totals.total) * 100 : 0,
-  };
+    // Для headof_region добавляем колонки KPI
+    if (authState.userRole === "headof_region") {
+      baseColumns.push({
+        title: <span style={textLight}>KPI</span>,
+        children: [
+          {
+            title: <span style={textLight}>Ball</span>,
+            dataIndex: 'kpi_points',
+            key: 'kpi_points',
+            sorter: true,
+            sortDirections: ['ascend','descend'],
+            sortOrder: sortConfig.field === 'kpi_points' ? sortConfig.order : null,
+            render: (v) => <span style={textLight}>{v ?? 0}</span>,
+          },
+          {
+            title: <span style={textLight}>Summa</span>,
+            dataIndex: 'kpi_amount',
+            key: 'kpi_amount',
+            sorter: true,
+            sortDirections: ['ascend','descend'],
+            sortOrder: sortConfig.field === 'kpi_amount' ? sortConfig.order : null,
+            render: (v) => <span style={textLight}>{v ? `${Number(v).toFixed(2)}` : '0.00'}</span>,
+          },
+        ],
+      });
+    }
+
+    return baseColumns;
+  }, [authState.userRole, sortConfig, textLight]);
+
+  // Итоговая строка таблицы (адаптировано для обеих ролей)
+  const totalRow = React.useMemo(() => {
+    const baseRow = {
+      key: 'total',
+      total_plantations: totals.total,
+      approved_plantations: totals.approved,
+      rejected_plantations: totals.rejected,
+      rejected_percentage: totals.total > 0 ? (totals.rejected / totals.total) * 100 : 0,
+    };
+
+    if (authState.userRole === "headof_region") {
+      return {
+        ...baseRow,
+        username: 'Jami',
+        full_name: '',
+        phone_number: '',
+        district_name: '',
+        kpi_points: tableData.reduce((sum, row) => sum + (row.kpi_points || 0), 0),
+        kpi_amount: tableData.reduce((sum, row) => sum + (row.kpi_amount || 0), 0),
+      };
+    } else {
+      return {
+        ...baseRow,
+        region_name: 'Jami',
+        district_name: '',
+      };
+    }
+  }, [totals, authState.userRole, tableData]);
 
   const dataWithTotal = [...sortedTableData, totalRow];
 
@@ -363,24 +503,22 @@ const ControllersPage = () => {
 
   // Show loading state
   if (loading) {
-    console.log("Showing loading state");
-    return (
-      <StatisticsLayout>
-        <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-          <Spin size="large" />
-        </div>
-      </StatisticsLayout>
-    );
+    return <Spin tip="Маълумотлар юкланмоқда..." size="large" className="w-full flex justify-center items-center min-h-screen" />;
+  }
+  if (error) {
+    return <Alert message="Хатолик" description={error} type="error" showIcon className="max-w-xl mx-auto mt-10" />;
   }
 
-  console.log("Rendering table with data:", dataWithTotal);
 
   return (
     <StatisticsLayout>
       <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-white">
-            Nazoratchilar bo'yicha statistika
+            {authState.userRole === "headof_region" 
+              ? "Mening viloyatimdagi foydalanuvchilar" 
+              : "Nazoratchilar bo'yicha statistika"
+            }
           </h1>
           <div className="flex gap-2">
             <Button 

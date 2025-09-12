@@ -312,13 +312,15 @@ const Farmers = () => {
               onKeyDown={(e) => { if (e.key === 'Enter') setDebouncedSearch(search.trim()); }}
               className="w-full sm:w-72 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-800 text-white border-gray-600 placeholder-gray-400"
             />
-            <button
-              onClick={() => navigate("/farmers/new")}
-              className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"
-            >
-              <span className="mr-2">+</span>
-              Yangi fermer
-            </button>
+            {authState.userRole === "superuser" && (
+              <button
+                onClick={() => navigate("/farmers/new")}
+                className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"
+              >
+                <span className="mr-2">+</span>
+                Yangi fermer
+              </button>
+            )}
           </div>
         </div>
 
@@ -388,20 +390,22 @@ const Farmers = () => {
                         {farmer.established_year}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium break-words">
-                        <div className="flex flex-col space-y-2">
-                          <button
-                            onClick={() => handleEdit(farmer.id)}
-                            className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
-                          >
-                            Tahrirlash
-                          </button>
-                          <button
-                            onClick={() => handleDelete(farmer.id)}
-                            className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors duration-200"
-                          >
-                            O'chirish
-                          </button>
-                        </div>
+                        {authState.userRole === "superuser" && (
+                          <div className="flex flex-col space-y-2">
+                            <button
+                              onClick={() => handleEdit(farmer.id)}
+                              className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
+                            >
+                              Tahrirlash
+                            </button>
+                            <button
+                              onClick={() => handleDelete(farmer.id)}
+                              className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors duration-200"
+                            >
+                              O'chirish
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -428,20 +432,22 @@ const Farmers = () => {
                     <p className="text-gray-300 text-sm break-words">Tel: <span className="text-gray-200">{farmer.phone_number || '—'}</span></p>
                     <p className="text-gray-400 text-xs break-words mt-1">{farmer.address}</p>
                   </div>
-                  <div className="flex flex-col gap-2 shrink-0">
-                    <button
-                      onClick={() => handleEdit(farmer.id)}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors"
-                    >
-                      Tahrirlash
-                    </button>
-                    <button
-                      onClick={() => handleDelete(farmer.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors"
-                    >
-                      O'chirish
-                    </button>
-                  </div>
+                  {authState.userRole === "superuser" && (
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <button
+                        onClick={() => handleEdit(farmer.id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors"
+                      >
+                        Tahrirlash
+                      </button>
+                      <button
+                        onClick={() => handleDelete(farmer.id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors"
+                      >
+                        O'chirish
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
