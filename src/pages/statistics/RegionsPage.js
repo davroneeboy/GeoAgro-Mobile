@@ -414,13 +414,6 @@ const RegionsPage = () => {
             issiqxonas_area: allData.by_region_types?.reduce((sum, region) => sum + (region.issiqxonas_area ?? 0), 0) ?? 0,
           };
           
-          // Суммируем planted_area по регионам для проверки
-          let totalPlantedArea = 0;
-          if (allData.by_region_with_planted_area) {
-            totalPlantedArea = allData.by_region_with_planted_area.reduce((sum, region) => {
-              return sum + (region.planted_area ?? 0);
-            }, 0);
-          }
 
           setStatistics(data);
           setApprovedTotals(totalStats);

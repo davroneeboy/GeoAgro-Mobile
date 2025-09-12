@@ -10,7 +10,7 @@ import { apiRequest } from "../utils/apiUtils";
 
 export default function MapContainer() {
   const navigate = useNavigate();
-  const { authState, logout, refreshAccessToken } = useContext(AuthContext);
+  const { authState, refreshAccessToken } = useContext(AuthContext);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [plantations, setPlantations] = useState([]);
@@ -21,10 +21,6 @@ export default function MapContainer() {
   const isLarge =
     typeof window !== "undefined" ? window.innerWidth >= 1024 : true;
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   // Инициализация карты
   const handleMapLoad = (map) => {
