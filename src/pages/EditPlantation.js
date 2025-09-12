@@ -200,6 +200,10 @@ const EditPlantation = () => {
       return user;
     } catch (error) {
       console.error("Error fetching user details:", error);
+      // RBAC: Для ошибок доступа не показываем ошибку пользователю
+      if (error.response?.status === 404 || error.response?.status === 403) {
+        console.log("Access denied for user details, continuing without user info");
+      }
       return null;
     }
   }, [authState.accessToken, refreshAccessToken]);
@@ -232,7 +236,18 @@ const EditPlantation = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching plantation details:", error);
-      setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      console.log("Error response status:", error.response?.status);
+      console.log("Error response data:", error.response?.data);
+      
+      // RBAC: Проверяем, является ли ошибка связанной с доступом
+      if (error.response?.status === 404 || error.response?.status === 403) {
+        console.log("Setting access denied error message");
+        setError("ACCESS_DENIED");
+      } else {
+        console.log("Setting generic error message");
+        setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      }
+      
       setLoading(false);
     }
   }, [id, authState.accessToken, refreshAccessToken, fetchUserDetails]);
@@ -603,25 +618,69 @@ const EditPlantation = () => {
           </div>
         </div>
       ) : error ? (
-        <div className="flex justify-center items-center h-full w-full bg-gray-900">
-          <div className="text-center">
-            <div className="text-red-500 mb-4">
-              <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <p className="text-white mb-4">{error}</p>
-            <button
-              onClick={() => {
-                setError(null);
-                setLoading(true);
-                fetchPlantationDetails();
-              }}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Qaytadan urinib ko'ring
-            </button>
-          </div>
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-gray-900 px-4 z-50">
+          {error === "ACCESS_DENIED" ? (
+            <>
+              <div className="w-20 h-20 mx-auto mb-8 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              
+              <h1 className="text-3xl font-bold text-white mb-6">Рухсат йўқ</h1>
+              
+              <div className="text-white mb-8 text-center max-w-lg">
+                <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
+                  <div className="bg-orange-900/30 border border-orange-600/50 rounded-lg p-4 mb-4">
+                    <p className="text-orange-200 text-lg font-medium">Ушбу саҳифани кўриш учун ҳуқуқингиз йўқ.</p>
+                    <p className="text-orange-100 mt-2">Статистика ва бошқа маълумотларни кўриш учун қўшимча ҳуқуқлар керак.</p>
+                  </div>
+                  
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <a 
+                    href="/login" 
+                    className="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    Бошқа аккаунт билан кириш
+                  </a>
+                  
+                  <button 
+                    onClick={() => window.history.back()}
+                    className="inline-flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Орқага қайтиш
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+              <>
+                <div className="text-red-500 mb-4">
+                  <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-white mb-4">{error}</p>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    setLoading(true);
+                    fetchPlantationDetails();
+                  }}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  Qaytadan urinib ko'ring
+                </button>
+              </>
+            )}
         </div>
       ) : plantation ? (
         <>

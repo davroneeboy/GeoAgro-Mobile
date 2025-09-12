@@ -110,11 +110,18 @@ export const AuthProvider = ({ children }) => {
     setAuthTokens({ accessToken: data.access, refreshToken: data.refresh });
     // Проверяем роли в user_info, если они не в корне
     const userInfo = data.user_info || data;
+    console.log('AuthContext - login data:', data);
+    console.log('AuthContext - userInfo:', userInfo);
+    console.log('AuthContext - is_superuser:', userInfo.is_superuser);
+    console.log('AuthContext - is_headof_region:', userInfo.is_headof_region);
+    
     const userRole = userInfo.is_superuser
       ? 'superuser'
       : userInfo.is_headof_region
       ? 'headof_region'
       : 'user';
+    
+    console.log('AuthContext - determined userRole:', userRole);
     setUserRole(userRole);
     setRegionId(data.region_id);
     setUserInfo(data.user_info || data);

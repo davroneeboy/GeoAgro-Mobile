@@ -37,15 +37,20 @@ const LoginPage = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Login successful, data:", data);
-        login({ ...data, username });
+        
         // --- RBAC redirect logic ---
         const userInfo = data.user_info || data;
         if (userInfo.is_superuser) {
-          navigate("/statistics/controllers");
+          login({ ...data, username });
+          navigate("/");
         } else if (userInfo.is_headof_region) {
-          navigate("/statistics/controllers");
+          login({ ...data, username });
+          navigate("/");
         } else {
-          navigate("/plantations/uz");
+          // Обычный пользователь не имеет доступа к системе
+          setError("Sizda tizimga kirish huquqi yo'q!");
+          setIsLoading(false);
+          return;
         }
       } else {
         const errorData = await response.text();
@@ -89,7 +94,12 @@ const LoginPage = () => {
         {/* Error message */}
         {error && (
           <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
-            <p className="text-sm">{error}</p>
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-red-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm">{error}</p>
+            </div>
           </div>
         )}
 

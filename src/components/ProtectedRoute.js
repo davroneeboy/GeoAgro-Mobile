@@ -23,8 +23,8 @@ const decodeJwtPayload = (token) => {
 const ForbiddenPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 px-4">
     <div className="w-20 h-20 mx-auto mb-8 bg-red-100 rounded-full flex items-center justify-center">
-      <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+      <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
       </svg>
     </div>
     
@@ -32,24 +32,11 @@ const ForbiddenPage = () => (
     
     <div className="text-white mb-8 text-center max-w-lg">
       <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
-        <p className="mb-4 text-lg">Ушбу саҳифани кўриш учун ҳуқуқингиз йўқ.</p>
-        <p className="mb-4">Статистика ва бошқа маълумотларни кўриш учун қўшимча ҳуқуқлар керак.</p>
-        
-        <div className="bg-yellow-900 border border-yellow-600 rounded-lg p-4 mb-4">
-          <div className="flex items-center mb-2">
-            <svg className="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-yellow-300 font-semibold">Муҳим эслатма</span>
-          </div>
-          <p className="text-yellow-200">
-            Қўшимча ҳуқуқлар олиш учун <strong>ўз раҳбарингизга мурожаат қилинг</strong>.
-          </p>
+        <div className="bg-orange-900/30 border border-orange-600/50 rounded-lg p-4 mb-4">
+          <p className="text-orange-200 text-lg font-medium">Ушбу саҳифани кўриш учун ҳуқуқингиз йўқ.</p>
+          <p className="text-orange-100 mt-2">Статистика ва бошқа маълумотларни кўриш учун қўшимча ҳуқуқлар керак.</p>
         </div>
         
-        <div className="text-gray-300 text-sm">
-          <p>Раҳбар сизга керакли ҳуқуқларни бериши мумкин.</p>
-        </div>
       </div>
       
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -149,11 +136,12 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // RBAC: если роль не разрешена — показываем ForbiddenPage
-  if (!allowedRoles.length) {
-    return <ForbiddenPage />;
-  }
+  console.log('ProtectedRoute - authState.userRole:', authState.userRole);
+  console.log('ProtectedRoute - allowedRoles:', allowedRoles);
+  console.log('ProtectedRoute - userRole in allowedRoles:', allowedRoles.includes(authState.userRole));
   
-  if (!authState.userRole || !allowedRoles.includes(authState.userRole)) {
+  if (allowedRoles.length > 0 && (!authState.userRole || !allowedRoles.includes(authState.userRole))) {
+    console.log('ProtectedRoute - Access denied, showing ForbiddenPage');
     return <ForbiddenPage />;
   }
 

@@ -38,7 +38,7 @@ export default function AppRouter() {
       <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ApprovedPlantations /></ProtectedRoute>} />
       <Route path="/plantations/uz" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><MapContainer /></ProtectedRoute>} />
       <Route path="/plantations/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><PlantationDetail /></ProtectedRoute>} />
-      <Route path="/plantations/edit/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><EditPlantation /></ProtectedRoute>} />
+      <Route path="/plantations/edit/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><EditPlantation /></ProtectedRoute>} />
       <Route path="/user/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><UserInfo /></ProtectedRoute>} />
       <Route path="/statistics/regions" element={<ProtectedRoute allowedRoles={["superuser"]}><RegionsPage /></ProtectedRoute>} />
       <Route path="/statistics/regions/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><RegionDetailPage /></ProtectedRoute>} />

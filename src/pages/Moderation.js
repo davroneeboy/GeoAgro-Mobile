@@ -173,8 +173,14 @@ const Moderation = () => {
   // Обновляем фильтры при изменении URL
   useEffect(() => {
     const newFilters = getFiltersFromUrl();
+    
+    // RBAC: Для главы региона автоматически устанавливаем фильтр по региону только при первой загрузке
+    if (authState.userRole === 'headof_region' && authState.regionId && newFilters.region === "All" && !location.search.includes('region=')) {
+      newFilters.region = authState.regionId.toString();
+    }
+    
     setFilters(newFilters);
-  }, [location.search]);
+  }, [location.search, authState.userRole, authState.regionId]);
 
   const handleLogout = () => {
     logout();
@@ -302,12 +308,25 @@ const Moderation = () => {
 
       
       try {
-        const params = {
+        // RBAC: Для главы региона используем выбранный фильтр региона или автоматически устанавливаем свой регион
+        let regionFilter = filters.region !== "All" ? filters.region : undefined;
+        if (authState.userRole === 'headof_region' && authState.regionId && !regionFilter) {
+          regionFilter = authState.regionId.toString();
+          console.log('Moderation - headof_region detected, auto-setting region filter to:', regionFilter);
+        }
+        
+        console.log('Moderation - userRole:', authState.userRole);
+        console.log('Moderation - regionId:', authState.regionId);
+        console.log('Moderation - selected region filter:', filters.region);
+        console.log('Moderation - final regionFilter:', regionFilter);
+
+        // Создаем объект параметров и очищаем от undefined значений
+        const rawParams = {
           page,
           action: filters.action !== "All" ? filters.action : undefined,
           status: filters.status !== "All" ? filters.status : undefined,
           type: filters.type !== "All" ? filters.type : undefined,
-          region: filters.region !== "All" ? filters.region : undefined,
+          region: regionFilter,
           district: filters.district !== "All" ? filters.district : undefined,
           farmer: filters.farmer !== "All" ? filters.farmer : undefined,
           // новые
@@ -339,9 +358,24 @@ const Moderation = () => {
           sort_by: filters.sort_by || 'created_at',
           sort_order: filters.sort_order || 'asc',
         };
+
+        // Очищаем объект от undefined значений
+        const params = Object.fromEntries(
+          Object.entries(rawParams).filter(([_, value]) => value !== undefined)
+        );
+
+        // RBAC: Определяем endpoint в зависимости от роли пользователя
+        let moderationEndpoint;
+        if (authState.userRole === 'headof_region' && authState.regionId) {
+          // Для главы региона используем специальный endpoint для его региона
+          moderationEndpoint = `${API_BASE_URL2}api/plantations/forme/moderation/`;
+        } else {
+          // Для суперпользователя используем общий endpoint
+          moderationEndpoint = `${API_BASE_URL2}api/plantations/moderation/`;
+        }
         
         const response = await axios.get(
-          `${API_BASE_URL2}api/plantations/moderation/`,
+          moderationEndpoint,
           {
             params,
             headers: {

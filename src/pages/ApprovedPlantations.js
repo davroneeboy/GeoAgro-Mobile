@@ -246,9 +246,8 @@ const ApprovedPlantations = () => {
         // Примечание: обычный пользователь (user) не имеет доступа к этой странице
         let plantationsEndpoint;
         if (authState.userRole === 'headof_region' && authState.regionId) {
-          // Для главы региона используем endpoint с фильтрацией по региону
-          plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;
-          params.region = authState.regionId;
+          // Для главы региона используем специальный endpoint для его региона
+          plantationsEndpoint = `${API_BASE_URL2}api/plantations/forme/approved/`;
         } else {
           // Для суперпользователя используем общий endpoint
           plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;

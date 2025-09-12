@@ -107,7 +107,14 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
         if (retryResponse.ok) {
           return await retryResponse.json();
         } else {
-          throw new Error(`HTTP ${retryResponse.status}: ${retryResponse.statusText}`);
+          // Создаем ошибку с response объектом для совместимости с axios
+          const error = new Error(`HTTP ${retryResponse.status}: ${retryResponse.statusText}`);
+          error.response = {
+            status: retryResponse.status,
+            statusText: retryResponse.statusText,
+            data: null
+          };
+          throw error;
         }
       } catch (refreshError) {
         console.error("Failed to refresh token:", refreshError);
@@ -124,7 +131,14 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
         return null;
       }
     } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Создаем ошибку с response объектом для совместимости с axios
+      const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+      error.response = {
+        status: response.status,
+        statusText: response.statusText,
+        data: null
+      };
+      throw error;
     }
   } catch (error) {
     console.error("API request failed:", error);

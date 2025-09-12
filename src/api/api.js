@@ -282,7 +282,7 @@ export function getUsersStatisticsUrlByRole(role) {
   } else if (role === "headof_region") {
     return `${API_BASE_URL2}api/statistics/users/forme/`;
   }
-  // Для обычного пользователя — нет доступа
+  // Обычные пользователи не имеют доступа к системе
   return null;
 }
 
@@ -295,8 +295,22 @@ export async function fetchUsersStatisticsByRole(role, params = {}, accessToken)
       headers.Authorization = `Bearer ${accessToken}`;
     }
     const queryParams = new URLSearchParams();
-    if (params.user_id) queryParams.append('user_id', params.user_id);
+    
+    // Основные параметры фильтрации
+    if (params.region) queryParams.append('region', params.region);
+    if (params.district) queryParams.append('district', params.district);
     if (params.days) queryParams.append('days', params.days);
+    if (params.date_from) queryParams.append('date_from', params.date_from);
+    if (params.date_to) queryParams.append('date_to', params.date_to);
+    if (params.min_kpi) queryParams.append('min_kpi', params.min_kpi);
+    if (params.max_kpi) queryParams.append('max_kpi', params.max_kpi);
+    if (params.activity) queryParams.append('activity', params.activity);
+    if (params.search) queryParams.append('search', params.search);
+    
+    // Параметры сортировки
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    
     const queryString = queryParams.toString();
     const finalUrl = queryString ? `${url}?${queryString}` : url;
     return await dedupeFetchJson(finalUrl, { headers });
