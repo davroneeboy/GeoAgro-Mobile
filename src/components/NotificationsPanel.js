@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 // Хранилище уведомлений в localStorage
 const STORAGE_KEY = "agro_notifications";
@@ -122,19 +123,33 @@ export default function NotificationsPanel() {
                 <li key={n.id} className={`p-4 ${n.read ? "bg-gray-800" : "bg-gray-800"}`}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-medium text-white">{n.title}</p>
-                      <p className="text-xs text-gray-300 mt-1">{n.message}</p>
+                      <p className="text-sm font-medium text-white flex items-center gap-2">
+                        {n.type === "security:alert" && (
+                          <ExclamationCircleOutlined style={{ color: '#f59e42', fontSize: 18 }} />
+                        )}
+                        {n.title}
+                      </p>
+                      <p className={`text-xs mt-1 ${n.type === "security:alert" ? "text-orange-300" : "text-gray-300"}`}>{n.message}</p>
                       <p className="text-xs text-gray-500 mt-1">{formatDate(n.createdAt)}</p>
                     </div>
-                    {!n.read && <span className="mt-1 h-2 w-2 rounded-full bg-green-400" />}
+                    {!n.read && <span className={`mt-1 h-2 w-2 rounded-full ${n.type === "security:alert" ? "bg-orange-400" : "bg-green-400"}`} />}
                   </div>
                   <div className="mt-3 flex items-center gap-2">
-                    <button
-                      onClick={() => handleOpenPlantation(n.plantationId)}
-                      className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded"
-                    >
-                      Ko'rib chiqish
-                    </button>
+                    {n.type === "security:alert" ? (
+                      <button
+                        onClick={() => { setOpen(false); navigate('/admin/logs'); }}
+                        className="px-2 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded"
+                      >
+                        Смотреть логи
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleOpenPlantation(n.plantationId)}
+                        className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded"
+                      >
+                        Ko'rib chiqish
+                      </button>
+                    )}
                     <button
                       onClick={handleGoModeration}
                       className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded border border-gray-600"

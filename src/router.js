@@ -23,6 +23,10 @@ import FruitDetailPage from "./pages/statistics/FruitDetailPage";
 
 import ControllersPage from "./pages/statistics/ControllersPage";
 import DistrictFarmersPage from "./pages/statistics/DistrictFarmersPage";
+import AdminLogsPage from "./pages/admin/AdminLogsPage";
+import UserLogsPage from "./pages/admin/UserLogsPage";
+import PerformanceDashboard from "./pages/admin/PerformanceDashboard";
+import MyLogsPage from "./pages/admin/MyLogsPage";
 
 export default function AppRouter() {
   return (
@@ -46,6 +50,10 @@ export default function AppRouter() {
       <Route path="/statistics/fruits/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FruitDetailPage /></ProtectedRoute>} />
       <Route path="/statistics/controllers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ControllersPage /></ProtectedRoute>} />
       <Route path="/statistics/districts/:districtId/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><DistrictFarmersPage /></ProtectedRoute>} />
+      <Route path="/admin/logs" element={<ProtectedRoute allowedRoles={["superuser"]}><AdminLogsPage /></ProtectedRoute>} />
+      <Route path="/admin/logs/user/:userId" element={<ProtectedRoute allowedRoles={["superuser"]}><UserLogsPage /></ProtectedRoute>} />
+      <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={["superuser"]}><PerformanceDashboard /></ProtectedRoute>} />
+      <Route path="/my/logs" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "user"]}><MyLogsPage /></ProtectedRoute>} />
       <Route path="/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Farmers /></ProtectedRoute>} />
       <Route path="/farmers/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
       <Route path="/farmers/new" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />

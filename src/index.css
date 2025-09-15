@@ -519,3 +519,441 @@ code {
 }
 .controllers-table .ant-select-arrow { color: #e5e7eb !important; }
 .controllers-table .ant-pagination-total-text { color: #e5e7eb !important; }
+
+/* Admin Logs Table Dark Theme - Using CSS Variables */
+.admin-logs-table {
+  --ant-table-bg: #1f2937;
+  --ant-table-header-bg: #1f2937;
+  --ant-table-row-hover-bg: #374151;
+  --ant-table-border-color: #374151;
+  --ant-table-header-color: #e5e7eb;
+  --ant-table-color: #e5e7eb;
+}
+
+.admin-logs-table .ant-table-container {
+  background-color: var(--ant-table-bg) !important;
+}
+
+.admin-logs-table .ant-table {
+  background-color: var(--ant-table-bg) !important;
+  color: var(--ant-table-color) !important;
+}
+
+.admin-logs-table .ant-table-content {
+  background-color: var(--ant-table-bg) !important;
+}
+
+.admin-logs-table .ant-table-body {
+  background-color: var(--ant-table-bg) !important;
+}
+
+.admin-logs-table .ant-table-tbody {
+  background-color: var(--ant-table-bg) !important;
+}
+
+.admin-logs-table .ant-table-thead > tr > th {
+  background-color: var(--ant-table-header-bg) !important;
+  border-color: var(--ant-table-border-color) !important;
+  color: var(--ant-table-header-color) !important;
+  font-weight: 600 !important;
+}
+
+.admin-logs-table .ant-table-tbody > tr > td {
+  background-color: var(--ant-table-bg) !important;
+  border-color: var(--ant-table-border-color) !important;
+  color: var(--ant-table-color) !important;
+}
+
+.admin-logs-table .ant-table-tbody > tr:hover > td {
+  background-color: var(--ant-table-row-hover-bg) !important;
+}
+
+/* Force all table elements to have dark background */
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr td {
+  background-color: var(--ant-table-bg) !important;
+  color: var(--ant-table-color) !important;
+}
+
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr:hover td {
+  background-color: var(--ant-table-row-hover-bg) !important;
+}
+
+/* Force table header to be dark */
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-thead tr th {
+  background-color: var(--ant-table-header-bg) !important;
+  color: var(--ant-table-header-color) !important;
+  border-color: var(--ant-table-border-color) !important;
+}
+
+/* Override any remaining light backgrounds */
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr td,
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr td * {
+  background-color: var(--ant-table-bg) !important;
+  color: var(--ant-table-color) !important;
+}
+
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr:hover td,
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr:hover td * {
+  background-color: var(--ant-table-row-hover-bg) !important;
+  color: var(--ant-table-color) !important;
+}
+
+/* Pagination Styles */
+.admin-logs-table .ant-pagination {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-item {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-item a {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-item:hover {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-item-active {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-prev,
+.admin-logs-table .ant-pagination .ant-pagination-next {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-prev:hover,
+.admin-logs-table .ant-pagination .ant-pagination-next:hover {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-prev a,
+.admin-logs-table .ant-pagination .ant-pagination-next a {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-jump-prev,
+.admin-logs-table .ant-pagination .ant-pagination-jump-next {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-options {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-options .ant-select {
+  background-color: #374151 !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-options .ant-select .ant-select-selector {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-options .ant-select .ant-select-selection-item {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-options .ant-select .ant-select-arrow {
+  color: #9ca3af !important;
+}
+
+.admin-logs-table .ant-pagination .ant-pagination-total-text {
+  color: #9ca3af !important;
+}
+
+/* Table Loading */
+.admin-logs-table .ant-spin-container {
+  background-color: #1f2937 !important;
+}
+
+.admin-logs-table .ant-spin-dot {
+  color: #059669 !important;
+}
+
+/* Table Borders */
+.admin-logs-table .ant-table-bordered .ant-table-thead > tr > th,
+.admin-logs-table .ant-table-bordered .ant-table-tbody > tr > td {
+  border-color: #374151 !important;
+}
+
+.admin-logs-table .ant-table-bordered .ant-table-thead > tr > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan]):before,
+.admin-logs-table .ant-table-bordered .ant-table-tbody > tr > td:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan]):before {
+  background-color: #374151 !important;
+}
+
+/* Table Scrollbar */
+.admin-logs-table .ant-table-body::-webkit-scrollbar {
+  height: 8px;
+}
+
+.admin-logs-table .ant-table-body::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.admin-logs-table .ant-table-body::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 4px;
+}
+
+.admin-logs-table .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Additional override for table background */
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr:nth-child(even) {
+  background-color: #1f2937 !important;
+}
+
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr:nth-child(odd) {
+  background-color: #1f2937 !important;
+}
+
+/* Force all table elements to have dark background */
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr td {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-table .ant-table-container .ant-table-content .ant-table-body .ant-table-tbody tr:hover td {
+  background-color: #374151 !important;
+}
+
+/* Admin Logs Modal Dark Theme */
+.admin-logs-modal .ant-modal-content {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+  border: 1px solid #374151 !important;
+}
+
+.admin-logs-modal .ant-modal-header {
+  background-color: #1f2937 !important;
+  border-bottom: 1px solid #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-modal .ant-modal-title {
+  color: #e5e7eb !important;
+  font-weight: 600 !important;
+}
+
+.admin-logs-modal .ant-modal-close {
+  color: #9ca3af !important;
+  background-color: transparent !important;
+}
+
+.admin-logs-modal .ant-modal-close:hover {
+  color: #e5e7eb !important;
+  background-color: #374151 !important;
+}
+
+.admin-logs-modal .ant-modal-body {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+  padding: 24px !important;
+}
+
+.admin-logs-modal .ant-modal-footer {
+  background-color: #1f2937 !important;
+  border-top: 1px solid #374151 !important;
+}
+
+/* Modal content styling */
+.admin-logs-modal .ant-modal-body strong {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-modal .ant-modal-body .ant-row {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-modal .ant-modal-body .ant-col {
+  color: #e5e7eb !important;
+}
+
+/* TextArea styling in modal */
+.admin-logs-modal .ant-input {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-modal .ant-input:focus {
+  background-color: #374151 !important;
+  border-color: #60a5fa !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+}
+
+.admin-logs-modal .ant-input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Code blocks in modal */
+.admin-logs-modal .ant-modal-body .bg-gray-100 {
+  background-color: #374151 !important;
+  color: #e5e7eb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.admin-logs-modal .ant-modal-body .bg-red-50 {
+  background-color: #7f1d1d !important;
+  color: #fecaca !important;
+  border: 1px solid #dc2626 !important;
+}
+
+/* Tag styling in modal */
+.admin-logs-modal .ant-tag {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+
+/* Override any remaining light backgrounds */
+.admin-logs-modal .ant-modal-content * {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-modal .ant-modal-content .ant-row,
+.admin-logs-modal .ant-modal-content .ant-col,
+.admin-logs-modal .ant-modal-content .ant-form-item,
+.admin-logs-modal .ant-modal-content .ant-form-item-label,
+.admin-logs-modal .ant-modal-content .ant-form-item-control {
+  color: #e5e7eb !important;
+}
+
+/* Force all text to be light colored */
+.admin-logs-modal .ant-modal-content p,
+.admin-logs-modal .ant-modal-content div,
+.admin-logs-modal .ant-modal-content span,
+.admin-logs-modal .ant-modal-content strong {
+  color: #e5e7eb !important;
+}
+
+/* Override any remaining dark text */
+.admin-logs-modal .ant-modal-content [style*="color: black"],
+.admin-logs-modal .ant-modal-content [style*="color: #000"],
+.admin-logs-modal .ant-modal-content [style*="color: #000000"] {
+  color: #e5e7eb !important;
+}
+
+/* Override any remaining light backgrounds */
+.admin-logs-modal .ant-modal-content [style*="background-color: white"],
+.admin-logs-modal .ant-modal-content [style*="background-color: #fff"],
+.admin-logs-modal .ant-modal-content [style*="background-color: #ffffff"] {
+  background-color: #1f2937 !important;
+}
+
+.admin-logs-modal .ant-modal-content [style*="background-color: #f5f5f5"],
+.admin-logs-modal .ant-modal-content [style*="background-color: #fafafa"] {
+  background-color: #374151 !important;
+}
+
+/* Admin Logs Filters Dark Theme */
+.admin-logs-input {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #e5e7eb !important;
+}
+.admin-logs-input::placeholder {
+  color: #9ca3af !important;
+}
+.admin-logs-input:focus,
+.admin-logs-input:hover {
+  background-color: #1f2937 !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+  color: #e5e7eb !important;
+}
+
+.admin-logs-select .ant-select-selector {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+.admin-logs-select .ant-select-selection-placeholder {
+  color: #9ca3af !important;
+}
+.admin-logs-select .ant-select-arrow {
+  color: #e5e7eb !important;
+}
+
+.admin-logs-datepicker {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+.admin-logs-datepicker .ant-picker-input > input {
+  color: #e5e7eb !important;
+}
+.admin-logs-datepicker .ant-picker-suffix,
+.admin-logs-datepicker .ant-picker-separator {
+  color: #9ca3af !important;
+}
+.admin-logs-datepicker:hover,
+.admin-logs-datepicker:focus-within {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+}
+
+/* DatePicker dropdown dark */
+.ant-picker-dropdown {
+  color: #e5e7eb !important;
+}
+.ant-picker-panel {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+.ant-picker-header {
+  background-color: #1f2937 !important;
+  border-bottom: 1px solid #374151 !important;
+  color: #e5e7eb !important;
+}
+.ant-picker-content th {
+  color: #9ca3af !important;
+}
+.ant-picker-content td {
+  color: #e5e7eb !important;
+}
+.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner,
+.ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner,
+.ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+.ant-picker-cell:hover .ant-picker-cell-inner {
+  background-color: #374151 !important;
+}
+.ant-picker-range .ant-picker-active-bar {
+  background-color: #60a5fa !important;
+}
+
+/* Keep admin block styles */
+.admin-block {
+  background: #181e29 !important;
+  border: 1.5px solid #334155 !important;
+  box-shadow: 0 2px 8px 0 rgba(30,41,59,0.12);
+  margin-top: 18px;
+  margin-bottom: 10px;
+  padding: 10px 0 8px 0;
+  border-radius: 12px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.admin-block .active, .admin-block .bg-gray-700 {
+  background: #334155 !important;
+  font-weight: bold;
+}

@@ -503,7 +503,7 @@ const ControllersPage = () => {
 
   // Show loading state
   if (loading) {
-    return <Spin tip="Маълумотлар юкланмоқда..." size="large" className="w-full flex justify-center items-center min-h-screen" />;
+    return <Spin size="large" className="w-full flex justify-center items-center min-h-screen" />;
   }
   if (error) {
     return <Alert message="Хатолик" description={error} type="error" showIcon className="max-w-xl mx-auto mt-10" />;
@@ -607,7 +607,7 @@ const ControllersPage = () => {
         {/* Summary Cards */}
         <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} styles={{ body: { padding: 16 } }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami foydalanuvchilar</span>}
                 value={headerTotals.total_users}
@@ -617,7 +617,7 @@ const ControllersPage = () => {
             </Card>
           </Col>
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} styles={{ body: { padding: 16 } }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Faol</span>}
                 value={headerTotals.active_users}
@@ -627,7 +627,7 @@ const ControllersPage = () => {
             </Card>
           </Col>
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} styles={{ body: { padding: 16 } }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Nofaol</span>}
                 value={headerTotals.inactive_users}
@@ -637,7 +637,7 @@ const ControllersPage = () => {
             </Card>
           </Col>
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} styles={{ body: { padding: 16 } }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami plantatsiyalar</span>}
                 value={totals.total}

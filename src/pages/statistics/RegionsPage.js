@@ -589,10 +589,7 @@ const RegionsPage = () => {
           const totalStats = {
             total_plantations: Number(approvedData.total_approved_plantations || 0),
             total_area: Number(approvedData.total_approved_area || 0),
-            total_approved_fruitarea: (approvedData.approved_by_planted_area
-              ? approvedData.approved_by_planted_area.reduce((s, r) => s + Number(r.planted_area || 0), 0)
-              : Number((approvedData.planted_area ?? approvedData.total_approved_fruitarea) || 0)
-            ),
+            total_approved_fruitarea: Object.values(data).reduce((sum, region) => sum + Number(region.total_approved_fruitarea || 0), 0),
             investment_local: Number(approvedData.approved_investments?.local || 0),
             investment_foreign: Number(approvedData.approved_investments?.foreign || 0),
             subsidy_count: Number(approvedData.approved_subsidies?.beneficiary_count || 0),

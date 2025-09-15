@@ -276,7 +276,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="h-screen bg-gray-900 overflow-hidden">
       {/* Мобильное меню */}
       <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 sticky top-0 z-20">
         <div className="flex items-center justify-between">
@@ -372,8 +372,8 @@ const HomePage = () => {
       </div>
 
       {/* Основная область (без левой панели — теперь она общая) */}
-      <div className="min-h-screen bg-gray-900 flex flex-col">
-          <div className="p-4 sm:p-6">
+      <div className="hidden lg:flex lg:flex-col lg:h-full lg:overflow-hidden">
+          <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
             <h1 className="text-white text-3xl font-bold mb-2 flex items-center justify-between">
               <span>Qishloq xo'jaligi statistikasi</span>
               <div className="flex items-center gap-3">
@@ -397,7 +397,7 @@ const HomePage = () => {
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">
                       Plantatsiya turlari
                     </h3>
-                    <div className="h-72 sm:h-80">
+                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
                       <Doughnut
                         data={plantationTypesData}
                         options={{
@@ -419,7 +419,7 @@ const HomePage = () => {
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">
                       Maydonlar
                     </h3>
-                    <div className="h-72 sm:h-80">
+                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
                       <Doughnut
                         data={areasData}
                         options={{
@@ -441,7 +441,7 @@ const HomePage = () => {
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">
                       Investitsiyalar
                     </h3>
-                    <div className="h-72 sm:h-80">
+                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
                       <Doughnut
                         data={investmentsData}
                         options={{
@@ -475,7 +475,7 @@ const HomePage = () => {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">Sug'orish</h3>
-                    <div className="h-72 sm:h-80">
+                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
                       <Doughnut
                         data={irrigationData}
                         options={{
@@ -495,7 +495,7 @@ const HomePage = () => {
 
                   <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                     <h3 className="text-lg font-semibold text-white mb-4 text-center">Tuproq unumdorligi</h3>
-                    <div className="h-72 sm:h-80">
+                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
                       <Doughnut
                         data={fertilityData}
                         options={{
@@ -543,8 +543,8 @@ const HomePage = () => {
                 </div>
               </div>
             )}
+          </div>
         </div>
-      </div>
 
       {/* Мобильная версия контента */}
       <div className="lg:hidden p-4">

@@ -4,6 +4,7 @@ import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { API_BASE_URL1 } from "../config";
 import AuthContext from "../context/AuthContext";
 import ContactsPanel from "./ContactsPanel";
+import { UserOutlined, BookOutlined, SettingOutlined } from "@ant-design/icons";
 
 const MENU_ITEMS = [
   { to: "/plantations/uz", label: "Bog'lar", icon: (
@@ -41,6 +42,11 @@ const MENU_ITEMS = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5 3V5a2 2 0 012-2h12a2 2 0 012 2v18l-5-3H9z" />
       </svg>
     ) },
+  { to: "/admin/logs", label: "Admin logs", icon: (
+      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+      </svg>
+    ) },
 ];
 
 const isHeadOfRegion = (role) => {
@@ -50,28 +56,44 @@ const isHeadOfRegion = (role) => {
 };
 
 const getMenuItemsByRole = (role) => {
-  if (role === "superuser") return MENU_ITEMS;
+  if (role === "superuser") {
+    return [
+      ...MENU_ITEMS.filter(item => item.to !== "/admin/logs" && item.to !== "/my/logs"),
+      { to: "/admin/logs", label: "Admin logs", icon: (
+        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      ) },
+      { to: "/admin/performance", label: "Performance", icon: (
+        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3v18h18M7 13l3 3 7-7" />
+        </svg>
+      ) },
+      { to: "/my/logs", label: "Mening loglarim", icon: (
+        <BookOutlined className="w-6 h-6 text-white" />
+      ) },
+    ];
+  }
   if (isHeadOfRegion(role)) {
-    // Для headof_region изменяем ссылку статистики на controllers
-    return MENU_ITEMS.filter(item => [
+    const base = MENU_ITEMS.filter(item => [
       "/plantations/uz",
       "/statistics/regions",
       "/farmers",
       "/approved-plantations",
       "/rejected-plantations",
       "/moderation"
-    ].includes(item.to)).map(item => {
-      // Заменяем ссылку статистики для headof_region
-      if (item.to === "/statistics/regions") {
-        return { ...item, to: "/statistics/controllers" };
-      }
-      return item;
-    });
+    ].includes(item.to)).map(item => (item.to === "/statistics/regions" ? { ...item, to: "/statistics/controllers" } : item));
+    return [
+      ...base,
+      { to: "/my/logs", label: "Mening loglarim", icon: (
+        <UserOutlined className="w-6 h-6 text-white" />
+      ) },
+    ];
   }
-  // Если роль не определена — показываем все основные пункты для отладки
   if (!role) return MENU_ITEMS;
-  // user — только Bog'lar
-  return [MENU_ITEMS[0]];
+  return [MENU_ITEMS[0], { to: "/my/logs", label: "Mening loglarim", icon: (
+    <UserOutlined className="w-6 h-6 text-white" />
+  ) }];
 };
 
 const LeftNav = () => {
@@ -180,7 +202,8 @@ const LeftNav = () => {
       </div>
 
       <nav className="py-3 px-2 space-y-3 mt-2">
-        {items.map(item => {
+        {/* Основные пункты меню */}
+        {items.filter(item => !['/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
           const active = isActive(item.to);
           const isStats = item.to === '/statistics/regions';
           return (
@@ -247,6 +270,26 @@ const LeftNav = () => {
             </div>
           );
         })}
+        {/* Admin block только для superuser */}
+        {authState?.userRole === 'superuser' && items.some(item => ['/admin/logs','/admin/performance','/my/logs'].includes(item.to)) && (
+          <div className="admin-block flex flex-col gap-2">
+            {!collapsed && <div className="text-xs font-bold text-gray-400 uppercase px-4 pb-2 pt-1 tracking-widest flex items-center gap-2"><SettingOutlined className="text-base" /> Admin panel</div>}
+            {items.filter(item => ['/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
+              const active = isActive(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-4 transition-colors rounded-lg border-2 mb-2 ${active ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </nav>
       
       {location.pathname === '/' && (
