@@ -52,12 +52,12 @@ export default function MapContainer() {
       let plantations;
       if (authState.userRole === "user" && authState.regionId) {
         // Загружаем все плантации региона для обычного пользователя
-        plantations = await fetchPlantationsMap(authState.regionId, authState.accessToken);
+        plantations = await fetchPlantationsMap(authState.regionId, authState.accessToken, authState.userRole);
         // Фильтруем только подтверждённые плантации
         plantations = plantations.filter(plantation => plantation.is_checked === true);
       } else {
         // Для superuser и headof_region загружаем плантации конкретного тумана
-        plantations = await fetchPlantationsMap(districtId, authState.accessToken);
+        plantations = await fetchPlantationsMap(districtId, authState.accessToken, authState.userRole);
       }
       setPlantations(plantations);
 
@@ -110,6 +110,25 @@ export default function MapContainer() {
   const handlePlantationClick = async (plantation, map) => {
     setLoading(true);
     try {
+      // Для наблюдателя: показываем превью сразу по данным из карты,
+      // затем молча пытаемся дозагрузить детали (без алертов при отказе)
+      if (authState.userRole === "observer") {
+        const karta = map || mapInstance;
+        const coordsSimple = (plantation.coordinates || []).map((c) => [c.latitude, c.longitude]);
+        if (coordsSimple.length && karta) {
+          try { karta.fitBounds(L.polygon(coordsSimple).getBounds()); } catch (e) {}
+        }
+        // моментально показать превью
+        setSelectedPlantation(plantation);
+        try {
+          const detailed = await apiRequest(`api/plantations/${plantation.id}/`, {}, refreshAccessToken, authState.accessToken);
+          setSelectedPlantation(detailed);
+        } catch (e) {
+          // тихо игнорируем 403/404 для observer
+        }
+        return;
+      }
+
       const data = await apiRequest(`api/plantations/${plantation.id}/`, {}, refreshAccessToken, authState.accessToken);
       setSelectedPlantation(data);
       const karta = map || mapInstance;
@@ -122,7 +141,9 @@ export default function MapContainer() {
       console.error("Error fetching plantation details:", error);
       
       // Показываем пользователю понятное сообщение об ошибке
-      if (error.message && error.message.includes('404')) {
+      if (authState.userRole === "observer") {
+        // не тревожим наблюдателя — оставляем текущее превью
+      } else if (error.message && error.message.includes('404')) {
         alert('❌ Bu bog\'ga kirish huquqi yo\'q!\n\nSiz faqat o\'z viloyatingizdagi bog\'larni ko\'rishingiz mumkin.');
       } else if (error.message && error.message.includes('403')) {
         alert('❌ Ruxsat yo\'q!\n\nBu bog\'ni ko\'rish uchun ruxsatingiz yo\'q.');
@@ -131,7 +152,9 @@ export default function MapContainer() {
       }
       
       // Очищаем выбранную плантацию при ошибке
-      setSelectedPlantation(null);
+      if (authState.userRole !== "observer") {
+        setSelectedPlantation(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -143,6 +166,7 @@ export default function MapContainer() {
     onPlantationClick: handlePlantationClick,
     onMapLoad: handleMapLoad,
     accessToken: authState.accessToken,
+    userRole: authState.userRole,
   });
   const restoredRef = useRef(false);
   useEffect(() => {
@@ -466,7 +490,7 @@ export default function MapContainer() {
                         if (selectedRegion) localStorage.setItem('mapSelectedRegion', JSON.stringify(selectedRegion));
                         if (selectedDistrict) localStorage.setItem('mapSelectedDistrict', JSON.stringify(selectedDistrict));
                       } catch (e) {}
-                      navigate(`/plantations/${selectedPlantation.id}`, { state: { from: '/plantations/uz' } });
+                      navigate(`/plantations/${selectedPlantation.id}`, { state: { from: '/plantations/uz', previewPlantation: selectedPlantation } });
                     }}
                   >
                     Batafsil

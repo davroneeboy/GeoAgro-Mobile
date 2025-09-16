@@ -249,7 +249,7 @@ const ApprovedPlantations = () => {
           // Для главы региона используем специальный endpoint для его региона
           plantationsEndpoint = `${API_BASE_URL2}api/plantations/forme/approved/`;
         } else {
-          // Для суперпользователя используем общий endpoint
+          // Для суперпользователя и наблюдателя используем общий endpoint
           plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;
         }
 
@@ -429,6 +429,20 @@ const ApprovedPlantations = () => {
     saveFiltersToUrl(resetFilters, 1);
   };
 
+  useEffect(() => {
+    if (authState.userRole === 'observer') {
+      const params = new URLSearchParams(location.search);
+      let changed = false;
+      if (params.has('region')) { params.delete('region'); changed = true; }
+      if (params.has('district')) { params.delete('district'); changed = true; }
+      if (changed) {
+        const query = params.toString();
+        navigate(`/approved-plantations${query ? `?${query}` : ''}`, { replace: true });
+      }
+      setFilters(prev => ({ ...prev, region: 'All', district: 'All' }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authState.userRole]);
 
 
   return (

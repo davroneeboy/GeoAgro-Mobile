@@ -40,14 +40,15 @@ const LoginPage = () => {
         
         // --- RBAC redirect logic ---
         const userInfo = data.user_info || data;
-        if (userInfo.is_superuser) {
+        const numericRole = Number(userInfo?.user_role);
+        if (numericRole === 1 || numericRole === 2) {
           login({ ...data, username });
           navigate("/");
-        } else if (userInfo.is_headof_region) {
+        } else if (numericRole === 3) {
           login({ ...data, username });
-          navigate("/");
+          navigate("/statistics/regions");
         } else {
-          // Обычный пользователь не имеет доступа к системе
+          // 0 или отсутствие роли — нет доступа
           setError("Sizda tizimga kirish huquqi yo'q!");
           setIsLoading(false);
           return;

@@ -34,7 +34,7 @@ export function clearPlantationsCache(districtId) {
   }
 }
 
-export async function fetchPlantationsMap(districtId, accessToken) {
+export async function fetchPlantationsMap(districtId, accessToken, userRole) {
   if (!API_BASE_URL2) {
     throw new Error('API_BASE_URL2 is not defined in fetchPlantationsMap');
   }
@@ -74,6 +74,34 @@ export async function fetchPlantationsMap(districtId, accessToken) {
     return data.results;
   } catch (error) {
     console.error("Ошибка при загрузке данных плантаций для карты:", error);
+
+    // Фолбэк для observer: пробуем общий список плантаций
+    const isAccessError = String(error?.message || '').includes('403') || String(error?.message || '').includes('404');
+    if (userRole === 'observer' && isAccessError) {
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+        // Сначала пробуем с фильтром по туману
+        let data = await dedupeFetchJson(
+          `${API_BASE_URL2}api/plantations/?district_id=${key}&page_size=1000`,
+          { headers }
+        );
+        if (!data || !data.results || data.results.length === 0) {
+          // Затем без фильтра (покажем хотя бы что-то)
+          data = await dedupeFetchJson(
+            `${API_BASE_URL2}api/plantations/?page_size=1000`,
+            { headers }
+          );
+        }
+        const results = Array.isArray(data?.results) ? data.results : [];
+        plantationsCacheByDistrict.set(key, results);
+        return results;
+      } catch (fallbackError) {
+        console.error('Fallback plantations fetch failed for observer:', fallbackError);
+        return [];
+      }
+    }
     return [];
   }
 }

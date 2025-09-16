@@ -12,6 +12,7 @@ export const useMapsHook = ({
   onMapLoad,
   onPlantationClick,
   accessToken,
+  userRole,
 }) => {
   const mapRef = useRef();
   const [map, setMap] = useState(null);
@@ -95,7 +96,7 @@ export const useMapsHook = ({
   const loadTumanPlantations = async (districtId) => {
     setLoading(true);
     try {
-      const plantations = await fetchPlantationsMap(districtId, accessToken);
+      const plantations = await fetchPlantationsMap(districtId, accessToken, userRole);
 
       // Удаляем только старые полигоны плантаций
       map.eachLayer((layer) => {

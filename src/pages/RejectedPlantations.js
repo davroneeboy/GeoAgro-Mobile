@@ -131,8 +131,8 @@ const RejectedPlantations = () => {
       // Примечание: обычный пользователь (user) не имеет доступа к этой странице
       let plantationsEndpoint;
       
-      if (authState.userRole === 'superuser') {
-        // Для суперпользователя используем API для просмотра всех отклоненных плантаций
+      if (authState.userRole === 'superuser' || authState.userRole === 'observer') {
+        // Для суперпользователя и наблюдателя используем API для просмотра всех отклоненных плантаций
         plantationsEndpoint = `${API_BASE_URL1}api/plantations/moderation/rejected/`;
       } else if (authState.userRole === 'headof_region') {
         // Для главы региона используем API для их региона с фильтрацией по региону
@@ -229,6 +229,22 @@ const RejectedPlantations = () => {
       navigate('/login');
     }
   }, [authState, navigate, page, filters]);
+
+  useEffect(() => {
+    if (authState.userRole === 'observer') {
+      const params = new URLSearchParams(window.location.search);
+      let changed = false;
+      if (params.has('region')) { params.delete('region'); changed = true; }
+      if (params.has('district')) { params.delete('district'); changed = true; }
+      if (changed) {
+        const query = params.toString();
+        navigate(`/rejected-plantations${query ? `?${query}` : ''}`, { replace: true });
+      }
+      setFilters(prev => ({ ...prev, region: 'All', crop_type: 'All', farmer: 'All' }));
+      setPage(1);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authState.userRole]);
 
   return (
     <div className="min-h-screen bg-gray-900">

@@ -369,20 +369,41 @@ const Moderation = () => {
         if (authState.userRole === 'headof_region' && authState.regionId) {
           // Для главы региона используем специальный endpoint для его региона
           moderationEndpoint = `${API_BASE_URL2}api/plantations/forme/moderation/`;
+        } else if (authState.userRole === 'observer') {
+          // Для наблюдателя — сразу общий список плантаций с фильтрами
+          moderationEndpoint = `${API_BASE_URL2}api/plantations/`;
         } else {
-          // Для суперпользователя используем общий endpoint
+          // Для суперпользователя используем общий endpoint модерации
           moderationEndpoint = `${API_BASE_URL2}api/plantations/moderation/`;
         }
         
-        const response = await axios.get(
-          moderationEndpoint,
-          {
-            params,
-            headers: {
-              Authorization: `Bearer ${authState.accessToken}`,
-            },
+        let response;
+        try {
+          response = await axios.get(
+            moderationEndpoint,
+            {
+              params,
+              headers: {
+                Authorization: `Bearer ${authState.accessToken}`,
+              },
+            }
+          );
+        } catch (err) {
+          // Фолбэк для observer: если вдруг ошибка, повторим на `/api/plantations/`
+          if (authState.userRole === 'observer') {
+            response = await axios.get(
+              `${API_BASE_URL2}api/plantations/`,
+              {
+                params,
+                headers: {
+                  Authorization: `Bearer ${authState.accessToken}`,
+                },
+              }
+            );
+          } else {
+            throw err;
           }
-        );
+        }
         
         // Проверяем, что response.data существует и содержит results
         if (!response.data || !response.data.results) {

@@ -15,7 +15,7 @@ import {
 const PlantationDetail = () => {
   const { id } = useParams();
   const location = useLocation();
-  const [plantation, setPlantation] = useState(null);
+  const [plantation, setPlantation] = useState(() => location.state?.previewPlantation || null);
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
@@ -244,7 +244,10 @@ const PlantationDetail = () => {
       }
     } catch (error) {
       console.error("Error fetching plantation details:", error);
-      setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      // Для наблюдателя не блокируем просмотр, оставляем превью
+      if (authState.userRole !== 'observer') {
+        setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      }
     } finally {
       setLoading(false);
     }

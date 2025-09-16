@@ -90,6 +90,15 @@ const getMenuItemsByRole = (role) => {
       ) },
     ];
   }
+  // Наблюдатель: только статистика и карта UZ
+  if (String(role).toLowerCase() === 'observer') {
+    const base = MENU_ITEMS.filter(item => [
+      "/plantations/uz",
+      "/statistics/regions",
+      "/controllers"
+    ].includes(item.to)).map(item => (item.to === "/statistics/regions" ? { ...item, to: "/statistics/controllers" } : item));
+    return base;
+  }
   if (!role) return MENU_ITEMS;
   return [MENU_ITEMS[0], { to: "/my/logs", label: "Mening loglarim", icon: (
     <UserOutlined className="w-6 h-6 text-white" />

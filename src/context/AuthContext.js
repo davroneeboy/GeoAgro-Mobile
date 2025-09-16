@@ -16,6 +16,23 @@ import {
 
 const AuthContext = createContext();
 
+// Нормализация роли: принимает строку/число, возвращает строковый идентификатор роли
+function normalizeUserRole(rawRole) {
+  if (rawRole === undefined || rawRole === null) return null;
+  // Если пришло число или строка-число — маппим
+  const n = Number(rawRole);
+  if (Number.isFinite(n) && String(rawRole).trim() !== '' && !isNaN(n)) {
+    if (n === 1) return 'superuser';
+    if (n === 2) return 'headof_region';
+    if (n === 3) return 'observer';
+    return 'user'; // 0 и всё остальное — обычный пользователь
+  }
+  // Иначе это уже строковая роль
+  const s = String(rawRole).toLowerCase();
+  if (s === 'superuser' || s === 'headof_region' || s === 'observer' || s === 'user') return s;
+  return 'user';
+}
+
 // Ключ для подсчёта активных вкладок
 const TABS_KEY = 'activeTabCount';
 
@@ -36,13 +53,15 @@ function showLoginNotification(userRole, userInfo) {
   const roleNames = {
     'superuser': 'Суперфойдаланувчи (Администратор)',
     'headof_region': 'Вилоят раҳбари',
-    'user': 'Оддий фойдаланувчи'
+    'user': 'Оддий фойдаланувчи',
+    'observer': 'Кузатувчи'
   };
 
   const roleColors = {
     'superuser': 'bg-red-600',
     'headof_region': 'bg-blue-600', 
-    'user': 'bg-green-600'
+    'user': 'bg-green-600',
+    'observer': 'bg-purple-600'
   };
 
   const roleName = roleNames[userRole] || 'Номаълум рол';
@@ -101,7 +120,7 @@ export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     accessToken: getAccessToken(),
     refreshToken: getRefreshToken(),
-    userRole: getUserRole(),
+    userRole: normalizeUserRole(getUserRole()),
     regionId: getRegionId(),
     userInfo: getUserInfo(),
   });
@@ -112,15 +131,24 @@ export const AuthProvider = ({ children }) => {
     const userInfo = data.user_info || data;
     console.log('AuthContext - login data:', data);
     console.log('AuthContext - userInfo:', userInfo);
-    console.log('AuthContext - is_superuser:', userInfo.is_superuser);
-    console.log('AuthContext - is_headof_region:', userInfo.is_headof_region);
-    
-    const userRole = userInfo.is_superuser
-      ? 'superuser'
-      : userInfo.is_headof_region
-      ? 'headof_region'
-      : 'user';
-    
+
+    // Новый маппинг по числовому полю user_role, если оно есть
+    let userRole;
+    if (userInfo && userInfo.user_role !== undefined && userInfo.user_role !== null) {
+      const numericRole = Number(userInfo.user_role);
+      if (numericRole === 1) userRole = 'superuser';
+      else if (numericRole === 2) userRole = 'headof_region';
+      else if (numericRole === 3) userRole = 'observer';
+      else userRole = 'user'; // 0 и всё остальное — обычный пользователь
+    } else {
+      // Backward-compatible: старые флаги
+      const isSuper = !!userInfo?.is_superuser;
+      const isHead = !!userInfo?.is_headof_region;
+      userRole = isSuper ? 'superuser' : (isHead ? 'headof_region' : 'user');
+    }
+
+    userRole = normalizeUserRole(userRole);
+
     console.log('AuthContext - determined userRole:', userRole);
     setUserRole(userRole);
     setRegionId(data.region_id);
@@ -173,15 +201,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Проверка прав доступа (по userRole)
-  const hasRole = (role) => authState.userRole === role;
-  const hasAnyRole = (roles) => roles.includes(authState.userRole);
+  const hasRole = (role) => normalizeUserRole(authState.userRole) === normalizeUserRole(role);
+  const hasAnyRole = (roles) => roles.map(normalizeUserRole).includes(normalizeUserRole(authState.userRole));
   const getUserRegion = () => authState.regionId;
 
   useEffect(() => {
+    // Миграция: если в localStorage сохранена числовая роль, перезапишем строковой
+    try {
+      const raw = getUserRole();
+      const normalized = normalizeUserRole(raw);
+      if (raw && raw !== normalized) {
+        setUserRole(normalized);
+      }
+    } catch {}
+
     setAuthState({
       accessToken: getAccessToken(),
       refreshToken: getRefreshToken(),
-      userRole: getUserRole(),
+      userRole: normalizeUserRole(getUserRole()),
       regionId: getRegionId(),
       userInfo: getUserInfo(),
     });
