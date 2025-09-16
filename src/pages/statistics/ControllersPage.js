@@ -39,6 +39,9 @@ const REGION_NAMES = {
   13: "Xorazm",
 };
 
+// Порядок регионов по умолчанию (как на скриншоте)
+const REGION_ORDER = ["12","2","3","5","6","7","8","9","11","10","1","4","13"];
+
 const TIME_FILTER_OPTIONS = [
   { value: 7, label: "So'nggi 7 kun" },
   { value: 30, label: "So'nggi 30 kun" },
@@ -261,7 +264,19 @@ const ControllersPage = () => {
 
 
   const sortedTableData = React.useMemo(() => {
-    if (!sortConfig?.field) return tableData;
+    if (!sortConfig?.field) {
+      // Дефолтная сортировка по регионам, если такие данные есть
+      const orderIndex = (code) => {
+        const idx = REGION_ORDER.indexOf(String(code));
+        return idx === -1 ? 999 : idx;
+      };
+      const rows = [...tableData];
+      // Если у строк есть region_code или key содержит регион, сортируем по REGION_ORDER
+      if (rows.some(r => r.region_code != null)) {
+        rows.sort((a, b) => orderIndex(a.region_code) - orderIndex(b.region_code));
+      }
+      return rows;
+    }
     const collator = new Intl.Collator('ru', { sensitivity: 'base' });
     const getVal = (record) => {
       switch (sortConfig.field) {

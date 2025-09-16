@@ -30,6 +30,8 @@ const REGION_NAMES = {
   13: "Xorazm",
 };
 
+// Порядок регионов по умолчанию (как в предоставленном списке)
+const REGION_ORDER = ["12","2","3","5","6","7","8","9","11","10","1","4","13"];
 
 
 const RegionsPage = () => {
@@ -898,7 +900,15 @@ const RegionsPage = () => {
   });
 
   const sortedTableData = React.useMemo(() => {
-    if (!sortConfig?.field) return tableData;
+    if (!sortConfig?.field) {
+      const orderIndex = (id) => {
+        const idx = REGION_ORDER.indexOf(String(id));
+        return idx === -1 ? 999 : idx;
+      };
+      const rows = [...tableData];
+      rows.sort((a, b) => orderIndex(a.key) - orderIndex(b.key));
+      return rows;
+    }
     const collator = new Intl.Collator('ru', { sensitivity: 'base' });
     const getVal = (row) => {
       switch (sortConfig.field) {
