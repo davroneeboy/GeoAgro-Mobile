@@ -35,7 +35,7 @@ export default function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><HomePage /></ProtectedRoute>} />
       <Route path="/plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MapContainer /></ProtectedRoute>} />
-      <Route path="/controllers" element={<ProtectedRoute allowedRoles={["superuser", "observer"]}><ControllersList /></ProtectedRoute>} />
+      <Route path="/controllers" element={<ProtectedRoute allowedRoles={["superuser"]}><ControllersList /></ProtectedRoute>} />
       {/* <Route path="/contacts" element={<Contacts />} /> */}
       <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Moderation /></ProtectedRoute>} />
       <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><RejectedPlantations /></ProtectedRoute>} />

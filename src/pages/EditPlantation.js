@@ -475,6 +475,126 @@ const EditPlantation = () => {
       const bounds = new google.maps.LatLngBounds();
       paths.forEach((coord) => bounds.extend(coord));
       map.fitBounds(bounds);
+
+      // Подгрузить и отрисовать соседние плантации текущего тумана
+      (async () => {
+        try {
+          // Наблюдателю этот эндпоинт недоступен (403), пропускаем тихо
+          if (String(authState.userRole) === 'observer') return;
+
+          const tryFetch = async (suffix) => apiRequest(
+            `api/plantations/${id}/${suffix}/`,
+            {},
+            refreshAccessToken,
+            authState.accessToken
+          );
+
+          let related = null;
+          try {
+            // корректный путь по бэку
+            related = await tryFetch('related-map');
+          } catch (e1) {
+            const msg1 = String(e1?.message || '');
+            if (msg1.includes('404') || msg1.includes('Not Found')) {
+              try {
+                related = await tryFetch('relatedmap');
+              } catch (e2) {
+                const msg2 = String(e2?.message || '');
+                if (msg2.includes('404') || msg2.includes('Not Found')) {
+                  try {
+                    related = await tryFetch('related_map');
+                  } catch (e3) {
+                    const msg3 = String(e3?.message || '');
+                    if (msg3.includes('404') || msg3.includes('Not Found')) {
+                      // финальный фолбэк на старую опечатку
+                      related = await tryFetch('realtedmap');
+                    } else {
+                      throw e3;
+                    }
+                  }
+                } else {
+                  throw e2;
+                }
+              }
+            } else {
+              throw e1;
+            }
+          }
+
+          const items = Array.isArray(related?.results) ? related.results : (Array.isArray(related) ? related : []);
+          const filtered = items.filter((p) => String(p?.id) !== String(id));
+          filtered.forEach((p) => {
+            const coords = Array.isArray(p?.coordinates)
+              ? p.coordinates.map((c) => ({ lat: c.latitude, lng: c.longitude }))
+              : [];
+            if (coords.length) {
+              const isApproved = !!p?.is_checked;
+              const isRejected = !!p?.is_rejected;
+              const fill = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : '#fadb14');
+              const stroke = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : '#ff0000');
+              const poly = new google.maps.Polygon({
+                paths: coords,
+                strokeColor: stroke,
+                strokeOpacity: 1,
+                strokeWeight: 3,
+                fillColor: fill,
+                fillOpacity: 0.32,
+                map,
+              });
+
+              const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : 'Kutilmoqda');
+              const contentHtml = `
+                <div class="tooltip-dark" style="min-width:200px"> 
+                  <div class="tooltip-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#62a8ff"><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg>
+                    <span>${(p?.name||'Без названия')}</span>
+                  </div>
+                  <div class="tooltip-row">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#bfbfbf"><path d="M20 6h-4V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v16h2v-6h14l2-6a2 2 0 0 0-2-2ZM6 4h8v2H6V4Zm12.62 6H6v-2h14l-1.38 2Z"/></svg>
+                    <span>ID: ${p?.id || ''}</span>
+                  </div>
+                  <div class="tooltip-row">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#bfbfbf"><path d="M3 3h18v18H3V3Zm2 2v14h14V5H5Zm3 3h8v8H8V8Z"/></svg>
+                    <span>Maydon: ${(p?.total_area ?? '-') } ga</span>
+                  </div>
+                  <div class="tooltip-row">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="${fill}"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/></svg>
+                    <span>Holat: <span style="color:${fill};font-weight:600;">${statusText}</span></span>
+                  </div>
+                  <a class="tooltip-link" href="/plantations/${p.id}">Plantatsiyani ochish
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3Z"/></svg>
+                  </a>
+                </div>`;
+              const info = new google.maps.InfoWindow({ content: contentHtml });
+              try {
+                info.addListener('domready', () => {
+                  try {
+                    const iwC = document.querySelector('.gm-style-iw-c');
+                    if (iwC && !iwC.classList.contains('tooltip-dark')) iwC.classList.add('tooltip-dark');
+                    const iwD = document.querySelector('.gm-style-iw-d');
+                    if (iwD && !iwD.classList.contains('tooltip-dark')) iwD.classList.add('tooltip-dark');
+                  } catch (_) {}
+                });
+              } catch (_) {}
+              poly.addListener('mouseover', (e) => {
+                info.setPosition(e.latLng);
+                info.open({ map });
+                poly.setOptions({ strokeWeight: 5 });
+              });
+              poly.addListener('mouseout', () => { info.close(); poly.setOptions({ strokeWeight: 3 }); });
+              poly.addListener('click', () => {
+                window.location.href = `/plantations/${p.id}`;
+              });
+
+              // больше не расширяем границы под соседние полигоны, чтобы не менять зум
+              // coords.forEach((coord) => bounds.extend(coord));
+            }
+          });
+          // if (hasAny) { map.fitBounds(bounds); } // сохранение текущего зума
+        } catch (e) {
+          // ignore failures to keep main map usable
+        }
+      })();
     }
 
     // Загружаем полигоны всех регионов

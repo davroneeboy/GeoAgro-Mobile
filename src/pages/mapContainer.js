@@ -153,7 +153,7 @@ export default function MapContainer() {
       
       // Очищаем выбранную плантацию при ошибке
       if (authState.userRole !== "observer") {
-        setSelectedPlantation(null);
+      setSelectedPlantation(null);
       }
     } finally {
       setLoading(false);
