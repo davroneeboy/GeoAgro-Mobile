@@ -78,10 +78,7 @@ const getMenuItemsByRole = (role) => {
     const base = MENU_ITEMS.filter(item => [
       "/plantations/uz",
       "/statistics/regions",
-      "/farmers",
-      "/approved-plantations",
-      "/rejected-plantations",
-      "/moderation"
+      "/farmers"
     ].includes(item.to)).map(item => (item.to === "/statistics/regions" ? { ...item, to: "/statistics/controllers" } : item));
     return [
       ...base,
@@ -96,7 +93,7 @@ const getMenuItemsByRole = (role) => {
       "/plantations/uz",
       "/statistics/regions",
       "/controllers"
-    ].includes(item.to)).map(item => (item.to === "/statistics/regions" ? { ...item, to: "/statistics/controllers" } : item));
+    ].includes(item.to));
     return base;
   }
   if (!role) return MENU_ITEMS;
@@ -168,6 +165,25 @@ const LeftNav = () => {
     }
     if (authState?.userRole === "headof_region") {
       return [
+        { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        ) }
+      ];
+    }
+    if (authState?.userRole === "observer") {
+      return [
+        { to: '/statistics/regions', label: 'Viloyatlar', icon: (
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        ) },
+        { to: '/statistics/fruits', label: 'Mevalar', icon: (
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
+          </svg>
+        ) },
         { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

@@ -204,6 +204,7 @@ const Moderation = () => {
       10: "Sirdarya",
       11: "Surkhandarya",
       12: "Karakalpakstan",
+      13: "Xorazm",
     };
     
     // Если regionId - это строка с названием региона, возвращаем как есть
@@ -440,6 +441,7 @@ const Moderation = () => {
                   10: "Sirdaryo",
                   11: "Surxondaryo",
                   12: "Qoraqalpog'iston",
+                  13: "Xorazm",
                 };
                 return regionNames[regionId] || `Region ${regionId}`;
               };
@@ -690,6 +692,7 @@ const Moderation = () => {
                 <option value="10">Sirdarya</option>
                 <option value="11">Surkhandarya</option>
                 <option value="12">Karakalpakstan</option>
+                <option value="13">Xorazm</option>
               </select>
               {filters.region !== "All" && (
                 <select
@@ -1091,6 +1094,7 @@ const Moderation = () => {
               <option value="10">Sirdarya</option>
               <option value="11">Surkhandarya</option>
               <option value="12">Karakalpakstan</option>
+              <option value="13">Xorazm</option>
             </select>
             {filters.region !== "All" && (
               <select

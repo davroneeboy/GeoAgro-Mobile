@@ -308,7 +308,11 @@ export function getUsersStatisticsUrlByRole(role) {
   if (role === "superuser") {
     return `${API_BASE_URL2}api/statistics/users/detailed/`;
   } else if (role === "headof_region") {
+    // Основной эндпоинт для главы региона — forme
     return `${API_BASE_URL2}api/statistics/users/forme/`;
+  } else if (role === "observer") {
+    // Наблюдатель: только просмотр полной статистики пользователей
+    return `${API_BASE_URL2}api/statistics/users/detailed/`;
   }
   // Обычные пользователи не имеют доступа к системе
   return null;
@@ -341,7 +345,19 @@ export async function fetchUsersStatisticsByRole(role, params = {}, accessToken)
     
     const queryString = queryParams.toString();
     const finalUrl = queryString ? `${url}?${queryString}` : url;
-    return await dedupeFetchJson(finalUrl, { headers });
+    try {
+      return await dedupeFetchJson(finalUrl, { headers });
+    } catch (e) {
+      const msg = String(e?.message || '');
+      const is403 = msg.includes('403');
+      if (role === 'headof_region' && is403) {
+        const fallbackUrl = queryString
+          ? `${API_BASE_URL2}api/statistics/users/detailed/?${queryString}`
+          : `${API_BASE_URL2}api/statistics/users/detailed/`;
+        return await dedupeFetchJson(fallbackUrl, { headers });
+      }
+      throw e;
+    }
   } catch (error) {
     console.error("RBAC: Ошибка при загрузке статистики пользователей:", error);
     throw error;
@@ -371,3 +387,4 @@ export async function fetchRegionRejectedOverallStatistics(params = {}, accessTo
     throw error;
   }
 }
+

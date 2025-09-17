@@ -363,6 +363,8 @@ const EditPlantation = () => {
                 strokeWeight: 3,
                 fillOpacity: 0,
                 map: mapInstance,
+                clickable: false,
+                zIndex: 1,
               });
               
               // Добавляем обработчики событий для полигона
@@ -390,6 +392,8 @@ const EditPlantation = () => {
                     strokeWeight: 3,
                     fillOpacity: 0,
                     map: mapInstance,
+                    clickable: false,
+                    zIndex: 1,
                   });
                   
                   // Добавляем обработчики событий для полигона
@@ -476,6 +480,9 @@ const EditPlantation = () => {
       paths.forEach((coord) => bounds.extend(coord));
       map.fitBounds(bounds);
 
+      // Сначала загружаем полигоны всех регионов (не кликабельные, подложка)
+      loadRegionPolygons(map);
+
       // Подгрузить и отрисовать соседние плантации текущего тумана
       (async () => {
         try {
@@ -540,6 +547,7 @@ const EditPlantation = () => {
                 fillColor: fill,
                 fillOpacity: 0.32,
                 map,
+                zIndex: 10,
               });
 
               const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : 'Kutilmoqda');
@@ -596,9 +604,6 @@ const EditPlantation = () => {
         }
       })();
     }
-
-    // Загружаем полигоны всех регионов
-    loadRegionPolygons(map);
   };
 
   // Функция для подтверждения плантации (устанавливает is_checked: true)
