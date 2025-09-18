@@ -10,18 +10,18 @@ import { exportToExcel } from "../../utils/excelExport";
 import { API_BASE_URL2 as API2 } from "../../config";
 
 const REGION_NAMES = {
-  1: "Tashkent",
-  2: "Andijan",
-  3: "Bukhara",
-  4: "Fergana",
-  5: "Jizzakh",
-  6: "Kashkadarya",
-  7: "Navoi",
+  12: "QQR",
+  2: "Andijon",
+  3: "Buxoro",
+  5: "Jizzax",
+  6: "Qashqadaryo",
+  7: "Navoiy",
   8: "Namangan",
-  9: "Samarkand",
-  10: "Sirdarya",
-  11: "Surkhandarya",
-  12: "Karakalpakstan",
+  9: "Samarqand",
+  11: "Surxondaryo",
+  10: "Sirdaryo",
+  1: "Toshkent",
+  4: "Farg‘ona",
   13: "Xorazm",
 };
 

@@ -4,6 +4,7 @@ import axios from "axios";
 import { API_BASE_URL2 } from "../config";
 
 import AuthContext from "../context/AuthContext";
+import { fetchFarmerPlantations } from "../api/api";
 
 const Farmers = () => {
   const { authState } = useContext(AuthContext);
@@ -14,6 +15,7 @@ const Farmers = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [noPlantsModalOpen, setNoPlantsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   // Функция для форматирования номера телефона
@@ -226,6 +228,23 @@ const Farmers = () => {
     }
   };
 
+  // Переход на карту плантаций фермера (с предварительной проверкой наличия плантаций)
+  const handleOpenMap = async (farmer) => {
+    const fid = farmer?.id;
+    if (!fid) return;
+    try {
+      const inn = (farmer?.inn && String(farmer.inn).trim() !== '' && Number(farmer.inn) > 0) ? farmer.inn : undefined;
+      const results = await fetchFarmerPlantations({ farmer_id: fid, farmer_inn: inn }, authState.accessToken);
+      if (Array.isArray(results) && results.length > 0) {
+        navigate(`/farmers/${fid}/map`, { state: { farmer_inn: inn } });
+      } else {
+        setNoPlantsModalOpen(true);
+      }
+    } catch (e) {
+      setNoPlantsModalOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900">
@@ -296,6 +315,25 @@ const Farmers = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
+      {/* Modal: no plantations */}
+      {noPlantsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black bg-opacity-60" onClick={() => setNoPlantsModalOpen(false)}></div>
+          <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-11/12 max-w-sm p-5">
+            <h3 className="text-white text-lg font-semibold mb-3">Xabarnoma</h3>
+            <p className="text-gray-300 mb-5">Bu fermerga tegishli plantatsiyalar topilmadi</p>
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600"
+                onClick={() => setNoPlantsModalOpen(false)}
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         
@@ -369,7 +407,7 @@ const Farmers = () => {
                   farmers.map((farmer) => (
                     <tr key={farmer.id} className="hover:bg-gray-700">
                       <td className="px-6 py-4 text-sm text-gray-200 break-words">
-                        {farmer.name}
+                        <span className="text-white">{farmer.name}</span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-200 break-words">
                         {farmer.founder_name}
@@ -390,22 +428,30 @@ const Farmers = () => {
                         {farmer.established_year}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium break-words">
-                        {authState.userRole === "superuser" && (
-                          <div className="flex flex-col space-y-2">
-                            <button
-                              onClick={() => handleEdit(farmer.id)}
-                              className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
-                            >
-                              Tahrirlash
-                            </button>
-                            <button
-                              onClick={() => handleDelete(farmer.id)}
-                              className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors duration-200"
-                            >
-                              O'chirish
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex flex-col space-y-2">
+                          <button
+                            onClick={() => handleOpenMap(farmer)}
+                            className="bg-blue-600 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-700 transition-colors duration-200"
+                          >
+                            Xaritada
+                          </button>
+                          {authState.userRole === "superuser" && (
+                            <>
+                              <button
+                                onClick={() => handleEdit(farmer.id)}
+                                className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
+                              >
+                                Tahrirlash
+                              </button>
+                              <button
+                                onClick={() => handleDelete(farmer.id)}
+                                className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors duration-200"
+                              >
+                                O'chirish
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -426,7 +472,9 @@ const Farmers = () => {
               <div key={farmer.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold break-words">{farmer.name}</p>
+                    <p className="text-white font-semibold break-words">
+                      <span className="text-white">{farmer.name}</span>
+                    </p>
                     <p className="text-gray-300 text-sm break-words mt-1">INN: <span className="text-gray-200">{farmer.inn || '—'}</span></p>
                     <p className="text-gray-300 text-sm break-words">Direktor: <span className="text-gray-200">{farmer.director_name || '—'}</span></p>
                     <p className="text-gray-300 text-sm break-words">Tel: <span className="text-gray-200">{farmer.phone_number || '—'}</span></p>
@@ -448,6 +496,14 @@ const Farmers = () => {
                       </button>
                     </div>
                   )}
+                </div>
+                <div className="mt-3">
+                  <button
+                    onClick={() => handleOpenMap(farmer)}
+                    className="w-full bg-blue-600 text-white px-3 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Xaritada ko'rish
+                  </button>
                 </div>
               </div>
             ))

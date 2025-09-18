@@ -3,6 +3,7 @@ import { useParams, useLocation } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
+import { fetchFarmerPlantations } from "../api/api";
 import {
   landTypeMapping,
   trellisTypeMapping,
@@ -33,6 +34,10 @@ const EditPlantation = () => {
   const [regionLabels, setRegionLabels] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [farmerPlantsOpen, setFarmerPlantsOpen] = useState(false);
+  const [farmerPlants, setFarmerPlants] = useState([]);
+  const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
+  const [farmerPlantsError, setFarmerPlantsError] = useState(null);
 
 
   // Функция для открытия модального окна
@@ -55,6 +60,22 @@ const EditPlantation = () => {
 
   const openDeleteModal = () => setIsDeleteModalOpen(true);
   const closeDeleteModal = () => setIsDeleteModalOpen(false);
+
+  const openFarmerPlantsModal = async () => {
+    if (!plantation?.farmer?.id && !plantation?.farmer?.inn) return;
+    try {
+      setFarmerPlantsOpen(true);
+      setFarmerPlantsLoading(true);
+      setFarmerPlantsError(null);
+      const inn = (plantation?.farmer?.inn && String(plantation.farmer.inn).trim() !== '' && Number(plantation.farmer.inn) > 0) ? plantation.farmer.inn : undefined;
+      const list = await fetchFarmerPlantations({ farmer_id: plantation?.farmer?.id, farmer_inn: inn }, authState.accessToken);
+      setFarmerPlants(Array.isArray(list) ? list : []);
+    } catch (e) {
+      setFarmerPlantsError(e?.message || 'Xatolik');
+    } finally {
+      setFarmerPlantsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isDeleteModalOpen) return;
@@ -1019,7 +1040,7 @@ const EditPlantation = () => {
             {/* Двойной ряд: Fermer + Mevali hududlar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {plantation.farmer && (
-                <div className="bg-gray-700 p-4 rounded-lg">
+                <div className="bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-650" onClick={openFarmerPlantsModal} title="Fermer plantatsiyalari">
                   <div className="flex items-center gap-2 mb-2 text-white">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     <span className="font-semibold">Fermer</span>
@@ -1270,6 +1291,43 @@ const EditPlantation = () => {
       ) : (
         <div className="flex justify-center items-center h-full w-full bg-gray-900">
           <p className="text-white">Plantatsiya topilmadi</p>
+        </div>
+      )}
+
+      {farmerPlantsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black bg-opacity-60" onClick={() => setFarmerPlantsOpen(false)}></div>
+          <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-11/12 max-w-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-white text-lg font-semibold">Fermer plantatsiyalari</h3>
+              <button className="text-gray-300 hover:text-white px-2 py-1 bg-gray-700 rounded" onClick={() => setFarmerPlantsOpen(false)}>✕</button>
+            </div>
+            {farmerPlantsLoading ? (
+              <div className="text-gray-300">Yuklanmoqda...</div>
+            ) : farmerPlantsError ? (
+              <div className="text-red-400">{farmerPlantsError}</div>
+            ) : farmerPlants.length === 0 ? (
+              <div className="text-gray-300">Plantatsiyalar topilmadi</div>
+            ) : (
+              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                {farmerPlants.map((p) => {
+                  const isApproved = !!p.is_checked;
+                  const isRejected = !!p.is_rejected;
+                  const badgeCls = isApproved ? 'bg-green-600/20 text-green-300 border-green-500/50' : (isRejected ? 'bg-red-600/20 text-red-300 border-red-500/50' : 'bg-yellow-600/20 text-yellow-300 border-yellow-500/50');
+                  const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : 'Kutilmoqda');
+                  return (
+                    <div key={p.id} className="p-3 bg-gray-700 rounded border border-gray-600 hover:bg-gray-650 cursor-pointer" onClick={() => { setFarmerPlantsOpen(false); window.location.href = `/plantations/${p.id}`; }}>
+                      <div className="flex items-center justify-between">
+                        <div className="text-white font-medium truncate">{p.name || 'Fermer'}</div>
+                        <span className={`ml-2 text-xs px-2 py-0.5 rounded-full border ${badgeCls}`}>{statusText}</span>
+                      </div>
+                      <div className="text-gray-400 text-xs mt-1">ID: {p.id} • Maydon: {Number(p.total_area || 0).toFixed(1)} ga</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

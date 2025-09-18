@@ -27,6 +27,7 @@ import AdminLogsPage from "./pages/admin/AdminLogsPage";
 import UserLogsPage from "./pages/admin/UserLogsPage";
 import PerformanceDashboard from "./pages/admin/PerformanceDashboard";
 import MyLogsPage from "./pages/admin/MyLogsPage";
+import FarmerPlantationsMap from "./pages/FarmerPlantationsMap";
 
 export default function AppRouter() {
   return (
@@ -56,6 +57,7 @@ export default function AppRouter() {
       <Route path="/my/logs" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MyLogsPage /></ProtectedRoute>} />
       <Route path="/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Farmers /></ProtectedRoute>} />
       <Route path="/farmers/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
+      <Route path="/farmers/:id/map" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><FarmerPlantationsMap /></ProtectedRoute>} />
       <Route path="/farmers/new" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
     </Routes>
   );

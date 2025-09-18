@@ -149,7 +149,19 @@ const DistrictFarmersPage = () => {
       title: <span style={textLight}>Fermer</span>,
       dataIndex: 'name',
       key: 'name',
-      render: (v) => <span style={textLight}>{String(v || '')}</span>,
+      render: (v, record) => (
+        <span
+          style={{ ...textLight, cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => {
+            const fid = record.farmer_id ?? record.id;
+            if (!fid) return;
+            // Переход на карту плантаций фермера. Можно передать ИНН, если он есть в данных
+            navigate(`/farmers/${fid}/map`, { state: { farmer_inn: record.inn || record.farmer_inn || null } });
+          }}
+        >
+          {String(v || '')}
+        </span>
+      ),
       sorter: true,
       sortDirections: ['ascend', 'descend'],
       sortOrder: sortConfig.field === 'name' ? sortConfig.order : null,

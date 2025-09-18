@@ -259,6 +259,48 @@ export async function fetchFruitsStatistics(params = {}, accessToken) {
   }
 }
 
+// Получение плантаций конкретного фермера для карты (без пагинации)
+export async function fetchFarmerPlantations({ farmer_id, farmer_inn }, accessToken) {
+  const hasId = Number.isFinite(Number(farmer_id));
+  const hasInn = (
+    farmer_inn !== undefined && farmer_inn !== null && String(farmer_inn).trim() !== '' &&
+    Number.isFinite(Number(farmer_inn)) && Number(farmer_inn) > 0
+  );
+  if (!hasId && !hasInn) {
+    throw new Error('Необходимо указать farmer_id или farmer_inn');
+  }
+  const headers = { 'Content-Type': 'application/json' };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  const params = new URLSearchParams();
+  if (hasId) params.append('farmer_id', String(Number(farmer_id)));
+  if (hasInn) params.append('farmer_inn', String(Number(farmer_inn)));
+  const url = `${API_BASE_URL2}api/mymap/plantations/?${params.toString()}`;
+  try {
+    const data = await dedupeFetchJson(url, { headers });
+    const results = Array.isArray(data?.results) ? data.results : [];
+    return results.map(p => ({
+      id: p.id,
+      name: p.name,
+      is_checked: !!p.is_checked,
+      coordinates: Array.isArray(p.coordinates) ? p.coordinates : [],
+      fertility_score: Number(p.fertility_score ?? 0),
+      total_area: Number(p.total_area ?? 0),
+      images: Array.isArray(p.images) ? p.images : undefined,
+    }));
+  } catch (error) {
+    // Пробрасываем понятные ошибки доступа/валидации из описания
+    const msg = String(error?.message || '').toLowerCase();
+    if (msg.includes('403')) {
+      throw new Error('Недостаточно прав для доступа к этой информации');
+    }
+    if (msg.includes('400')) {
+      throw new Error('Необходимо указать farmer_inn или farmer_id');
+    }
+    console.error('Ошибка при загрузке плантаций фермера:', error);
+    throw error;
+  }
+}
+
 export async function fetchFarmersStatistics(params = {}, accessToken) {
   try {
     const headers = { 'Content-Type': 'application/json' };
