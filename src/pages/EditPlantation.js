@@ -363,7 +363,7 @@ const EditPlantation = () => {
                 strokeWeight: 3,
                 fillOpacity: 0,
                 map: mapInstance,
-                clickable: false,
+                clickable: true,
                 zIndex: 1,
               });
               
@@ -392,7 +392,7 @@ const EditPlantation = () => {
                     strokeWeight: 3,
                     fillOpacity: 0,
                     map: mapInstance,
-                    clickable: false,
+                    clickable: true,
                     zIndex: 1,
                   });
                   
@@ -420,6 +420,26 @@ const EditPlantation = () => {
     } catch (error) {
       console.error("Ошибка загрузки полигонов районов:", error);
     }
+  };
+
+  // Локальный помощник для названия региона по ID (включая 13: Xorazm)
+  const getRegionNameById = (regionId) => {
+    const regionNames = {
+      1: "Toshkent",
+      2: "Andijon",
+      3: "Buxoro",
+      4: "Farg'ona",
+      5: "Jizzax",
+      6: "Qashqadaryo",
+      7: "Navoiy",
+      8: "Namangan",
+      9: "Samarqand",
+      10: "Sirdaryo",
+      11: "Surxondaryo",
+      12: "Qoraqalpog'iston",
+      13: "Xorazm",
+    };
+    return regionNames[regionId] || `Region ${regionId}`;
   };
 
   const initializeMap = () => {
@@ -455,7 +475,12 @@ const EditPlantation = () => {
         map,
         editable: true,
         draggable: false,
+        zIndex: 2,
       });
+
+      // Добавляем такой же hover-лейбл в правом верхнем углу и для основной плантации
+      const mainLabelText = `${getRegionNameById(plantation?.district?.region)}, ${plantation?.district?.name || ""}`;
+      addPolygonEventListeners(polygon, mainLabelText, map);
 
       const updateCoordinates = () => {
         const newPaths = polygon.getPath();
