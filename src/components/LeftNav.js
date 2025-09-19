@@ -87,12 +87,12 @@ const getMenuItemsByRole = (role) => {
       ) },
     ];
   }
-  // Наблюдатель: только статистика и карта UZ
+  // Наблюдатель: карта UZ, статистика и список фермеров (без контролеров)
   if (String(role).toLowerCase() === 'observer') {
     const base = MENU_ITEMS.filter(item => [
       "/plantations/uz",
       "/statistics/regions",
-      "/controllers"
+      "/farmers"
     ].includes(item.to));
     return base;
   }

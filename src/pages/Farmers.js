@@ -428,7 +428,7 @@ const Farmers = () => {
                         {farmer.established_year}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium break-words">
-                        <div className="flex flex-col space-y-2">
+                          <div className="flex flex-col space-y-2">
                           <button
                             onClick={() => handleOpenMap(farmer)}
                             className="bg-blue-600 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-700 transition-colors duration-200"
@@ -437,21 +437,21 @@ const Farmers = () => {
                           </button>
                           {authState.userRole === "superuser" && (
                             <>
-                              <button
-                                onClick={() => handleEdit(farmer.id)}
-                                className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
-                              >
-                                Tahrirlash
-                              </button>
-                              <button
-                                onClick={() => handleDelete(farmer.id)}
-                                className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors duration-200"
-                              >
-                                O'chirish
-                              </button>
+                            <button
+                              onClick={() => handleEdit(farmer.id)}
+                              className="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition-colors duration-200"
+                            >
+                              Tahrirlash
+                            </button>
+                            <button
+                              onClick={() => handleDelete(farmer.id)}
+                              className="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors duration-200"
+                            >
+                              O'chirish
+                            </button>
                             </>
                           )}
-                        </div>
+                          </div>
                       </td>
                     </tr>
                   ))

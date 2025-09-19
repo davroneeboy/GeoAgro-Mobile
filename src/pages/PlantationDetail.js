@@ -541,7 +541,7 @@ const PlantationDetail = () => {
                 
                 const fromState = location.state?.from;
                 const referrer = document.referrer || '';
-
+                
                 if (fromState) {
                   navigate(fromState);
                 } else if (referrer.includes('/approved-plantations')) {

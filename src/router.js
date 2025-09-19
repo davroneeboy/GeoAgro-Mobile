@@ -55,9 +55,9 @@ export default function AppRouter() {
       <Route path="/admin/logs/user/:userId" element={<ProtectedRoute allowedRoles={["superuser"]}><UserLogsPage /></ProtectedRoute>} />
       <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={["superuser"]}><PerformanceDashboard /></ProtectedRoute>} />
       <Route path="/my/logs" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MyLogsPage /></ProtectedRoute>} />
-      <Route path="/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Farmers /></ProtectedRoute>} />
+      <Route path="/farmers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><Farmers /></ProtectedRoute>} />
       <Route path="/farmers/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
-      <Route path="/farmers/:id/map" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><FarmerPlantationsMap /></ProtectedRoute>} />
+      <Route path="/farmers/:id/map" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><FarmerPlantationsMap /></ProtectedRoute>} />
       <Route path="/farmers/new" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
     </Routes>
   );
