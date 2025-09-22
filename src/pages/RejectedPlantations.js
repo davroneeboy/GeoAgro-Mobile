@@ -173,19 +173,16 @@ const RejectedPlantations = () => {
       console.log("Plantations data from new API:", plantationsData);
       console.log("First plantation structure:", plantationsData[0]);
       
-      // Новые endpoints должны возвращать уже отфильтрованные данные с полной информацией
-      // Фильтруем только по наличию комментария отказа на всякий случай
-      const filteredPlantations = plantationsData.filter(plantation => {
-        const comment = plantation.moderation_comment || plantation.comment || plantation.rejection_reason;
-        return comment && comment.trim() !== '';
-      });
+      // Новые endpoints уже возвращают только отклонённые плантации.
+      // Не отбрасываем записи даже если комментарий отсутствует, чтобы список не пустел.
+      const normalized = plantationsData;
 
-      setPlantations(filteredPlantations);
-      setCount(response.data.count || filteredPlantations.length); // Используем count из API response если есть
+      setPlantations(normalized);
+      setCount(response.data.count || normalized.length); // Используем count из API response если есть
 
       // Загружаем информацию о пользователях
       const userIds = new Set();
-      filteredPlantations.forEach(plantation => {
+      normalized.forEach(plantation => {
         if (plantation.created_by) userIds.add(plantation.created_by);
         if (plantation.moderated_by) userIds.add(plantation.moderated_by);
       });
@@ -458,12 +455,14 @@ const RejectedPlantations = () => {
                       </div>
                     </div>
 
-                    {(plantation.moderation_comment || plantation.comment || plantation.rejection_reason) && (
-                      <div className="mt-2 bg-gray-700/30 rounded p-2 border border-gray-600">
+                    <div className="mt-2 bg-gray-700/30 rounded p-2 border border-gray-600">
                         <div className="text-gray-400 text-xs mb-1">Rad etish sababi</div>
-                        <div className="text-white text-xs">{plantation.moderation_comment || plantation.comment || plantation.rejection_reason}</div>
+                        <div className="text-white text-xs">
+                          {Array.isArray(plantation.moderation_comment)
+                            ? plantation.moderation_comment.map((c, i) => <span key={i} className="inline-block mr-2">{c?.text}</span>)
+                            : (plantation.moderation_comment || plantation.comment || plantation.rejection_reason || '—')}
+                        </div>
                       </div>
-                    )}
                     
                   </div>
                 ))}
@@ -687,12 +686,14 @@ const RejectedPlantations = () => {
                   </div>
                 </div>
 
-                {(plantation.moderation_comment || plantation.comment || plantation.rejection_reason) && (
-                  <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
+                <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
                     <div className="text-gray-400 text-xs mb-1">Sabab</div>
-                    <div className="text-white text-xs">{plantation.moderation_comment || plantation.comment || plantation.rejection_reason}</div>
+                    <div className="text-white text-xs">
+                      {Array.isArray(plantation.moderation_comment)
+                        ? plantation.moderation_comment.map((c, i) => <span key={i} className="inline-block mr-2">{c?.text}</span>)
+                        : (plantation.moderation_comment || plantation.comment || plantation.rejection_reason || '—')}
+                    </div>
                   </div>
-                )}
                 
               </div>
             ))}

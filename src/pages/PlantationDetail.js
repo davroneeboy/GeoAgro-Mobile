@@ -660,14 +660,27 @@ const PlantationDetail = () => {
             </div>
 
             {/* Секция с комментарием модерации */}
-            {plantation.moderation_comment && (
+            {(Array.isArray(plantation.moderation_comment) ? plantation.moderation_comment.length > 0 : !!plantation.moderation_comment) && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2 text-white">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <span className="font-semibold">Moderatsiya kommenti</span>
                 </div>
-                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50">
-                  <p className="text-gray-200 text-sm">{plantation.moderation_comment}</p>
+                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50 space-y-2">
+                  {Array.isArray(plantation.moderation_comment) ? (
+                    plantation.moderation_comment.map((mc, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="text-gray-200 text-sm flex-1 whitespace-pre-wrap">{mc?.text || ''}</div>
+                        {mc?.image && typeof mc.image === 'string' && (
+                          <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                            <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-200 text-sm">{String(plantation.moderation_comment)}</p>
+                  )}
                 </div>
               </div>
             )}

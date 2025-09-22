@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useContext } from "react";
+import React, { useEffect, useState, useCallback, useContext, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
@@ -22,6 +22,7 @@ const EditPlantation = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customReason, setCustomReason] = useState("");
+  const [moderationItems, setModerationItems] = useState([]);
   const { authState, refreshAccessToken } = useContext(AuthContext);
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
@@ -38,7 +39,19 @@ const EditPlantation = () => {
   const [farmerPlants, setFarmerPlants] = useState([]);
   const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
   const [farmerPlantsError, setFarmerPlantsError] = useState(null);
+  const fileInputsRef = useRef([]);
 
+  const DEFAULT_REJECT_REASONS = [
+    "Investitsiya summasi noto'g'ri",
+    "Fotosurat yo'q yoki sifatsiz",
+    "Bog' maydoni fotosurati to'liq olinmagan",
+    "Umumiy maydon gektari bo'sh maydon gektari bilan bir xil",
+    "Mevali maydon turi kiritilmagan",
+    "Ekin maydoni gektari noto'g'ri",
+    "Chegara yonidagi fermer bilan ustma-ust tushgan",
+    "Chegara noto'g'ri chizilgan"
+  ];
+  const [selectedReasons, setSelectedReasons] = useState([]);
 
   // Функция для открытия модального окна
   const openModal = () => {
@@ -56,6 +69,10 @@ const EditPlantation = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setCustomReason("");
+    try {
+      moderationItems.forEach((it) => { if (it?.preview) { try { URL.revokeObjectURL(it.preview); } catch(_) {} } });
+    } catch(_) {}
+    setModerationItems([]);
   };
 
   const openDeleteModal = () => setIsDeleteModalOpen(true);
@@ -91,52 +108,78 @@ const EditPlantation = () => {
       setError(null);
       setSuccessMessage(null);
       
-      // Проверяем, что комментарий введен
-      if (!customReason.trim()) {
+      // Текст может прийти из: основного поля, любого пункта, либо из выбранных причин
+      const userText = String(customReason || '').trim();
+      const itemTexts = (moderationItems || []).map(i => String(i.text || '').trim());
+      const itemPairs = (moderationItems || []).map(i => ({ text: String(i.text || '').trim(), image: i.image instanceof File ? i.image : null }));
+      const reasonsList = (selectedReasons || []).map(r => String(r || '').trim());
+      const hasAny = (userText.length > 0) || itemTexts.some(t => t.length > 0) || reasonsList.length > 0;
+      if (!hasAny) {
         setError("Iltimos, rad etish sababini kiriting!");
         return;
       }
-      
-      // Отправляем POST запрос на отклонение плантации
-      await apiRequest(`api/plantations/${plantation.id}/reject/`, {
-        method: "POST",
-        body: JSON.stringify({
-          comment: customReason.trim()
-        })
-      }, refreshAccessToken, authState.accessToken);
 
-      console.log("Plantation rejected successfully");
-      setSuccessMessage("Plantatsiya muvaffaqiyatli rad etildi!");
-      closeModal();
-      
-      // Перенаправляем обратно на предыдущую страницу с восстановлением фильтров
-      setTimeout(() => {
-        const fromPage = location.state?.from;
-        if (fromPage === '/approved-plantations') {
-          const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
-          window.location.href = `/approved-plantations?page=${currentPage}`;
-        } else if (fromPage === '/rejected-plantations') {
-          window.location.href = '/rejected-plantations';
-        } else {
-          const currentPage = localStorage.getItem('moderationPage') || 1;
-          const savedFilters = location.state?.filters;
-          const searchParams = new URLSearchParams();
-          searchParams.set('page', currentPage.toString());
-          if (savedFilters) {
-            if (savedFilters.action !== 'All') searchParams.set('action', savedFilters.action);
-            if (savedFilters.status !== 'All') searchParams.set('status', savedFilters.status);
-            if (savedFilters.type !== 'All') searchParams.set('type', savedFilters.type);
-            if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
-            if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
-            if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
-          }
-          const newUrl = `/moderation?${searchParams.toString()}`;
-          window.location.href = newUrl;
+      // Формируем очередь отправки: сначала выбранные причины, затем пункты с изображениями, затем пользовательский текст
+      const entries = [];
+      const seen = new Set();
+      // причины (без файлов)
+      reasonsList.forEach(t => { const k = t.toLowerCase(); if (t && !seen.has(k)) { seen.add(k); entries.push({ text: t, image: null }); } });
+      // пункты (с потенциальными файлами)
+      itemPairs.forEach(p => { const k = p.text.toLowerCase(); if (p.text && !seen.has(k)) { seen.add(k); entries.push(p); } });
+      // текст из отдельного поля
+      if (userText && !seen.has(userText.toLowerCase())) {
+        const firstFile = (moderationItems.find(i => i.image instanceof File)?.image) || null;
+        entries.push({ text: userText, image: firstFile });
+      }
+
+      // Отправляем все записи ПО ОДНОЙ, добавляя комментарии, не перезаписывая
+      let okCount = 0;
+      for (let i = 0; i < entries.length; i += 1) {
+        const { text, image } = entries[i];
+        const fd = new FormData();
+        fd.append('moderation_comment', text);
+        if (image) { try { fd.append('moderation_image', image, image.name); } catch { fd.append('moderation_image', image); } }
+        try {
+          console.log(`[reject][append] #${i + 1}/${entries.length}`, { text, hasImage: !!image });
+          const resp = await apiRequest(`api/plantations/${plantation.id}/reject/`, { method: 'POST', body: fd }, refreshAccessToken, authState.accessToken);
+          console.log(`[reject][append] response #${i + 1}:`, resp);
+          okCount += 1;
+        } catch (e) {
+          console.warn(`[reject][append] failed #${i + 1}`, e);
         }
-      }, 1000);
+      }
+ 
+      if (okCount > 0) {
+        setSuccessMessage(`${okCount} ta izoh qo'shildi`);
+        setError(null);
+        // Обновим детали плантации, чтобы отобразить актуальный moderation_comment
+        try {
+          const fresh = await apiRequest(`api/plantations/${plantation.id}/`, { method: 'GET' }, refreshAccessToken, authState.accessToken);
+          if (fresh) {
+            try { console.log('[reject][refresh] moderation_comment:', fresh?.moderation_comment); } catch {}
+            setPlantation(prev => ({ ...(prev || {}), ...fresh }));
+          }
+        } catch (e) {
+          console.warn('Refresh plantation after append failed', e);
+        }
+      } else {
+        setError("Izoh yuborib bo'lmadi. Qayta urinib ko'ring.");
+      }
+      // Модалка остаётся открытой для добавления следующих причин; навигацию не выполняем
+      closeModal();
     } catch (error) {
       console.error("Error rejecting plantation:", error);
-      setError("Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+      let message = "Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.";
+      try {
+        if (error?.response?.data) {
+          const data = error.response.data;
+          if (typeof data === 'string') message = data;
+          else if (data?.detail) message = String(data.detail);
+          else if (data?.error) message = String(data.error);
+        }
+        console.log('[reject] error detail:', { status: error?.response?.status, data: error?.response?.data });
+      } catch {}
+      setError(message);
     }
   };
 
@@ -1025,14 +1068,27 @@ const EditPlantation = () => {
             </div>
 
             {/* Секция с комментарием модерации */}
-            {plantation.moderation_comment && (
+            {(Array.isArray(plantation.moderation_comment) ? plantation.moderation_comment.length > 0 : !!plantation.moderation_comment) && (
               <div className="mb-6 bg-gray-700 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2 text-white">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <span className="font-semibold">Moderatsiya kommenti</span>
                 </div>
-                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50">
-                  <p className="text-gray-200 text-sm">{plantation.moderation_comment}</p>
+                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50 space-y-2">
+                  {Array.isArray(plantation.moderation_comment) ? (
+                    plantation.moderation_comment.map((mc, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="text-gray-200 text-sm flex-1 whitespace-pre-wrap">{mc?.text || ''}</div>
+                        {mc?.image && typeof mc.image === 'string' && (
+                          <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                            <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-200 text-sm">{String(plantation.moderation_comment)}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -1129,7 +1185,7 @@ const EditPlantation = () => {
                 >
                   <span className="inline-flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" /></svg>
-                  Shpallar:
+                    Shpallar:
                   </span>
                 </h2>
                 {expandedSections.trellises && (
@@ -1235,18 +1291,156 @@ const EditPlantation = () => {
             {/* RBAC: модальные окна только для superuser */}
             {authState.userRole === "superuser" && isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600">
+                  <div className="relative bg-gray-800 p-6 rounded-md w-[680px] max-w-[90vw] border border-gray-600">
                     <button onClick={closeModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
                     <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
-                    <p className="text-gray-300 mb-4">Bu plantatsiyani rad etishni xohlaysizmi? Rad etish sababi majburiy.</p>
-                    <textarea
-                      className="w-full p-2 mb-4 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
-                      value={customReason}
-                      onChange={(e) => setCustomReason(e.target.value)}
-                      placeholder="Rad etish sababini kiriting (majburiy)"
-                      rows={4}
-                    />
-                    <div className="flex justify-end space-x-4">
+                    <p className="text-gray-300 mb-3">Bu plantatsiyani rad etishni xohlaysizmi? Har bir bandga rasm qo'shish ixtiyoriy.</p>
+
+                    {/* Reasons multi-select */}
+                    <div className="mb-4 p-3 rounded-md border border-gray-600 bg-gray-700/40">
+                      <div className="text-sm text-gray-300 mb-2">Rad etish sabablari (bir nechtasini tanlash mumkin):</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {DEFAULT_REJECT_REASONS.map((reason) => {
+                          const checked = selectedReasons.includes(reason);
+                          return (
+                            <label key={reason} className="flex items-center gap-2 text-gray-200 text-sm">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4"
+                                checked={checked}
+                                onChange={(e) => {
+                                  setSelectedReasons((prev) => {
+                                    if (e.target.checked) return [...prev, reason];
+                                    return prev.filter((r) => r !== reason);
+                                  });
+                                }}
+                              />
+                              <span className="select-none">{reason}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 text-sm"
+                          onClick={() => {
+                            if (!selectedReasons.length) return;
+                            const existingTexts = new Set((moderationItems || []).map((i) => (i.text || '').trim().toLowerCase()));
+                            const toAdd = selectedReasons.filter((r) => !existingTexts.has(r.trim().toLowerCase()))
+                              .map((r) => ({ text: r, image: null, preview: null }));
+                            if (toAdd.length) {
+                              const base = (moderationItems || []).filter((i) => (String(i.text || '').trim().length > 0) || (i.image instanceof File));
+                              setModerationItems([...base, ...toAdd]);
+                            }
+                            setSelectedReasons([]);
+                          }}
+                        >
+                          Tanlanganlarni qo'shish
+                        </button>
+                        {selectedReasons.length > 0 && (
+                          <button
+                            type="button"
+                            className="px-3 py-1.5 rounded bg-gray-700/70 text-gray-300 hover:bg-gray-600/70 text-xs"
+                            onClick={() => setSelectedReasons([])}
+                          >
+                            Tozalash
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+                      {moderationItems.map((item, idx) => (
+                        <div key={idx} className="p-3 rounded-md border border-gray-600 bg-gray-700/60">
+                          <label className="block text-sm text-gray-300 mb-1">Izoh #{idx + 1}</label>
+                          <textarea
+                            className="w-full p-2 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
+                            value={item.text}
+                            onChange={(e) => {
+                              const next = [...moderationItems];
+                              next[idx] = { ...next[idx], text: e.target.value };
+                              setModerationItems(next);
+                            }}
+                            placeholder="Matn..."
+                            rows={3}
+                          />
+                          <div className="mt-2 flex items-center gap-3">
+                            <input
+                               ref={(el) => (fileInputsRef.current[idx] = el)}
+                               type="file"
+                               accept="image/*"
+                               onChange={(e) => {
+                                 const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                                 const next = [...moderationItems];
+                                 try { if (next[idx]?.preview) URL.revokeObjectURL(next[idx].preview); } catch(_) {}
+                                 const preview = file ? URL.createObjectURL(file) : null;
+                                 next[idx] = { ...next[idx], image: file, preview };
+                                 setModerationItems(next);
+                                 try { console.log(`[reject] file selected #${idx + 1}:`, file ? { name: file.name, size: file.size, type: file.type } : null); } catch {}
+                               }}
+                               className="hidden"
+                             />
+                             <button
+                               type="button"
+                               className="px-3 py-1.5 rounded bg-gray-700 text-gray-200 hover:bg-gray-600"
+                               onClick={() => fileInputsRef.current[idx] && fileInputsRef.current[idx].click()}
+                             >
+                               Fayl tanlash
+                             </button>
+                             {item.image && (
+                               <div className="flex items-center gap-2 min-w-0">
+                                 {item.preview && (
+                                   <img src={item.preview} alt="preview" className="w-16 h-16 rounded border border-gray-600 object-cover" />
+                                 )}
+                                 <span className="text-xs text-gray-300 truncate max-w-[180px]">{item.image.name}</span>
+                                 <button
+                                   type="button"
+                                   className="text-xs text-gray-400 hover:text-white"
+                                   onClick={() => {
+                                     const next = [...moderationItems];
+                                     try { if (next[idx]?.preview) URL.revokeObjectURL(next[idx].preview); } catch(_) {}
+                                     next[idx] = { ...next[idx], image: null, preview: null };
+                                     setModerationItems(next);
+                                   }}
+                                   title="Rasmni olib tashlash"
+                                 >
+                                   ✕
+                                 </button>
+                               </div>
+                             )}
+                          </div>
+                          {moderationItems.length > 1 && (
+                            <button
+                              className="mt-2 text-xs text-red-300 hover:text-red-200"
+                              onClick={() => { const rem = moderationItems[idx]; try { if (rem?.preview) URL.revokeObjectURL(rem.preview); } catch(_) {}; setModerationItems(moderationItems.filter((_, i) => i !== idx)); }}
+                            >
+                              Olib tashlash
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <button
+                        className="text-sm text-gray-300 hover:text-white"
+                        onClick={() => setModerationItems([...(moderationItems || []), { text: "", image: null, preview: null }])}
+                      >
+                        + Yana qo'shish
+                      </button>
+                      <button
+                        className="text-xs text-gray-400 hover:text-gray-300"
+                        onClick={() => {
+                          try { moderationItems.forEach((it) => { if (it?.preview) { try { URL.revokeObjectURL(it.preview); } catch(_) {} } }); } catch(_) {};
+                          setModerationItems([{ text: customReason || "", image: null, preview: null }]);
+                        }}
+                        title="Bir matnli oddiy rad"
+                      >
+                        Oddiy matn
+                      </button>
+                    </div>
+                    <div className="flex justify-end space-x-4 mt-4">
                       <button
                         className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
                         onClick={handleConfirm}

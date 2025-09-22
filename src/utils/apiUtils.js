@@ -71,7 +71,9 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
   }
   const url = `${API_BASE_URL2}${endpoint}`;
   
-  const defaultHeaders = {
+  // Если отправляем FormData, не задаём Content-Type вручную
+  const isFormData = typeof FormData !== 'undefined' && options && options.body instanceof FormData;
+  const defaultHeaders = isFormData ? {} : {
     'Content-Type': 'application/json',
   };
 

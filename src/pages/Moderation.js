@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -156,6 +156,7 @@ const Moderation = () => {
     return validPage;
   })();
   const [page, setPage] = useState(initialPageFromUrl);
+  const isFetchingRef = useRef(false);
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
   const [loading, setLoading] = useState(false); // добавляем состояние загрузки
   const [error, setError] = useState(null); // добавляем состояние ошибки
@@ -503,7 +504,9 @@ const Moderation = () => {
       }
     };
 
-    fetchModerations();
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    fetchModerations().finally(() => { isFetchingRef.current = false; });
   }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
