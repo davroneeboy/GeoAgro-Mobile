@@ -379,13 +379,13 @@ const RegionDetailPage = () => {
                 area: Number(item.irrigation?.area || 0),
                 count: Number(item.irrigation?.count || 0),
               },
-              // Поля типов, которых нет в новом ответе — оставляем нулями для совместимости
-              bogs_count: 0,
-              bogs_area: 0,
-              uzumzors_count: 0,
-              uzumzors_area: 0,
-              issiqxonas_count: 0,
-              issiqxonas_area: 0,
+              // Turlar bo'yicha ko'rsatkichlar
+              bogs_count: Number(item.bogs_count || 0),
+              bogs_area: Number(item.bogs_area || 0),
+              uzumzors_count: Number(item.uzumzors_count || 0),
+              uzumzors_area: Number(item.uzumzors_area || 0),
+              issiqxonas_count: Number(item.issiqxonas_count || 0),
+              issiqxonas_area: Number(item.issiqxonas_area || 0),
               district_id: item.district_id || null,
             };
           });
@@ -519,6 +519,13 @@ const RegionDetailPage = () => {
           uzumzors_area: districtData.uzumzors_area || 0,
           issiqxonas_count: districtData.issiqxonas_count || 0,
           issiqxonas_area: districtData.issiqxonas_area || 0,
+          outdated_ga: districtData.outdated_ga || 0,
+          low_fertility_count: districtData.low_fertility?.count || 0,
+          low_fertility_area: districtData.low_fertility?.area || 0,
+          high_fertility_count: districtData.high_fertility?.count || 0,
+          high_fertility_area: districtData.high_fertility?.area || 0,
+          irrigation_area: districtData.irrigation?.area || 0,
+          irrigation_count: districtData.irrigation?.count || 0,
           district_id: districtData.district_id,
         };
         
@@ -747,6 +754,14 @@ const RegionDetailPage = () => {
   }
 
   // Add total row to tableData
+  // Дополнительные итоги по turlari va eskitgan maydon
+  const sumField = (field) => sortedTableData.reduce((acc, r) => acc + Number(r[field] || 0), 0);
+  totalRow.bogs_count = sumField('bogs_count');
+  totalRow.bogs_area = sumField('bogs_area');
+  totalRow.uzumzors_count = sumField('uzumzors_count');
+  totalRow.uzumzors_area = sumField('uzumzors_area');
+  totalRow.outdated_ga = sumField('outdated_ga');
+
   const dataWithTotal = [...sortedTableData, totalRow];
 
   const textLight = { color: '#e5e7eb' };
@@ -817,19 +832,26 @@ const RegionDetailPage = () => {
             </span>
           ),
         },
+        {
+          title: <span style={textLight}>Eskirgan (GA)</span>,
+          dataIndex: 'outdated_ga',
+          key: 'outdated_ga',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'outdated_ga' ? sortConfig.order : null,
+          render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span>
+        },
       ],
     },
-    ...(activeTab === 'rejected' ? [
-      {
-        title: <span style={textLight}>Turlari (rad etilgan)</span>,
-        children: [
-          { title: <span style={textLight}>Bog'lar — soni</span>, dataIndex: 'bogs_count', key: 'bogs_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Bog'lar — maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-          { title: <span style={textLight}>Uzumzorlar — soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Uzumzorlar — maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-        ],
-      }
-    ] : []),
+    {
+      title: <span style={textLight}>Turlari</span>,
+      children: [
+        { title: <span style={textLight}>Bog'lar — soni</span>, dataIndex: 'bogs_count', key: 'bogs_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
+        { title: <span style={textLight}>Bog'lar — maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
+        { title: <span style={textLight}>Uzumzorlar — soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
+        { title: <span style={textLight}>Uzumzorlar — maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
+      ],
+    },
     {
       title: <span style={textLight}>Investitsiyalar</span>,
       children: [

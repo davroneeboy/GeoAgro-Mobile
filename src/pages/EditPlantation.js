@@ -237,7 +237,34 @@ const EditPlantation = () => {
       console.log("Plantation rejected successfully");
       setSuccessMessage("Rad etish sabab(lar)i qo'shildi");
       closeModal();
-      // Navigation suppressed intentionally to allow console inspection after reject
+      // Redirect back to moderation/list after short delay
+      setTimeout(() => {
+        const fromPage = location.state?.from;
+        if (fromPage === '/approved-plantations') {
+          const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
+          window.location.href = `/approved-plantations?page=${currentPage}`;
+        } else if (fromPage === '/rejected-plantations') {
+          window.location.href = '/rejected-plantations';
+        } else if (fromPage === '/moderation') {
+          const currentPage = localStorage.getItem('moderationPage') || 1;
+          const savedFilters = location.state?.filters;
+          const searchParams = new URLSearchParams();
+          searchParams.set('page', currentPage.toString());
+          if (savedFilters) {
+            if (savedFilters.action && savedFilters.action !== 'All') searchParams.set('action', savedFilters.action);
+            if (savedFilters.status && savedFilters.status !== 'All') searchParams.set('status', savedFilters.status);
+            if (savedFilters.type && savedFilters.type !== 'All') searchParams.set('type', savedFilters.type);
+            if (savedFilters.region && savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+            if (savedFilters.district && savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+            if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          }
+          const newUrl = `/moderation?${searchParams.toString()}`;
+          window.location.href = newUrl;
+        } else {
+          // fallback: go back one step
+          window.history.back();
+        }
+      }, 600);
     } catch (error) {
       console.error("Error rejecting plantation:", error);
       let message = "Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.";
