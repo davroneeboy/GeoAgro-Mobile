@@ -53,6 +53,69 @@ const EditPlantation = () => {
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
 
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+  const [dragActive, setDragActive] = useState(false);
+  const [focusedIdx, setFocusedIdx] = useState(null);
+
+  const validateImageFile = (file) => {
+    if (!file) return "Fayl topilmadi";
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) return "Rasm formati noto'g'ri. JPG, PNG yoki WEBP tanlang.";
+    if (file.size > MAX_IMAGE_SIZE) return "Rasm hajmi 10MB dan oshmasligi kerak.";
+    return null;
+  };
+
+  const addImageFile = (file, source = 'paste', targetIndex = null) => {
+    const err = validateImageFile(file);
+    if (err) { setError(err); return; }
+    const next = [...moderationItems];
+    const preview = URL.createObjectURL(file);
+    // Если известен целевой блок — вставляем в него; иначе используем последний блок; если блоков нет — создаём первый
+    let idx = (typeof targetIndex === 'number' && targetIndex >= 0) ? targetIndex : (next.length > 0 ? next.length - 1 : -1);
+    if (idx === -1) {
+      next.push({ text: '', image: file, preview });
+      idx = next.length - 1;
+    } else {
+      // освободим предыдущий preview
+      try { if (next[idx]?.preview) URL.revokeObjectURL(next[idx].preview); } catch {}
+      next[idx] = { ...(next[idx] || { text: '' }), image: file, preview };
+    }
+    setFocusedIdx(idx);
+    setModerationItems(next);
+    try { console.log(`[reject] ${source} image:`, { name: file.name, size: file.size, type: file.type }); } catch {}
+  };
+
+  const handlePasteImage = (e) => {
+    try {
+      const items = e.clipboardData?.items || [];
+      for (let i = 0; i < items.length; i += 1) {
+        const it = items[i];
+        if (it && it.kind === 'file' && it.type.startsWith('image/')) {
+          const file = it.getAsFile();
+          if (file) {
+            e.preventDefault();
+            addImageFile(file, 'paste', focusedIdx);
+            break;
+          }
+        }
+      }
+    } catch {}
+  };
+
+  const handleDragOver = (e) => { e.preventDefault(); setDragActive(true); };
+  const handleDragEnter = (e) => { e.preventDefault(); setDragActive(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); setDragActive(false); };
+  const handleDropFiles = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    try {
+      const files = Array.from(e.dataTransfer?.files || []);
+      const img = files.find(f => ALLOWED_IMAGE_TYPES.has(f.type));
+      if (img) addImageFile(img, 'drop', focusedIdx);
+      else if (files.length) setError("Rasm formati noto'g'ri. JPG, PNG yoki WEBP tanlang.");
+    } catch {}
+  };
+
   // Функция для открытия модального окна
   const openModal = () => {
     setIsModalOpen(true);
@@ -110,76 +173,89 @@ const EditPlantation = () => {
       
       // Текст может прийти из: основного поля, любого пункта, либо из выбранных причин
       const userText = String(customReason || '').trim();
-      const itemTexts = (moderationItems || []).map(i => String(i.text || '').trim());
-      const itemPairs = (moderationItems || []).map(i => ({ text: String(i.text || '').trim(), image: i.image instanceof File ? i.image : null }));
-      const reasonsList = (selectedReasons || []).map(r => String(r || '').trim());
-      const hasAny = (userText.length > 0) || itemTexts.some(t => t.length > 0) || reasonsList.length > 0;
-      if (!hasAny) {
+      const itemTexts = (moderationItems || []).map(i => String(i.text || '').trim()).filter(Boolean);
+      const reasonsJoined = (selectedReasons || []).join('\n').trim();
+      if (!reasonsJoined && itemTexts.length === 0 && !userText) {
         setError("Iltimos, rad etish sababini kiriting!");
         return;
       }
-
-      // Формируем очередь отправки: сначала выбранные причины, затем пункты с изображениями, затем пользовательский текст
-      const entries = [];
+      // Собираем список отдельных отправок: сначала пользовательский текст, затем пункты с файлами, затем выбранные причины
+      const itemsToSend = [];
+      if (userText) itemsToSend.push({ text: userText, image: null });
+      (moderationItems || []).forEach((it) => {
+        const t = String(it.text || '').trim();
+        if (t) itemsToSend.push({ text: t, image: (it.image instanceof File) ? it.image : null });
+      });
+      (selectedReasons || []).forEach((r) => {
+        const t = String(r || '').trim();
+        if (t) itemsToSend.push({ text: t, image: null });
+      });
+      // Удаляем дубли по тексту, сохраняем первый встреченный (с его файлом)
       const seen = new Set();
-      // причины (без файлов)
-      reasonsList.forEach(t => { const k = t.toLowerCase(); if (t && !seen.has(k)) { seen.add(k); entries.push({ text: t, image: null }); } });
-      // пункты (с потенциальными файлами)
-      itemPairs.forEach(p => { const k = p.text.toLowerCase(); if (p.text && !seen.has(k)) { seen.add(k); entries.push(p); } });
-      // текст из отдельного поля
-      if (userText && !seen.has(userText.toLowerCase())) {
-        const firstFile = (moderationItems.find(i => i.image instanceof File)?.image) || null;
-        entries.push({ text: userText, image: firstFile });
+      const unique = [];
+      for (const it of itemsToSend) {
+        const key = it.text.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); unique.push(it); }
       }
-
-      // Отправляем все записи ПО ОДНОЙ, добавляя комментарии, не перезаписывая
-      let okCount = 0;
-      for (let i = 0; i < entries.length; i += 1) {
-        const { text, image } = entries[i];
+      if (unique.length === 0) {
+        setError("Iltimos, rad etish sababini kiriting!");
+        return;
+      }
+      
+      console.log('[reject] append mode, will POST', unique.length, 'comments');
+      // Последовательно отправляем по одному, чтобы бэк добавлял комментарии
+      for (let idx = 0; idx < unique.length; idx += 1) {
+        const { text, image } = unique[idx];
+        if (image) {
+          if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
+            setError("Rasm formati noto'g'ri. JPG, PNG yoki WEBP tanlang.");
+            return;
+          }
+          if (image.size > MAX_IMAGE_SIZE) {
+            setError("Rasm hajmi 10MB dan oshmasligi kerak.");
+            return;
+          }
+        }
         const fd = new FormData();
         fd.append('moderation_comment', text);
-        if (image) { try { fd.append('moderation_image', image, image.name); } catch { fd.append('moderation_image', image); } }
-        try {
-          console.log(`[reject][append] #${i + 1}/${entries.length}`, { text, hasImage: !!image });
-          const resp = await apiRequest(`api/plantations/${plantation.id}/reject/`, { method: 'POST', body: fd }, refreshAccessToken, authState.accessToken);
-          console.log(`[reject][append] response #${i + 1}:`, resp);
-          okCount += 1;
-        } catch (e) {
-          console.warn(`[reject][append] failed #${i + 1}`, e);
+        if (image) {
+          try { fd.append('moderation_image', image, image.name); } catch { fd.append('moderation_image', image); }
         }
-      }
- 
-      if (okCount > 0) {
-        setSuccessMessage(`${okCount} ta izoh qo'shildi`);
-        setError(null);
-        // Обновим детали плантации, чтобы отобразить актуальный moderation_comment
+        console.log(`[reject] submit #${idx + 1}/${unique.length}:`, { text, hasImage: !!image });
         try {
-          const fresh = await apiRequest(`api/plantations/${plantation.id}/`, { method: 'GET' }, refreshAccessToken, authState.accessToken);
-          if (fresh) {
-            try { console.log('[reject][refresh] moderation_comment:', fresh?.moderation_comment); } catch {}
-            setPlantation(prev => ({ ...(prev || {}), ...fresh }));
-          }
-        } catch (e) {
-          console.warn('Refresh plantation after append failed', e);
-        }
-      } else {
-        setError("Izoh yuborib bo'lmadi. Qayta urinib ko'ring.");
+          const dbg = [];
+          for (const [k, v] of fd.entries()) { dbg.push([k, (v && v.name) ? v.name : v]); }
+          console.log('[reject] formdata:', dbg);
+        } catch {}
+        const resp = await apiRequest(`api/plantations/${plantation.id}/reject/`, {
+          method: 'POST',
+          body: fd,
+      }, refreshAccessToken, authState.accessToken);
+        try { console.log(`[reject] response #${idx + 1}:`, resp); } catch {}
       }
-      // Модалка остаётся открытой для добавления следующих причин; навигацию не выполняем
+
+      console.log("Plantation rejected successfully");
+      setSuccessMessage("Rad etish sabab(lar)i qo'shildi");
       closeModal();
+      // Navigation suppressed intentionally to allow console inspection after reject
     } catch (error) {
       console.error("Error rejecting plantation:", error);
       let message = "Plantatsiyani rad etishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.";
-      try {
-        if (error?.response?.data) {
-          const data = error.response.data;
-          if (typeof data === 'string') message = data;
-          else if (data?.detail) message = String(data.detail);
-          else if (data?.error) message = String(data.error);
-        }
-        console.log('[reject] error detail:', { status: error?.response?.status, data: error?.response?.data });
-      } catch {}
-      setError(message);
+       try {
+         if (error?.response?.data) {
+           const data = error.response.data;
+           if (typeof data === 'string') message = data;
+           else if (data?.detail) message = String(data.detail);
+           else if (data?.error) message = String(data.error);
+         }
+         const status = error?.response?.status;
+         if (status === 401) message = "Avtorizatsiya talab qilinadi (401)";
+         else if (status === 403) message = "Ruxsat yo'q (403)";
+         else if (status === 404) message = "Plantatsiya topilmadi (404)";
+         else if (status === 400) message = message || "So'rov noto'g'ri (400)";
+         console.log('[reject] error detail:', { status: error?.response?.status, data: error?.response?.data });
+       } catch {}
+       setError(message);
     }
   };
 
@@ -913,6 +989,10 @@ const EditPlantation = () => {
               }}
               onDragStart={(e) => e.preventDefault()}
               onSelectStart={(e) => e.preventDefault()}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDropFiles}
             ></div>
           </div>
           <div className="w-full md:w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
@@ -1185,7 +1265,7 @@ const EditPlantation = () => {
                 >
                   <span className="inline-flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" /></svg>
-                    Shpallar:
+                  Shpallar:
                   </span>
                 </h2>
                 {expandedSections.trellises && (
@@ -1291,7 +1371,13 @@ const EditPlantation = () => {
             {/* RBAC: модальные окна только для superuser */}
             {authState.userRole === "superuser" && isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="relative bg-gray-800 p-6 rounded-md w-[680px] max-w-[90vw] border border-gray-600">
+                  <div className="relative bg-gray-800 p-6 rounded-md w-[680px] max-w-[90vw] border border-gray-600"
+                       onPaste={handlePasteImage}
+                       onDragOver={handleDragOver}
+                       onDragEnter={handleDragEnter}
+                       onDragLeave={handleDragLeave}
+                       onDrop={handleDropFiles}
+                  >
                     <button onClick={closeModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
                     <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
                     <p className="text-gray-300 mb-3">Bu plantatsiyani rad etishni xohlaysizmi? Har bir bandga rasm qo'shish ixtiyoriy.</p>
@@ -1323,19 +1409,20 @@ const EditPlantation = () => {
                       <div className="mt-3 flex items-center gap-2">
                         <button
                           type="button"
-                          className="px-3 py-1.5 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 text-sm"
-                          onClick={() => {
-                            if (!selectedReasons.length) return;
-                            const existingTexts = new Set((moderationItems || []).map((i) => (i.text || '').trim().toLowerCase()));
-                            const toAdd = selectedReasons.filter((r) => !existingTexts.has(r.trim().toLowerCase()))
-                              .map((r) => ({ text: r, image: null, preview: null }));
-                            if (toAdd.length) {
-                              const base = (moderationItems || []).filter((i) => (String(i.text || '').trim().length > 0) || (i.image instanceof File));
-                              setModerationItems([...base, ...toAdd]);
-                            }
-                            setSelectedReasons([]);
-                          }}
-                        >
+                          className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors text-sm flex items-center gap-2"
+                           onClick={() => {
+                             if (!selectedReasons.length) return;
+                             const existingTexts = new Set((moderationItems || []).map((i) => (i.text || '').trim().toLowerCase()));
+                             const toAdd = selectedReasons.filter((r) => !existingTexts.has(r.trim().toLowerCase()))
+                               .map((r) => ({ text: r, image: null, preview: null }));
+                             if (toAdd.length) {
+                               const base = (moderationItems || []).filter((i) => (String(i.text || '').trim().length > 0) || (i.image instanceof File));
+                               setModerationItems([...base, ...toAdd]);
+                             }
+                             setSelectedReasons([]);
+                           }}
+                         >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
                           Tanlanganlarni qo'shish
                         </button>
                         {selectedReasons.length > 0 && (
@@ -1350,6 +1437,8 @@ const EditPlantation = () => {
                       </div>
                     </div>
 
+                    {/* Drag & Drop hint removed by request */}
+
                     <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
                       {moderationItems.map((item, idx) => (
                         <div key={idx} className="p-3 rounded-md border border-gray-600 bg-gray-700/60">
@@ -1362,6 +1451,8 @@ const EditPlantation = () => {
                               next[idx] = { ...next[idx], text: e.target.value };
                               setModerationItems(next);
                             }}
+                            onFocus={() => setFocusedIdx(idx)}
+                            onClick={() => setFocusedIdx(idx)}
                             placeholder="Matn..."
                             rows={3}
                           />
@@ -1372,6 +1463,16 @@ const EditPlantation = () => {
                                accept="image/*"
                                onChange={(e) => {
                                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                                 if (file) {
+                                   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+                                     alert("Rasm formati noto'g'ri. JPG, PNG yoki WEBP tanlang.");
+                                     return;
+                                   }
+                                   if (file.size > MAX_IMAGE_SIZE) {
+                                     alert("Rasm hajmi 10MB dan oshmasligi kerak.");
+                                     return;
+                                   }
+                                 }
                                  const next = [...moderationItems];
                                  try { if (next[idx]?.preview) URL.revokeObjectURL(next[idx].preview); } catch(_) {}
                                  const preview = file ? URL.createObjectURL(file) : null;
@@ -1383,9 +1484,10 @@ const EditPlantation = () => {
                              />
                              <button
                                type="button"
-                               className="px-3 py-1.5 rounded bg-gray-700 text-gray-200 hover:bg-gray-600"
+                               className="px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors text-sm flex items-center gap-2"
                                onClick={() => fileInputsRef.current[idx] && fileInputsRef.current[idx].click()}
                              >
+                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 5v12"/></svg>
                                Fayl tanlash
                              </button>
                              {item.image && (
