@@ -55,7 +55,7 @@ const EditPlantation = () => {
 
   const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-  const [dragActive, setDragActive] = useState(false);
+  // dragActive visual state removed; handlers keep preventing default
   const [focusedIdx, setFocusedIdx] = useState(null);
 
   const validateImageFile = (file) => {
@@ -102,12 +102,12 @@ const EditPlantation = () => {
     } catch {}
   };
 
-  const handleDragOver = (e) => { e.preventDefault(); setDragActive(true); };
-  const handleDragEnter = (e) => { e.preventDefault(); setDragActive(true); };
-  const handleDragLeave = (e) => { e.preventDefault(); setDragActive(false); };
+  // dragActive visual state removed; handlers keep preventing default
+  const handleDragOver = (e) => { e.preventDefault(); };
+  const handleDragEnter = (e) => { e.preventDefault(); };
+  const handleDragLeave = (e) => { e.preventDefault(); };
   const handleDropFiles = (e) => {
     e.preventDefault();
-    setDragActive(false);
     try {
       const files = Array.from(e.dataTransfer?.files || []);
       const img = files.find(f => ALLOWED_IMAGE_TYPES.has(f.type));
