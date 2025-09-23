@@ -41,7 +41,7 @@ const Moderation = () => {
     moderated_by_username: "All",
     has_moderation_comment: "All",
     // сортировка
-    sort_by: "created_at",
+    sort_by: "default",
     sort_order: "asc",
   });
 
@@ -85,7 +85,7 @@ const Moderation = () => {
       moderated_by_username: searchParams.get('moderated_by_username') || "All",
       has_moderation_comment: searchParams.get('has_moderation_comment') || "All",
       // сортировка
-      sort_by: searchParams.get('sort_by') || 'created_at',
+      sort_by: searchParams.get('sort_by') || 'default',
       sort_order: searchParams.get('sort_order') || 'asc',
     };
   };
@@ -357,7 +357,7 @@ const Moderation = () => {
           moderated_by_username: filters.moderated_by_username !== "All" ? filters.moderated_by_username : undefined,
           has_moderation_comment: filters.has_moderation_comment !== "All" ? filters.has_moderation_comment : undefined,
           // сортировка
-          sort_by: filters.sort_by || 'created_at',
+          sort_by: filters.sort_by || 'default',
           sort_order: filters.sort_order || 'asc',
         };
         
@@ -510,7 +510,7 @@ const Moderation = () => {
   }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
-    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All", farmer: "All", sort_by: "created_at", sort_order: "asc" };
+    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All", farmer: "All", sort_by: "default", sort_order: "asc" };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('moderationPage', '1');
@@ -739,16 +739,9 @@ const Moderation = () => {
 
               {/* Sorting */}
               <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.sort_by} onChange={(e)=>{ const f={...filters,sort_by:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
-                <option value="created_at">Created at</option>
-                <option value="created_by__username">Created by</option>
-                <option value="farmer__name">Farmer</option>
-                <option value="district__name">District</option>
-                <option value="total_area">Total area</option>
-                <option value="fertility_score">Fertility</option>
-                <option value="garden_established_year">Est. year</option>
-                <option value="land_type">Land type</option>
-                <option value="moderated_at">Moderated at</option>
-                <option value="moderated_by__username">Moderator</option>
+                <option value="default">Standart (yangilangan avval)</option>
+                <option value="created_at">Yaratilgan sana</option>
+                <option value="updated_at">Yangilangan sana</option>
               </select>
               <select className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm" value={filters.sort_order} onChange={(e)=>{ const f={...filters,sort_order:e.target.value}; setFilters(f); setPage(1); localStorage.setItem('moderationPage','1'); saveFiltersToUrl(f,1); }}>
                 <option value="asc">Asc</option>

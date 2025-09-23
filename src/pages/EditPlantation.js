@@ -844,6 +844,8 @@ const EditPlantation = () => {
       }, refreshAccessToken, authState.accessToken);
 
       console.log("Plantation approved successfully");
+      // API автоматически очищает комментарии модерации; синхронизируем локальное состояние
+      setPlantation((prev) => prev ? { ...prev, moderation_comment: [] } : prev);
       setSuccessMessage("Plantatsiya muvaffaqiyatli tasdiqlandi!");
       
       // Задержка перед редиректом, чтобы пользователь увидел уведомление

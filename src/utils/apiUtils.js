@@ -69,7 +69,7 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
   if (!endpoint) {
     throw new Error('Endpoint is not defined');
   }
-  const url = `${API_BASE_URL2}${endpoint}`;
+  const url = `${API_BASE_URL2}${endpoint.endsWith('/') ? endpoint : endpoint + '/'}`;
   
   // Если отправляем FormData, не задаём Content-Type вручную
   const isFormData = typeof FormData !== 'undefined' && options && options.body instanceof FormData;
