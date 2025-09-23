@@ -25,6 +25,10 @@ const EditPlantation = () => {
   const [moderationItems, setModerationItems] = useState([]);
   const { authState, refreshAccessToken } = useContext(AuthContext);
   const canDeleteComments = authState?.userRole === 'superuser';
+  // Approve confirmation modal
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const openApproveModal = () => setIsApproveModalOpen(true);
+  const closeApproveModal = () => setIsApproveModalOpen(false);
   // Confirm deletion modal state for moderation comments
   const [isCommentDeleteOpen, setIsCommentDeleteOpen] = useState(false);
   const [pendingCommentId, setPendingCommentId] = useState(null);
@@ -1418,7 +1422,7 @@ const EditPlantation = () => {
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
               <button
                   className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center gap-2"
-                onClick={handleApprove}
+                onClick={openApproveModal}
                   disabled={isDeleted}
               >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
@@ -1703,6 +1707,29 @@ const EditPlantation = () => {
                     <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700" onClick={confirmDeleteModerationComment} disabled={!pendingCommentId}>O'chirish</button>
             </div>
           </div>
+              </div>
+            )}
+            {authState.userRole === "superuser" && isApproveModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeApproveModal}>
+                <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={closeApproveModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                  <h2 className="text-xl mb-4 text-white">Tasdiqlashni tasdiqlaysizmi?</h2>
+                  <p className="text-gray-300 mb-4">Ushbu plantatsiyani tasdiqlamoqchimisiz? Bu amal statusni "Tasdiqlangan" ga o'zgartiradi.</p>
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                      onClick={() => { closeApproveModal(); handleApprove(); }}
+                    >
+                      Ha, tasdiqlash
+                    </button>
+                    <button
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                      onClick={closeApproveModal}
+                    >
+                      Bekor qilish
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
