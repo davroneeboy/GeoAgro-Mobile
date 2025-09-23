@@ -455,7 +455,7 @@ const RejectedPlantations = () => {
                       </div>
                     </div>
 
-                    <div className="mt-2 bg-gray-700/30 rounded p-2 border border-gray-600">
+                      <div className="mt-2 bg-gray-700/30 rounded p-2 border border-gray-600">
                         <div className="text-gray-400 text-xs mb-1">Rad etish sababi</div>
                         <div className="text-white text-xs">
                           {Array.isArray(plantation.moderation_comment)
@@ -686,7 +686,7 @@ const RejectedPlantations = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
+                  <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
                     <div className="text-gray-400 text-xs mb-1">Sabab</div>
                     <div className="text-white text-xs">
                       {Array.isArray(plantation.moderation_comment)

@@ -33,7 +33,7 @@ const PlantationDetail = () => {
   const [regionLabels, setRegionLabels] = useState([]);
   const navigate = useNavigate();
   const { authState, refreshAccessToken } = useContext(AuthContext);
-
+  
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
       ...prev,
@@ -604,6 +604,32 @@ const PlantationDetail = () => {
                 <p className="text-white">{plantation.irrigation_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Kontur raqami:</p>
+                <div className="flex items-center gap-2 text-white text-sm">
+                  <span className="break-all">
+                    {Array.isArray(plantation.kontur_number)
+                      ? (() => {
+                          const arr = plantation.kontur_number.map((v) => String(v)).filter((s) => s.trim().length > 0);
+                          if (arr.length === 0) return '—';
+                          const limit = 5;
+                          const shown = arr.slice(0, limit).join(', ');
+                          const extra = arr.length - limit;
+                          return extra > 0 ? `${shown} … va yana ${extra} ta` : shown;
+                        })()
+                      : (plantation.kontur_number || '—')}
+                  </span>
+                  {Array.isArray(plantation.kontur_number) && plantation.kontur_number.length > 0 && (
+                    <button
+                      onClick={() => { try { navigator.clipboard.writeText(plantation.kontur_number.map((v) => String(v)).join(', ')); } catch(_) {} }}
+                      className="text-gray-300 hover:text-white"
+                      title="Nusxa olish"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Qo'shilgan vaqti:</p>
                 <p className="text-white">
                   {plantation.created_at 
@@ -669,13 +695,14 @@ const PlantationDetail = () => {
                 <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50 space-y-2">
                   {Array.isArray(plantation.moderation_comment) ? (
                     plantation.moderation_comment.map((mc, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
+                      <div key={mc?.id ?? idx} className="flex items-start gap-3">
                         <div className="text-gray-200 text-sm flex-1 whitespace-pre-wrap">{mc?.text || ''}</div>
                         {mc?.image && typeof mc.image === 'string' && (
                           <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
                             <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
                           </a>
                         )}
+
                       </div>
                     ))
                   ) : (

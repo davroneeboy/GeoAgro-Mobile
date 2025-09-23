@@ -29,9 +29,12 @@ import PerformanceDashboard from "./pages/admin/PerformanceDashboard";
 import MyLogsPage from "./pages/admin/MyLogsPage";
 import FarmerPlantationsMap from "./pages/FarmerPlantationsMap";
 
+import ConsoleRouter from "./admin/ConsoleRouter";
+
 export default function AppRouter() {
   return (
     <Routes>
+      <Route path="/admin/*" element={<ConsoleRouter />} />
       <Route path="/" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />

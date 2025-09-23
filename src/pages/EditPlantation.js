@@ -24,6 +24,29 @@ const EditPlantation = () => {
   const [customReason, setCustomReason] = useState("");
   const [moderationItems, setModerationItems] = useState([]);
   const { authState, refreshAccessToken } = useContext(AuthContext);
+  const canDeleteComments = authState?.userRole === 'superuser';
+  // Confirm deletion modal state for moderation comments
+  const [isCommentDeleteOpen, setIsCommentDeleteOpen] = useState(false);
+  const [pendingCommentId, setPendingCommentId] = useState(null);
+  const openCommentDeleteModal = (commentId) => { setPendingCommentId(commentId); setIsCommentDeleteOpen(true); };
+  const closeCommentDeleteModal = () => { setIsCommentDeleteOpen(false); setPendingCommentId(null); };
+  const confirmDeleteModerationComment = async () => {
+    if (!pendingCommentId) return;
+    try {
+      await apiRequest(`api/comments/${pendingCommentId}`, { method: 'DELETE' }, refreshAccessToken, authState.accessToken);
+      setPlantation((prev) => {
+        if (!prev) return prev;
+        const nextComments = Array.isArray(prev.moderation_comment)
+          ? prev.moderation_comment.filter((c) => String(c?.id) !== String(pendingCommentId))
+          : prev.moderation_comment;
+        return { ...prev, moderation_comment: nextComments };
+      });
+    } catch (e) {
+      console.error('Failed to delete moderation comment', e);
+    } finally {
+      closeCommentDeleteModal();
+    }
+  };
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
   const [error, setError] = useState(null);
@@ -1172,6 +1195,32 @@ const EditPlantation = () => {
                   </div>
                 </div>
               )}
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Kontur raqami:</p>
+                <div className="flex items-center gap-2 text-white text-sm">
+                  <span className="break-all">
+                    {Array.isArray(plantation.kontur_number)
+                      ? (() => {
+                          const arr = plantation.kontur_number.map((v) => String(v)).filter((s) => s.trim().length > 0);
+                          if (arr.length === 0) return '—';
+                          const limit = 5;
+                          const shown = arr.slice(0, limit).join(', ');
+                          const extra = arr.length - limit;
+                          return extra > 0 ? `${shown} … va yana ${extra} ta` : shown;
+                        })()
+                      : (plantation.kontur_number || '—')}
+                  </span>
+                  {Array.isArray(plantation.kontur_number) && plantation.kontur_number.length > 0 && (
+                    <button
+                      onClick={() => { try { navigator.clipboard.writeText(plantation.kontur_number.map((v) => String(v)).join(', ')); } catch(_) {} }}
+                      className="text-gray-300 hover:text-white"
+                      title="Nusxa olish"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Секция с комментарием модерации */}
@@ -1184,13 +1233,14 @@ const EditPlantation = () => {
                 <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50 space-y-2">
                   {Array.isArray(plantation.moderation_comment) ? (
                     plantation.moderation_comment.map((mc, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
+                      <div key={mc?.id ?? idx} className="flex items-start gap-3">
                         <div className="text-gray-200 text-sm flex-1 whitespace-pre-wrap">{mc?.text || ''}</div>
                         {mc?.image && typeof mc.image === 'string' && (
                           <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
                             <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
                           </a>
                         )}
+
                       </div>
                     ))
                   ) : (
@@ -1409,6 +1459,38 @@ const EditPlantation = () => {
                     <h2 className="text-xl mb-4 text-white">Plantatsiyani rad etish</h2>
                     <p className="text-gray-300 mb-3">Bu plantatsiyani rad etishni xohlaysizmi? Har bir bandga rasm qo'shish ixtiyoriy.</p>
 
+                    {/* Mavjud moderatsiya izohlari: ko'rish va o'chirish */}
+                    <div className="mb-4 p-3 rounded-md border border-gray-600 bg-gray-700/40">
+                      <div className="text-sm text-gray-300 mb-2">Mavjud izohlar</div>
+                      <div className="space-y-2">
+                        {Array.isArray(plantation.moderation_comment) && plantation.moderation_comment.length > 0 ? (
+                          plantation.moderation_comment.map((mc, idx) => (
+                            <div key={mc?.id ?? idx} className="flex items-center gap-3 p-2 rounded border border-gray-600 bg-gray-700/40">
+                              <div className="text-gray-200 text-sm flex-1 whitespace-pre-wrap">{mc?.text || ''}</div>
+                              {mc?.image && typeof mc.image === 'string' && (
+                                <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                                  <img src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-gray-600" />
+                                </a>
+                              )}
+                              {canDeleteComments && mc?.id && (
+                                <button
+                                  onClick={() => openCommentDeleteModal(mc.id)}
+                                  className="text-red-400 hover:text-red-300 shrink-0"
+                                  title="O'chirish"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-gray-400 text-sm">Izohlar mavjud emas</div>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Reasons multi-select */}
                     <div className="mb-4 p-3 rounded-md border border-gray-600 bg-gray-700/40">
                       <div className="text-sm text-gray-300 mb-2">Rad etish sabablari (bir nechtasini tanlash mumkin):</div>
@@ -1470,7 +1552,7 @@ const EditPlantation = () => {
                       {moderationItems.map((item, idx) => (
                         <div key={idx} className="p-3 rounded-md border border-gray-600 bg-gray-700/60">
                           <label className="block text-sm text-gray-300 mb-1">Izoh #{idx + 1}</label>
-                          <textarea
+                    <textarea
                             className="w-full p-2 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400"
                             value={item.text}
                             onChange={(e) => {
@@ -1609,6 +1691,20 @@ const EditPlantation = () => {
                   </div>
                 </div>
               )}
+            {/* Confirm delete moderation comment modal */}
+            {authState.userRole === "superuser" && isCommentDeleteOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeCommentDeleteModal}>
+                <div className="relative bg-gray-800 p-6 rounded-md w-[420px] max-w-[90vw] border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={closeCommentDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                  <h3 className="text-lg mb-3 text-white">Izohni o'chirish</h3>
+                  <p className="text-gray-300 mb-4">Ushbu moderatsiya izohini o'chirishni tasdiqlaysizmi?</p>
+                  <div className="flex justify-end gap-3">
+                    <button className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700" onClick={closeCommentDeleteModal}>Bekor qilish</button>
+                    <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700" onClick={confirmDeleteModerationComment} disabled={!pendingCommentId}>O'chirish</button>
+            </div>
+          </div>
+              </div>
+            )}
           </div>
         </>
       ) : (

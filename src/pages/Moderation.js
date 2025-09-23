@@ -360,7 +360,7 @@ const Moderation = () => {
           sort_by: filters.sort_by || 'created_at',
           sort_order: filters.sort_order || 'asc',
         };
-
+        
         // Очищаем объект от undefined значений
         const params = Object.fromEntries(
           Object.entries(rawParams).filter(([_, value]) => value !== undefined)
@@ -383,13 +383,13 @@ const Moderation = () => {
         try {
           response = await axios.get(
             moderationEndpoint,
-            {
-              params,
-              headers: {
-                Authorization: `Bearer ${authState.accessToken}`,
-              },
-            }
-          );
+          {
+            params,
+            headers: {
+              Authorization: `Bearer ${authState.accessToken}`,
+            },
+          }
+        );
         } catch (err) {
           // Фолбэк для observer: если вдруг ошибка, повторим на `/api/plantations/`
           if (authState.userRole === 'observer') {
