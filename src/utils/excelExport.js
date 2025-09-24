@@ -619,3 +619,29 @@ export const exportFarmersToExcel = (rows, districtName, filename) => {
     return false;
   }
 }; 
+
+export const exportSimpleSheet = (rows, columns, filename = 'export.xlsx', sheetName = 'Data') => {
+  try {
+    const workbook = XLSX.utils.book_new();
+    const headerKeys = columns.map(c => c.key);
+    const worksheet = XLSX.utils.json_to_sheet(rows, { header: headerKeys });
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1';
+      if (worksheet[address]) {
+        const key = worksheet[address].v;
+        const col = columns.find(col => col.key === key);
+        if (col) worksheet[address].v = col.header;
+      }
+    }
+    worksheet['!cols'] = columns.map(c => ({ width: c.width || 20 }));
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, filename);
+    return true;
+  } catch (e) {
+    console.error('exportSimpleSheet error:', e);
+    return false;
+  }
+}; 

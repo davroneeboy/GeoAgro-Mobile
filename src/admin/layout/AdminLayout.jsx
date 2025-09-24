@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Layout, Menu, Dropdown } from 'antd';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { getUserInfo } from '../../utils/apiUtils';
 
 const { Header, Sider, Content, Footer } = Layout;
 
-const menuItems = [
+const baseMenuItems = [
   { key: '/admin', label: <Link to="/admin">Дашборд</Link> },
   { key: '/admin/districts', label: <Link to="/admin/districts">Районы</Link> },
   { key: '/admin/farmers', label: <Link to="/admin/farmers">Фермеры</Link> },
@@ -12,6 +13,7 @@ const menuItems = [
   { key: '/admin/fruit-varieties', label: <Link to="/admin/fruit-varieties">Сорта фруктов</Link> },
   { key: '/admin/investments', label: <Link to="/admin/investments">Инвестиции</Link> },
   { key: '/admin/plantations', label: <Link to="/admin/plantations">Плантации</Link> },
+  { key: '/admin/moderation', label: <Link to="/admin/moderation">Модерация</Link> },
   { key: '/admin/reservoirs', label: <Link to="/admin/reservoirs">Резервуары</Link> },
   { key: '/admin/rootstocks', label: <Link to="/admin/rootstocks">Подвои</Link> },
   { key: '/admin/subsidys', label: <Link to="/admin/subsidys">Субсидии</Link> },
@@ -20,13 +22,26 @@ const menuItems = [
   { key: '/admin/mod-logs', label: <Link to="/admin/mod-logs">Логи модерации</Link> },
 ];
 
+function getMenuForRole() {
+  const info = getUserInfo();
+  const role = typeof info?.user_role === 'number' ? info.user_role : 0;
+  if (role === 1) return baseMenuItems; // superuser
+  if (role === 2) {
+    // head of region: скрываем Users и Mod-logs
+    return baseMenuItems.filter(i => i.key !== '/admin/users' && i.key !== '/admin/mod-logs');
+  }
+  // прочим доступ закрыт, оставим только дашборд
+  return baseMenuItems.filter(i => i.key === '/admin');
+}
+
 export default function AdminLayout() {
   const { pathname } = useLocation();
+  const menuItems = useMemo(() => getMenuForRole(), []);
   const selectedKeys = useMemo(() => {
-    const found = menuItems.find(item => pathname.startsWith(item.key));
+    const sorted = [...menuItems].sort((a, b) => b.key.length - a.key.length);
+    const found = sorted.find(item => pathname === item.key || pathname.startsWith(item.key + '/'));
     return [found ? found.key : '/admin'];
-  }, [pathname]);
-
+  }, [pathname, menuItems]);
 
   return (
     <Layout className="min-h-screen">
