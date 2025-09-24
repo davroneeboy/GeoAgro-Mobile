@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Descriptions, Row, Spin, message, Space, Button, Table, Divider, Image, Tag, Modal, Input } from 'antd';
+import { Card, Col, Descriptions, Row, Spin, message, Space, Button, Table, Image, Tag, Modal, Input } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { moderationApi } from '../../services/adminApi';
 import { API_BASE_URL2 } from '../../../config';
@@ -85,11 +85,6 @@ export default function ModerationDetail() {
   if (loading) return <Spin />;
   if (!data) return null;
 
-  const fruitAreas = data.fruit_areas || [];
-  const investments = data.investments || [];
-  const subsidies = data.subsidies || [];
-  const trellises = data.trellises || [];
-  const reservoirs = data.reservoirs || [];
   const images = (data.images || []).map(resolveImageSrc).filter(Boolean);
 
   return (
