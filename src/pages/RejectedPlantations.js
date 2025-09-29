@@ -507,7 +507,7 @@ const RejectedPlantations = () => {
                         <input
                           type="number"
                           min="1"
-                          max={Math.min(totalPages, 50)}
+                          max={totalPages}
                           value={pageInput}
                           onChange={handlePageInputChange}
                           className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center text-sm"

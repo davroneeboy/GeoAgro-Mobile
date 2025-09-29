@@ -30,7 +30,7 @@ const ApprovedPlantations = () => {
     const savedPage = parseInt(localStorage.getItem('approvedPlantationsPage') || "1", 10);
     
     const pageToUse = urlParams.get("page") ? pageParam : savedPage;
-    const validPage = pageToUse > 0 && pageToUse <= 50 ? pageToUse : 1;
+    const validPage = pageToUse > 0 ? pageToUse : 1;
     
     if (!urlParams.get("page") && savedPage !== validPage) {
       window.history.replaceState(null, '', `/approved-plantations?page=${validPage}`);
@@ -148,7 +148,7 @@ const ApprovedPlantations = () => {
     
     if (!pageFromUrl) {
       const savedPage = parseInt(localStorage.getItem('approvedPlantationsPage') || "1", 10);
-      const validSavedPage = savedPage > 0 && savedPage <= 50 ? savedPage : 1;
+      const validSavedPage = savedPage > 0 ? savedPage : 1;
       setPage(validSavedPage);
       window.history.replaceState(null, '', `/approved-plantations?page=${validSavedPage}`);
       return;
@@ -156,7 +156,7 @@ const ApprovedPlantations = () => {
     
     const pageNumber = parseInt(pageFromUrl);
     
-    if (pageNumber > 0 && pageNumber <= 50) {
+    if (pageNumber > 0) {
       setPage(pageNumber);
       localStorage.setItem('approvedPlantationsPage', pageNumber.toString());
     } else {
@@ -183,7 +183,7 @@ const ApprovedPlantations = () => {
   const handlePageInputSubmit = (e) => {
     e.preventDefault();
     const newPage = parseInt(pageInput, 10);
-    if (newPage > 0 && newPage <= totalPages && newPage <= 50) {
+    if (newPage > 0 && newPage <= totalPages) {
       setPage(newPage);
       localStorage.setItem('approvedPlantationsPage', newPage.toString());
       saveFiltersToUrl(filters, newPage);
@@ -203,7 +203,7 @@ const ApprovedPlantations = () => {
 
   // Функция для перехода в конец
   const goToLastPage = () => {
-    const lastPage = Math.min(totalPages, 50);
+    const lastPage = totalPages > 0 ? totalPages : 1;
     setPage(lastPage);
     setPageInput(lastPage.toString());
     localStorage.setItem('approvedPlantationsPage', lastPage.toString());
@@ -734,7 +734,7 @@ const ApprovedPlantations = () => {
                       <input
                         type="number"
                         min="1"
-                        max={Math.min(totalPages, 50)}
+                        max={totalPages || 1}
                         value={pageInput}
                         onChange={handlePageInputChange}
                         className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
@@ -753,13 +753,13 @@ const ApprovedPlantations = () => {
                       className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                       onClick={() => {
                         const newPage = page + 1;
-                        if (newPage <= totalPages && newPage <= 50) {
+                        if (newPage <= totalPages) {
                           setPage(newPage);
                           localStorage.setItem('approvedPlantationsPage', newPage.toString());
                           saveFiltersToUrl(filters, newPage);
                         }
                       }}
-                      disabled={page >= totalPages || page >= 50}
+                      disabled={page >= totalPages}
                     >
                       Oldinga
                     </button>
@@ -768,7 +768,7 @@ const ApprovedPlantations = () => {
                     <button
                       className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       onClick={goToLastPage}
-                      disabled={page >= totalPages || page >= 50}
+                      disabled={page >= totalPages}
                       title="Oxirgi sahifa"
                     >
                       <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1031,7 +1031,7 @@ const ApprovedPlantations = () => {
                     <input
                       type="number"
                       min="1"
-                      max={Math.min(totalPages, 50)}
+                      max={totalPages || 1}
                       value={pageInput}
                       onChange={handlePageInputChange}
                       className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
@@ -1050,13 +1050,13 @@ const ApprovedPlantations = () => {
                     className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     onClick={() => {
                       const newPage = page + 1;
-                      if (newPage <= totalPages && newPage <= 50) {
+                      if (newPage <= totalPages) {
                         setPage(newPage);
                         localStorage.setItem('approvedPlantationsPage', newPage.toString());
                         saveFiltersToUrl(filters, newPage);
                       }
                     }}
-                    disabled={page >= totalPages || page >= 50}
+                    disabled={page >= totalPages}
                   >
                     Oldinga
                   </button>
@@ -1065,7 +1065,7 @@ const ApprovedPlantations = () => {
                   <button
                     className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     onClick={goToLastPage}
-                    disabled={page >= totalPages || page >= 50}
+                    disabled={page >= totalPages}
                     title="Oxirgi sahifa"
                   >
                     <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
