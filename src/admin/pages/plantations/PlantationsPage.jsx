@@ -5,6 +5,7 @@ import PageHeader from '../../components/common/PageHeader';
 import TableLayout from '../../components/common/TableLayout';
 import FilterDrawer from '../../components/common/FilterDrawer';
 import { moderationApi } from '../../services/adminApi';
+import { formatNumberShort } from '../../utils/format';
 
 export default function PlantationsPage() {
   const [q, setQ] = useState('');
@@ -46,8 +47,8 @@ export default function PlantationsPage() {
             { title: 'ID', dataIndex: 'id', width: 90 },
             { title: 'Фермер', dataIndex: 'farmer_name', render: (v, r) => <div>{v || '—'}{r.farmer_phone ? <div className="text-xs text-gray-500">{r.farmer_phone}</div> : null}</div> },
             { title: 'Район', dataIndex: 'district_name' },
-            { title: 'Площадь (га)', dataIndex: 'total_area', align: 'right' },
-            { title: 'Посажено (га)', dataIndex: 'total_planted_area', align: 'right' },
+            { title: 'Площадь (га)', dataIndex: 'total_area', align: 'right', render: (v) => formatNumberShort(v) },
+            { title: 'Посажено (га)', dataIndex: 'total_planted_area', align: 'right', render: (v) => formatNumberShort(v) },
             { title: 'Статус', dataIndex: 'status', render: (s) => <Tag color={s === 'approved' ? 'green' : s === 'rejected' ? 'red' : 'default'}>{s}</Tag> },
             { title: 'Действия', key: 'actions', render: (_, r) => <Link to={`/admin/moderation/${r.id}`}><Button size="small">Подробнее</Button></Link> },
           ]}

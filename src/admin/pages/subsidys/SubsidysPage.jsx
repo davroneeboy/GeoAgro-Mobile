@@ -5,6 +5,7 @@ import TableLayout from '../../components/common/TableLayout';
 import FilterDrawer from '../../components/common/FilterDrawer';
 import { referencesApi } from '../../services/adminApi';
 import { exportSimpleSheet } from '../../../utils/excelExport';
+import { formatNumberShort } from '../../utils/format';
 
 export default function SubsidysPage() {
   const [q, setQ] = useState('');
@@ -49,7 +50,7 @@ export default function SubsidysPage() {
         <Table
           columns={[
             { title: 'Назначение', dataIndex: 'purpose' },
-            { title: 'Сумма', dataIndex: 'amount', align: 'right' },
+            { title: 'Сумма', dataIndex: 'amount', align: 'right', render: (v) => formatNumberShort(v) },
             { title: 'Описание', dataIndex: 'description' },
             { title: 'Действия', key: 'actions', render: (_, r) => (
               <Space>

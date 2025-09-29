@@ -58,7 +58,19 @@ const isHeadOfRegion = (role) => {
 const getMenuItemsByRole = (role, regionId) => {
   if (role === "superuser") {
     return [
-      ...MENU_ITEMS.filter(item => item.to !== "/admin/logs" && item.to !== "/my/logs"),
+      ...MENU_ITEMS.filter(item => item.to !== "/admin/logs" && item.to !== "/admin/performance" && item.to !== "/my/logs"),
+      { to: "/admin", label: "Admin panel", icon: (
+        <svg className="w-6 h-6 text-white" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
+          <g>
+            <path d="m58 5h-52c-3.3 0-6 2.7-6 6v32c0 3.3 2.7 6 6 6h17.8c-.3 2.1-1.2 5.2-3.6 6.1-.9.4-1.4 1.3-1.2 2.2s1 1.6 2 1.6h22.4c1 0 1.8-.7 2-1.6s-.3-1.9-1.2-2.2c-2.3-.9-3.4-3.9-3.8-6.1h17.6c3.3 0 6-2.7 6-6v-32c0-3.3-2.7-6-6-6zm-52 4h52c1.1 0 2 .9 2 2v26h-56v-26c0-1.1.9-2 2-2zm32.3 46h-12.3c1.2-2.1 1.7-4.4 1.9-6h8.4c.2 1.6.8 3.9 2 6zm19.7-10h-52c-1.1 0-2-.9-2-2v-2h56v2c0 1.1-.9 2-2 2z"/>
+            <g>
+              <path d="m39.6 30.4c.4.4.9.6 1.5.6.5 0 1.1-.2 1.5-.6l5.9-5.5c.8-.8.8-2 0-2.8l-5.9-5.5c-.8-.8-2.1-.8-2.9 0s-.8 2 0 2.8l4.4 4.2-4.4 4.2c-.9.6-.9 1.9-.1 2.6z"/>
+              <path d="m24.4 16.6c-.4-.4-.9-.6-1.5-.6s-1.1.2-1.5.6l-5.9 5.5c-.8.8-.8 2 0 2.8l5.9 5.5c.8.8 2.1.8 2.9 0s.8-2 0-2.8l-4.3-4.1 4.4-4.2c.8-.7.8-2 0-2.7z"/>
+              <path d="m27.9 35.9c.2.1.4.1.6.1.9 0 1.7-.6 1.9-1.4l6.9-21c.3-1.1-.3-2.2-1.3-2.5-1.1-.3-2.2.3-2.5 1.3l-6.9 21c-.3 1.1.3 2.2 1.3 2.5z"/>
+            </g>
+          </g>
+        </svg>
+      ) },
       { to: "/admin/logs", label: "Admin logs", icon: (
         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -250,7 +262,7 @@ const LeftNav = () => {
 
       <nav className="py-3 px-2 space-y-3 mt-2">
         {/* Основные пункты меню */}
-        {items.filter(item => !['/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
+        {items.filter(item => !['/admin','/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
           const active = isActive(item.to);
           const isStats = item.to === '/statistics/regions' || item.to.startsWith('/statistics/regions/');
           return (
@@ -318,10 +330,10 @@ const LeftNav = () => {
           );
         })}
         {/* Admin block только для superuser */}
-        {authState?.userRole === 'superuser' && items.some(item => ['/admin/logs','/admin/performance','/my/logs'].includes(item.to)) && (
+        {authState?.userRole === 'superuser' && items.some(item => ['/admin','/admin/logs','/admin/performance','/my/logs'].includes(item.to)) && (
           <div className="admin-block flex flex-col gap-2">
             {!collapsed && <div className="text-xs font-bold text-gray-400 uppercase px-4 pb-2 pt-1 tracking-widest flex items-center gap-2"><SettingOutlined className="text-base" /> Admin panel</div>}
-            {items.filter(item => ['/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
+            {items.filter(item => ['/admin','/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
               const active = isActive(item.to);
               return (
                 <Link

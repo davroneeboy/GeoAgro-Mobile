@@ -3,6 +3,8 @@ import { Button, DatePicker, Input, Select, Table, Tag, message } from 'antd';
 import { moderationApi } from '../../services/adminApi';
 import PageHeader from '../../components/common/PageHeader';
 import { Link } from 'react-router-dom';
+import { formatNumberShort } from '../../utils/format';
+import { exportSimpleSheet } from '../../../utils/excelExport';
 
 const statusOptions = [
   { value: 'pending', label: 'На модерации' },
@@ -51,10 +53,10 @@ export default function ModerationQueue() {
     { title: 'ID', dataIndex: 'id', sorter: true, width: 90 },
     { title: 'Фермер', dataIndex: 'farmer_name', render: (v, r) => <div>{v || '—'}{r.farmer_phone ? <div className="text-xs text-gray-500">{r.farmer_phone}</div> : null}</div> },
     { title: 'Район', dataIndex: 'district_name' },
-    { title: 'Площадь', dataIndex: 'total_area', align: 'right' },
-    { title: 'Посажено', dataIndex: 'total_planted_area', align: 'right' },
+    { title: 'Площадь', dataIndex: 'total_area', align: 'right', render: (v) => formatNumberShort(v) },
+    { title: 'Посажено', dataIndex: 'total_planted_area', align: 'right', render: (v) => formatNumberShort(v) },
     { title: 'Статус', dataIndex: 'status', render: (s) => <Tag color={s === 'approved' ? 'green' : s === 'rejected' ? 'red' : 'default'}>{s}</Tag> },
-    { title: 'Ожидание (ч)', dataIndex: 'waiting_time_hours', align: 'right' },
+    { title: 'Ожидание (ч)', dataIndex: 'waiting_time_hours', align: 'right', render: (v) => formatNumberShort(v) },
     { title: 'Создано', dataIndex: 'created_at', render: (v) => v ? new Date(v).toLocaleString() : '—' },
     { title: 'Действия', key: 'actions', render: (_, r) => <Link to={`/admin/moderation/${r.id}`}><Button size="small">Подробнее</Button></Link> },
   ];
@@ -86,6 +88,29 @@ export default function ModerationQueue() {
     }
   };
 
+  const exportXlsx = () => {
+    const rows = (data || []).map(r => ({
+      id: r.id,
+      farmer: r.farmer_name,
+      district: r.district_name,
+      total_area: r.total_area,
+      total_planted_area: r.total_planted_area,
+      status: r.status,
+      waiting_time_hours: r.waiting_time_hours,
+      created_at: r.created_at ? new Date(r.created_at).toLocaleString() : ''
+    }));
+    exportSimpleSheet(rows, [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Фермер', key: 'farmer', width: 26 },
+      { header: 'Район', key: 'district', width: 18 },
+      { header: 'Площадь', key: 'total_area', width: 14 },
+      { header: 'Посажено', key: 'total_planted_area', width: 14 },
+      { header: 'Статус', key: 'status', width: 14 },
+      { header: 'Ожидание (ч)', key: 'waiting_time_hours', width: 16 },
+      { header: 'Создано', key: 'created_at', width: 22 },
+    ], 'moderation-queue.xlsx', 'ModerationQueue');
+  };
+
   return (
     <div className="space-y-3">
       <PageHeader title="Очередь модерации" />
@@ -99,6 +124,7 @@ export default function ModerationQueue() {
         <DatePicker placeholder="До" onChange={(d) => setFilters((p) => ({ ...p, date_to: d ? d.format('YYYY-MM-DD') : undefined }))} />
         <Button onClick={() => fetchList(1, pagination.pageSize, filters, sorting)}>Применить</Button>
         <Button onClick={() => { const reset = { status: 'pending', region: undefined, district: undefined, search: '', date_from: undefined, date_to: undefined }; setFilters(reset); fetchList(1, pagination.pageSize, reset, sorting); }}>Сбросить</Button>
+        <Button onClick={exportXlsx}>Экспорт</Button>
       </div>
 
       <div className="flex items-center gap-2">

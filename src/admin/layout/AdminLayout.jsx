@@ -3,7 +3,7 @@ import { Layout, Menu, Dropdown } from 'antd';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { getUserInfo } from '../../utils/apiUtils';
 
-const { Header, Sider, Content, Footer } = Layout;
+const { Header, Sider, Content } = Layout;
 
 const baseMenuItems = [
   { key: '/admin', label: <Link to="/admin">Дашборд</Link> },
@@ -65,7 +65,6 @@ export default function AdminLayout() {
             <Outlet />
           </div>
         </Content>
-        <Footer className="text-center">© {new Date().getFullYear()} Agrosanoat</Footer>
       </Layout>
     </Layout>
   );

@@ -5,6 +5,7 @@ import TableLayout from '../../components/common/TableLayout';
 import FilterDrawer from '../../components/common/FilterDrawer';
 import { referencesApi } from '../../services/adminApi';
 import { exportSimpleSheet } from '../../../utils/excelExport';
+import { formatNumberShort } from '../../utils/format';
 
 export default function ReservoirsPage() {
   const [q, setQ] = useState('');
@@ -51,7 +52,7 @@ export default function ReservoirsPage() {
         <Table
           columns={[
             { title: 'Тип', dataIndex: 'type' },
-            { title: 'Объём', dataIndex: 'capacity', align: 'right' },
+            { title: 'Объём', dataIndex: 'capacity', align: 'right', render: (v) => formatNumberShort(v) },
             { title: 'Описание', dataIndex: 'description' },
             { title: 'Действия', key: 'actions', render: (_, r) => (
               <Space>
