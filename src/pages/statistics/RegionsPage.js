@@ -1033,6 +1033,13 @@ const RegionsPage = () => {
       onCell: (record) => ({
         onClick: () => {
           if (record.key !== "total") {
+            const regionId = String(authState?.regionId || '');
+            const isHead = String(authState?.userRole) === 'headof_region';
+            const target = String(record.key);
+            if (isHead && regionId && target !== regionId) {
+              message.warning("Siz faqat o'zingizning viloyatingizni ko'ra olasiz");
+              return;
+            }
             const params = new URLSearchParams(location.search);
             const queryString = params.toString();
             navigate(`/statistics/regions/${record.key}${queryString ? `?${queryString}` : ''}`);

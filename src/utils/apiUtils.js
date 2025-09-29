@@ -41,7 +41,11 @@ const dedupeFetchJson = async (url, config = {}) => {
   const method = (config.method || 'GET').toUpperCase();
   if (method !== 'GET') {
     const resp = await fetch(url, config);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    if (!resp.ok) {
+      const error = new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+      error.response = { status: resp.status, statusText: resp.statusText };
+      throw error;
+    }
     return resp.json();
   }
   const key = buildRequestKey(url, config);
@@ -50,7 +54,11 @@ const dedupeFetchJson = async (url, config = {}) => {
   }
   const promise = (async () => {
     const resp = await fetch(url, config);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    if (!resp.ok) {
+      const error = new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+      error.response = { status: resp.status, statusText: resp.statusText };
+      throw error;
+    }
     return resp.json();
   })();
   inFlightJsonRequests.set(key, promise);

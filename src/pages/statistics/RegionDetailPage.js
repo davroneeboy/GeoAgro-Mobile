@@ -95,6 +95,16 @@ const RegionDetailPage = () => {
 
       try {
         setLoading(true);
+        // RBAC: glava regiona vidit tol'ko svoy region
+        const isHead = String(authState?.userRole) === 'headof_region';
+        const myRegion = String(authState?.regionId || '');
+        const targetRegion = String(id || '');
+        const qs = location?.search || '';
+        if (isHead && myRegion && targetRegion && myRegion !== targetRegion) {
+          navigate(`/statistics/regions/${myRegion}${qs}` , { replace: true });
+          return;
+        }
+        const allowedId = (isHead && myRegion) ? myRegion : id;
         
         // Читаем фильтры из URL параметров
         const searchParams = new URLSearchParams(location.search);
@@ -109,7 +119,7 @@ const RegionDetailPage = () => {
         
         if (!dataType || dataType === 'all') {
           // Для всех плантаций используем обычный API статистики
-          let url = `${API_BASE_URL1}api/statistics/regions/${id}/`;
+          let url = `${API_BASE_URL1}api/statistics/regions/${allowedId}/`;
           const queryParams = new URLSearchParams();
           
           if (estDate) {
@@ -138,7 +148,7 @@ const RegionDetailPage = () => {
           }
         } else if (dataType === 'approved') {
           // Для подтвержденных используем новый API endpoint
-          let approvedUrl = `${API_BASE_URL1}api/statistics/regions/${id}/approved/`;
+          let approvedUrl = `${API_BASE_URL1}api/statistics/regions/${allowedId}/approved/`;
           const queryParams = new URLSearchParams();
           
           if (estDate) {
@@ -155,7 +165,7 @@ const RegionDetailPage = () => {
           data = await fetchStatisticsData(approvedUrl, authState.accessToken);
         } else if (dataType === 'rejected') {
           // Для отклонённых используем статистику rejected c фильтром по региону
-          let rejectedUrl = `${API_BASE_URL2}api/statistics/rejected/?region=${id}`;
+          let rejectedUrl = `${API_BASE_URL2}api/statistics/rejected/?region=${allowedId}`;
           const queryParams = new URLSearchParams();
           if (estDate) queryParams.append('est_date', estDate);
           if (plantationType) queryParams.append('plantation_type', plantationType);
@@ -403,7 +413,11 @@ const RegionDetailPage = () => {
         
         setStatistics(processedData);
       } catch (err) {
-        setError(err.message);
+        if (err?.response?.status === 403) {
+          setError("403 Forbidden: Siz ushbu viloyat statistikalarini ko'ra olmaysiz");
+        } else {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }

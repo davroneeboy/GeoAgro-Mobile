@@ -34,7 +34,7 @@ import ConsoleRouter from "./admin/ConsoleRouter";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ConsoleRouter /></ProtectedRoute>} />
+      <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["superuser"]}><ConsoleRouter /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
@@ -49,7 +49,7 @@ export default function AppRouter() {
       <Route path="/plantations/edit/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><EditPlantation /></ProtectedRoute>} />
       <Route path="/user/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><UserInfo /></ProtectedRoute>} />
       <Route path="/statistics/regions" element={<ProtectedRoute allowedRoles={["superuser", "observer"]}><RegionsPage /></ProtectedRoute>} />
-      <Route path="/statistics/regions/:id" element={<ProtectedRoute allowedRoles={["superuser", "observer"]}><RegionDetailPage /></ProtectedRoute>} />
+      <Route path="/statistics/regions/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><RegionDetailPage /></ProtectedRoute>} />
       <Route path="/statistics/fruits" element={<ProtectedRoute allowedRoles={["superuser", "observer"]}><FruitsPage /></ProtectedRoute>} />
       <Route path="/statistics/fruits/:id" element={<ProtectedRoute allowedRoles={["superuser", "observer"]}><FruitDetailPage /></ProtectedRoute>} />
       <Route path="/statistics/controllers" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><ControllersPage /></ProtectedRoute>} />

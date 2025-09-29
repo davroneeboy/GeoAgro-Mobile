@@ -55,7 +55,7 @@ const isHeadOfRegion = (role) => {
   return norm === "headof_region" || norm === "headofregion" || norm === "headofregion";
 };
 
-const getMenuItemsByRole = (role) => {
+const getMenuItemsByRole = (role, regionId) => {
   if (role === "superuser") {
     return [
       ...MENU_ITEMS.filter(item => item.to !== "/admin/logs" && item.to !== "/my/logs"),
@@ -75,17 +75,27 @@ const getMenuItemsByRole = (role) => {
     ];
   }
   if (isHeadOfRegion(role)) {
-    const base = MENU_ITEMS.filter(item => [
-      "/plantations/uz",
-      "/statistics/regions",
-      "/farmers"
-    ].includes(item.to)).map(item => (item.to === "/statistics/regions" ? { ...item, to: "/statistics/controllers" } : item));
+    const plantationsItem = MENU_ITEMS.find(item => item.to === "/plantations/uz");
+    const farmersItem = MENU_ITEMS.find(item => item.to === "/farmers");
+
+    const statsItem = regionId ? {
+      to: `/statistics/regions/${regionId}`,
+      label: "Statistika",
+      icon: (
+        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    } : null;
+
     return [
-      ...base,
+      plantationsItem,
+      ...(statsItem ? [statsItem] : []),
+      farmersItem,
       { to: "/my/logs", label: "Mening loglarim", icon: (
         <UserOutlined className="w-6 h-6 text-white" />
       ) },
-    ];
+    ].filter(Boolean);
   }
   // Наблюдатель: карта UZ, статистика и список фермеров (без контролеров)
   if (String(role).toLowerCase() === 'observer') {
@@ -141,7 +151,13 @@ const LeftNav = () => {
 
   const width = collapsed ? 72 : 344;
   const toggleLeft = width - 12; // РєРЅРѕРїРєР° Сѓ РїСЂР°РІРѕРіРѕ РєСЂР°СЏ РїР°РЅРµР»Рё, РЅРµ СЃРѕР·РґР°С‘С‚ РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅРѕРіРѕ СЃРєСЂРѕР»Р»Р°
-  const items = useMemo(() => getMenuItemsByRole(authState?.userRole), [authState?.userRole]);
+  const effectiveRegionId = useMemo(() => {
+    const fromAuth = authState?.regionId;
+    const ui = authState?.userInfo || {};
+    const fromUI = ui?.district?.region?.id || ui?.region?.id || ui?.region_id;
+    return String(fromAuth || fromUI || '');
+  }, [authState?.regionId, authState?.userInfo]);
+  const items = useMemo(() => getMenuItemsByRole(authState?.userRole, effectiveRegionId), [authState?.userRole, effectiveRegionId]);
   const isActive = (to) => to.startsWith('/statistics') ? location.pathname.startsWith('/statistics') : location.pathname.startsWith(to);
   const statsSubItems = useMemo(() => {
     if (authState?.userRole === "superuser") {
@@ -164,7 +180,13 @@ const LeftNav = () => {
       ];
     }
     if (authState?.userRole === "headof_region") {
+      const myRegion = effectiveRegionId;
       return [
+        ...(myRegion ? [{ to: `/statistics/regions/${myRegion}`, label: 'Viloyat statistikasi', icon: (
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        ) }] : []),
         { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -230,7 +252,7 @@ const LeftNav = () => {
         {/* Основные пункты меню */}
         {items.filter(item => !['/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
           const active = isActive(item.to);
-          const isStats = item.to === '/statistics/regions';
+          const isStats = item.to === '/statistics/regions' || item.to.startsWith('/statistics/regions/');
           return (
             <div key={item.to}>
               {item.to === '/controllers' ? (
