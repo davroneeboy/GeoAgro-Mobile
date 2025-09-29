@@ -145,7 +145,7 @@ const Moderation = () => {
     
     // Если есть параметр в URL, используем его, иначе используем сохраненную страницу
     const pageToUse = urlParams.get("page") ? pageParam : savedPage;
-    const validPage = pageToUse > 0 && pageToUse <= 50 ? pageToUse : 1;
+    const validPage = pageToUse > 0 ? pageToUse : 1;
     
     // Если используем сохраненную страницу, обновляем URL
     if (!urlParams.get("page") && savedPage !== validPage) {
@@ -242,7 +242,7 @@ const Moderation = () => {
     // Если нет параметра page в URL, используем сохраненную страницу
     if (!pageFromUrl) {
       const savedPage = parseInt(localStorage.getItem('moderationPage') || "1", 10);
-      const validSavedPage = savedPage > 0 && savedPage <= 50 ? savedPage : 1;
+      const validSavedPage = savedPage > 0 ? savedPage : 1;
       console.log('Нет параметра page в URL, используем сохраненную страницу:', validSavedPage);
       setPage(validSavedPage);
       // Обновляем URL без перезагрузки
@@ -255,7 +255,7 @@ const Moderation = () => {
     console.log('Setting page from URL:', pageNumber);
     
     // Проверяем, что номер страницы валидный
-    if (pageNumber > 0 && pageNumber <= 50) {
+    if (pageNumber > 0) {
       setPage(pageNumber);
       localStorage.setItem('moderationPage', pageNumber.toString());
     } else {
@@ -299,7 +299,7 @@ const Moderation = () => {
       setError(null);
       
       // Проверяем номер страницы перед каждым запросом
-      if (page <= 0 || page > 50) {
+      if (page <= 0) {
         console.log('Невалидный номер страницы:', page, ', сбрасываем на первую');
         setPage(1);
         localStorage.setItem('moderationPage', '1');
@@ -525,7 +525,7 @@ const Moderation = () => {
   const handlePageInputSubmit = (e) => {
     e.preventDefault();
     const newPage = parseInt(pageInput, 10);
-    if (newPage > 0 && newPage <= totalPages && newPage <= 50) {
+    if (newPage > 0 && newPage <= totalPages) {
       setPage(newPage);
       localStorage.setItem('moderationPage', newPage.toString());
       saveFiltersToUrl(filters, newPage);
@@ -545,7 +545,7 @@ const Moderation = () => {
 
   // Функция для перехода в конец
   const goToLastPage = () => {
-    const lastPage = Math.min(totalPages, 50);
+    const lastPage = totalPages > 0 ? totalPages : 1;
     setPage(lastPage);
     setPageInput(lastPage.toString());
     localStorage.setItem('moderationPage', lastPage.toString());
@@ -954,7 +954,7 @@ const Moderation = () => {
                     <input
                       type="number"
                       min="1"
-                      max={Math.min(totalPages, 50)}
+                      max={totalPages || 1}
                       value={pageInput}
                       onChange={handlePageInputChange}
                       className="w-12 sm:w-16 px-1 sm:px-2 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
@@ -973,13 +973,13 @@ const Moderation = () => {
                     className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   onClick={() => {
                     const newPage = page + 1;
-                    if (newPage <= totalPages && newPage <= 50) {
+                    if (newPage <= totalPages) {
                       setPage(newPage);
                       localStorage.setItem('moderationPage', newPage.toString());
                         saveFiltersToUrl(filters, newPage);
                     }
                   }}
-                  disabled={page >= totalPages || page >= 50}
+                  disabled={page >= totalPages}
                 >
                   Oldinga
                 </button>
@@ -988,7 +988,7 @@ const Moderation = () => {
                   <button
                     className="p-2 sm:px-3 sm:py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     onClick={goToLastPage}
-                    disabled={page >= totalPages || page >= 50}
+                    disabled={page >= totalPages}
                     title="Oxirgi sahifa"
                   >
                     <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1285,7 +1285,7 @@ const Moderation = () => {
                   <input
                     type="number"
                     min="1"
-                    max={Math.min(totalPages, 50)}
+                    max={totalPages || 1}
                     value={pageInput}
                     onChange={handlePageInputChange}
                     className="w-12 px-1 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-center text-sm"
@@ -1304,13 +1304,13 @@ const Moderation = () => {
                 className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 transition-colors disabled:opacity-50"
                 onClick={() => {
                   const newPage = page + 1;
-                  if (newPage <= totalPages && newPage <= 50) {
+                  if (newPage <= totalPages) {
                     setPage(newPage);
                     localStorage.setItem('moderationPage', newPage.toString());
                     navigate(`/moderation?page=${newPage}`, { replace: true });
                   }
                 }}
-                disabled={page >= totalPages || page >= 50}
+                disabled={page >= totalPages}
               >
                 Oldinga
               </button>
@@ -1319,7 +1319,7 @@ const Moderation = () => {
                 <button
                   className="p-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50"
                   onClick={goToLastPage}
-                  disabled={page >= totalPages || page >= 50}
+                  disabled={page >= totalPages}
                   title="Oxirgi sahifa"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
