@@ -297,8 +297,8 @@ const RegionDetailPage = () => {
             data = { data: dataMap, totalData: totalData };
           }
         } else if (dataType === 'rejected') {
-          // Для отклонённых используем статистику rejected c фильтром по региону
-          let rejectedUrl = `${API_BASE_URL2}api/statistics/rejected/?region=${allowedId}`;
+          // Для отклонённых используем новый API формат
+          let rejectedUrl = `${API_BASE_URL2}api/statistics/regions/${allowedId}/rejected/`;
           const queryParams = new URLSearchParams();
           if (estDate) queryParams.append('est_date', estDate);
           if (plantationType) queryParams.append('plantation_type', plantationType);
@@ -311,88 +311,90 @@ const RegionDetailPage = () => {
           if (!rejected.ok) throw new Error(`HTTP error! status: ${rejected.status}`);
           const rejectedData = await rejected.json();
 
-          // Агрегация по районам из rejected_by_district_types + rejected_subsidies_by_district (если есть)
-          const districtStats = {};
-          if (Array.isArray(rejectedData.rejected_by_district_types)) {
-            rejectedData.rejected_by_district_types.forEach(d => {
-              const name = d.district__name;
-              if (!name) return;
-              if (!districtStats[name]) {
-                districtStats[name] = {
-                  total_area: 0,
-                  total_plantations: 0,
-                  planted_area: 0,
-                  investment: { local: 0, foreign: 0 },
-                  subsidy: { subsidy_count: 0, total_subsidy: 0 },
-                  bogs_count: 0, bogs_area: 0,
-                  uzumzors_count: 0, uzumzors_area: 0,
-                  issiqxonas_count: 0, issiqxonas_area: 0,
-                  district_id: d.district__id,
+          // Обрабатываем новый формат данных
+          const dataMap = {};
+          let totalData = null;
+
+          if (rejectedData.districts && Array.isArray(rejectedData.districts)) {
+            rejectedData.districts.forEach((item) => {
+              const districtName = item.district;
+              if (districtName) {
+                dataMap[districtName] = {
+                  total_area: Number(item.total_area || 0),
+                  total_plantations: Number(item.plantation_count || 0),
+                  planted_area: Number(item.planted_area || 0),
+                  not_used_area: Number(item.not_used_area || 0),
+                  investment: {
+                    local: Number(item.investment?.local || 0),
+                    foreign: Number(item.investment?.foreign || 0),
+                  },
+                  subsidy: {
+                    subsidy_count: Number(item.subsidy?.subsidy_count || 0),
+                    total_subsidy: Number(item.subsidy?.total_subsidy || 0),
+                  },
+                  outdated_ga: Number(item.outdated_ga || 0),
+                  low_fertility: {
+                    count: Number(item.low_fertility?.count || 0),
+                    area: Number(item.low_fertility?.area || 0),
+                  },
+                  high_fertility: {
+                    count: Number(item.high_fertility?.count || 0),
+                    area: Number(item.high_fertility?.area || 0),
+                  },
+                  irrigation: {
+                    area: Number(item.irrigation?.area || 0),
+                    count: Number(item.irrigation?.count || 0),
+                  },
+                  bogs_count: Number(item.bogs_count || 0),
+                  bogs_area: Number(item.bogs_area || 0),
+                  uzumzors_count: Number(item.uzumzors_count || 0),
+                  uzumzors_area: Number(item.uzumzors_area || 0),
+                  issiqxonas_count: Number(item.issiqxonas_count || 0),
+                  issiqxonas_area: Number(item.issiqxonas_area || 0),
+                  district_id: item.district_id || null,
                 };
               }
-              // сохраняем id района (не перезаписываем, если уже есть)
-              if (!districtStats[name].district_id && d.district__id) {
-                districtStats[name].district_id = d.district__id;
-              }
-              // Количество субъектов берём как сумма типов
-              const count = Number(d.bogs_count || 0) + Number(d.uzumzors_count || 0) + Number(d.issiqxonas_count || 0);
-              districtStats[name].total_plantations += count;
-              // Общая площадь района как сумма площадей типов (bogs/uzumzors/issiqxonas)
-              const totalArea = Number(d.bogs_area || 0) + Number(d.uzumzors_area || 0) + Number(d.issiqxonas_area || 0);
-              districtStats[name].total_area += totalArea;
-              // Сохраняем разрез по типам
-              districtStats[name].bogs_count += Number(d.bogs_count || 0);
-              districtStats[name].bogs_area += Number(d.bogs_area || 0);
-              districtStats[name].uzumzors_count += Number(d.uzumzors_count || 0);
-              districtStats[name].uzumzors_area += Number(d.uzumzors_area || 0);
-              districtStats[name].issiqxonas_count += Number(d.issiqxonas_count || 0);
-              districtStats[name].issiqxonas_area += Number(d.issiqxonas_area || 0);
             });
           }
 
-          if (Array.isArray(rejectedData.rejected_subsidies_by_district)) {
-            rejectedData.rejected_subsidies_by_district.forEach(s => {
-              const name = s.plantation__district__name;
-              if (!name || !districtStats[name]) return;
-              districtStats[name].subsidy.subsidy_count += Number(s.beneficiary_count || 0);
-              districtStats[name].subsidy.total_subsidy += Number(s.total_amount || 0);
-            });
+          // Используем totals из API для строки "Jami"
+          if (rejectedData.totals) {
+            totalData = {
+              total_area: Number(rejectedData.totals.total_area || 0),
+              plantation_count: Number(rejectedData.totals.plantation_count || 0),
+              planted_area: Number(rejectedData.totals.planted_area || 0),
+              not_used_area: Number(rejectedData.totals.not_used_area || 0),
+              investment: {
+                local: Number(rejectedData.totals.investment?.local || 0),
+                foreign: Number(rejectedData.totals.investment?.foreign || 0),
+              },
+              subsidy: {
+                subsidy_count: Number(rejectedData.totals.subsidy?.subsidy_count || 0),
+                total_subsidy: Number(rejectedData.totals.subsidy?.total_subsidy || 0),
+              },
+              outdated_ga: Number(rejectedData.totals.outdated_ga || 0),
+              low_fertility: {
+                count: Number(rejectedData.totals.low_fertility?.count || 0),
+                area: Number(rejectedData.totals.low_fertility?.area || 0),
+              },
+              high_fertility: {
+                count: Number(rejectedData.totals.high_fertility?.count || 0),
+                area: Number(rejectedData.totals.high_fertility?.area || 0),
+              },
+              irrigation: {
+                area: Number(rejectedData.totals.irrigation?.area || 0),
+                count: Number(rejectedData.totals.irrigation?.count || 0),
+              },
+              bogs_count: Number(rejectedData.totals.bogs_count || 0),
+              bogs_area: Number(rejectedData.totals.bogs_area || 0),
+              uzumzors_count: Number(rejectedData.totals.uzumzors_count || 0),
+              uzumzors_area: Number(rejectedData.totals.uzumzors_area || 0),
+              issiqxonas_count: Number(rejectedData.totals.issiqxonas_count || 0),
+              issiqxonas_area: Number(rejectedData.totals.issiqxonas_area || 0),
+            };
           }
 
-          if (Array.isArray(rejectedData.rejected_investments_by_district)) {
-            rejectedData.rejected_investments_by_district.forEach(inv => {
-              const name = inv.plantation__district__name;
-              if (!name) return;
-              if (!districtStats[name]) {
-                districtStats[name] = {
-                  total_area: 0,
-                  total_plantations: 0,
-                  planted_area: 0,
-                  investment: { local: 0, foreign: 0 },
-                  subsidy: { subsidy_count: 0, total_subsidy: 0 },
-                };
-              }
-              districtStats[name].investment.local += Number(inv.local || 0);
-              districtStats[name].investment.foreign += Number(inv.foreign || 0);
-            });
-          }
-
-          data = {
-            data: districtStats,
-            totals: {
-              total_area: Number(rejectedData.total_rejected_area || 0),
-              total_plantations: Number(rejectedData.total_rejected_plantations || 0),
-              investment_local: Number(rejectedData.rejected_investments?.local || 0),
-              investment_foreign: Number(rejectedData.rejected_investments?.foreign || 0),
-              total_investment: Number((rejectedData.rejected_investments?.local || 0) + (rejectedData.rejected_investments?.foreign || 0)),
-              subsidy_count: Number(rejectedData.rejected_subsidies?.beneficiary_count || 0),
-              total_subsidy: Number(rejectedData.rejected_subsidies?.total_amount || 0),
-              planted_area: Number(rejectedData.total_rejected_fruitarea || 0),
-            },
-            meta: {
-              total_rejected_fruitarea: Number(rejectedData.total_rejected_fruitarea || 0),
-            }
-          };
+          data = { data: dataMap, totalData: totalData };
         } else {
           // Для модерации используем новый API: только ожидающие проверки
           const plantationsUrl = `${API_BASE_URL2}api/plantations/moderation/`;
