@@ -10,7 +10,6 @@ import {
   Alert,
   Button,
   DatePicker,
-  ConfigProvider,
   message,
   Tag,
   Tooltip,
@@ -395,7 +394,6 @@ export default function UserLogsPage() {
         </Row>
 
         <div className="overflow-x-auto admin-logs-table">
-          <ConfigProvider locale={{ Pagination: { items_per_page: "Sahifa" } }}>
             <Table
               loading={loading}
               columns={columns}
@@ -420,7 +418,6 @@ export default function UserLogsPage() {
               }}
               style={{ background: "#1f2937", color: "#e5e7eb", minWidth: 900 }}
             />
-          </ConfigProvider>
         </div>
 
         <Modal

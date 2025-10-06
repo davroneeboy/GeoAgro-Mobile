@@ -592,6 +592,10 @@ const PlantationDetail = () => {
                 <p className="text-white">{plantation.empty_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Yaroqsiz maydon:</p>
+                <p className="text-white">{plantation.not_usable_area ?? '—'} GA</p>
+              </div>
+              <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Suv xovузlari soni:</p>
                 <p className="text-white">{plantation.reservoir_count}</p>
               </div>
@@ -734,13 +738,19 @@ const PlantationDetail = () => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" /></svg>
                     <span className="font-semibold">Mevali hududlar</span>
                   </div>
-                  <div className="max-h-40 overflow-y-auto pr-1 space-y-2">
+                  <div className="pr-1 space-y-2">
                     {plantation.fruit_areas.map((area, idx) => (
                       <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
                         <p>Meva: {area.fruit}</p>
                         <p>Nav: {area.variety}</p>
                         <p>Maydoni: {area.area} GA</p>
                         <p>Ekilgan yili: {area.planted_year}</p>
+                        <p>Podvoy: {area.rootstock || '—'}</p>
+                        <p>Sxema: {area.schema || '—'}</p>
+                        <p>Og'irlik: {area.weight ?? '—'}</p>
+                        <p>Sentner: {area.hundredweight ?? '—'}</p>
+                        <p>Ko'chat soni: {area.kochat_soni ?? '—'}</p>
+                        <p>O'ralgan: {area.fenced ? "✅" : "🚫"}</p>
                       </div>
                     ))}
                   </div>
