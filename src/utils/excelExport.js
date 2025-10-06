@@ -42,6 +42,7 @@ const generateStandardColumns = (isRegionPage = false, activeTab = 'all') => {
       { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
       { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
       { header: fruitAreaHeader, key: 'planted_area', width: 18 },
+      { header: 'Yaroqsiz maydon (GA)', key: 'not_used_area', width: 18 },
       { header: 'Bog\'lar soni', key: 'bogs_count', width: 15 },
       { header: 'Bog\'lar maydoni (GA)', key: 'bogs_area', width: 20 },
       { header: 'Uzumzorlar soni', key: 'uzumzors_count', width: 15 },
@@ -62,6 +63,7 @@ const generateStandardColumns = (isRegionPage = false, activeTab = 'all') => {
         { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
         { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
         { header: "Ekilgan maydoni (GA)", key: 'planted_area', width: 18 },
+        { header: 'Yaroqsiz maydon (GA)', key: 'not_used_area', width: 18 },
         { header: 'Bog\'lar soni', key: 'bogs_count', width: 15 },
         { header: 'Bog\'lar maydoni (GA)', key: 'bogs_area', width: 20 },
         { header: 'Uzumzorlar soni', key: 'uzumzors_count', width: 15 },
@@ -81,6 +83,7 @@ const generateStandardColumns = (isRegionPage = false, activeTab = 'all') => {
         { header: 'Umumiy maydon (GA)', key: 'total_area', width: 15 },
         { header: 'Plantatsiyalar soni', key: 'total_plantations', width: 15 },
         { header: "Ekilgan maydoni (GA)", key: 'planted_area', width: 18 },
+        { header: 'Yaroqsiz maydon (GA)', key: 'not_used_area', width: 18 },
         { header: 'Eskirgan (GA)', key: 'outdated_ga', width: 15 },
         { header: 'Past hosildorlik - Soni', key: 'low_fertility_count', width: 20 },
         { header: 'Past hosildorlik - Maydon (GA)', key: 'low_fertility_area', width: 25 },
@@ -178,12 +181,13 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
     // Для детальных таблиц районов обрабатываем данные в зависимости от activeTab
     if (activeTab === 'all') {
       // Для вкладки "all" используем стандартную структуру
-      const result = tableData.map(row => {
+      const result = (tableData || []).map(row => {
         const formattedRow = {
           'district': row.district || row.region || 'Noma\'lum',
           'total_area': formatNumber(row.total_area),
           'total_plantations': row.total_plantations || 0,
           'planted_area': formatNumber(row.planted_area || row.total_fruitarea || 0),
+          'not_used_area': formatNumber(row.not_used_area || 0),
           'bogs_count': row.bogs_count || 0,
           'bogs_area': formatNumber(row.bogs_area || 0),
           'uzumzors_count': row.uzumzors_count || 0,
@@ -202,11 +206,12 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
     } else {
 
       // Для вкладок "approved" и "rejected" используем расширенную структуру
-      return tableData.map(row => ({
+      return (tableData || []).map(row => ({
         'district': row.district || row.region || 'Noma\'lum',
         'total_area': formatNumber(row.total_area),
         'total_plantations': row.total_plantations || 0,
         'planted_area': formatNumber(row.planted_area || row.total_fruitarea || 0),
+        'not_used_area': formatNumber(row.not_used_area || 0),
         'investment_local': formatInvestment(row.investment_local || 0),
         'investment_foreign': formatInvestment(row.investment_foreign || 0),
         'investment_total': formatCurrency(row.investment_total || 0),
@@ -221,11 +226,12 @@ const formatDataForExcel = (tableData, activeTab, isRegionPage = false) => {
       }));
     }
   } else {
-    return tableData.map(row => ({
+    return (tableData || []).map(row => ({
       'district': row.district || row.region || 'Noma\'lum',
       'total_area': formatNumber(row.total_area),
       'total_plantations': row.total_plantations || 0,
       'planted_area': formatNumber(row.planted_area || row.total_fruitarea || 0),
+      'not_used_area': formatNumber(row.not_used_area || 0),
       'outdated_ga': formatNumber(row.outdated_ga),
       'low_fertility_count': row.low_fertility_count || 0,
       'low_fertility_area': formatNumber(row.low_fertility_area),

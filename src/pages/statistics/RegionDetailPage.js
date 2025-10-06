@@ -137,7 +137,7 @@ const RegionDetailPage = () => {
           }
           
           data = await fetchStatisticsData(url, authState.accessToken);
-
+  
           // Обрабатываем данные для all - проверяем есть ли TOTAL в by_region
           if (data && data.by_region && Array.isArray(data.by_region)) {
             let totalData = null;
@@ -147,6 +147,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -182,12 +183,46 @@ const RegionDetailPage = () => {
             
             // Обновляем данные, исключая TOTAL
             data.by_region = filteredByRegion;
+            // Если API также прислал totals, используем его приоритетно
+            if (data.totals && typeof data.totals === 'object') {
+              totalData = {
+                total_area: Number(data.totals.total_area || 0),
+                plantation_count: Number(data.totals.plantation_count || 0),
+                planted_area: Number(data.totals.planted_area || 0),
+                not_used_area: Number(data.totals.not_used_area || 0),
+                investment: {
+                  local: Number(data.totals.investment?.local || 0),
+                  foreign: Number(data.totals.investment?.foreign || 0),
+                },
+                subsidy: {
+                  subsidy_count: Number(data.totals.subsidy?.subsidy_count || 0),
+                  total_subsidy: Number(data.totals.subsidy?.total_subsidy || 0),
+                },
+                outdated_ga: Number(data.totals.outdated_ga || 0),
+                low_fertility: {
+                  count: Number(data.totals.low_fertility?.count || 0),
+                  area: Number(data.totals.low_fertility?.area || 0),
+                },
+                high_fertility: {
+                  count: Number(data.totals.high_fertility?.count || 0),
+                  area: Number(data.totals.high_fertility?.area || 0),
+                },
+                irrigation: {
+                  area: Number(data.totals.irrigation?.area || 0),
+                  count: Number(data.totals.irrigation?.count || 0),
+                },
+                bogs_count: Number(data.totals.bogs_count || 0),
+                bogs_area: Number(data.totals.bogs_area || 0),
+                uzumzors_count: Number(data.totals.uzumzors_count || 0),
+                uzumzors_area: Number(data.totals.uzumzors_area || 0),
+                issiqxonas_count: Number(data.totals.issiqxonas_count || 0),
+                issiqxonas_area: Number(data.totals.issiqxonas_area || 0),
+              };
+            }
             data.totalData = totalData;
           }
         } else if (dataType === 'approved') {
           // Для подтвержденных используем новый API endpoint
-          console.log('Approved API response:', data);
-          console.log('Data structure:', Object.keys(data || {}));
           let approvedUrl = `${API_BASE_URL1}api/statistics/regions/${allowedId}/approved/`;
           const queryParams = new URLSearchParams();
           
@@ -202,18 +237,16 @@ const RegionDetailPage = () => {
             approvedUrl += `?${queryParams.toString()}`;
           }
           
-          console.log('Fetching approved URL:', approvedUrl);
           const response = await fetch(approvedUrl, {
             headers: { Authorization: `Bearer ${authState.accessToken}` }
           });
-          console.log('Response status:', response.status);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           data = await response.json();
-          console.log('Raw API response:', data);
+          
 
-          // Обрабатываем данные для approved - API возвращает { data: Array, totals: Object }
+          // Обрабатываем данные для approved - API может вернуть { data: Array, totals: Object }
           if (data && data.data && Array.isArray(data.data)) {
             const dataMap = {};
             let totalData = null; // Сохраняем данные TOTAL отдельно
@@ -227,6 +260,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -262,6 +296,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -293,7 +328,42 @@ const RegionDetailPage = () => {
                 };
               }
             });
-            
+            // Если API прислал totals, используем его приоритетно
+            if (data.totals && typeof data.totals === 'object') {
+              totalData = {
+                total_area: Number(data.totals.total_area || 0),
+                plantation_count: Number(data.totals.plantation_count || 0),
+                planted_area: Number(data.totals.planted_area || 0),
+                not_used_area: Number(data.totals.not_used_area || 0),
+                investment: {
+                  local: Number(data.totals.investment?.local || 0),
+                  foreign: Number(data.totals.investment?.foreign || 0),
+                },
+                subsidy: {
+                  subsidy_count: Number(data.totals.subsidy?.subsidy_count || 0),
+                  total_subsidy: Number(data.totals.subsidy?.total_subsidy || 0),
+                },
+                outdated_ga: Number(data.totals.outdated_ga || 0),
+                low_fertility: {
+                  count: Number(data.totals.low_fertility?.count || 0),
+                  area: Number(data.totals.low_fertility?.area || 0),
+                },
+                high_fertility: {
+                  count: Number(data.totals.high_fertility?.count || 0),
+                  area: Number(data.totals.high_fertility?.area || 0),
+                },
+                irrigation: {
+                  area: Number(data.totals.irrigation?.area || 0),
+                  count: Number(data.totals.irrigation?.count || 0),
+                },
+                bogs_count: Number(data.totals.bogs_count || 0),
+                bogs_area: Number(data.totals.bogs_area || 0),
+                uzumzors_count: Number(data.totals.uzumzors_count || 0),
+                uzumzors_area: Number(data.totals.uzumzors_area || 0),
+                issiqxonas_count: Number(data.totals.issiqxonas_count || 0),
+                issiqxonas_area: Number(data.totals.issiqxonas_area || 0),
+              };
+            }
             data = { data: dataMap, totalData: totalData };
           }
         } else if (dataType === 'rejected') {
@@ -551,7 +621,7 @@ const RegionDetailPage = () => {
         if (err?.response?.status === 403) {
           setError("403 Forbidden: Siz ushbu viloyat statistikalarini ko'ra olmaysiz");
         } else {
-          setError(err.message);
+        setError(err.message);
         }
       } finally {
         setLoading(false);
@@ -568,7 +638,11 @@ const RegionDetailPage = () => {
       setExporting(true);
       
       // Получаем данные для экспорта
-      const exportData = tableData;
+      let exportData = tableData;
+      // Для вкладки "all" исключаем строку Jami из Excel
+      if (activeTab === 'all') {
+        exportData = (tableData || []).filter(row => row.key !== 'total');
+      }
       const regionName = REGION_NAMES[id] || `Region_${id}`;
       const filename = `${regionName}_${activeTab}_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
       
@@ -625,6 +699,7 @@ const RegionDetailPage = () => {
           total_area: totalArea,
           total_plantations: totalPlantations,
           planted_area: plantedArea,
+          not_used_area: Number(item.not_used_area || 0),
           investment_local: investmentData?.local || 0,
           investment_foreign: investmentData?.foreign || 0,
           investment_total: investmentData?.total || 0,
@@ -657,6 +732,7 @@ const RegionDetailPage = () => {
           total_area: districtData.total_area || 0,
           total_plantations: districtData.plantation_count || 0,
           planted_area: districtData.planted_area || 0,
+          not_used_area: districtData.not_used_area || 0,
           investment_local: districtData.investment?.local || 0,
           investment_foreign: districtData.investment?.foreign || 0,
           investment_total: (districtData.investment?.local || 0) + (districtData.investment?.foreign || 0),
@@ -696,6 +772,7 @@ const RegionDetailPage = () => {
           total_area: data.total_area,
           total_plantations: data.plantation_count || data.total_plantations || 0,
           planted_area: data.planted_area,
+          not_used_area: data.not_used_area || 0,
           investment_local: data.investment?.local || 0,
           investment_foreign: data.investment?.foreign || 0,
           investment_total: (data.investment?.local || 0) + (data.investment?.foreign || 0),
@@ -728,6 +805,8 @@ const RegionDetailPage = () => {
           return Number(row.total_plantations || 0);
         case 'planted_area':
           return Number(row.planted_area || 0);
+        case 'not_used_area':
+          return Number(row.not_used_area || 0);
         case 'bogs_count':
           return Number(row.bogs_count || 0);
         case 'bogs_area':
@@ -862,16 +941,17 @@ const RegionDetailPage = () => {
 
   // Add total row
   let totalRow;
-
-  if (activeTab === 'all') {
+  
+  if (activeTab === 'all' || activeTab === 'approved' || activeTab === 'rejected') {
     // Для вкладки "all" используем данные TOTAL из API, если есть
     if (statistics?.totalData) {
-      totalRow = {
-        key: "total",
-        district: "Jami",
+    totalRow = {
+    key: "total",
+    district: "Jami",
         total_area: statistics.totalData.total_area,
         total_plantations: statistics.totalData.plantation_count,
         planted_area: statistics.totalData.planted_area,
+        not_used_area: statistics.totalData.not_used_area || 0,
         investment_local: statistics.totalData.investment?.local || 0,
         investment_foreign: statistics.totalData.investment?.foreign || 0,
         investment_total: (statistics.totalData.investment?.local || 0) + (statistics.totalData.investment?.foreign || 0),
@@ -890,8 +970,8 @@ const RegionDetailPage = () => {
         high_fertility_area: statistics.totalData.high_fertility?.area || 0,
         irrigation_area: statistics.totalData.irrigation?.area || 0,
         irrigation_count: statistics.totalData.irrigation?.count || 0,
-      };
-    } else {
+    };
+  } else {
       // Если нет данных TOTAL, не показываем строку Jami
       totalRow = null;
     }
@@ -975,6 +1055,19 @@ const RegionDetailPage = () => {
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
               {(value || 0).toFixed(1)}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Yaroqsiz maydon (GA)</span>,
+          dataIndex: "not_used_area",
+          key: "not_used_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'not_used_area' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+              {(Number(value) || 0).toFixed(1)}
             </span>
           ),
         },
@@ -1236,9 +1329,9 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 'Jami investitsiyalar'}
-                </span>}
+                    title={<span style={{ color: '#9ca3af' }}>
+                      {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 'Jami investitsiyalar'}
+                    </span>}
                 value={totals.total_investment}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}
@@ -1249,9 +1342,9 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                title={<span style={{ color: '#9ca3af' }}>
-                  {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 'Jami subsidiyalar'}
-                </span>}
+                    title={<span style={{ color: '#9ca3af' }}>
+                      {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 'Jami subsidiyalar'}
+                    </span>}
                 value={totals.total_subsidy}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}
@@ -1269,10 +1362,10 @@ const RegionDetailPage = () => {
           dataSource={dataWithTotal}
           scroll={{ x: "max-content" }}
           bordered
-          size="small"
+            size="small"
           pagination={false}
           className="region-statistics-table"
-          style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
+            style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
           rowClassName={(record) => {
             if (record.key === 'total') {
               return 'total-row-dark';

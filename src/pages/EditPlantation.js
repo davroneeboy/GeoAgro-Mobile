@@ -109,7 +109,7 @@ const EditPlantation = () => {
     }
     setFocusedIdx(idx);
     setModerationItems(next);
-    try { console.log(`[reject] ${source} image:`, { name: file.name, size: file.size, type: file.type }); } catch {}
+    try { /* debug removed */ } catch {}
   };
 
   const handlePasteImage = (e) => {
@@ -229,7 +229,7 @@ const EditPlantation = () => {
         return;
       }
       
-      console.log('[reject] append mode, will POST', unique.length, 'comments');
+      
       // Последовательно отправляем по одному, чтобы бэк добавлял комментарии
       for (let idx = 0; idx < unique.length; idx += 1) {
         const { text, image } = unique[idx];
@@ -248,20 +248,20 @@ const EditPlantation = () => {
         if (image) {
           try { fd.append('moderation_image', image, image.name); } catch { fd.append('moderation_image', image); }
         }
-        console.log(`[reject] submit #${idx + 1}/${unique.length}:`, { text, hasImage: !!image });
+        
         try {
           const dbg = [];
           for (const [k, v] of fd.entries()) { dbg.push([k, (v && v.name) ? v.name : v]); }
-          console.log('[reject] formdata:', dbg);
+          
         } catch {}
-        const resp = await apiRequest(`api/plantations/${plantation.id}/reject/`, {
+        await apiRequest(`api/plantations/${plantation.id}/reject/`, {
           method: 'POST',
           body: fd,
       }, refreshAccessToken, authState.accessToken);
-        try { console.log(`[reject] response #${idx + 1}:`, resp); } catch {}
+        try { /* debug removed */ } catch {}
       }
 
-      console.log("Plantation rejected successfully");
+      
       setSuccessMessage("Rad etish sabab(lar)i qo'shildi");
       closeModal();
       // Redirect back to moderation/list after short delay
@@ -307,7 +307,7 @@ const EditPlantation = () => {
          else if (status === 403) message = "Ruxsat yo'q (403)";
          else if (status === 404) message = "Plantatsiya topilmadi (404)";
          else if (status === 400) message = message || "So'rov noto'g'ri (400)";
-         console.log('[reject] error detail:', { status: error?.response?.status, data: error?.response?.data });
+         
        } catch {}
        setError(message);
     }
@@ -396,7 +396,7 @@ const EditPlantation = () => {
       console.error("Error fetching user details:", error);
       // RBAC: Для ошибок доступа не показываем ошибку пользователю
       if (error.response?.status === 404 || error.response?.status === 403) {
-        console.log("Access denied for user details, continuing without user info");
+      
       }
       return null;
     }
@@ -430,15 +430,14 @@ const EditPlantation = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching plantation details:", error);
-      console.log("Error response status:", error.response?.status);
-      console.log("Error response data:", error.response?.data);
+      
       
       // RBAC: Проверяем, является ли ошибка связанной с доступом
       if (error.response?.status === 404 || error.response?.status === 403) {
-        console.log("Setting access denied error message");
+        
         setError("ACCESS_DENIED");
       } else {
-        console.log("Setting generic error message");
+        
       setError("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
       }
       
@@ -640,7 +639,7 @@ const EditPlantation = () => {
     // Проверяем, что элемент карты существует
     const mapElement = document.getElementById("map");
     if (!mapElement) {
-      console.warn("Map element not found, skipping map initialization");
+      
       return;
     }
 
@@ -843,7 +842,7 @@ const EditPlantation = () => {
         body: JSON.stringify(updateData),
       }, refreshAccessToken, authState.accessToken);
 
-      console.log("Plantation approved successfully");
+      
       // API автоматически очищает комментарии модерации; синхронизируем локальное состояние
       setPlantation((prev) => prev ? { ...prev, moderation_comment: [] } : prev);
       setSuccessMessage("Plantatsiya muvaffaqiyatli tasdiqlandi!");
@@ -852,7 +851,7 @@ const EditPlantation = () => {
       setTimeout(() => {
         // Определяем, откуда пришел пользователь
         const fromPage = location.state?.from;
-        console.log('Approve redirect, fromPage:', fromPage, 'location.state:', location.state);
+        
         
         if (fromPage === '/approved-plantations') {
           // Если пришел с approved-plantations, возвращаемся туда
@@ -906,7 +905,7 @@ const EditPlantation = () => {
         setTimeout(() => {
           const mapElement = document.getElementById("map");
           if (!mapElement) {
-            console.warn("Map element not ready yet");
+            
             return;
           }
 
@@ -1058,7 +1057,7 @@ const EditPlantation = () => {
               onClick={() => {
                 // Определяем, откуда пришел пользователь
                 const fromPage = location.state?.from;
-                console.log('Close button clicked, fromPage:', fromPage, 'location.state:', location.state);
+            
                 
                 if (fromPage === '/approved-plantations') {
                   // Если пришел с approved-plantations, возвращаемся туда
@@ -1072,7 +1071,7 @@ const EditPlantation = () => {
                   window.location.href = '/plantations/uz';
                 } else {
                   // По умолчанию возвращаемся на moderation
-                console.log('Navigating to moderation...');
+                
                 const currentPage = localStorage.getItem('moderationPage') || 1;
                   const savedFilters = location.state?.filters;
                   
@@ -1593,7 +1592,7 @@ const EditPlantation = () => {
                                  const preview = file ? URL.createObjectURL(file) : null;
                                  next[idx] = { ...next[idx], image: file, preview };
                                  setModerationItems(next);
-                                 try { console.log(`[reject] file selected #${idx + 1}:`, file ? { name: file.name, size: file.size, type: file.type } : null); } catch {}
+                                 try { /* debug removed */ } catch {}
                                }}
                                className="hidden"
                              />

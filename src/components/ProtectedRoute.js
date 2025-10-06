@@ -136,12 +136,10 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // RBAC: если роль не разрешена — показываем ForbiddenPage
-  console.log('ProtectedRoute - authState.userRole:', authState.userRole);
-  console.log('ProtectedRoute - allowedRoles:', allowedRoles);
-  console.log('ProtectedRoute - userRole in allowedRoles:', allowedRoles.includes(authState.userRole));
+  
   
   if (allowedRoles.length > 0 && (!authState.userRole || !allowedRoles.includes(authState.userRole))) {
-    console.log('ProtectedRoute - Access denied, showing ForbiddenPage');
+    
     return <ForbiddenPage />;
   }
 

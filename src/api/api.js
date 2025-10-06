@@ -40,10 +40,6 @@ export async function fetchPlantationsMap(districtId, accessToken, userRole) {
   }
   const key = Number(districtId);
   if (!Number.isFinite(key)) {
-    console.warn(
-      "fetchPlantationsMap called without a valid districtId",
-      districtId
-    );
     return [];
   }
 
@@ -66,7 +62,6 @@ export async function fetchPlantationsMap(districtId, accessToken, userRole) {
     );  
 
     if (!data || !data.results) {
-      console.warn("API вернул неожиданную структуру данных:", data);
       return [];
     }
 

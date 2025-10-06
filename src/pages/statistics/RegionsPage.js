@@ -1506,7 +1506,7 @@ const RegionsPage = () => {
               color: '#e5e7eb', 
               minWidth: 700
             }}
-            rowClassName={(record) => (record.key === 'total' ? 'total-row' : '')}
+            rowClassName={(record) => (record.key === 'total' ? 'total-row-dark' : '')}
           />
         </div>
       </div>

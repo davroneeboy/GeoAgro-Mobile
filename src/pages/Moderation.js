@@ -166,7 +166,6 @@ const Moderation = () => {
   // Проверяем токен при загрузке компонента
   useEffect(() => {
     if (!authState.accessToken) {
-      console.log('Токен отсутствует при загрузке компонента, перенаправляем на страницу входа');
       navigate('/login');
     }
   }, [authState.accessToken, navigate]);
@@ -224,7 +223,6 @@ const Moderation = () => {
     const urlPage = parseInt(urlParams.get("page") || "1", 10);
     
     if (urlPage !== page && page > 0) {
-      console.log('Синхронизируем URL с состоянием страницы:', page);
       window.history.replaceState(null, '', `/moderation?page=${page}`);
     }
     
@@ -237,13 +235,11 @@ const Moderation = () => {
     const search = location.search;
     const urlParams = new URLSearchParams(search);
     const pageFromUrl = urlParams.get('page');
-    console.log('URL page param:', pageFromUrl);
     
     // Если нет параметра page в URL, используем сохраненную страницу
     if (!pageFromUrl) {
       const savedPage = parseInt(localStorage.getItem('moderationPage') || "1", 10);
       const validSavedPage = savedPage > 0 ? savedPage : 1;
-      console.log('Нет параметра page в URL, используем сохраненную страницу:', validSavedPage);
       setPage(validSavedPage);
       // Обновляем URL без перезагрузки
       window.history.replaceState(null, '', `/moderation?page=${validSavedPage}`);
@@ -252,7 +248,6 @@ const Moderation = () => {
     
     // Если есть параметр page в URL
     const pageNumber = parseInt(pageFromUrl);
-    console.log('Setting page from URL:', pageNumber);
     
     // Проверяем, что номер страницы валидный
     if (pageNumber > 0) {
@@ -260,7 +255,7 @@ const Moderation = () => {
       localStorage.setItem('moderationPage', pageNumber.toString());
     } else {
       // Если номер страницы невалидный, сбрасываем на первую страницу
-      console.log('Невалидный номер страницы в URL:', pageNumber, ', сбрасываем на первую');
+      
       setPage(1);
       localStorage.setItem('moderationPage', '1');
       navigate('/moderation?page=1', { replace: true });
@@ -274,7 +269,6 @@ const Moderation = () => {
   const handleView = async (id) => {
     // Проверяем наличие токена перед запросом
     if (!authState.accessToken) {
-      console.log('Токен отсутствует, перенаправляем на страницу входа');
       navigate('/login');
       return;
     }
@@ -283,14 +277,13 @@ const Moderation = () => {
     localStorage.setItem('moderationPage', page.toString());
     
     // Просто переходим к просмотру без автоматического подтверждения
-    console.log("Переход к просмотру плантации:", id);
+    
   };
 
   useEffect(() => {
     const fetchModerations = async () => {
       // Проверяем наличие токена перед запросом
       if (!authState.accessToken) {
-        console.log('Токен отсутствует, перенаправляем на страницу входа');
         navigate('/login');
         return;
       }
@@ -300,7 +293,6 @@ const Moderation = () => {
       
       // Проверяем номер страницы перед каждым запросом
       if (page <= 0) {
-        console.log('Невалидный номер страницы:', page, ', сбрасываем на первую');
         setPage(1);
         localStorage.setItem('moderationPage', '1');
         navigate('/moderation?page=1', { replace: true });
@@ -314,13 +306,7 @@ const Moderation = () => {
         let regionFilter = filters.region !== "All" ? filters.region : undefined;
         if (authState.userRole === 'headof_region' && authState.regionId && !regionFilter) {
           regionFilter = authState.regionId.toString();
-          console.log('Moderation - headof_region detected, auto-setting region filter to:', regionFilter);
         }
-        
-        console.log('Moderation - userRole:', authState.userRole);
-        console.log('Moderation - regionId:', authState.regionId);
-        console.log('Moderation - selected region filter:', filters.region);
-        console.log('Moderation - final regionFilter:', regionFilter);
 
         // Создаем объект параметров и очищаем от undefined значений
         const rawParams = {
@@ -478,7 +464,6 @@ const Moderation = () => {
         
         // Если получили 401, значит токен недействителен
         if (error.response?.status === 401) {
-          console.log('Токен недействителен (401), перенаправляем на страницу входа');
           logout();
           navigate('/login');
           return; // Прерываем выполнение, чтобы не устанавливать ошибку
@@ -486,7 +471,6 @@ const Moderation = () => {
         
         // Если получили 404, значит страница не существует
         if (error.response?.status === 404) {
-          console.log('Страница не найдена (404), возвращаемся на первую страницу');
           setPage(1);
           localStorage.setItem('moderationPage', '1');
           navigate('/moderation?page=1', { replace: true });

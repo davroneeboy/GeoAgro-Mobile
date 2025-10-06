@@ -170,8 +170,7 @@ const RejectedPlantations = () => {
       
       const plantationsData = response.data.results || [];
 
-      console.log("Plantations data from new API:", plantationsData);
-      console.log("First plantation structure:", plantationsData[0]);
+      
       
       // Новые endpoints уже возвращают только отклонённые плантации.
       // Не отбрасываем записи даже если комментарий отсутствует, чтобы список не пустел.

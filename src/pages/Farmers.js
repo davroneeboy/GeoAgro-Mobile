@@ -54,7 +54,7 @@ const Farmers = () => {
         if (isNumericSearch && digitsOnly.length === 9) params.set("inn", digitsOnly);
 
         let url = `${API_BASE_URL2}api/farmers/?${params.toString()}`;
-        console.log("Fetching farmers from:", url);
+        
         
         const headers = {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ const Farmers = () => {
         }
 
         let response = await axios.get(url, { headers });
-        console.log("Farmers response:", response.data);
+        
 
         let results = response.data.results || [];
 
@@ -76,7 +76,7 @@ const Farmers = () => {
           // Попробуем выкачать до 10 страниц (200 записей максимум) или пока страница короче PAGE_SIZE
           for (let p = 2; p <= 10; p += 1) {
             const pageUrl = `${API_BASE_URL2}api/farmers/?page=${p}`;
-            console.log("Aggregating page for partial INN:", pageUrl);
+            
             const pageResp = await axios.get(pageUrl, { headers });
             const pageResults = pageResp.data.results || [];
             aggregated.push(...pageResults);
@@ -143,7 +143,7 @@ const Farmers = () => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (loading && farmers.length === 0 && !debouncedSearch) {
-        console.log("API timeout, loading test data");
+        
         const testFarmers = [
           {
             id: 1,

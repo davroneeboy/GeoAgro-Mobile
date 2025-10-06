@@ -20,8 +20,7 @@ const LoginPage = () => {
     setError("");
 
     try {
-      console.log("Attempting login to:", API_LOGIN_URL);
-      console.log("Login data:", { username, password });
+      
 
       const response = await fetch(API_LOGIN_URL, {
         method: "POST",
@@ -31,12 +30,11 @@ const LoginPage = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers);
+      
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Login successful, data:", data);
+        
         
         // --- RBAC redirect logic ---
         const userInfo = data.user_info || data;

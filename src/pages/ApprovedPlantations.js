@@ -78,7 +78,7 @@ const ApprovedPlantations = () => {
   // Проверяем токен при загрузке компонента
   useEffect(() => {
     if (!authState.accessToken) {
-      console.log('Токен отсутствует при загрузке компонента, перенаправляем на страницу входа');
+      
       navigate('/login');
     }
   }, [authState.accessToken, navigate]);
@@ -285,7 +285,7 @@ const ApprovedPlantations = () => {
           } catch (error) {
             // Если плантация удалена (404 или 500), возвращаем базовые данные
             if (error.response?.status === 404 || error.response?.status === 500) {
-              console.warn(`Plantation ${plantation.id} not found or deleted, using basic data`);
+              
               return plantation; // Используем данные из списка
             }
             console.error(`Error fetching details for plantation ${plantation.id}:`, error);
@@ -318,7 +318,7 @@ const ApprovedPlantations = () => {
                 });
                 return userResponse.data;
               } catch (error) {
-                console.warn(`Failed to fetch user ${userId}:`, error);
+                
                 return null;
               }
             });

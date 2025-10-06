@@ -236,7 +236,7 @@ const LeftNav = () => {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen z-50 bg-gray-800 border-r border-gray-700 shadow-lg transition-all overflow-y-auto overflow-x-hidden" style={{ width }}>
+    <aside className="fixed left-0 top-0 h-screen z-50 bg-gray-800 border-r border-gray-700 shadow-lg transition-all overflow-y-auto overflow-x-hidden no-scrollbar" style={{ width }}>
       <div className={`${collapsed ? 'relative h-16 justify-center' : 'h-16 justify-between py-2'} flex items-center px-3 border-b border-gray-700`}>
         <Link to="/" className={`flex items-center gap-2 ${collapsed ? 'justify-center mt-2' : ''} hover:opacity-90 transition-opacity`} title="Bosh sahifa">
           <img src={uzbekistanEmblem} alt="Logo" className="w-12 h-12 object-contain flex-none" />

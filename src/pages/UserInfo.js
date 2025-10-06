@@ -14,13 +14,13 @@ const UserInfo = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        console.log("Fetching user data for ID:", id); // Лог для отладки
+        
         const response = await axios.get(`${API_BASE_URL2}/api/users/${id}`, {
           headers: {
             Authorization: `Bearer ${authState.accessToken}`,
           },
         });
-        console.log("User data fetched successfully:", response.data); // Лог для отладки
+        
         setUserData(response.data);
       } catch (error) {
         console.error("Ошибка при получении данных пользователя:", error);

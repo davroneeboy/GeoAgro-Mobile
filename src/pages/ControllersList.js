@@ -114,7 +114,7 @@ const ControllersList = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Success:", data);
+        
         closeModal();
       })
       .catch((error) => {

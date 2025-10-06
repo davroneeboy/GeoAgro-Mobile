@@ -279,7 +279,7 @@ const PlantationDetail = () => {
   const initializeMap = () => {
     const mapElement = document.getElementById("map");
     if (!mapElement) {
-      console.warn("Map element not found, skipping map initialization");
+      
       return;
     }
 
@@ -452,7 +452,7 @@ const PlantationDetail = () => {
         setTimeout(() => {
           const mapElement = document.getElementById("map");
           if (!mapElement) {
-            console.warn("Map element not ready yet");
+            
             return;
           }
 
@@ -537,7 +537,7 @@ const PlantationDetail = () => {
             <button
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
               onClick={() => {
-                console.log('Navigating back...');
+                
                 
                 const fromState = location.state?.from;
                 const referrer = document.referrer || '';

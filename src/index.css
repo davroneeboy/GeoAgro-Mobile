@@ -441,10 +441,14 @@ code {
 }
 
 /* Total row emphasis */
-.region-statistics-table .ant-table-tbody > tr.total-row > td {
-  background-color: #0f172a !important; /* slightly darker */
+/* Darker total row shared class */
+.region-statistics-table .ant-table-tbody > tr.total-row-dark > td,
+.region-statistics-table .ant-table-tbody > tr.total-row > td,
+.ant-table-tbody > tr.total-row-dark > td {
+  background-color: #0b1220 !important; /* even darker than header */
+  color: #e5e7eb !important;
   font-weight: 700;
-  border-top: 2px solid #4b5563 !important; /* stronger separator */
+  border-top: 2px solid #4b5563 !important;
 }
 
 /* AntD Select dark styling within filters */
@@ -1010,3 +1014,12 @@ code {
 /* Rows */
 .tooltip-row { display:flex; align-items:center; gap:8px; margin:2px 0; font-size:12px; color:#cfcfcf; }
 .tooltip-title { display:flex; align-items:center; gap:8px; font-weight:600; margin:2px 0 4px; font-size:13px; color:#fff; }
+
+/* Hide scrollbars but keep scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar { /* Chrome, Safari and Opera */
+  display: none;
+}

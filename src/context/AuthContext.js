@@ -129,8 +129,7 @@ export const AuthProvider = ({ children }) => {
     setAuthTokens({ accessToken: data.access, refreshToken: data.refresh });
     // Проверяем роли в user_info, если они не в корне
     const userInfo = data.user_info || data;
-    console.log('AuthContext - login data:', data);
-    console.log('AuthContext - userInfo:', userInfo);
+    
 
     // Новый маппинг по числовому полю user_role, если оно есть
     let userRole;
@@ -149,7 +148,7 @@ export const AuthProvider = ({ children }) => {
 
     userRole = normalizeUserRole(userRole);
 
-    console.log('AuthContext - determined userRole:', userRole);
+    
     setUserRole(userRole);
     setRegionId(data.region_id);
     setUserInfo(data.user_info || data);

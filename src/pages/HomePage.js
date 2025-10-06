@@ -373,7 +373,7 @@ const HomePage = () => {
 
       {/* Основная область (без левой панели — теперь она общая) */}
       <div className="hidden lg:flex lg:flex-col lg:h-full lg:overflow-hidden">
-          <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
+          <div className="p-4 sm:p-6 flex-1 overflow-y-auto no-scrollbar">
             <h1 className="text-white text-3xl font-bold mb-2 flex items-center justify-between">
               <span>Qishloq xo'jaligi statistikasi</span>
               <div className="flex items-center gap-3">
