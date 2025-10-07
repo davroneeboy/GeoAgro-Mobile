@@ -147,7 +147,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number(item.not_used_area || 0),
+                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -189,7 +189,7 @@ const RegionDetailPage = () => {
                 total_area: Number(data.totals.total_area || 0),
                 plantation_count: Number(data.totals.plantation_count || 0),
                 planted_area: Number(data.totals.planted_area || 0),
-                not_used_area: Number(data.totals.not_used_area || 0),
+                not_used_area: Number((data.totals.not_used_area ?? data.totals.not_usable_area ?? 0)),
                 investment: {
                   local: Number(data.totals.investment?.local || 0),
                   foreign: Number(data.totals.investment?.foreign || 0),
@@ -260,7 +260,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number(item.not_used_area || 0),
+                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -296,7 +296,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number(item.not_used_area || 0),
+                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -334,7 +334,7 @@ const RegionDetailPage = () => {
                 total_area: Number(data.totals.total_area || 0),
                 plantation_count: Number(data.totals.plantation_count || 0),
                 planted_area: Number(data.totals.planted_area || 0),
-                not_used_area: Number(data.totals.not_used_area || 0),
+                not_used_area: Number((data.totals.not_used_area ?? data.totals.not_usable_area ?? 0)),
                 investment: {
                   local: Number(data.totals.investment?.local || 0),
                   foreign: Number(data.totals.investment?.foreign || 0),
@@ -393,7 +393,7 @@ const RegionDetailPage = () => {
                   total_area: Number(item.total_area || 0),
                   total_plantations: Number(item.plantation_count || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number(item.not_used_area || 0),
+                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -433,7 +433,7 @@ const RegionDetailPage = () => {
               total_area: Number(rejectedData.totals.total_area || 0),
               plantation_count: Number(rejectedData.totals.plantation_count || 0),
               planted_area: Number(rejectedData.totals.planted_area || 0),
-              not_used_area: Number(rejectedData.totals.not_used_area || 0),
+              not_used_area: Number((rejectedData.totals.not_used_area ?? rejectedData.totals.not_usable_area ?? 0)),
               investment: {
                 local: Number(rejectedData.totals.investment?.local || 0),
                 foreign: Number(rejectedData.totals.investment?.foreign || 0),
@@ -688,18 +688,19 @@ const RegionDetailPage = () => {
         const plantedArea = item.planted_area !== undefined && item.planted_area !== null ? item.planted_area : 
                            item.fruit_area !== undefined && item.fruit_area !== null ? item.fruit_area :
                            item.total_fruitarea !== undefined && item.total_fruitarea !== null ? item.total_fruitarea : 0;
-        
+        // not_used_area из API (или запасные ключи). Если нет — вычисляем как разницу
+        const notUsedRaw = (item.not_used_area ?? item.not_usable_area);
+        const notUsedArea = (notUsedRaw === undefined || notUsedRaw === null)
+          ? Math.max(0, Number(totalArea || 0) - Number(plantedArea || 0))
+          : Number(notUsedRaw || 0);
 
-        
-
-        
         const row = {
           key: districtName,
           district: districtName,
           total_area: totalArea,
           total_plantations: totalPlantations,
           planted_area: plantedArea,
-          not_used_area: Number(item.not_used_area || 0),
+          not_used_area: notUsedArea,
           investment_local: investmentData?.local || 0,
           investment_foreign: investmentData?.foreign || 0,
           investment_total: investmentData?.total || 0,
@@ -726,13 +727,18 @@ const RegionDetailPage = () => {
         
 
         
+        const computedNotUsed = (districtData.not_used_area ?? districtData.not_usable_area);
+        const fallbackNotUsed = (computedNotUsed === undefined || computedNotUsed === null)
+          ? Math.max(0, Number(districtData.total_area || 0) - Number(districtData.planted_area || 0))
+          : Number(computedNotUsed || 0);
+
         const row = {
           key: districtName,
           district: districtName,
           total_area: districtData.total_area || 0,
           total_plantations: districtData.plantation_count || 0,
           planted_area: districtData.planted_area || 0,
-          not_used_area: districtData.not_used_area || 0,
+          not_used_area: fallbackNotUsed,
           investment_local: districtData.investment?.local || 0,
           investment_foreign: districtData.investment?.foreign || 0,
           investment_total: (districtData.investment?.local || 0) + (districtData.investment?.foreign || 0),
@@ -772,7 +778,7 @@ const RegionDetailPage = () => {
           total_area: data.total_area,
           total_plantations: data.plantation_count || data.total_plantations || 0,
           planted_area: data.planted_area,
-          not_used_area: data.not_used_area || 0,
+          not_used_area: (data.not_used_area ?? data.not_usable_area ?? 0),
           investment_local: data.investment?.local || 0,
           investment_foreign: data.investment?.foreign || 0,
           investment_total: (data.investment?.local || 0) + (data.investment?.foreign || 0),
@@ -951,7 +957,7 @@ const RegionDetailPage = () => {
         total_area: statistics.totalData.total_area,
         total_plantations: statistics.totalData.plantation_count,
         planted_area: statistics.totalData.planted_area,
-        not_used_area: statistics.totalData.not_used_area || 0,
+        not_used_area: (statistics.totalData.not_used_area ?? statistics.totalData.not_usable_area ?? 0),
         investment_local: statistics.totalData.investment?.local || 0,
         investment_foreign: statistics.totalData.investment?.foreign || 0,
         investment_total: (statistics.totalData.investment?.local || 0) + (statistics.totalData.investment?.foreign || 0),
@@ -1065,11 +1071,18 @@ const RegionDetailPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'not_used_area' ? sortConfig.order : null,
-          render: (value, record) => (
-            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
-              {(Number(value) || 0).toFixed(1)}
-            </span>
-          ),
+          render: (value, record) => {
+            const n = Number(value) || 0;
+            let formatted;
+            if (n > 0 && n < 0.001) formatted = (0).toFixed(1); // 0.0 для очень малых значений
+            else if (n > 0 && n < 0.1) formatted = n.toFixed(3);
+            else formatted = n.toFixed(1);
+            return (
+              <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+                {formatted}
+              </span>
+            );
+          },
         },
         {
           title: <span style={textLight}>Eskirgan (GA)</span>,
