@@ -24,7 +24,7 @@ body {
 }
 html, body {
   height: 100%; /* Balandlikni butun ekran uchun belgilang */
-  overflow: hidden; /* Ustki (body) skrollni o'chirish — skroll faqat ichki konteynerlarda */
+
 }
 
 code {
