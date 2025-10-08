@@ -18,8 +18,6 @@ const EditPlantation = () => {
 
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const [coordinatesChanged, setCoordinatesChanged] = useState(false);
-  // const [area, setArea] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customReason, setCustomReason] = useState("");
@@ -676,6 +674,41 @@ const EditPlantation = () => {
       const mainLabelText = `${getRegionNameById(plantation?.district?.region)}, ${plantation?.district?.name || ""}`;
       addPolygonEventListeners(polygon, mainLabelText, map);
 
+      // Создание информационной панели с площадью на карте
+      const areaOverlay = document.createElement("div");
+      areaOverlay.style.position = "absolute";
+      areaOverlay.style.top = "10px";
+      areaOverlay.style.left = "10px";
+      areaOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+      areaOverlay.style.color = "white";
+      areaOverlay.style.padding = "10px 16px";
+      areaOverlay.style.borderRadius = "8px";
+      areaOverlay.style.fontWeight = "600";
+      areaOverlay.style.fontSize = "15px";
+      areaOverlay.style.zIndex = "1000";
+      areaOverlay.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+      areaOverlay.style.border = "2px solid #FF6B6B";
+
+      const mapContainer = map.getDiv();
+      mapContainer.appendChild(areaOverlay);
+
+      // Функция для обновления площади
+      const updateAreaDisplay = () => {
+        const areaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
+        const areaInHectares = areaInSquareMeters / 10000;
+        areaOverlay.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF6B6B">
+              <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm3 3h8v8h8H8V8z"/>
+            </svg>
+            <span>Maydon: <strong>${areaInHectares.toFixed(2)} GA</strong></span>
+          </div>
+        `;
+      };
+
+      // Начальный расчет площади
+      updateAreaDisplay();
+
       const updateCoordinates = () => {
         const newPaths = polygon.getPath();
         const newCoordinates = [];
@@ -690,6 +723,8 @@ const EditPlantation = () => {
           ...prev,
           coordinates: newCoordinates,
         }));
+        // Обновляем площадь при изменении координат
+        updateAreaDisplay();
       };
 
       polygon.addListener("mouseup", updateCoordinates);

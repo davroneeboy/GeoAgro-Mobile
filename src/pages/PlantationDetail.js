@@ -297,7 +297,7 @@ const PlantationDetail = () => {
         lng: coord.longitude,
       }));
 
-      new google.maps.Polygon({
+      const polygon = new google.maps.Polygon({
         paths,
         strokeColor: "red",
         strokeOpacity: 1,
@@ -310,6 +310,37 @@ const PlantationDetail = () => {
       const bounds = new google.maps.LatLngBounds();
       paths.forEach((coord) => bounds.extend(coord));
       mapInstance.fitBounds(bounds);
+
+      // Расчет площади полигона в квадратных метрах
+      const areaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
+      // Перевод в гектары (1 гектар = 10000 кв.м)
+      const areaInHectares = areaInSquareMeters / 10000;
+
+      // Создание информационной панели с площадью на карте
+      const areaOverlay = document.createElement("div");
+      areaOverlay.style.position = "absolute";
+      areaOverlay.style.top = "10px";
+      areaOverlay.style.left = "10px";
+      areaOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+      areaOverlay.style.color = "white";
+      areaOverlay.style.padding = "10px 16px";
+      areaOverlay.style.borderRadius = "8px";
+      areaOverlay.style.fontWeight = "600";
+      areaOverlay.style.fontSize = "15px";
+      areaOverlay.style.zIndex = "1000";
+      areaOverlay.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+      areaOverlay.style.border = "2px solid #4CAF50";
+      areaOverlay.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#4CAF50">
+            <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm3 3h8v8H8V8z"/>
+          </svg>
+          <span>Maydon: <strong>${areaInHectares.toFixed(2)} GA</strong></span>
+        </div>
+      `;
+      
+      const mapContainer = mapInstance.getDiv();
+      mapContainer.appendChild(areaOverlay);
       
       // Загружаем полигоны всех регионов
       loadRegionPolygons(mapInstance);
