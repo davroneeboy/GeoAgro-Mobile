@@ -11,6 +11,7 @@ import {
   trellisTypeMapping,
   reservoirTypeMapping,
 } from "../context/constants";
+import PlantationStatusIndicator from "../components/PlantationStatusIndicator";
 /* global google */
 
 const PlantationDetail = () => {
@@ -570,6 +571,10 @@ const PlantationDetail = () => {
               ✕
             </button>
             <h1 className="text-xl font-semibold text-white mb-4 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
+            
+            {/* Блок статуса плантации */}
+            <PlantationStatusIndicator plantation={plantation} />
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yer turi:</p>
