@@ -80,7 +80,8 @@ const EditPlantation = () => {
     "Mevali maydon turi kiritilmagan",
     "Ekin maydoni gektari noto'g'ri",
     "Chegara yonidagi fermer bilan ustma-ust tushgan",
-    "Chegara noto'g'ri chizilgan"
+    "Chegara noto'g'ri chizilgan",
+    "Umumiy maydon bilan chizilgan maydon gektari bir xil emas",
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
 
@@ -1865,3 +1866,4 @@ const EditPlantation = () => {
 };
 
 export default EditPlantation;
+
