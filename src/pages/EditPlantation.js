@@ -18,6 +18,8 @@ const EditPlantation = () => {
 
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [polygonAreaHectares, setPolygonAreaHectares] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customReason, setCustomReason] = useState("");
@@ -66,6 +68,9 @@ const EditPlantation = () => {
   const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
   const [farmerPlantsError, setFarmerPlantsError] = useState(null);
   const fileInputsRef = useRef([]);
+  const mapInstanceRef = useRef(null);
+  const polygonRef = useRef(null);
+  const mapInitializedRef = useRef(false);
 
   const DEFAULT_REJECT_REASONS = [
     "Investitsiya summasi noto'g'ri",
@@ -635,10 +640,13 @@ const EditPlantation = () => {
   };
 
   const initializeMap = () => {
-    // Проверяем, что элемент карты существует
+    // Проверяем, что карта еще не создана
+    if (mapInitializedRef.current || !plantation || !plantation.coordinates) {
+      return;
+    }
+
     const mapElement = document.getElementById("map");
     if (!mapElement) {
-      
       return;
     }
 
@@ -649,90 +657,96 @@ const EditPlantation = () => {
       disableDefaultUI: true,
     });
 
+    mapInstanceRef.current = map;
+    mapInitializedRef.current = true;
 
+    const paths = plantation.coordinates.map((coord) => ({
+      lat: coord.latitude,
+      lng: coord.longitude,
+    }));
 
-    if (plantation && plantation.coordinates) {
-      const paths = plantation.coordinates.map((coord) => ({
-        lat: coord.latitude,
-        lng: coord.longitude,
+    const polygon = new google.maps.Polygon({
+      paths,
+      strokeColor: "#FF0000",
+      strokeOpacity: 1,
+      strokeWeight: 2,
+      fillColor: "#FF0000",
+      fillOpacity: 0.35,
+      map,
+      editable: true,
+      draggable: false,
+      zIndex: 2,
+    });
+
+    polygonRef.current = polygon;
+
+    // Добавляем такой же hover-лейбл в правом верхнем углу и для основной плантации
+    const mainLabelText = `${getRegionNameById(plantation?.district?.region)}, ${plantation?.district?.name || ""}`;
+    addPolygonEventListeners(polygon, mainLabelText, map);
+
+    // Создание информационной панели с площадью на карте
+    const areaOverlay = document.createElement("div");
+    areaOverlay.style.position = "absolute";
+    areaOverlay.style.top = "10px";
+    areaOverlay.style.left = "10px";
+    areaOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+    areaOverlay.style.color = "white";
+    areaOverlay.style.padding = "10px 16px";
+    areaOverlay.style.borderRadius = "8px";
+    areaOverlay.style.fontWeight = "600";
+    areaOverlay.style.fontSize = "15px";
+    areaOverlay.style.zIndex = "1000";
+    areaOverlay.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+    areaOverlay.style.border = "2px solid #FF6B6B";
+
+    const mapContainer = map.getDiv();
+    mapContainer.appendChild(areaOverlay);
+
+    // Функция для обновления площади
+    const updateAreaDisplay = () => {
+      const areaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
+      const areaInHectares = areaInSquareMeters / 10000;
+      setPolygonAreaHectares(areaInHectares);
+      areaOverlay.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF6B6B">
+            <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm3 3h8v8H8V8z"/>
+          </svg>
+          <span>Maydon: <strong>${areaInHectares.toFixed(2)} GA</strong></span>
+        </div>
+      `;
+    };
+
+    // Начальный расчет площади
+    updateAreaDisplay();
+
+    const updateCoordinates = () => {
+      const newPaths = polygon.getPath();
+      const newCoordinates = [];
+      for (let i = 0; i < newPaths.getLength(); i++) {
+        const vertex = newPaths.getAt(i);
+        newCoordinates.push({
+          latitude: vertex.lat(),
+          longitude: vertex.lng(),
+        });
+      }
+      setPlantation((prev) => ({
+        ...prev,
+        coordinates: newCoordinates,
       }));
-
-      const polygon = new google.maps.Polygon({
-        paths,
-        strokeColor: "#FF0000",
-        strokeOpacity: 1,
-        strokeWeight: 2,
-        fillColor: "#FF0000",
-        fillOpacity: 0.35,
-        map,
-        editable: true,
-        draggable: false,
-        zIndex: 2,
-      });
-
-      // Добавляем такой же hover-лейбл в правом верхнем углу и для основной плантации
-      const mainLabelText = `${getRegionNameById(plantation?.district?.region)}, ${plantation?.district?.name || ""}`;
-      addPolygonEventListeners(polygon, mainLabelText, map);
-
-      // Создание информационной панели с площадью на карте
-      const areaOverlay = document.createElement("div");
-      areaOverlay.style.position = "absolute";
-      areaOverlay.style.top = "10px";
-      areaOverlay.style.left = "10px";
-      areaOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
-      areaOverlay.style.color = "white";
-      areaOverlay.style.padding = "10px 16px";
-      areaOverlay.style.borderRadius = "8px";
-      areaOverlay.style.fontWeight = "600";
-      areaOverlay.style.fontSize = "15px";
-      areaOverlay.style.zIndex = "1000";
-      areaOverlay.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
-      areaOverlay.style.border = "2px solid #FF6B6B";
-
-      const mapContainer = map.getDiv();
-      mapContainer.appendChild(areaOverlay);
-
-      // Функция для обновления площади
-      const updateAreaDisplay = () => {
-        const areaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
-        const areaInHectares = areaInSquareMeters / 10000;
-        areaOverlay.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF6B6B">
-              <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm3 3h8v8h8H8V8z"/>
-            </svg>
-            <span>Maydon: <strong>${areaInHectares.toFixed(2)} GA</strong></span>
-          </div>
-        `;
-      };
-
-      // Начальный расчет площади
+      // Обновляем площадь при изменении координат
       updateAreaDisplay();
+    };
 
-      const updateCoordinates = () => {
-        const newPaths = polygon.getPath();
-        const newCoordinates = [];
-        for (let i = 0; i < newPaths.getLength(); i++) {
-          const vertex = newPaths.getAt(i);
-          newCoordinates.push({
-            latitude: vertex.lat(),
-            longitude: vertex.lng(),
-          });
-        }
-        setPlantation((prev) => ({
-          ...prev,
-          coordinates: newCoordinates,
-        }));
-        // Обновляем площадь при изменении координат
-        updateAreaDisplay();
-      };
+    polygon.addListener("mouseup", updateCoordinates);
+    polygon.addListener("set_at", updateAreaDisplay);
+    polygon.addListener("insert_at", updateAreaDisplay);
+    polygon.addListener("remove_at", updateAreaDisplay);
 
-      polygon.addListener("mouseup", updateCoordinates);
-
-      // Устанавливаем границы для отображения полигона
-      const bounds = new google.maps.LatLngBounds();
-      paths.forEach((coord) => bounds.extend(coord));
-      map.fitBounds(bounds);
+    // Устанавливаем границы для отображения полигона только при первой инициализации
+    const bounds = new google.maps.LatLngBounds();
+    paths.forEach((coord) => bounds.extend(coord));
+    map.fitBounds(bounds);
 
       // Сначала загружаем полигоны всех регионов (не кликабельные, подложка)
     loadRegionPolygons(map);
@@ -857,7 +871,6 @@ const EditPlantation = () => {
           // ignore failures to keep main map usable
         }
       })();
-    }
   };
 
   // Функция для подтверждения плантации (устанавливает is_checked: true)
@@ -935,13 +948,11 @@ const EditPlantation = () => {
   }, [fetchPlantationDetails, authState.accessToken]);
 
   useEffect(() => {
-    if (plantation && !loading) {
+    if (plantation && !loading && !mapInitializedRef.current) {
       const loadGoogleMapsScript = () => {
-        // Добавляем небольшую задержку, чтобы убедиться, что DOM готов
         setTimeout(() => {
           const mapElement = document.getElementById("map");
           if (!mapElement) {
-            
             return;
           }
 
@@ -976,6 +987,14 @@ const EditPlantation = () => {
   // Очистка полигонов при размонтировании компонента
   useEffect(() => {
     return () => {
+      if (polygonRef.current) {
+        polygonRef.current.setMap(null);
+        polygonRef.current = null;
+      }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current = null;
+      }
+      mapInitializedRef.current = false;
       setRegionPolygons(prev => {
         prev.forEach((polygon) => {
           polygon.setMap(null);

@@ -32,6 +32,8 @@ const PlantationDetail = () => {
   const [regionPolygons, setRegionPolygons] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [regionLabels, setRegionLabels] = useState([]);
+  // eslint-disable-next-line no-unused-vars
+  const [polygonAreaHectares, setPolygonAreaHectares] = useState(null);
   const navigate = useNavigate();
   const { authState, refreshAccessToken } = useContext(AuthContext);
   
@@ -315,6 +317,7 @@ const PlantationDetail = () => {
       const areaInSquareMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
       // Перевод в гектары (1 гектар = 10000 кв.м)
       const areaInHectares = areaInSquareMeters / 10000;
+      setPolygonAreaHectares(areaInHectares);
 
       // Создание информационной панели с площадью на карте
       const areaOverlay = document.createElement("div");
