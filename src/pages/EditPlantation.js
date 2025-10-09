@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
@@ -15,11 +15,18 @@ import PlantationStatusIndicator from "../components/PlantationStatusIndicator";
 const EditPlantation = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line no-unused-vars
   const [polygonAreaHectares, setPolygonAreaHectares] = useState(null);
+  
+  // Навигация между плантациями
+  const [autoNavigate, setAutoNavigate] = useState(() => {
+    return localStorage.getItem('autoNavigateAfterModeration') === 'true';
+  });
+  const [moderationList, setModerationList] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customReason, setCustomReason] = useState("");
@@ -67,10 +74,12 @@ const EditPlantation = () => {
   const [farmerPlants, setFarmerPlants] = useState([]);
   const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
   const [farmerPlantsError, setFarmerPlantsError] = useState(null);
+  const [isMainButtonsVisible, setIsMainButtonsVisible] = useState(false);
   const fileInputsRef = useRef([]);
   const mapInstanceRef = useRef(null);
   const polygonRef = useRef(null);
   const mapInitializedRef = useRef(false);
+  const mainButtonsRef = useRef(null);
 
   const DEFAULT_REJECT_REASONS = [
     "Investitsiya summasi noto'g'ri",
@@ -198,6 +207,84 @@ const EditPlantation = () => {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isDeleteModalOpen]);
 
+  // Отслеживание видимости основных кнопок модерации
+  useEffect(() => {
+    if (!plantation || authState.userRole !== "superuser") return;
+    
+    let observer = null;
+    
+    // Небольшая задержка чтобы DOM успел обновиться
+    const timeoutId = setTimeout(() => {
+      const element = mainButtonsRef.current;
+      if (!element) return;
+      
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          // Кнопки видны = скрываем плавающую панель
+          setIsMainButtonsVisible(entry.isIntersecting);
+        },
+        { 
+          threshold: 0.1, // Более чувствительный порог
+          rootMargin: '0px 0px -50px 0px' // Меньший отступ
+        }
+      );
+      
+      observer.observe(element);
+    }, 200); // Увеличена задержка для надежности
+    
+    return () => {
+      clearTimeout(timeoutId);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [plantation, authState.userRole, id]);
+
+  // Горячие клавиши для модерации
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Игнорируем если фокус в поле ввода
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      // Ctrl+Enter - Открыть модальное окно подтверждения
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        if (!isDeleted) openApproveModal();
+      }
+      
+      // Alt+Q - Открыть модальное окно отклонения
+      if (e.altKey && e.key === 'q') {
+        e.preventDefault();
+        if (!isDeleted) openModal();
+      }
+      
+      // Esc - Закрыть любое модальное окно
+      if (e.key === 'Escape') {
+        if (isModalOpen) closeModal();
+        if (isApproveModalOpen) closeApproveModal();
+        if (isDeleteModalOpen) closeDeleteModal();
+        if (isCommentDeleteOpen) closeCommentDeleteModal();
+      }
+      
+      // Alt+1-9 - Выбрать/снять причину отклонения по номеру
+      if (e.altKey && /^[1-9]$/.test(e.key)) {
+        e.preventDefault();
+        const idx = parseInt(e.key) - 1;
+        if (idx < DEFAULT_REJECT_REASONS.length) {
+          const reason = DEFAULT_REJECT_REASONS[idx];
+          setSelectedReasons(prev => 
+            prev.includes(reason) ? prev.filter(r => r !== reason) : [...prev, reason]
+          );
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons]);
+
   const handleConfirm = async () => {
     try {
       setError(null);
@@ -271,6 +358,16 @@ const EditPlantation = () => {
       closeModal();
       // Redirect back to moderation/list after short delay
       setTimeout(() => {
+        // Если включен автопереход и есть следующая плантация - переходим к ней
+        if (autoNavigate && currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
+          navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
+            state: location.state,
+            replace: false
+          });
+          return;
+        }
+        
+        // Иначе возвращаемся в модерацию
         const fromPage = location.state?.from;
         if (fromPage === '/approved-plantations') {
           const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
@@ -329,6 +426,15 @@ const EditPlantation = () => {
 
       setIsDeleted(true);
       closeDeleteModal();
+
+      // Если включен автопереход и есть следующая плантация - переходим к ней
+      if (autoNavigate && currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
+        navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
+          state: location.state,
+          replace: false
+        });
+        return;
+      }
 
       // Перенаправляем обратно на страницу модерации/списков с восстановлением фильтров
       const fromPage = location.state?.from;
@@ -450,8 +556,92 @@ const EditPlantation = () => {
     }
   }, [id, authState.accessToken, refreshAccessToken, fetchUserDetails]);
 
+  // Получение списка плантаций на модерации
+  const fetchModerationList = useCallback(async () => {
+    try {
+      const filters = location.state?.filters || {};
+      const params = new URLSearchParams();
+      
+      // Применяем фильтры из location.state
+      if (filters.status && filters.status !== 'All') params.set('status', filters.status);
+      if (filters.type && filters.type !== 'All') params.set('type', filters.type);
+      if (filters.region && filters.region !== 'All') params.set('region', filters.region);
+      if (filters.district && filters.district !== 'All') params.set('district', filters.district);
+      
+      const response = await apiRequest(
+        `api/plantations/?${params.toString()}`, 
+        {}, 
+        refreshAccessToken, 
+        authState.accessToken
+      );
+      
+      const list = response.results || [];
+      setModerationList(list);
+      
+      // Находим индекс текущей плантации
+      const idx = list.findIndex(p => String(p.id) === String(id));
+      setCurrentIndex(idx);
+    } catch (error) {
+      console.error("Error fetching moderation list:", error);
+    }
+  }, [id, location.state, authState.accessToken, refreshAccessToken]);
 
+  // Навигация к предыдущей/следующей плантации
+  const navigateToPrevious = useCallback(() => {
+    if (currentIndex > 0 && moderationList[currentIndex - 1]) {
+      navigate(`/plantations/edit/${moderationList[currentIndex - 1].id}`, {
+        state: location.state,
+        replace: false
+      });
+    }
+  }, [currentIndex, moderationList, navigate, location.state]);
 
+  const navigateToNext = useCallback(() => {
+    if (currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
+      navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
+        state: location.state,
+        replace: false
+      });
+    }
+  }, [currentIndex, moderationList, navigate, location.state]);
+
+  const toggleAutoNavigate = () => {
+    const newValue = !autoNavigate;
+    setAutoNavigate(newValue);
+    localStorage.setItem('autoNavigateAfterModeration', String(newValue));
+  };
+
+  // Загрузка списка плантаций на модерации
+  useEffect(() => {
+    if (authState.userRole === "superuser") {
+      fetchModerationList();
+    }
+  }, [authState.userRole, fetchModerationList, id]);
+
+  // Горячие клавиши для навигации
+  useEffect(() => {
+    const handleNavigationKeys = (e) => {
+      // Игнорируем если фокус в поле ввода
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      // ArrowLeft - Предыдущая плантация
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        navigateToPrevious();
+      }
+      
+      // ArrowRight - Следующая плантация
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        navigateToNext();
+      }
+    };
+    
+    document.addEventListener('keydown', handleNavigationKeys);
+    return () => document.removeEventListener('keydown', handleNavigationKeys);
+  }, [navigateToPrevious, navigateToNext]);
 
 
   // Функция для добавления обработчиков событий к полигону
@@ -899,6 +1089,15 @@ const EditPlantation = () => {
       
       // Задержка перед редиректом, чтобы пользователь увидел уведомление
       setTimeout(() => {
+        // Если включен автопереход и есть следующая плантация - переходим к ней
+        if (autoNavigate && currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
+          navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
+            state: location.state,
+            replace: false
+          });
+          return;
+        }
+        
         // Определяем, откуда пришел пользователь
         const fromPage = location.state?.from;
         
@@ -939,6 +1138,29 @@ const EditPlantation = () => {
 
 
 
+  // Сброс состояния при изменении ID плантации
+  useEffect(() => {
+    // Прокрутка вверх при смене плантации
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    setPolygonAreaHectares(null);
+    setIsMainButtonsVisible(false); // Сброс видимости плавающей панели
+    mapInitializedRef.current = false;
+    
+    // Очищаем карту если она существует
+    if (mapInstanceRef.current) {
+      const mapDiv = document.getElementById("map");
+      if (mapDiv) {
+        mapDiv.innerHTML = '';
+      }
+      mapInstanceRef.current = null;
+      polygonRef.current = null;
+    }
+  }, [id]);
+
   useEffect(() => {
     if (!authState.accessToken) {
       console.error("No access token found. Redirecting to login.");
@@ -946,7 +1168,7 @@ const EditPlantation = () => {
       return;
     }
     fetchPlantationDetails();
-  }, [fetchPlantationDetails, authState.accessToken]);
+  }, [fetchPlantationDetails, authState.accessToken, id]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -1158,10 +1380,148 @@ const EditPlantation = () => {
             >
               ✕
             </button>
+            
+            {/* Навигация между плантациями */}
+            {authState.userRole === "superuser" && moderationList.length > 0 && (
+              <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={navigateToPrevious}
+                    disabled={currentIndex <= 0}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+                    title="Предыдущая плантация (←)"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Oldingi</span>
+                  </button>
+                  
+                  <span className="text-gray-400 text-sm px-2">
+                    {currentIndex + 1} / {moderationList.length}
+                  </span>
+                  
+                  <button
+                    onClick={navigateToNext}
+                    disabled={currentIndex >= moderationList.length - 1}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+                    title="Следующая плантация (→)"
+                  >
+                    <span>Keyingi</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Toggle автоперехода */}
+                <button
+                  onClick={toggleAutoNavigate}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all text-sm ${
+                    autoNavigate 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                  title={autoNavigate ? "Avtoperekhod yoqilgan" : "Avtoperekhod o'chirilgan"}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                  </svg>
+                  <span>{autoNavigate ? 'Avto: ON' : 'Avto: OFF'}</span>
+                </button>
+              </div>
+            )}
+            
             <h1 className="text-lg font-semibold text-white mb-3 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
             
             {/* Блок статуса плантации */}
             <PlantationStatusIndicator plantation={plantation} />
+            
+            {/* Автоматическое сравнение площадей */}
+            {polygonAreaHectares !== null && plantation.total_area && (
+              (() => {
+                const declaredArea = Number(plantation.total_area);
+                const calculatedArea = Number(polygonAreaHectares);
+                const difference = Math.abs(calculatedArea - declaredArea);
+                const differencePercent = (difference / declaredArea) * 100;
+                const isSignificant = differencePercent > 5;
+                const isCritical = differencePercent > 15;
+                
+                return (
+                  <div className={`mb-4 p-3 rounded-lg border-2 ${
+                    isCritical ? 'bg-red-900/30 border-red-500' :
+                    isSignificant ? 'bg-yellow-900/30 border-yellow-500' :
+                    'bg-green-900/30 border-green-500'
+                  }`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <svg className={`w-5 h-5 ${
+                            isCritical ? 'text-red-400' :
+                            isSignificant ? 'text-yellow-400' :
+                            'text-green-400'
+                          }`} fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 3h14v14H3V3zm2 2v10h10V5H5zm2 2h6v6H7V7z"/>
+                          </svg>
+                          <span className={`font-semibold ${
+                            isCritical ? 'text-red-200' :
+                            isSignificant ? 'text-yellow-200' :
+                            'text-green-200'
+                          }`}>
+                            Maydon taqqoslash
+                          </span>
+                          {(isSignificant || isCritical) && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              isCritical ? 'bg-red-700 text-red-100' : 'bg-yellow-700 text-yellow-100'
+                            }`}>
+                              {isCritical ? 'Kritik' : 'Ogohlantirish'}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <div className="text-gray-400 text-xs mb-1">Kiritilgan maydon:</div>
+                            <div className="text-white font-bold">{declaredArea.toFixed(2)} GA</div>
+                          </div>
+                          <div>
+                            <div className="text-gray-400 text-xs mb-1">Xaritadan hisoblangan:</div>
+                            <div className="text-white font-bold">{calculatedArea.toFixed(2)} GA</div>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t border-gray-600">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 text-xs">Farq:</span>
+                              <span className={`font-bold ${
+                                isCritical ? 'text-red-300' :
+                                isSignificant ? 'text-yellow-300' :
+                                'text-green-300'
+                              }`}>
+                                {difference.toFixed(2)} GA ({differencePercent.toFixed(1)}%)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {(isSignificant || isCritical) && !selectedReasons.includes("Umumiy maydon bilan chizilgan maydon gektari bir xil emas") && (
+                        <button
+                          onClick={() => {
+                            setSelectedReasons(prev => [...prev, "Umumiy maydon bilan chizilgan maydon gektari bir xil emas"]);
+                          }}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors flex items-center gap-1 shrink-0"
+                          title="Sababni avtomatik qo'shish"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
+                          </svg>
+                          Sababni qo'shish
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()
+            )}
             
             {error && (
               <div className="mb-4 p-3 bg-red-900 border border-red-600 rounded-md">
@@ -1179,6 +1539,133 @@ const EditPlantation = () => {
                 </div>
               </div>
             )}
+            
+            {/* Панель автоматических проверок */}
+            {(() => {
+              const issues = [];
+              
+              if (!plantation.images || plantation.images.length === 0) {
+                issues.push({
+                  severity: 'high',
+                  message: 'Fotosurat mavjud emas',
+                  suggestedReason: "Fotosurat yo'q yoki sifatsiz",
+                  field: 'images'
+                });
+              }
+              
+              if (plantation.images && plantation.images.length < 3) {
+                issues.push({
+                  severity: 'medium',
+                  message: `Faqat ${plantation.images.length} ta fotosurat (kamida 3 ta tavsiya etiladi)`,
+                  suggestedReason: "Bog' maydoni fotosurati to'liq olinmagan",
+                  field: 'images'
+                });
+              }
+              
+              if (!Array.isArray(plantation.fruit_areas) || plantation.fruit_areas.length === 0) {
+                issues.push({
+                  severity: 'high',
+                  message: 'Mevali maydon kiritilmagan',
+                  suggestedReason: "Mevali maydon turi kiritilmagan",
+                  field: 'fruit_areas'
+                });
+              }
+              
+              const totalInvestment = Array.isArray(plantation.investments) 
+                ? plantation.investments.reduce((sum, inv) => sum + (inv.investment_amount || 0), 0) 
+                : 0;
+              if (totalInvestment === 0) {
+                issues.push({
+                  severity: 'high',
+                  message: 'Investitsiya summasi 0 yoki kiritilmagan',
+                  suggestedReason: "Investitsiya summasi noto'g'ri",
+                  field: 'investments'
+                });
+              }
+              
+              if (plantation.total_area === plantation.empty_area && plantation.total_area > 0) {
+                issues.push({
+                  severity: 'high',
+                  message: "Umumiy maydon va bo'sh maydon bir xil",
+                  suggestedReason: "Umumiy maydon gektari bo'sh maydon gektari bilan bir xil",
+                  field: 'area'
+                });
+              }
+              
+              if (!plantation.kontur_number || (Array.isArray(plantation.kontur_number) && plantation.kontur_number.length === 0)) {
+                issues.push({
+                  severity: 'medium',
+                  message: 'Kontur raqami kiritilmagan',
+                  suggestedReason: "Ekin maydoni gektari noto'g'ri",
+                  field: 'kontur_number'
+                });
+              }
+              
+              if (issues.length === 0) return null;
+              
+              return (
+                <div className="mb-4 bg-yellow-900/20 border-2 border-yellow-500 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-yellow-200 font-semibold">Avtomatik tekshiruvlar</span>
+                    <span className="ml-auto text-xs px-2 py-1 rounded-full bg-yellow-900 text-yellow-200 border border-yellow-700">
+                      {issues.length} ta muammo
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {issues.map((issue, idx) => (
+                      <div key={idx} className="bg-gray-800/50 rounded border-l-4 border-yellow-500 p-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs px-2 py-0.5 rounded ${
+                                issue.severity === 'high' ? 'bg-red-900 text-red-200' : 'bg-yellow-900 text-yellow-200'
+                              }`}>
+                                {issue.severity === 'high' ? 'Yuqori' : "O'rta"}
+                              </span>
+                              <span className="text-xs text-gray-400">{issue.field}</span>
+                            </div>
+                            <p className="text-sm text-gray-200">{issue.message}</p>
+                          </div>
+                          {issue.suggestedReason && !selectedReasons.includes(issue.suggestedReason) && (
+                            <button
+                              onClick={() => {
+                                setSelectedReasons(prev => [...prev, issue.suggestedReason]);
+                              }}
+                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors shrink-0"
+                              title="Sababni qo'shish"
+                            >
+                              + Qo'shish
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {issues.filter(i => i.suggestedReason && !selectedReasons.includes(i.suggestedReason)).length > 0 && (
+                    <button
+                      onClick={() => {
+                        const newReasons = issues
+                          .filter(i => i.suggestedReason && !selectedReasons.includes(i.suggestedReason))
+                          .map(i => i.suggestedReason);
+                        setSelectedReasons(prev => [...prev, ...newReasons]);
+                      }}
+                      className="mt-3 w-full bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
+                      </svg>
+                      Barcha sabablarni qo'shish ({issues.filter(i => i.suggestedReason && !selectedReasons.includes(i.suggestedReason)).length})
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yer turi:</p>
@@ -1495,23 +1982,47 @@ const EditPlantation = () => {
             )}
             {/* RBAC: кнопки модерации только для superuser */}
             {authState.userRole === "superuser" && (
-            <div className="flex flex-col gap-2 sm:gap-4">
+            <div ref={mainButtonsRef} className="flex flex-col gap-2 sm:gap-4">
+              {/* Подсказка по горячим клавишам */}
+              <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 text-xs text-gray-300">
+                <div className="flex items-center justify-center gap-4 flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 font-mono">Ctrl+Enter</kbd>
+                    <span>Tasdiqlash</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 font-mono">Alt+Q</kbd>
+                    <span>Rad etish</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 font-mono">Alt+1-9</kbd>
+                    <span>Sabab tanlash</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 font-mono">Esc</kbd>
+                    <span>Yopish</span>
+                  </span>
+                </div>
+              </div>
+              
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
               <button
-                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center justify-center gap-2"
                 onClick={openApproveModal}
                   disabled={isDeleted}
               >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                Tasdiqlash
+                  <span>Tasdiqlash</span>
+                  <span className="text-xs opacity-75">(Ctrl+Enter)</span>
               </button>
               <button
-                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center gap-2"
+                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center justify-center gap-2"
                 onClick={openModal}
                   disabled={isDeleted}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                  Rad etish
+                  <span>Rad etish</span>
+                  <span className="text-xs opacity-75">(Alt+Q)</span>
                 </button>
               </div>
               <div className="sm:flex-none mt-2 sm:mt-2">
@@ -1574,12 +2085,18 @@ const EditPlantation = () => {
 
                     {/* Reasons multi-select */}
                     <div className="mb-4 p-3 rounded-md border border-gray-600 bg-gray-700/40">
-                      <div className="text-sm text-gray-300 mb-2">Rad etish sabablari (bir nechtasini tanlash mumkin):</div>
+                      <div className="text-sm text-gray-300 mb-2 flex items-center gap-2">
+                        <span>Rad etish sabablari (bir nechtasini tanlash mumkin):</span>
+                        <span className="text-xs text-gray-500">
+                          <kbd className="px-1 py-0.5 bg-gray-800 rounded text-[10px]">Alt+1-9</kbd> tez tanlash
+                        </span>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {DEFAULT_REJECT_REASONS.map((reason) => {
+                        {DEFAULT_REJECT_REASONS.map((reason, index) => {
                           const checked = selectedReasons.includes(reason);
+                          const keyNumber = index + 1;
                           return (
-                            <label key={reason} className="flex items-center gap-2 text-gray-200 text-sm">
+                            <label key={reason} className="flex items-center gap-2 text-gray-200 text-sm hover:bg-gray-700/50 p-1.5 rounded transition-colors cursor-pointer">
                               <input
                                 type="checkbox"
                                 className="w-4 h-4"
@@ -1591,7 +2108,12 @@ const EditPlantation = () => {
                                   });
                                 }}
                               />
-                              <span className="select-none">{reason}</span>
+                              <span className="inline-flex items-center gap-1.5 select-none flex-1">
+                                <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 text-[10px] font-mono text-gray-400 shrink-0">
+                                  {keyNumber}
+                                </kbd>
+                                <span>{reason}</span>
+                              </span>
                             </label>
                           );
                         })}
@@ -1814,6 +2336,39 @@ const EditPlantation = () => {
       ) : (
         <div className="flex justify-center items-center h-full w-full bg-gray-900">
           <p className="text-white">Plantatsiya topilmadi</p>
+        </div>
+      )}
+
+      {/* Плавающая панель быстрых действий */}
+      {authState.userRole === "superuser" && plantation && !isDeleted && (
+        <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 ${
+          isMainButtonsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}>
+          <div className="bg-gray-800/95 backdrop-blur-sm border-2 border-gray-600 rounded-full shadow-2xl px-4 py-2 flex items-center gap-3">
+            <button
+              onClick={openApproveModal}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
+              title="Tasdiqlash (Ctrl+Enter)"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Tasdiqlash</span>
+            </button>
+            
+            <div className="w-px h-8 bg-gray-600"></div>
+            
+            <button
+              onClick={openModal}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
+              title="Rad etish (Alt+Q)"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span>Rad etish</span>
+            </button>
+          </div>
         </div>
       )}
 
