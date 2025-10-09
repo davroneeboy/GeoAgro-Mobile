@@ -91,6 +91,7 @@ const EditPlantation = () => {
     "Chegara yonidagi fermer bilan ustma-ust tushgan",
     "Chegara noto'g'ri chizilgan",
     "Umumiy maydon bilan chizilgan maydon gektari bir xil emas",
+    "Bosh maydon to'g'ri kiriting",
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
 
