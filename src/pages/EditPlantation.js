@@ -74,12 +74,10 @@ const EditPlantation = () => {
   const [farmerPlants, setFarmerPlants] = useState([]);
   const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
   const [farmerPlantsError, setFarmerPlantsError] = useState(null);
-  const [isMainButtonsVisible, setIsMainButtonsVisible] = useState(false);
   const fileInputsRef = useRef([]);
   const mapInstanceRef = useRef(null);
   const polygonRef = useRef(null);
   const mapInitializedRef = useRef(false);
-  const mainButtonsRef = useRef(null);
 
   const DEFAULT_REJECT_REASONS = [
     "Investitsiya summasi noto'g'ri",
@@ -92,6 +90,7 @@ const EditPlantation = () => {
     "Chegara noto'g'ri chizilgan",
     "Umumiy maydon bilan chizilgan maydon gektari bir xil emas",
     "Bosh maydon to'g'ri kiriting",
+    "Kontur raqami kiritilmagan",
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
 
@@ -208,38 +207,6 @@ const EditPlantation = () => {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isDeleteModalOpen]);
 
-  // Отслеживание видимости основных кнопок модерации
-  useEffect(() => {
-    if (!plantation || authState.userRole !== "superuser") return;
-    
-    let observer = null;
-    
-    // Небольшая задержка чтобы DOM успел обновиться
-    const timeoutId = setTimeout(() => {
-      const element = mainButtonsRef.current;
-      if (!element) return;
-      
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          // Кнопки видны = скрываем плавающую панель
-          setIsMainButtonsVisible(entry.isIntersecting);
-        },
-        { 
-          threshold: 0.1, // Более чувствительный порог
-          rootMargin: '0px 0px -50px 0px' // Меньший отступ
-        }
-      );
-      
-      observer.observe(element);
-    }, 200); // Увеличена задержка для надежности
-    
-    return () => {
-      clearTimeout(timeoutId);
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  }, [plantation, authState.userRole, id]);
 
   // Горячие клавиши для модерации
   useEffect(() => {
@@ -267,6 +234,8 @@ const EditPlantation = () => {
         if (isApproveModalOpen) closeApproveModal();
         if (isDeleteModalOpen) closeDeleteModal();
         if (isCommentDeleteOpen) closeCommentDeleteModal();
+        if (farmerPlantsOpen) setFarmerPlantsOpen(false);
+        if (selectedImage) setSelectedImage(null);
       }
       
       // Alt+1-9 - Выбрать/снять причину отклонения по номеру
@@ -284,7 +253,7 @@ const EditPlantation = () => {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons]);
+  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
 
   const handleConfirm = async () => {
     try {
@@ -1148,7 +1117,6 @@ const EditPlantation = () => {
     setError(null);
     setSuccessMessage(null);
     setPolygonAreaHectares(null);
-    setIsMainButtonsVisible(false); // Сброс видимости плавающей панели
     mapInitializedRef.current = false;
     
     // Очищаем карту если она существует
@@ -1384,7 +1352,7 @@ const EditPlantation = () => {
             
             {/* Навигация между плантациями */}
             {authState.userRole === "superuser" && moderationList.length > 0 && (
-              <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="mb-4 mt-6 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={navigateToPrevious}
@@ -1554,10 +1522,10 @@ const EditPlantation = () => {
                 });
               }
               
-              if (plantation.images && plantation.images.length < 3) {
+              if (plantation.images && plantation.images.length < 2) {
                 issues.push({
                   severity: 'medium',
-                  message: `Faqat ${plantation.images.length} ta fotosurat (kamida 3 ta tavsiya etiladi)`,
+                  message: `Faqat ${plantation.images.length} ta fotosurat (kamida 2 ta tavsiya etiladi)`,
                   suggestedReason: "Bog' maydoni fotosurati to'liq olinmagan",
                   field: 'images'
                 });
@@ -1575,10 +1543,12 @@ const EditPlantation = () => {
               const totalInvestment = Array.isArray(plantation.investments) 
                 ? plantation.investments.reduce((sum, inv) => sum + (inv.investment_amount || 0), 0) 
                 : 0;
-              if (totalInvestment === 0) {
+              if (totalInvestment < 1000000) {
                 issues.push({
                   severity: 'high',
-                  message: 'Investitsiya summasi 0 yoki kiritilmagan',
+                  message: totalInvestment === 0 
+                    ? 'Investitsiya summasi kiritilmagan' 
+                    : `Investitsiya summasi juda kam (${(totalInvestment / 1000000).toFixed(2)} mln so'm)`,
                   suggestedReason: "Investitsiya summasi noto'g'ri",
                   field: 'investments'
                 });
@@ -1597,9 +1567,73 @@ const EditPlantation = () => {
                 issues.push({
                   severity: 'medium',
                   message: 'Kontur raqami kiritilmagan',
-                  suggestedReason: "Ekin maydoni gektari noto'g'ri",
+                  suggestedReason: "Kontur raqami kiritilmagan",
                   field: 'kontur_number'
                 });
+              }
+              
+              // Проверка общей площади
+              if (!plantation.total_area || plantation.total_area <= 0) {
+                issues.push({
+                  severity: 'high',
+                  message: 'Bosh maydon kiritilmagan yoki 0',
+                  suggestedReason: "Bosh maydon to'g'ri kiriting",
+                  field: 'total_area'
+                });
+              } else if (plantation.total_area > 1000) {
+                issues.push({
+                  severity: 'medium',
+                  message: `Bosh maydon juda katta (${plantation.total_area} GA)`,
+                  suggestedReason: "Bosh maydon to'g'ri kiriting",
+                  field: 'total_area'
+                });
+              }
+              
+              // Проверка сумм площадей
+              if (Array.isArray(plantation.fruit_areas) && plantation.fruit_areas.length > 0) {
+                const totalFruitArea = plantation.fruit_areas.reduce((sum, fa) => sum + (parseFloat(fa.area) || 0), 0);
+                const expectedFruitArea = (plantation.total_area || 0) - (plantation.empty_area || 0);
+                const areaDifference = Math.abs(totalFruitArea - expectedFruitArea);
+                
+                if (areaDifference > 0.1) {
+                  issues.push({
+                    severity: 'high',
+                    message: `Mevali maydonlar yig'indisi (${totalFruitArea.toFixed(2)} GA) ekin maydoniga (${expectedFruitArea.toFixed(2)} GA) teng emas`,
+                    suggestedReason: "Ekin maydoni gektari noto'g'ri",
+                    field: 'fruit_areas'
+                  });
+                }
+                
+                // Проверка на отрицательные площади
+                const hasNegativeArea = plantation.fruit_areas.some(fa => parseFloat(fa.area) < 0);
+                if (hasNegativeArea) {
+                  issues.push({
+                    severity: 'high',
+                    message: 'Mevali maydonlarda manfiy qiymat mavjud',
+                    suggestedReason: "Ekin maydoni gektari noto'g'ri",
+                    field: 'fruit_areas'
+                  });
+                }
+              }
+              
+              // Проверка полигона
+              if (plantation.polygon && plantation.polygon.coordinates) {
+                const coords = plantation.polygon.coordinates[0];
+                if (coords && coords.length < 4) {
+                  issues.push({
+                    severity: 'high',
+                    message: `Chegara nuqtalari kam (${coords.length} ta, kamida 4 ta kerak)`,
+                    suggestedReason: "Chegara noto'g'ri chizilgan",
+                    field: 'polygon'
+                  });
+                } else if (coords && coords.length > 1000) {
+                  issues.push({
+                    severity: 'medium',
+                    message: `Chegara nuqtalari juda ko'p (${coords.length} ta)`,
+                    suggestedReason: "Chegara noto'g'ri chizilgan",
+                    field: 'polygon'
+                  });
+                }
               }
               
               if (issues.length === 0) return null;
@@ -1981,11 +2015,9 @@ const EditPlantation = () => {
                 </div>
               </div>
             )}
-            {/* RBAC: кнопки модерации только для superuser */}
+            {/* RBAC: подсказка по горячим клавишам для superuser */}
             {authState.userRole === "superuser" && (
-            <div ref={mainButtonsRef} className="flex flex-col gap-2 sm:gap-4">
-              {/* Подсказка по горячим клавишам */}
-              <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 text-xs text-gray-300">
+              <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 text-xs text-gray-300 mt-3">
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <span className="flex items-center gap-1">
                     <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 font-mono">Ctrl+Enter</kbd>
@@ -2004,38 +2036,6 @@ const EditPlantation = () => {
                     <span>Yopish</span>
                   </span>
                 </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-end sm:flex-1">
-              <button
-                  className="w-full sm:w-auto bg-green-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-green-600 transition-colors inline-flex items-center justify-center gap-2"
-                onClick={openApproveModal}
-                  disabled={isDeleted}
-              >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                  <span>Tasdiqlash</span>
-                  <span className="text-xs opacity-75">(Ctrl+Enter)</span>
-              </button>
-              <button
-                  className="w-full sm:w-auto bg-red-500 mt-3 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-600 transition-colors inline-flex items-center justify-center gap-2"
-                onClick={openModal}
-                  disabled={isDeleted}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                  <span>Rad etish</span>
-                  <span className="text-xs opacity-75">(Alt+Q)</span>
-                </button>
-              </div>
-              <div className="sm:flex-none mt-2 sm:mt-2">
-                <button
-                  className="w-full sm:w-auto bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-red-800 transition-colors inline-flex items-center gap-2"
-                  onClick={openDeleteModal}
-                  disabled={isDeleted}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg>
-                O'chirish
-              </button>
-              </div>
               </div>
             )}
             {/* RBAC: модальные окна только для superuser */}
@@ -2096,6 +2096,7 @@ const EditPlantation = () => {
                         {DEFAULT_REJECT_REASONS.map((reason, index) => {
                           const checked = selectedReasons.includes(reason);
                           const keyNumber = index + 1;
+                          const hasHotkey = index < 9; // Только первые 9 имеют горячие клавиши
                           return (
                             <label key={reason} className="flex items-center gap-2 text-gray-200 text-sm hover:bg-gray-700/50 p-1.5 rounded transition-colors cursor-pointer">
                               <input
@@ -2110,10 +2111,12 @@ const EditPlantation = () => {
                                 }}
                               />
                               <span className="inline-flex items-center gap-1.5 select-none flex-1">
-                                <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 text-[10px] font-mono text-gray-400 shrink-0">
-                                  {keyNumber}
-                                </kbd>
-                                <span>{reason}</span>
+                                {hasHotkey && (
+                                  <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-600 text-[10px] font-mono text-gray-400 shrink-0">
+                                    {keyNumber}
+                                  </kbd>
+                                )}
+                                <span className={hasHotkey ? '' : 'ml-0.5'}>{reason}</span>
                               </span>
                             </label>
                           );
@@ -2342,9 +2345,7 @@ const EditPlantation = () => {
 
       {/* Плавающая панель быстрых действий */}
       {authState.userRole === "superuser" && plantation && !isDeleted && (
-        <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 ${
-          isMainButtonsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}>
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
           <div className="bg-gray-800/95 backdrop-blur-sm border-2 border-gray-600 rounded-full shadow-2xl px-4 py-2 flex items-center gap-3">
             <button
               onClick={openApproveModal}
@@ -2355,6 +2356,7 @@ const EditPlantation = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
               <span>Tasdiqlash</span>
+              <span className="text-xs opacity-75">(Ctrl+Enter)</span>
             </button>
             
             <div className="w-px h-8 bg-gray-600"></div>
@@ -2368,6 +2370,20 @@ const EditPlantation = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
               <span>Rad etish</span>
+              <span className="text-xs opacity-75">(Alt+Q)</span>
+            </button>
+
+            <div className="w-px h-8 bg-gray-600"></div>
+            
+            <button
+              onClick={openDeleteModal}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
+              title="O'chirish"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>O'chirish</span>
             </button>
           </div>
         </div>
