@@ -277,7 +277,7 @@ const FarmerPlantationsMap = () => {
           >
             ← Orqaga
           </button>
-          <div className="text-gray-100 font-semibold text-lg md:text-2xl tracking-tight">
+          <div className="text-gray-100 font-semibold text-base md:text-xl tracking-tight">
             Fermer planstasiyalari xaritasi
           </div>
           <div className="w-8" />
@@ -298,7 +298,7 @@ const FarmerPlantationsMap = () => {
             ) : selected ? (
                 <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-bold text-white mr-3 truncate">{selected.name || 'Fermer'}</h2>
+                    <h2 className="text-base font-bold text-white mr-3 truncate">{selected.name || 'Fermer'}</h2>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full border ${selected.is_checked ? 'bg-green-600/20 text-green-300 border-green-500/50' : (selected.is_rejected ? 'bg-red-600/20 text-red-300 border-red-500/50' : 'bg-yellow-600/20 text-yellow-300 border-yellow-500/50')}`}>
                         {selected.is_checked ? 'Tasdiqlangan' : (selected.is_rejected ? 'Rad etilgan' : 'Kutilmoqda')}

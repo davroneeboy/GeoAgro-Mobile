@@ -1,7 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import ControllersList from "./pages/ControllersList";
 // import Contacts from "./pages/Contacts";
 import Moderation from "./pages/Moderation";
 import RejectedPlantations from "./pages/RejectedPlantations";
@@ -39,7 +38,6 @@ export default function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
       <Route path="/plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MapContainer /></ProtectedRoute>} />
-      <Route path="/controllers" element={<ProtectedRoute allowedRoles={["superuser"]}><ControllersList /></ProtectedRoute>} />
       {/* <Route path="/contacts" element={<Contacts />} /> */}
       <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser"]}><Moderation /></ProtectedRoute>} />
       <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser"]}><RejectedPlantations /></ProtectedRoute>} />

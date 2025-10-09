@@ -1183,8 +1183,8 @@ const RegionDetailPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex items-center mb-4 sm:mb-6">
+      <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex items-center mb-3 sm:mb-4">
           <Button
             type="link"
             icon={<ArrowLeftOutlined />}
@@ -1196,13 +1196,13 @@ const RegionDetailPage = () => {
           >
             Orqaga
           </Button>
-          <h1 className="text-xl sm:text-2xl font-bold ml-2 sm:ml-4 text-white">
+          <h1 className="text-lg sm:text-xl font-bold ml-2 sm:ml-4 text-white">
             {REGION_NAMES[id]} viloyati statistikasi
           </h1>
         </div>
 
         {/* Вкладки для переключения типов данных */}
-        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+        <Card className="mb-3 sm:mb-4" bodyStyle={{ background: '#1f2937', padding: 12 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
@@ -1301,7 +1301,7 @@ const RegionDetailPage = () => {
         })()}
 
         {/* Summary Cards */}
-        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+        <Row gutter={[12, 12]} className="mb-3 sm:mb-4">
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic

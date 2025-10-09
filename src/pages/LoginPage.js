@@ -82,7 +82,7 @@ const LoginPage = () => {
             src={uzbekistanEmblem}
             alt="O'zbekiston gerbi"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+          <h2 className="mt-4 text-center text-2xl font-extrabold text-white">
             Tizimga kirish
           </h2>
           <p className="mt-2 text-center text-sm text-gray-400">

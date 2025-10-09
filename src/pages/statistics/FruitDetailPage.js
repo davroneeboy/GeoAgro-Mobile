@@ -312,8 +312,8 @@ const FruitDetailPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex items-center mb-6">
+      <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex items-center mb-4">
           <Button 
             type="link" 
             icon={<ArrowLeftOutlined />} 
@@ -321,7 +321,7 @@ const FruitDetailPage = () => {
           >
             Orqaga
           </Button>
-          <h1 className="text-2xl font-bold ml-4 text-white">
+          <h1 className="text-lg sm:text-xl font-bold ml-4 text-white">
             {derivedFruitName} statistikasi
           </h1>
           <div className="ml-auto">
@@ -339,7 +339,7 @@ const FruitDetailPage = () => {
         </div>
 
         {/* Summary Cards */}
-        <Row gutter={16} className="mb-6">
+        <Row gutter={16} className="mb-4">
           <Col span={8}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151' }}>
               <Statistic

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { API_BASE_URL2 } from "../config"; // Убедитесь, что путь к вашему конфигу правильный
 
@@ -47,12 +47,12 @@ const UserInfo = () => {
     <div className="min-h-screen bg-gray-900">
       <div className="bg-gray-800 shadow-lg p-4 border-b border-gray-700">
         <div className="container mx-auto flex items-center justify-between">
-          <h1 className="text-white text-xl font-bold">Hodim haqida ma'lumot</h1>
-          <Link to="/controllers" className="text-sm text-gray-300 hover:text-white">Orqaga</Link>
+          <h1 className="text-white text-lg font-bold">Hodim haqida ma'lumot</h1>
+          <button onClick={() => window.history.back()} className="text-sm text-gray-300 hover:text-white">Orqaga</button>
         </div>
       </div>
-      <div className="container mx-auto px-4 py-6">
-        <div className="bg-gray-800 shadow-lg rounded-lg border border-gray-700 p-6">
+      <div className="container mx-auto px-4 py-4">
+        <div className="bg-gray-800 shadow-lg rounded-lg border border-gray-700 p-4">
           {userData ? (
             <div>
               <p className="font-semibold text-gray-200">

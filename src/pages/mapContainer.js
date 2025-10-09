@@ -384,8 +384,8 @@ export default function MapContainer() {
                 Bog'ni tanlang
               </p>
             ) : (
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h2 className="text-xl font-bold mb-4 text-center text-white">
+              <div className="bg-gray-700 rounded-lg p-3 border border-gray-600">
+                <h2 className="text-lg font-bold mb-3 text-center text-white">
                   {selectedPlantation.farmer?.name || "Sarlavhasiz"}
                 </h2>
                 <div className="space-y-3">
@@ -430,8 +430,8 @@ export default function MapContainer() {
 
                 {/* Галерея */}
                 {selectedPlantation.images?.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-3 text-white">
+                  <div className="mt-4">
+                    <h3 className="text-base font-semibold mb-2 text-white">
                       Galereya:
                     </h3>
                     <div className="grid grid-cols-2 gap-2">
@@ -449,8 +449,8 @@ export default function MapContainer() {
 
                 {/* Площади фруктов */}
                 {selectedPlantation.fruit_areas?.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-3 text-white">
+                  <div className="mt-4">
+                    <h3 className="text-base font-semibold mb-2 text-white">
                       Mevalar:
                     </h3>
                     <div className="space-y-2">
@@ -521,8 +521,8 @@ export default function MapContainer() {
 
       {/* Мобильная версия контента */}
       <div className="lg:hidden p-4">
-        <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-700">
-          <h2 className="text-xl font-semibold text-white mb-4 text-center">
+        <div className="bg-gray-800 rounded-lg shadow-lg p-3 border border-gray-700">
+          <h2 className="text-lg font-semibold text-white mb-3 text-center">
             Bog'lar xaritasi
           </h2>
 

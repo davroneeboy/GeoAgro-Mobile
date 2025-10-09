@@ -410,9 +410,9 @@ const AdminLogsPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-white">
+      <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
+          <h1 className="text-lg sm:text-xl font-bold text-white">
             Admin loglar
           </h1>
           <div className="flex gap-2">
@@ -452,7 +452,7 @@ const AdminLogsPage = () => {
         )}
 
         {/* Фильтры */}
-        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+        <Card className="mb-3 sm:mb-4" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[12, 12]}>
             <Col xs={24} md={6}>
               <div className="mb-2 sm:mb-4">
@@ -550,7 +550,7 @@ const AdminLogsPage = () => {
         </Card>
 
         {/* Summary Cards */}
-        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+        <Row gutter={[12, 12]} className="mb-3 sm:mb-4">
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic

@@ -481,6 +481,13 @@ const PlantationDetail = () => {
   }, [fetchPlantationDetails, authState.accessToken, navigate]);
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  useEffect(() => {
     if (plantation && !loading) {
       const loadGoogleMapsScript = () => {
         // Добавляем небольшую задержку, чтобы убедиться, что DOM готов
@@ -604,7 +611,7 @@ const PlantationDetail = () => {
             >
               ✕
             </button>
-            <h1 className="text-xl font-semibold text-white mb-4 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
+            <h1 className="text-lg font-semibold text-white mb-3 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
             
             {/* Блок статуса плантации */}
             <PlantationStatusIndicator plantation={plantation} />

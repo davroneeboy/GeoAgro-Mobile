@@ -512,10 +512,10 @@ const ApprovedPlantations = () => {
 
       {/* Контент */}
       <div className="min-h-screen bg-gray-900 flex flex-col">
-          <div className="p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-white text-3xl font-bold mb-2">
+                <h1 className="text-white text-2xl font-bold mb-2">
                   Tasdiqlangan bog'lar
                 </h1>
                 <p className="text-sm text-gray-400">
@@ -624,7 +624,7 @@ const ApprovedPlantations = () => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
+                        <h3 className="text-base font-bold text-white mb-1 group-hover:text-green-400 transition-colors">
                           {plantation.farmer?.name || "Sarlavhasiz bog'"}
                         </h3>
                         <div className="flex items-center space-x-3 text-xs text-gray-400">
@@ -792,10 +792,10 @@ const ApprovedPlantations = () => {
       </div>
 
       {/* Мобильная версия контента */}
-      <div className="lg:hidden p-4">
-        <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white">
+      <div className="lg:hidden p-3">
+        <div className="bg-gray-800 rounded-lg shadow-lg p-3 border border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-white">
               Tasdiqlangan bog'lar
             </h2>
             <button

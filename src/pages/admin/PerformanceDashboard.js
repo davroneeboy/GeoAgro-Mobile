@@ -226,9 +226,9 @@ export default function PerformanceDashboard() {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><BarChartOutlined /> Performance</h1>
+      <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2"><BarChartOutlined /> Performance</h1>
           <div className="flex gap-2">
             <Button icon={<ReloadOutlined />} onClick={fetchLogs} className="bg-blue-600 hover:bg-blue-700 border-blue-600" size="large">Yangilash</Button>
             <Button onClick={analyzeSecurityAlerts} icon={<BarChartOutlined />} style={{ marginBottom: 12 }}>
@@ -239,7 +239,7 @@ export default function PerformanceDashboard() {
 
         {error && <Alert message="Xatolik" description={error} type="error" className="mb-4" showIcon />}
 
-        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+        <Card className="mb-3 sm:mb-4" bodyStyle={{ background: '#1f2937' }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[12, 12]}>
             <Col xs={24} md={10}>
               <label className="block mb-2 text-gray-200">Davr</label>
@@ -276,7 +276,7 @@ export default function PerformanceDashboard() {
           </Row>
         </Card>
 
-        <Row gutter={[12,12]} className="mb-4 sm:mb-6">
+        <Row gutter={[12,12]} className="mb-3 sm:mb-4">
           <Col xs={24} md={8}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
               <Statistic title={<span style={{ color: '#9ca3af' }}>Jami so'rovlar</span>} value={logs.length} valueStyle={{ color: '#e5e7eb' }} />

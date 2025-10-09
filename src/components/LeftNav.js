@@ -1,49 +1,43 @@
 import React, { useEffect, useMemo, useState, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
-import { API_BASE_URL1 } from "../config";
 import AuthContext from "../context/AuthContext";
 import ContactsPanel from "./ContactsPanel";
 import { UserOutlined, BookOutlined, SettingOutlined } from "@ant-design/icons";
 
 const MENU_ITEMS = [
   { to: "/plantations/uz", label: "Bog'lar", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
       </svg>
     ) },
   { to: "/statistics/regions", label: "Statistika", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ) },
   { to: "/farmers", label: "Fermerlar", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ) },
   { to: "/moderation", label: "Moderatsiya", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ) },
   { to: "/approved-plantations", label: "Tasdiqlangan", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
       </svg>
     ) },
   { to: "/rejected-plantations", label: "Rad etilgan", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     ) },
-  { to: "/controllers", label: "Nazoratchilar", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5 3V5a2 2 0 012-2h12a2 2 0 012 2v18l-5-3H9z" />
-      </svg>
-    ) },
   { to: "/admin/logs", label: "Admin logs", icon: (
-      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
       </svg>
     ) },
@@ -60,7 +54,7 @@ const getMenuItemsByRole = (role, regionId) => {
     return [
       ...MENU_ITEMS.filter(item => item.to !== "/admin/logs" && item.to !== "/admin/performance" && item.to !== "/my/logs"),
       { to: "/admin", label: "Admin panel", icon: (
-        <svg className="w-6 h-6 text-white" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
+        <svg className="w-5 h-5 text-white" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
           <g>
             <path d="m58 5h-52c-3.3 0-6 2.7-6 6v32c0 3.3 2.7 6 6 6h17.8c-.3 2.1-1.2 5.2-3.6 6.1-.9.4-1.4 1.3-1.2 2.2s1 1.6 2 1.6h22.4c1 0 1.8-.7 2-1.6s-.3-1.9-1.2-2.2c-2.3-.9-3.4-3.9-3.8-6.1h17.6c3.3 0 6-2.7 6-6v-32c0-3.3-2.7-6-6-6zm-52 4h52c1.1 0 2 .9 2 2v26h-56v-26c0-1.1.9-2 2-2zm32.3 46h-12.3c1.2-2.1 1.7-4.4 1.9-6h8.4c.2 1.6.8 3.9 2 6zm19.7-10h-52c-1.1 0-2-.9-2-2v-2h56v2c0 1.1-.9 2-2 2z"/>
             <g>
@@ -72,17 +66,17 @@ const getMenuItemsByRole = (role, regionId) => {
         </svg>
       ) },
       { to: "/admin/logs", label: "Admin logs", icon: (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
       ) },
       { to: "/admin/performance", label: "Performance", icon: (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3v18h18M7 13l3 3 7-7" />
         </svg>
       ) },
       { to: "/my/logs", label: "Mening loglarim", icon: (
-        <BookOutlined className="w-6 h-6 text-white" />
+        <BookOutlined className="w-5 h-5 text-white" />
       ) },
     ];
   }
@@ -105,7 +99,7 @@ const getMenuItemsByRole = (role, regionId) => {
       ...(statsItem ? [statsItem] : []),
       farmersItem,
       { to: "/my/logs", label: "Mening loglarim", icon: (
-        <UserOutlined className="w-6 h-6 text-white" />
+        <UserOutlined className="w-5 h-5 text-white" />
       ) },
     ].filter(Boolean);
   }
@@ -135,30 +129,10 @@ const LeftNav = () => {
     } catch { return false; }
   });
 
-  const [controllers, setControllers] = useState([]);
-  const [controllersOpen, setControllersOpen] = useState(false);
-  const [visibleControllersCount, setVisibleControllersCount] = useState(5);
-
   useEffect(() => {
     try { localStorage.setItem('leftNavCollapsed', String(collapsed)); } catch {}
     try { window.dispatchEvent(new Event('leftnav-toggle')); } catch {}
   }, [collapsed]);
-
-  useEffect(() => {
-    const fetchControllers = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL1}api/users/`, {
-          headers: authState?.accessToken ? { Authorization: `Bearer ${authState.accessToken}` } : {},
-        });
-        const data = await res.json();
-        const sorted = (Array.isArray(data) ? data : [])
-          .filter(u => u.last_login)
-          .sort((a, b) => new Date(b.last_login) - new Date(a.last_login));
-        setControllers(sorted);
-      } catch {}
-    };
-    if (location.pathname === '/' && authState?.accessToken) fetchControllers();
-  }, [location.pathname, authState?.accessToken]);
 
 
   const width = collapsed ? 72 : 344;
@@ -183,12 +157,7 @@ const LeftNav = () => {
       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
       </svg>
-    ) },
-    { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
-      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-        ) }
+    ) }
       ];
     }
     if (authState?.userRole === "headof_region") {
@@ -198,12 +167,7 @@ const LeftNav = () => {
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
           </svg>
-        ) }] : []),
-        { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        ) }
+        ) }] : [])
       ];
     }
     if (authState?.userRole === "observer") {
@@ -217,23 +181,12 @@ const LeftNav = () => {
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
       </svg>
-    ) },
-        { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        ) }
+    ) }
   ];
     }
     return [];
   }, [authState?.userRole]);
 
-  const formatUserLocation = (u) => {
-    const loc = u?.location || {};
-    const region = loc.region ? `Region #${loc.region}` : '';
-    const district = loc.district || '';
-    return [region, district].filter(Boolean).join(', ') || 'No region/district assigned';
-  };
 
   return (
     <aside className="fixed left-0 top-0 h-screen z-50 bg-gray-800 border-r border-gray-700 shadow-lg transition-all overflow-y-auto overflow-x-hidden no-scrollbar" style={{ width }}>
@@ -267,47 +220,25 @@ const LeftNav = () => {
           const isStats = item.to === '/statistics/regions' || item.to.startsWith('/statistics/regions/');
           return (
             <div key={item.to}>
-              {item.to === '/controllers' ? (
-                <div
-                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-3 rounded-lg border bg-gray-700 text-gray-400 border-gray-600 opacity-60 cursor-not-allowed pointer-events-none`}
-                  title={collapsed ? item.label : 'Nazoratchilar (faol emas)'}
-                  aria-disabled="true"
-                >
-                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </div>
-              ) : (
-                <Link
-                  to={item.to}
-                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-3 py-4 transition-colors rounded-xl border-2 ${active ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </Link>
-              )}
+              <Link
+                to={item.to}
+                className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-3 py-3 transition-colors rounded-xl border-2 ${active ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <span className={`inline-flex items-center justify-center ${collapsed ? 'w-6' : 'w-5'} h-5 text-white`}>{item.icon}</span>
+                {!collapsed && <span className="truncate text-sm">{item.label}</span>}
+              </Link>
               {!collapsed && location.pathname.startsWith('/statistics') && isStats && (
                 <div className="ml-2 mt-1 space-y-2">
                   {statsSubItems.map(sub => (
-                    sub.to === '/statistics/controllers' ? (
-                      <Link
-                        key={sub.to}
-                        to={sub.to}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
-                      >
-                        <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
-                        <span className="truncate">{sub.label}</span>
-                      </Link>
-                    ) : (
-                      <Link
-                        key={sub.to}
-                        to={sub.to}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
-                      >
-                        <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
-                        <span className="truncate">{sub.label}</span>
-                      </Link>
-                    )
+                    <Link
+                      key={sub.to}
+                      to={sub.to}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border w-full ${location.pathname.startsWith(sub.to) ? 'bg-green-700 text-white border-green-600' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
+                    >
+                      <span className="inline-flex items-center justify-center w-4 h-4">{sub.icon}</span>
+                      <span className="truncate">{sub.label}</span>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -339,11 +270,11 @@ const LeftNav = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-4 py-4 transition-colors rounded-lg border-2 mb-2 ${active ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
+                  className={`block w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-3 px-3 py-3 transition-colors rounded-lg border-2 mb-2 ${active ? 'bg-green-600 text-white border-green-500 shadow-lg' : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600 hover:border-gray-500'}`}
                   title={collapsed ? item.label : undefined}
                 >
-                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-8' : 'w-6'} h-6 text-white`}>{item.icon}</span>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  <span className={`inline-flex items-center justify-center ${collapsed ? 'w-6' : 'w-5'} h-5 text-white`}>{item.icon}</span>
+                  {!collapsed && <span className="truncate text-sm">{item.label}</span>}
                 </Link>
               );
             })}
@@ -352,50 +283,8 @@ const LeftNav = () => {
       </nav>
       
       {location.pathname === '/' && (
-        <div className="px-3 pb-3 space-y-2">
-                     <div>
-                           <ContactsPanel buttonClassName={`w-full ${collapsed ? 'justify-center' : 'justify-between'} flex items-center text-white font-medium bg-gray-700 hover:bg-gray-600 transition-colors px-3 py-2 rounded-lg border border-gray-600`} label={collapsed ? '' : 'Kontaktlar'} variant="full" />
-           </div>
-          <button onClick={() => setControllersOpen(v => !v)} className={`w-full ${collapsed ? 'justify-center' : 'justify-between'} flex items-center text-white font-medium mb-2 bg-gray-700 hover:bg-gray-600 transition-colors px-3 py-2 rounded-lg border border-gray-600`} title={collapsed ? 'Nazoratchilar' : undefined}>
-            <span className={`flex items-center gap-2 ${collapsed ? 'sr-only' : ''}`}>
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10a4 4 0 118 0" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              {!collapsed && 'Nazoratchilar'}
-            </span>
-            {!collapsed && (
-              <svg className={`w-4 h-4 transform transition-transform ${controllersOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-            )}
-          </button>
-
-          {controllersOpen && (
-            <div className="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
-              {controllers.slice(0, visibleControllersCount).map((controller) => (
-                <Link to="/controllers" key={controller.id} className={`block ${collapsed ? 'px-2 py-2' : 'p-3'} border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors`} title={collapsed ? (controller.first_name || controller.last_name ? `${controller.first_name} ${controller.last_name}` : controller.username) : undefined}>
-                  {!collapsed ? (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-white">{controller.first_name || controller.last_name ? `${controller.first_name} ${controller.last_name}` : controller.username}</h3>
-                        <div className="h-2.5 w-2.5 bg-green-500 rounded-full"></div>
-                      </div>
-                      <p className="text-xs text-gray-400">{(() => { const iso = (controller.last_login || "").replace(" ", "T"); const d = new Date(iso); return isNaN(d) ? "вЂ”" : d.toLocaleString("uz-UZ", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }); })()}</p>
-                      <p className="text-xs text-gray-400">{formatUserLocation(controller)}</p>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center"><div className="h-2.5 w-2.5 bg-green-500 rounded-full"></div></div>
-                  )}
-                </Link>
-              ))}
-              {controllers.length > 5 && !collapsed && (
-                <div className="flex gap-2">
-                  {visibleControllersCount < controllers.length && (
-                    <button onClick={() => setVisibleControllersCount(c => Math.min(c + 5, controllers.length))} className="flex-1 bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors">Ko'proq ko'rsatish</button>
-                  )}
-                  {visibleControllersCount > 5 && (
-                    <button onClick={() => setVisibleControllersCount(c => Math.max(5, c - 5))} className="flex-1 bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors">Kamhroq ko'rsatish</button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+        <div className="px-3 pb-3">
+          <ContactsPanel buttonClassName={`w-full ${collapsed ? 'justify-center' : 'justify-between'} flex items-center text-white font-medium bg-gray-700 hover:bg-gray-600 transition-colors px-3 py-2 rounded-lg border border-gray-600`} label={collapsed ? '' : 'Kontaktlar'} variant="full" />
         </div>
       )}
 

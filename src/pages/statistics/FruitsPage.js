@@ -286,9 +286,9 @@ const FruitsPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Mevalar bo'yicha statistika</h1>
+      <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
+          <h1 className="text-lg sm:text-xl font-bold text-white">Mevalar bo'yicha statistika</h1>
           <div className="flex gap-2">
             <Button 
               type="primary"
@@ -316,7 +316,7 @@ const FruitsPage = () => {
           />
         )}
 
-        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: '#1f2937', border: '1px solid #374151', padding: 16 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
+        <Card className="mb-3 sm:mb-4" bodyStyle={{ background: '#1f2937', border: '1px solid #374151', padding: 12 }} style={{ background: '#1f2937', border: '1px solid #374151' }}>
           <Row gutter={[12, 12]}>
             <Col xs={24} md={8}>
               <div className="mb-2 sm:mb-4">
@@ -363,9 +363,9 @@ const FruitsPage = () => {
         </Card>
 
         {/* Summary Cards */}
-        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+        <Row gutter={[12, 12]} className="mb-3 sm:mb-4">
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 12 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Jami maydon</span>}
                 value={totals.total_area}
@@ -376,7 +376,7 @@ const FruitsPage = () => {
             </Card>
           </Col>
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 12 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Eskirgan maydon</span>}
                 value={totals.outdated_ga}
@@ -387,7 +387,7 @@ const FruitsPage = () => {
             </Card>
           </Col>
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 12 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Yuqori hosildor</span>}
                 value={totals.high_fertility_area}
@@ -398,7 +398,7 @@ const FruitsPage = () => {
             </Card>
           </Col>
           <Col xs={12} md={6}>
-            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 16 }}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151' }} bodyStyle={{ padding: 12 }}>
               <Statistic
                 title={<span style={{ color: '#9ca3af' }}>Past hosildor</span>}
                 value={totals.low_fertility_area}

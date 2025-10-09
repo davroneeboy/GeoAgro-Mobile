@@ -313,11 +313,11 @@ export default function UserLogsPage() {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: "#111827", minHeight: "100vh" }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+      <div className="p-3 sm:p-4" style={{ background: "#111827", minHeight: "100vh" }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
             <Button onClick={() => navigate(-1)} icon={<ArrowLeftOutlined />} className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600">Orqaga</Button>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">Foydalanuvchi loglari — ID {userId}</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white">Foydalanuvchi loglari — ID {userId}</h1>
           </div>
           <div className="flex gap-2">
             <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} className="bg-green-600 hover:bg-green-700 border-green-600" size="large">Excel</Button>
@@ -327,7 +327,7 @@ export default function UserLogsPage() {
 
         {error && <Alert message="Xatolik" description={error} type="error" className="mb-4" showIcon />}
 
-        <Card className="mb-4 sm:mb-6" bodyStyle={{ background: "#1f2937" }} style={{ background: "#1f2937", border: "1px solid #374151" }}>
+        <Card className="mb-3 sm:mb-4" bodyStyle={{ background: "#1f2937" }} style={{ background: "#1f2937", border: "1px solid #374151" }}>
           <Row gutter={[12, 12]}>
             <Col xs={24} md={6}>
               <div className="mb-2 sm:mb-4">
@@ -385,7 +385,7 @@ export default function UserLogsPage() {
           </Row>
         </Card>
 
-        <Row gutter={[12, 12]} className="mb-4 sm:mb-6">
+        <Row gutter={[12, 12]} className="mb-3 sm:mb-4">
           <Col xs={12} md={6}>
             <Card style={{ background: "#1f2937", border: "1px solid #374151", color: "#e5e7eb" }} bodyStyle={{ padding: 16 }}>
               <Statistic title={<span style={{ color: "#9ca3af" }}>Jami so'rovlar</span>} value={totalCount} precision={0} valueStyle={{ color: "#e5e7eb" }} />

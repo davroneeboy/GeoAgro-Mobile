@@ -298,10 +298,10 @@ const DistrictFarmersPage = () => {
 
   return (
     <StatisticsLayout>
-      <div className="p-4 sm:p-6" style={{ background: '#111827', minHeight: '100vh' }}>
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>Orqaga</Button>
-          <h1 className="text-xl sm:text-2xl font-bold ml-2 sm:ml-4 text-white flex-1">
+          <h1 className="text-lg sm:text-xl font-bold ml-2 sm:ml-4 text-white flex-1">
             Fermerlar statistikasi — {districtName || `ID ${districtId}`}
           </h1>
           <Button

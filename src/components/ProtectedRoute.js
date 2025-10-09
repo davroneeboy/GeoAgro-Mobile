@@ -28,11 +28,11 @@ const ForbiddenPage = () => (
       </svg>
     </div>
     
-    <h1 className="text-3xl font-bold text-white mb-6">Рухсат йўқ</h1>
+    <h1 className="text-2xl font-bold text-white mb-4">Рухсат йўқ</h1>
     
-    <div className="text-white mb-8 text-center max-w-lg">
-      <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
-        <div className="bg-orange-900/30 border border-orange-600/50 rounded-lg p-4 mb-4">
+    <div className="text-white mb-6 text-center max-w-lg">
+      <div className="bg-gray-800 rounded-lg p-4 mb-4 border border-gray-700">
+        <div className="bg-orange-900/30 border border-orange-600/50 rounded-lg p-3 mb-3">
           <p className="text-orange-200 text-lg font-medium">Ушбу саҳифани кўриш учун ҳуқуқингиз йўқ.</p>
           <p className="text-orange-100 mt-2">Статистика ва бошқа маълумотларни кўриш учун қўшимча ҳуқуқлар керак.</p>
         </div>

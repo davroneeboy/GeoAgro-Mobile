@@ -642,13 +642,13 @@ const Moderation = () => {
 
       {/* Контент */}
       <div className="min-h-screen bg-gray-900 w-full" style={{backgroundColor: '#111827'}}>
-          <div className="p-4 sm:p-6 bg-gray-900" style={{backgroundColor: '#111827'}}>
-            <h1 className="text-white text-3xl font-bold mb-4 sm:mb-6">
+          <div className="p-3 sm:p-4 bg-gray-900" style={{backgroundColor: '#111827'}}>
+            <h1 className="text-white text-2xl font-bold mb-3 sm:mb-4">
               Moderatsiya
             </h1>
 
             {/* Фильтры */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
               <button
                 className="px-3 py-2 sm:px-4 rounded-lg border border-gray-600 bg-blue-500 text-white hover:bg-blue-600 transition-colors text-sm sm:text-base"
                 onClick={handleResetFilters}
@@ -784,7 +784,7 @@ const Moderation = () => {
                 >
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg sm:text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-base sm:text-lg font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
                         {plantation.name}
                       </h3>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-sm text-gray-400">
@@ -899,8 +899,8 @@ const Moderation = () => {
               <div className="flex flex-col items-center mt-6 sm:mt-8 space-y-3 sm:space-y-4 pb-6">
                 {/* Информация о страницах */}
                 <div className="text-white text-center">
-                  <span className="text-base sm:text-lg font-semibold">Sahifa {page} dan {totalPages || 1}</span>
-                  <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                  <span className="text-sm sm:text-base font-semibold">Sahifa {page} dan {totalPages || 1}</span>
+                  <div className="text-xs text-gray-400 mt-1">
                     Jami {count} ta yozuv
                   </div>
                 </div>
@@ -988,9 +988,9 @@ const Moderation = () => {
         
 
       {/* Мобильная версия контента */}
-      <div className="lg:hidden p-4 bg-gray-900 min-h-screen pb-24" style={{backgroundColor: '#111827'}}>
-        <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-700">
-          <h2 className="text-xl font-semibold text-white mb-4 text-center">
+      <div className="lg:hidden p-3 bg-gray-900 min-h-screen pb-24" style={{backgroundColor: '#111827'}}>
+        <div className="bg-gray-800 rounded-lg shadow-lg p-3 border border-gray-700">
+          <h2 className="text-lg font-semibold text-white mb-3 text-center">
             Moderatsiya
           </h2>
           
@@ -1151,7 +1151,7 @@ const Moderation = () => {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-base font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
                       {plantation.name}
                     </h3>
                     <div className="flex items-center space-x-3 text-xs text-gray-400">

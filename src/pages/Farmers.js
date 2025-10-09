@@ -248,7 +248,7 @@ const Farmers = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-5">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
             <p className="mt-4 text-gray-300">Yuklanmoqda...</p>
@@ -261,7 +261,7 @@ const Farmers = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-5">
           <div
             className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg"
             role="alert"
@@ -335,10 +335,10 @@ const Farmers = () => {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-5">
         
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-white">
             Fermerlar
           </h2>
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 sticky top-[64px] z-10 bg-gray-900/80 backdrop-blur-md p-3 md:p-0 md:bg-transparent">

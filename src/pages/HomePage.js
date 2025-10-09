@@ -35,13 +35,13 @@ const centerTextPlugin = {
     ctx.textBaseline = 'middle';
     // Крупное число
     ctx.fillStyle = '#e5e7eb';
-    const mainFontSize = Math.max(Math.min(width, height) / 7, 14);
+    const mainFontSize = Math.max(Math.min(width, height) / 8, 12);
     ctx.font = `700 ${mainFontSize}px ui-sans-serif, system-ui, -apple-system`;
     ctx.fillText(opts.text, centerX, centerY);
     // Подпись
     if (opts.label) {
       ctx.fillStyle = '#9ca3af';
-      const subFontSize = Math.max(Math.min(width, height) / 16, 10);
+      const subFontSize = Math.max(Math.min(width, height) / 18, 9);
       ctx.font = `500 ${subFontSize}px ui-sans-serif, system-ui, -apple-system`;
       ctx.fillText(opts.label, centerX, centerY + mainFontSize * 0.75);
     }
@@ -233,19 +233,21 @@ const HomePage = () => {
   const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '58%',
+    cutout: '60%',
     plugins: {
       legend: {
         position: "bottom",
         labels: {
-          padding: 15,
+          padding: 8,
           font: {
-            size: window.innerWidth < 768 ? 11 : 13,
+            size: window.innerWidth < 768 ? 9 : 11,
             weight: 'bold',
             color: '#ffffff'
           },
           usePointStyle: true,
-          pointStyle: 'circle'
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8
         }
       },
       tooltip: {
@@ -360,26 +362,19 @@ const HomePage = () => {
             >
               Rad etilgan bog'lar
             </Link>
-            <Link
-              to="/controllers"
-              className={`block w-full ${isAt('/statistics/controllers') || isAt('/controllers') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Nazoratchilar
-            </Link>
           </div>
         )}
       </div>
 
       {/* Основная область (без левой панели — теперь она общая) */}
       <div className="hidden lg:flex lg:flex-col lg:h-full lg:overflow-hidden">
-          <div className="p-4 sm:p-6 flex-1 overflow-y-auto no-scrollbar">
-            <h1 className="text-white text-3xl font-bold mb-2 flex items-center justify-between">
+          <div className="p-3 sm:p-4 flex-1 overflow-y-auto no-scrollbar">
+            <h1 className="text-white text-2xl font-bold mb-2 flex items-center justify-between">
               <span>Qishloq xo'jaligi statistikasi</span>
               <div className="flex items-center gap-3">
                 <div className="flex items-center bg-gray-800 border border-gray-700 rounded-full px-3 py-1">
-                  <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center mr-2">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center mr-2">
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -391,13 +386,13 @@ const HomePage = () => {
             {/* removed quick action buttons */}
 
             {statistics ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <h3 className="text-base font-semibold text-white mb-2 text-center">
                       Plantatsiya turlari
                     </h3>
-                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
+                    <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
                         data={plantationTypesData}
                         options={{
@@ -409,17 +404,12 @@ const HomePage = () => {
                         }}
                       />
                     </div>
-                    <div className="mt-3 flex justify-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
-                        Jami: {formatNumber(plantationTotal)}
-                      </span>
-                    </div>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">
+                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <h3 className="text-base font-semibold text-white mb-2 text-center">
                       Maydonlar
                     </h3>
-                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
+                    <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
                         data={areasData}
                         options={{
@@ -431,17 +421,12 @@ const HomePage = () => {
                         }}
                       />
                     </div>
-                    <div className="mt-3 flex justify-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
-                        Jami: {formatNumber(areasTotal)}
-                      </span>
-                    </div>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">
+                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <h3 className="text-base font-semibold text-white mb-2 text-center">
                       Investitsiyalar
                     </h3>
-                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
+                    <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
                         data={investmentsData}
                         options={{
@@ -463,19 +448,14 @@ const HomePage = () => {
                         }}
                       />
                     </div>
-                    <div className="mt-3 flex justify-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
-                        Jami: {formatNumber(investmentsTotal)} so'm
-                      </span>
-                    </div>
                   </div>
                 </div>
                 
                 {/* Дополнительные диаграммы: Ирригация и Уруқдорлик */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Sug'orish</h3>
-                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <h3 className="text-base font-semibold text-white mb-2 text-center">Sug'orish</h3>
+                    <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
                         data={irrigationData}
                         options={{
@@ -487,15 +467,11 @@ const HomePage = () => {
                         }}
                       />
                     </div>
-                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Jami maydon: {formatNumber(totalAreaAll)} ga</span>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Sug'oriladigan: {formatNumber(irrigationTotal)} ga</span>
-                    </div>
                   </div>
 
-                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <h3 className="text-lg font-semibold text-white mb-4 text-center">Tuproq unumdorligi</h3>
-                    <div className="h-56 md:h-64 lg:h-72 xl:h-80">
+                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <h3 className="text-base font-semibold text-white mb-2 text-center">Tuproq unumdorligi</h3>
+                    <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
                         data={fertilityData}
                         options={{
@@ -507,27 +483,23 @@ const HomePage = () => {
                         }}
                       />
                     </div>
-                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Past: {formatNumber(fertilityLow)} ga</span>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Yuqori: {formatNumber(fertilityHigh)} ga</span>
-                    </div>
                   </div>
                 </div>
                 
                 {/* Карточка с фермерами */}
-                <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6 border border-gray-600">
+                <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-3 border border-gray-600">
                   <div className="flex items-center justify-center">
-                    <div className="bg-green-500 rounded-full p-4 mr-6">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-green-500 rounded-full p-3 mr-4">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
                     <div className="text-center">
-                      <h3 className="text-2xl font-bold text-white mb-2">Fermerlar</h3>
-                      <p className="text-4xl font-extrabold text-green-400">
+                      <h3 className="text-lg font-bold text-white mb-1">Fermerlar</h3>
+                      <p className="text-3xl font-extrabold text-green-400">
                         {new Intl.NumberFormat('uz-UZ').format(statistics.total_farmers || 0)}
                       </p>
-                      <p className="text-sm text-gray-400 mt-2">Umumiy fermerlar soni</p>
+                      <p className="text-xs text-gray-400 mt-1">Umumiy fermerlar soni</p>
                     </div>
                   </div>
                 </div>
@@ -573,11 +545,6 @@ const HomePage = () => {
                     }}
                   />
                 </div>
-                <div className="mt-2 flex justify-center">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
-                    Jami: {formatNumber(plantationTotal)}
-                  </span>
-                </div>
               </div>
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                 <h3 className="text-lg font-semibold text-white mb-4 text-center">
@@ -594,11 +561,6 @@ const HomePage = () => {
                       }
                     }}
                   />
-                </div>
-                <div className="mt-2 flex justify-center">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
-                    Jami: {formatNumber(areasTotal)}
-                  </span>
                 </div>
               </div>
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
@@ -627,11 +589,6 @@ const HomePage = () => {
                     }}
                   />
                 </div>
-                <div className="mt-2 flex justify-center">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">
-                    Jami: {formatNumber(investmentsTotal)} so'm
-                  </span>
-                </div>
               </div>
               {/* Mobile: Ирригация и Уруқдорлик */}
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
@@ -648,10 +605,6 @@ const HomePage = () => {
                     }}
                   />
                 </div>
-                <div className="mt-2 flex justify-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Jami: {formatNumber(totalAreaAll)} ga</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Sug'oriladigan: {formatNumber(irrigationTotal)} ga</span>
-                </div>
               </div>
 
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
@@ -667,10 +620,6 @@ const HomePage = () => {
                       }
                     }}
                   />
-                </div>
-                <div className="mt-2 flex justify-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Past: {formatNumber(fertilityLow)} ga</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-700 border border-gray-600 text-gray-200">Yuqori: {formatNumber(fertilityHigh)} ga</span>
                 </div>
               </div>
               

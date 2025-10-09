@@ -324,15 +324,15 @@ const RejectedPlantations = () => {
 
       {/* Контент */}
       <div className="min-h-screen bg-gray-900 flex flex-col">
-          <div className="p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-white text-3xl font-bold mb-2">Rad etilgan bog'lar</h1>
+                <h1 className="text-white text-2xl font-bold mb-2">Rad etilgan bog'lar</h1>
         </div>
             </div>
 
             {/* Фильтры */}
-            <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-700">
+            <div className="bg-gray-800 rounded-lg p-3 mb-4 border border-gray-700">
               <div className="flex flex-wrap items-center gap-4">
                 <button
                   className="px-4 py-2 rounded-lg border border-gray-600 bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"

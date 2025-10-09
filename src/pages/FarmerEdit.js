@@ -102,7 +102,7 @@ const FarmerEdit = () => {
   if (loading) {
     return (
       <div className="h-screen bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-5">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
             <p className="mt-4 text-gray-300">Loading...</p>
@@ -117,12 +117,12 @@ const FarmerEdit = () => {
       {/* Header removed to avoid duplication with LeftNav */}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-5">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">
               {id === "new" ? "Yangi fermer" : "Fermer"}
-          </h2>
+            </h2>
             <button
               onClick={() => navigate("/farmers")}
               className="px-3 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
@@ -133,9 +133,9 @@ const FarmerEdit = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="bg-gray-800 shadow-lg rounded-lg p-6 border border-gray-700"
+            className="bg-gray-800 shadow-lg rounded-lg p-4 border border-gray-700"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Nomi
