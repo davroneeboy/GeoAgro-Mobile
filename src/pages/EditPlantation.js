@@ -1001,7 +1001,7 @@ const EditPlantation = () => {
                   </div>
                   <div class="tooltip-row">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="#bfbfbf"><path d="M3 3h18v18H3V3Zm2 2v14h14V5H5Zm3 3h8v8H8V8Z"/></svg>
-                    <span>Maydon: ${(p?.total_area ?? '-') } ga</span>
+                    <span>Maydon: ${p?.total_area ? Number(p.total_area).toFixed(1) : '-'} ga</span>
                   </div>
                   <div class="tooltip-row">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="${fill}"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/></svg>
@@ -1717,7 +1717,7 @@ const EditPlantation = () => {
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Maydoni:</p>
-                <p className="text-white">{plantation.total_area} GA</p>
+                <p className="text-white">{Number(plantation.total_area).toFixed(1)} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Poligon maydoni:</p>
