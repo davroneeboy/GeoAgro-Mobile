@@ -626,6 +626,10 @@ const PlantationDetail = () => {
                 <p className="text-white">{plantation.total_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Poligon maydoni:</p>
+                <p className="text-white">{plantation.polygon_area ? Number(plantation.polygon_area).toFixed(2) + ' GA' : '—'}</p>
+              </div>
+              <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Hosildorlik bahosi:</p>
                 <p className="text-white">{plantation.fertility_score}</p>
               </div>

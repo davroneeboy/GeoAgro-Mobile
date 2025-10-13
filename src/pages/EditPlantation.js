@@ -33,6 +33,14 @@ const EditPlantation = () => {
   const [moderationItems, setModerationItems] = useState([]);
   const { authState, refreshAccessToken } = useContext(AuthContext);
   const canDeleteComments = authState?.userRole === 'superuser';
+  
+  // Права доступа для удаления
+  const canDeletePlantation = () => {
+    if (authState?.userRole === 'superuser') return true;
+    if (authState?.userRole === 'headof_region' && plantation?.district?.region === parseInt(authState.regionId)) return true;
+    if (authState?.userRole === 'user' && plantation?.created_by === authState.userId) return true;
+    return false;
+  };
   // Approve confirmation modal
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const openApproveModal = () => setIsApproveModalOpen(true);
@@ -384,6 +392,7 @@ const EditPlantation = () => {
        setError(message);
     }
   };
+
 
   const handleDeleteConfirm = async () => {
     try {
@@ -1711,8 +1720,12 @@ const EditPlantation = () => {
                 <p className="text-white">{plantation.total_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
+                <p className="font-semibold text-gray-300">Poligon maydoni:</p>
+                <p className="text-white">{plantation.polygon_area ? Number(plantation.polygon_area).toFixed(2) + ' GA' : '—'}</p>
+              </div>
+              <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Hosildorlik bahosi:</p>
-                <p className="text-white">{plantation.fertility_score}</p>
+                <p className="text-white">{Number(plantation.fertility_score).toFixed(1)}</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Devor bilan o'ralgan:</p>
@@ -2275,7 +2288,8 @@ const EditPlantation = () => {
                   </div>
                 </div>
               )}
-            {authState.userRole === "superuser" && isDeleteModalOpen && (
+
+            {canDeletePlantation() && isDeleteModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
                   <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
                     <button onClick={closeDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
@@ -2344,7 +2358,7 @@ const EditPlantation = () => {
       )}
 
       {/* Плавающая панель быстрых действий */}
-      {authState.userRole === "superuser" && plantation && !isDeleted && (
+      {canDeletePlantation() && plantation && !isDeleted && (
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
           <div className="bg-gray-800/95 backdrop-blur-sm border-2 border-gray-600 rounded-full shadow-2xl px-4 py-2 flex items-center gap-3">
             <button
@@ -2377,13 +2391,13 @@ const EditPlantation = () => {
             
             <button
               onClick={openDeleteModal}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
-              title="O'chirish"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
+              title="To'liq o'chirish"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              <span>O'chirish</span>
+              <span>To'liq o'chirish</span>
             </button>
           </div>
         </div>
@@ -2445,4 +2459,5 @@ const EditPlantation = () => {
 };
 
 export default EditPlantation;
+
 

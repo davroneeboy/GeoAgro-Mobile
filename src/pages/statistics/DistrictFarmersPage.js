@@ -121,11 +121,27 @@ const DistrictFarmersPage = () => {
           const name = r.name || r.farmer_name || r.farmer?.name || r.farmer?.full_name || r.company_name || '';
           const total_plantations = Number(r.total_plantations ?? r.plantations_count ?? r.total_count ?? r.count ?? 0);
           const approved_plantations = Number(r.approved_plantations ?? r.approved ?? r.approved_count ?? 0);
+          const rejected_plantations = Number(r.rejected_plantations ?? r.rejected_count ?? 0);
           const total_area = Number(r.total_area ?? r.area ?? r.total_ga ?? r.total_areas ?? 0);
           const planted_area = Number(r.planted_area ?? r.total_fruitarea ?? r.fruitarea ?? r.total_planted_area ?? 0);
+          const approved_area = Number(r.approved_area ?? r.approved_ga ?? 0);
+          const rejected_area = Number(r.rejected_area ?? r.rejected_ga ?? 0);
+          const last_added_plantations = r.last_added_plantations || r.last_plantation_date || null;
           const approve_percent = Number(r.approve_percent ?? (total_plantations > 0 ? (approved_plantations / total_plantations) * 100 : 0));
           const farmer_id = r.farmer_id ?? r.id ?? r.farmer?.id;
-          return { farmer_id, name, total_plantations, approved_plantations, total_area, planted_area, approve_percent };
+          return { 
+            farmer_id, 
+            name, 
+            total_plantations, 
+            approved_plantations, 
+            rejected_plantations,
+            total_area, 
+            planted_area, 
+            approved_area,
+            rejected_area,
+            last_added_plantations,
+            approve_percent 
+          };
         };
         const normalized = Array.isArray(arr) ? arr.map(normalize) : [];
         setSummaryStats(data?.summary || null);
@@ -185,6 +201,15 @@ const DistrictFarmersPage = () => {
       sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
     },
     {
+      title: <span style={textLight}>Rad etilgan</span>,
+      dataIndex: 'rejected_plantations',
+      key: 'rejected_plantations',
+      render: (v) => <span style={textLight}>{Number(v || 0).toLocaleString()}</span>,
+      sorter: true,
+      sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
+    },
+    {
       title: <span style={textLight}>Umumiy maydon (GA)</span>,
       dataIndex: 'total_area',
       key: 'total_area',
@@ -201,6 +226,37 @@ const DistrictFarmersPage = () => {
       sorter: true,
       sortDirections: ['ascend', 'descend'],
       sortOrder: sortConfig.field === 'planted_area' ? sortConfig.order : null,
+    },
+    {
+      title: <span style={textLight}>Tasdiqlangan maydon (GA)</span>,
+      dataIndex: 'approved_area',
+      key: 'approved_area',
+      render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span>,
+      sorter: true,
+      sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'approved_area' ? sortConfig.order : null,
+    },
+    {
+      title: <span style={textLight}>Rad etilgan maydon (GA)</span>,
+      dataIndex: 'rejected_area',
+      key: 'rejected_area',
+      render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span>,
+      sorter: true,
+      sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'rejected_area' ? sortConfig.order : null,
+    },
+    {
+      title: <span style={textLight}>Oxirgi qo'shilgan</span>,
+      dataIndex: 'last_added_plantations',
+      key: 'last_added_plantations',
+      render: (v) => (
+        <span style={textLight}>
+          {v ? new Date(v).toLocaleDateString('uz-UZ') : '-'}
+        </span>
+      ),
+      sorter: true,
+      sortDirections: ['ascend', 'descend'],
+      sortOrder: sortConfig.field === 'last_added_plantations' ? sortConfig.order : null,
     },
     {
       title: <span style={textLight}>Tasdiqlash (%)</span>,
@@ -221,8 +277,12 @@ const DistrictFarmersPage = () => {
         case 'name': return String(row.name || '');
         case 'total_plantations': return Number(row.total_plantations || 0);
         case 'approved_plantations': return Number(row.approved_plantations || 0);
+        case 'rejected_plantations': return Number(row.rejected_plantations || 0);
         case 'total_area': return Number(row.total_area || 0);
         case 'planted_area': return Number(row.planted_area || 0);
+        case 'approved_area': return Number(row.approved_area || 0);
+        case 'rejected_area': return Number(row.rejected_area || 0);
+        case 'last_added_plantations': return row.last_added_plantations ? new Date(row.last_added_plantations).getTime() : 0;
         case 'approve_percent': return Number(row.approve_percent || 0);
         default: return '';
       }
@@ -245,13 +305,19 @@ const DistrictFarmersPage = () => {
   const totals = summaryStats ? {
     total_plantations: Number(summaryStats.total_plantations || 0),
     approved_plantations: Number(summaryStats.total_approved_plantations || 0),
+    rejected_plantations: Number(summaryStats.total_rejected_plantations || 0),
     total_area: Number(summaryStats.total_area || 0),
     planted_area: Number(summaryStats.total_planted_area || 0),
+    approved_area: Number(summaryStats.total_approved_area || 0),
+    rejected_area: Number(summaryStats.total_rejected_area || 0),
   } : sortedRows.reduce((acc, r) => ({
     total_plantations: (acc.total_plantations || 0) + Number(r.total_plantations || 0),
     approved_plantations: (acc.approved_plantations || 0) + Number(r.approved_plantations || 0),
+    rejected_plantations: (acc.rejected_plantations || 0) + Number(r.rejected_plantations || 0),
     total_area: (acc.total_area || 0) + Number(r.total_area || 0),
     planted_area: (acc.planted_area || 0) + Number(r.planted_area || 0),
+    approved_area: (acc.approved_area || 0) + Number(r.approved_area || 0),
+    rejected_area: (acc.rejected_area || 0) + Number(r.rejected_area || 0),
   }), {});
 
   const totalApprovePercent = totals.total_plantations > 0
@@ -263,8 +329,12 @@ const DistrictFarmersPage = () => {
     name: 'Jami',
     total_plantations: totals.total_plantations || 0,
     approved_plantations: totals.approved_plantations || 0,
+    rejected_plantations: totals.rejected_plantations || 0,
     total_area: totals.total_area || 0,
     planted_area: totals.planted_area || 0,
+    approved_area: totals.approved_area || 0,
+    rejected_area: totals.rejected_area || 0,
+    last_added_plantations: null,
     approve_percent: totalApprovePercent,
   };
 

@@ -6,8 +6,201 @@ import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import AuthContext from "../context/AuthContext";
 import { landTypeMapping } from "../context/constants";
 
+// Список районов по регионам (вынесен за пределы компонента для оптимизации)
+const districtsByRegion = {
+    "1": [ // Tashkent
+      { id: "1", name: "Tashkent City" },
+      { id: "2", name: "Bekobod" },
+      { id: "3", name: "Bostanliq" },
+      { id: "4", name: "Zangiota" },
+      { id: "5", name: "Qibray" },
+      { id: "6", name: "Oqqorgon" },
+      { id: "7", name: "Ohangaron" },
+      { id: "8", name: "Parkent" },
+      { id: "9", name: "Piskent" },
+      { id: "10", name: "Toshkent" },
+      { id: "11", name: "Chinoz" },
+      { id: "12", name: "Yuqorichirchiq" },
+    ],
+    "2": [ // Andijan
+      { id: "13", name: "Andijon" },
+      { id: "14", name: "Asaka" },
+      { id: "15", name: "Baliqchi" },
+      { id: "16", name: "Bo'z" },
+      { id: "17", name: "Buloqboshi" },
+      { id: "18", name: "Jalaquduq" },
+      { id: "19", name: "Izboskan" },
+      { id: "20", name: "Qorasuv" },
+      { id: "21", name: "Marhamat" },
+      { id: "22", name: "Oltinko'l" },
+      { id: "23", name: "Paxtaobod" },
+      { id: "24", name: "Ulug'nor" },
+      { id: "25", name: "Xo'jaobod" },
+      { id: "26", name: "Shahrixon" },
+    ],
+    "3": [ // Bukhara
+      { id: "27", name: "Buxoro" },
+      { id: "28", name: "Kogon" },
+      { id: "29", name: "Olot" },
+      { id: "30", name: "Peshku" },
+      { id: "31", name: "Romitan" },
+      { id: "32", name: "Shofirkon" },
+      { id: "33", name: "Qorovulbozor" },
+      { id: "34", name: "Qorako'l" },
+      { id: "35", name: "G'ijduvon" },
+      { id: "36", name: "Jondor" },
+      { id: "37", name: "Vobkent" },
+    ],
+    "4": [ // Fergana
+      { id: "38", name: "Farg'ona" },
+      { id: "39", name: "Beshariq" },
+      { id: "40", name: "Bog'dod" },
+      { id: "41", name: "Buvayda" },
+      { id: "42", name: "Dang'ara" },
+      { id: "43", name: "Farg'ona tumani" },
+      { id: "44", name: "Furqat" },
+      { id: "45", name: "Oltiariq" },
+      { id: "46", name: "Qo'qon" },
+      { id: "47", name: "Qo'shtepa" },
+      { id: "48", name: "Quva" },
+      { id: "49", name: "Rishton" },
+      { id: "50", name: "So'x" },
+      { id: "51", name: "Toshloq" },
+      { id: "52", name: "O'zbekiston" },
+      { id: "53", name: "Yozyovon" },
+    ],
+    "5": [ // Jizzakh
+      { id: "54", name: "Jizzax" },
+      { id: "55", name: "Arnasoy" },
+      { id: "56", name: "Baxmal" },
+      { id: "57", name: "Do'stlik" },
+      { id: "58", name: "Forish" },
+      { id: "59", name: "G'allaorol" },
+      { id: "60", name: "Sh.Rashidov" },
+      { id: "61", name: "Mirzacho'l" },
+      { id: "62", name: "Paxtakor" },
+      { id: "63", name: "Yangiobod" },
+      { id: "64", name: "Zomin" },
+      { id: "65", name: "Zarbdor" },
+    ],
+    "6": [ // Kashkadarya
+      { id: "66", name: "Qarshi" },
+      { id: "67", name: "Chiroqchi" },
+      { id: "68", name: "Dehqonobod" },
+      { id: "69", name: "G'uzor" },
+      { id: "70", name: "Kasbi" },
+      { id: "71", name: "Kitob" },
+      { id: "72", name: "Koson" },
+      { id: "73", name: "Mirishkor" },
+      { id: "74", name: "Muborak" },
+      { id: "75", name: "Nishon" },
+      { id: "76", name: "Qamashi" },
+      { id: "77", name: "Qarshi tumani" },
+      { id: "78", name: "Shahrisabz" },
+      { id: "79", name: "Yakkabog'" },
+    ],
+    "7": [ // Navoi
+      { id: "80", name: "Navoiy" },
+      { id: "81", name: "Zarafshon" },
+      { id: "82", name: "Karmana" },
+      { id: "83", name: "Konimex" },
+      { id: "84", name: "Qiziltepa" },
+      { id: "85", name: "Navbahor" },
+      { id: "86", name: "Nurota" },
+      { id: "87", name: "Tomdi" },
+      { id: "88", name: "Uchquduq" },
+      { id: "89", name: "Xatirchi" },
+    ],
+    "8": [ // Namangan
+      { id: "90", name: "Namangan" },
+      { id: "91", name: "Chortoq" },
+      { id: "92", name: "Chust" },
+      { id: "93", name: "Kosonsoy" },
+      { id: "94", name: "Mingbuloq" },
+      { id: "95", name: "Namangan tumani" },
+      { id: "96", name: "Norin" },
+      { id: "97", name: "Pop" },
+      { id: "98", name: "To'raqo'rg'on" },
+      { id: "99", name: "Uchqo'rg'on" },
+      { id: "100", name: "Uychi" },
+      { id: "101", name: "Yangiqo'rg'on" },
+    ],
+    "9": [ // Samarkand
+      { id: "102", name: "Samarqand" },
+      { id: "103", name: "Bulung'ur" },
+      { id: "104", name: "Ishtixon" },
+      { id: "105", name: "Jomboy" },
+      { id: "106", name: "Kattaqo'rg'on" },
+      { id: "107", name: "Narpay" },
+      { id: "108", name: "Nurobod" },
+      { id: "109", name: "Oqdaryo" },
+      { id: "110", name: "Pastdarg'om" },
+      { id: "111", name: "Payariq" },
+      { id: "112", name: "Qo'shrabot" },
+      { id: "113", name: "Samarqand tumani" },
+      { id: "114", name: "Toyloq" },
+      { id: "115", name: "Urgut" },
+    ],
+    "10": [ // Sirdarya
+      { id: "116", name: "Guliston" },
+      { id: "117", name: "Boyovut" },
+      { id: "118", name: "Mirzaobod" },
+      { id: "119", name: "Sardoba" },
+      { id: "120", name: "Sirdaryo" },
+      { id: "121", name: "Xovos" },
+      { id: "122", name: "Shirin" },
+    ],
+    "11": [ // Surkhandarya
+      { id: "123", name: "Termiz" },
+      { id: "124", name: "Angor" },
+      { id: "125", name: "Boysun" },
+      { id: "126", name: "Denov" },
+      { id: "127", name: "Jarqo'rg'on" },
+      { id: "128", name: "Qiziriq" },
+      { id: "129", name: "Qo'mqo'rg'on" },
+      { id: "130", name: "Muzrabot" },
+      { id: "131", name: "Oltinsoy" },
+      { id: "132", name: "Sariosiyo" },
+      { id: "133", name: "Sherobod" },
+      { id: "134", name: "Sho'rchi" },
+      { id: "135", name: "Termiz tumani" },
+      { id: "136", name: "Uzun" },
+    ],
+    "12": [ // Karakalpakstan
+      { id: "137", name: "Nukus" },
+      { id: "138", name: "Amudaryo" },
+      { id: "139", name: "Beruniy" },
+      { id: "140", name: "Chimboy" },
+      { id: "141", name: "Ellikqal'a" },
+      { id: "142", name: "Kegeyli" },
+      { id: "143", name: "Mo'ynoq" },
+      { id: "144", name: "Nukus tumani" },
+      { id: "145", name: "Qonliko'l" },
+      { id: "146", name: "Qorao'zak" },
+      { id: "147", name: "Qo'ng'irot" },
+      { id: "148", name: "Shumanay" },
+      { id: "149", name: "Taxtako'pir" },
+      { id: "150", name: "To'rtko'l" },
+      { id: "151", name: "Xo'jayli" },
+    ],
+    "13": [ // Xorazm
+      { id: "152", name: "Urganch" },
+      { id: "153", name: "Bog'ot" },
+      { id: "154", name: "Gurlan" },
+      { id: "155", name: "Qo'shko'pir" },
+      { id: "156", name: "Urganch tumani" },
+      { id: "157", name: "Xiva" },
+      { id: "158", name: "Xonqa" },
+      { id: "159", name: "Hazorasp" },
+      { id: "160", name: "Shovot" },
+      { id: "161", name: "Yangiariq" },
+      { id: "162", name: "Yangibozor" },
+    ],
+  };
+
 const Moderation = () => {
   const [moderations, setModerations] = useState([]);
+  
   const [filters, setFilters] = useState({
     action: "All",
     status: "All",
@@ -84,6 +277,7 @@ const Moderation = () => {
       moderated_by: searchParams.get('moderated_by') || "All",
       moderated_by_username: searchParams.get('moderated_by_username') || "All",
       has_moderation_comment: searchParams.get('has_moderation_comment') || "All",
+      moderation_type: searchParams.get('moderation_type') || "All",
       // сортировка
       sort_by: searchParams.get('sort_by') || 'default',
       sort_order: searchParams.get('sort_order') || 'asc',
@@ -129,6 +323,7 @@ const Moderation = () => {
     if (newFilters.moderated_by !== "All") searchParams.set('moderated_by', newFilters.moderated_by);
     if (newFilters.moderated_by_username !== "All") searchParams.set('moderated_by_username', newFilters.moderated_by_username);
     if (newFilters.has_moderation_comment !== "All") searchParams.set('has_moderation_comment', newFilters.has_moderation_comment);
+    if (newFilters.moderation_type !== "All") searchParams.set('moderation_type', newFilters.moderation_type);
     // Сортировка сохраняется всегда для предсказуемости ссылок
     if (newFilters.sort_by) searchParams.set('sort_by', newFilters.sort_by);
     if (newFilters.sort_order) searchParams.set('sort_order', newFilters.sort_order);
@@ -315,7 +510,7 @@ const Moderation = () => {
           status: filters.status !== "All" ? filters.status : undefined,
           type: filters.type !== "All" ? filters.type : undefined,
           region: regionFilter,
-          district: filters.district !== "All" ? filters.district : undefined,
+          district_id: filters.district !== "All" ? filters.district : undefined,
           farmer: filters.farmer !== "All" ? filters.farmer : undefined,
           // новые
           farmer_id: filters.farmer_id !== "All" ? filters.farmer_id : undefined,
@@ -342,14 +537,21 @@ const Moderation = () => {
           moderated_by: filters.moderated_by !== "All" ? filters.moderated_by : undefined,
           moderated_by_username: filters.moderated_by_username !== "All" ? filters.moderated_by_username : undefined,
           has_moderation_comment: filters.has_moderation_comment !== "All" ? filters.has_moderation_comment : undefined,
+          moderation_type: filters.moderation_type !== "All" ? filters.moderation_type : undefined,
           // сортировка
           sort_by: filters.sort_by || 'default',
           sort_order: filters.sort_order || 'asc',
         };
         
-        // Очищаем объект от undefined значений
+        // Очищаем объект от undefined, null и пустых значений
         const params = Object.fromEntries(
-          Object.entries(rawParams).filter(([_, value]) => value !== undefined)
+          Object.entries(rawParams).filter(([_, value]) => 
+            value !== undefined && 
+            value !== null && 
+            value !== '' && 
+            value !== 'undefined' &&
+            value !== 'null'
+          )
         );
 
         // RBAC: Определяем endpoint в зависимости от роли пользователя
@@ -413,6 +615,16 @@ const Moderation = () => {
                 action = "Созданный";
               }
 
+              // Определяем тип модерации
+              let moderationType;
+              if (plantation.is_deleting) {
+                moderationType = "delete";
+              } else if (plantation.prev_data) {
+                moderationType = "update";
+              } else {
+                moderationType = "create";
+              }
+
               // Определяем название региона по ID
               const getRegionNameById = (regionId) => {
                 const regionNames = {
@@ -447,6 +659,7 @@ const Moderation = () => {
                 updatedAt: plantation.updated_at || null,
                 is_checked: Boolean(plantation.is_checked),
                 action,
+                moderationType,
                 prev_data: plantation.prev_data || null,
                 is_deleting: Boolean(plantation.is_deleting),
               };
@@ -491,10 +704,20 @@ const Moderation = () => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     fetchModerations().finally(() => { isFetchingRef.current = false; });
-  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
+  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.moderation_type, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
-    const resetFilters = { action: "All", status: "All", type: "All", region: "All", district: "All", farmer: "All", sort_by: "default", sort_order: "asc" };
+    const resetFilters = { 
+      action: "All", 
+      status: "All", 
+      type: "All", 
+      region: "All", 
+      district: "All", 
+      farmer: "All", 
+      moderation_type: "All",
+      sort_by: "default", 
+      sort_order: "asc" 
+    };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('moderationPage', '1');
@@ -623,6 +846,13 @@ const Moderation = () => {
               Moderatsiya
             </Link>
             <Link
+              to="/deletion-requests"
+              className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Запросы на удаление
+            </Link>
+            <Link
               to="/rejected-plantations"
               className="block w-full bg-red-500 text-white py-2 rounded-lg font-medium text-center hover:bg-red-600 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -643,9 +873,20 @@ const Moderation = () => {
       {/* Контент */}
       <div className="min-h-screen bg-gray-900 w-full" style={{backgroundColor: '#111827'}}>
           <div className="p-3 sm:p-4 bg-gray-900" style={{backgroundColor: '#111827'}}>
-            <h1 className="text-white text-2xl font-bold mb-3 sm:mb-4">
-              Moderatsiya
-            </h1>
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <h1 className="text-white text-2xl font-bold">
+                Moderatsiya
+              </h1>
+              <Link
+                to="/deletion-requests"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Запросы на удаление
+              </Link>
+            </div>
 
             {/* Фильтры */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
@@ -681,15 +922,29 @@ const Moderation = () => {
                 <option value="12">Karakalpakstan</option>
                 <option value="13">Xorazm</option>
               </select>
-              {filters.region !== "All" && (
+              
+              {/* Фильтр по районам - появляется при выборе региона */}
+              {filters.region !== "All" && districtsByRegion[filters.region] && (
                 <select
                   className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
-                  value="All"
-                  disabled
+                  value={filters.district}
+                  onChange={(e) => {
+                    const newFilters = { ...filters, district: e.target.value };
+                    setFilters(newFilters);
+                    setPage(1);
+                    localStorage.setItem('moderationPage', '1');
+                    saveFiltersToUrl(newFilters, 1);
+                  }}
                 >
-                  <option value="All">Barcha tumanlar</option>
+                  <option value="All">Tuman (barchasi)</option>
+                  {districtsByRegion[filters.region].map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
                 </select>
               )}
+              
               <input
                 type="text"
                 placeholder="Fermer nomi yoki ID"
@@ -719,6 +974,23 @@ const Moderation = () => {
                 <option value="garden">Bog'lar</option>
                 <option value="greenhouse">Issiqxonalar</option>
                 <option value="vineyard">Uzumzorlar</option>
+              </select>
+
+              <select
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                value={filters.moderation_type}
+                onChange={(e) => {
+                  const newFilters = { ...filters, moderation_type: e.target.value };
+                  setFilters(newFilters);
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  saveFiltersToUrl(newFilters, 1);
+                }}
+              >
+                <option value="All">Operatsiya turi</option>
+                <option value="create">Yangi planatsiyalar</option>
+                <option value="update">O'zgarishlar</option>
+                <option value="delete">O'chirish so'rovlari</option>
               </select>
 
               {/* Sorting */}
@@ -804,19 +1076,19 @@ const Moderation = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {plantation.action === "Обновленный" && (
-                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                    )}
-                    {plantation.action === "Bekor qilinganlar" && (
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    )}
-                    {plantation.action === "Yaratilgan" && (
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    )}
+                    {plantation.moderationType === "create" && (
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  )}
+                  {plantation.moderationType === "update" && (
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                  )}
+                  {plantation.moderationType === "delete" && (
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  )}
                       <span className="text-xs font-medium">
-                        {plantation.action === "Обновленный" && "Yangilangan"}
-                        {plantation.action === "Bekor qilinganlar" && "Bekor qilingan"}
-                        {plantation.action === "Yaratilgan" && "Yaratilgan"}
+                        {plantation.moderationType === "create" && "Yangi"}
+                        {plantation.moderationType === "update" && "Yangilangan"}
+                        {plantation.moderationType === "delete" && "O'chirish"}
                       </span>
                   </div>
                       </div>
@@ -1052,9 +1324,26 @@ const Moderation = () => {
             </select>
             <select
               className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              value={filters.moderation_type}
+              onChange={(e) => {
+                const newFilters = { ...filters, moderation_type: e.target.value };
+                setFilters(newFilters);
+                setPage(1);
+                localStorage.setItem('moderationPage', '1');
+                saveFiltersToUrl(newFilters, 1);
+              }}
+            >
+              <option value="All">Operatsiya turi</option>
+              <option value="create">Yangi planatsiyalar</option>
+              <option value="update">O'zgarishlar</option>
+              <option value="delete">O'chirish so'rovlari</option>
+            </select>
+            <select
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={filters.region}
               onChange={(e) => {
-                const newFilters = { ...filters, region: e.target.value, district: "All" };
+                const selectedRegion = e.target.value;
+                const newFilters = { ...filters, region: selectedRegion, district: "All" };
                 setFilters(newFilters);
                 setPage(1);
                 localStorage.setItem('moderationPage', '1');
@@ -1076,13 +1365,26 @@ const Moderation = () => {
               <option value="12">Karakalpakstan</option>
               <option value="13">Xorazm</option>
             </select>
-            {filters.region !== "All" && (
+            
+            {/* Фильтр по районам - появляется при выборе региона */}
+            {filters.region !== "All" && districtsByRegion[filters.region] && (
               <select
                 className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                value="All"
-                disabled
+                value={filters.district}
+                onChange={(e) => {
+                  const newFilters = { ...filters, district: e.target.value };
+                  setFilters(newFilters);
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  saveFiltersToUrl(newFilters, 1);
+                }}
               >
-                <option value="All">Barcha tumanlar</option>
+                <option value="All">Tuman (barchasi)</option>
+                {districtsByRegion[filters.region].map((district) => (
+                  <option key={district.id} value={district.id}>
+                    {district.name}
+                  </option>
+                ))}
               </select>
             )}
             <input
@@ -1171,19 +1473,19 @@ const Moderation = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    {plantation.action === "Обновленный" && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  )}
-                  {plantation.action === "Bekor qilinganlar" && (
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  )}
-                  {plantation.action === "Yaratilgan" && (
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  )}
+                  {plantation.moderationType === "create" && (
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                )}
+                {plantation.moderationType === "update" && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                )}
+                {plantation.moderationType === "delete" && (
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                )}
                     <span className="text-xs font-medium">
-                      {plantation.action === "Обновленный" && "Yangilangan"}
-                      {plantation.action === "Bekor qilinganlar" && "Bekor qilingan"}
-                      {plantation.action === "Yaratilgan" && "Yaratilgan"}
+                      {plantation.moderationType === "create" && "Yangi"}
+                      {plantation.moderationType === "update" && "Yangilangan"}
+                      {plantation.moderationType === "delete" && "O'chirish"}
                     </span>
                   </div>
                   </div>

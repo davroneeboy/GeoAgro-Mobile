@@ -27,6 +27,7 @@ import UserLogsPage from "./pages/admin/UserLogsPage";
 import PerformanceDashboard from "./pages/admin/PerformanceDashboard";
 import MyLogsPage from "./pages/admin/MyLogsPage";
 import FarmerPlantationsMap from "./pages/FarmerPlantationsMap";
+import DeletionRequests from "./pages/DeletionRequests";
 
 import ConsoleRouter from "./admin/ConsoleRouter";
 
@@ -40,6 +41,7 @@ export default function AppRouter() {
       <Route path="/plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MapContainer /></ProtectedRoute>} />
       {/* <Route path="/contacts" element={<Contacts />} /> */}
       <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser"]}><Moderation /></ProtectedRoute>} />
+      <Route path="/deletion-requests" element={<ProtectedRoute allowedRoles={["superuser"]}><DeletionRequests /></ProtectedRoute>} />
       <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser"]}><RejectedPlantations /></ProtectedRoute>} />
       <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser"]}><ApprovedPlantations /></ProtectedRoute>} />
       <Route path="/plantations/uz" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><MapContainer /></ProtectedRoute>} />
