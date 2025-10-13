@@ -652,7 +652,7 @@ const Moderation = () => {
                 id: plantation.id,
                 name: plantation.farmer?.name || "—",
                 type: plantation.land_type,
-                area: `${plantation.total_area ?? 0} га`,
+                area: `${Number(plantation.total_area ?? 0).toFixed(1)} га`,
                 region: `${regionName}, ${districtName}`,
                 status: plantation.status || "—",
                 createdAt: plantation.created_at || null,
