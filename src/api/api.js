@@ -115,10 +115,14 @@ export async function fetchRegionsStatistics(params = {}, accessToken) {
     if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
     if (params.sort_by) queryParams.append('sort_by', params.sort_by);
     if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    // Новые параметры фильтрации согласно документации
+    if (params.status) queryParams.append('status', params.status);
+    if (params.region_id) queryParams.append('region_id', params.region_id);
+    if (params.district_id) queryParams.append('district_id', params.district_id);
     const queryString = queryParams.toString();
     const url = queryString ? 
-      `${API_BASE_URL2}api/statistics/all/?${queryString}` : 
-      `${API_BASE_URL2}api/statistics/all/`;
+      `${API_BASE_URL2}api/statistics/regions/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/regions/`;
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики регионов:", error);
@@ -139,10 +143,11 @@ export async function fetchRegionDistrictsStatistics(regionId, params = {}, acce
     if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
     if (params.sort_by) queryParams.append('sort_by', params.sort_by);
     if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    if (params.status) queryParams.append('status', params.status);
     const queryString = queryParams.toString();
     const url = queryString ? 
-      `${API_BASE_URL2}api/statistics/regions/${regionId}/districts/?${queryString}` : 
-      `${API_BASE_URL2}api/statistics/regions/${regionId}/districts/`;
+      `${API_BASE_URL2}api/statistics/regions/${regionId}/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/regions/${regionId}/`;
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики районов региона:", error);
@@ -164,17 +169,9 @@ export async function fetchRegionApprovedStatistics(regionId, params = {}, acces
     if (params.sort_by) queryParams.append('sort_by', params.sort_by);
     if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
     const queryString = queryParams.toString();
-    let url;
-    if (regionId === null) {
-      const finalQueryString = queryParams.toString();
-    url = finalQueryString ? 
-      `${API_BASE_URL2}api/statistics/approved/?${finalQueryString}` : 
-      `${API_BASE_URL2}api/statistics/approved/`;
-    } else {
-      url = queryString ? 
-        `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 
-        `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/`;
-    }
+    const url = queryString ? 
+      `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/regions/${regionId}/approved/`;
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики одобренных плантаций региона:", error);
@@ -202,6 +199,59 @@ export async function fetchRegionRejectedStatistics(regionId, params = {}, acces
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики отклоненных плантаций региона:", error);
+    throw error;
+  }
+}
+
+// Новые API функции согласно документации
+export async function fetchStatisticsSummary(params = {}, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.append('status', params.status);
+    const queryString = queryParams.toString();
+    const url = queryString ? 
+      `${API_BASE_URL2}api/statistics/summary/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/summary/`;
+    return await dedupeFetchJson(url, { headers });
+  } catch (error) {
+    console.error("Ошибка при загрузке сводной статистики:", error);
+    throw error;
+  }
+}
+
+export async function fetchDistrictsStatistics(params = {}, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.append('status', params.status);
+    const queryString = queryParams.toString();
+    const url = queryString ? 
+      `${API_BASE_URL2}api/statistics/districts/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/districts/`;
+    return await dedupeFetchJson(url, { headers });
+  } catch (error) {
+    console.error("Ошибка при загрузке статистики районов:", error);
+    throw error;
+  }
+}
+
+export async function fetchDistrictDetail(districtId, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const url = `${API_BASE_URL2}api/statistics/districts/${districtId}/`;
+    return await dedupeFetchJson(url, { headers });
+  } catch (error) {
+    console.error("Ошибка при загрузке детальной статистики района:", error);
     throw error;
   }
 }
@@ -309,6 +359,10 @@ export async function fetchFarmersStatistics(params = {}, accessToken) {
     if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
     if (params.sort_by) queryParams.append('sort_by', params.sort_by);
     if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    // Новые параметры поиска и фильтрации
+    if (params.search) queryParams.append('search', params.search);
+    if (params.region) queryParams.append('region', params.region);
+    if (params.district) queryParams.append('district', params.district);
     const queryString = queryParams.toString();
     const url = queryString ? 
       `${API_BASE_URL2}api/statistics/farmers/?${queryString}` : 
@@ -316,6 +370,44 @@ export async function fetchFarmersStatistics(params = {}, accessToken) {
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики фермеров:", error);
+    throw error;
+  }
+}
+
+// Отправка запроса на удаление плантации
+export async function sendPlantationDeleteRequest(plantationId, comment, accessToken) {
+  try {
+    const headers = { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`
+    };
+    
+    const body = {
+      moderation_comment: [
+        {
+          text: comment,
+          image: null
+        }
+      ]
+    };
+    
+    const response = await fetch(
+      `${API_BASE_URL2}api/plantations/${plantationId}/delete/`,
+      {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(body)
+      }
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Ошибка при отправке запроса на удаление:", error);
     throw error;
   }
 }
@@ -421,6 +513,80 @@ export async function fetchRegionRejectedOverallStatistics(params = {}, accessTo
     return await dedupeFetchJson(url, { headers });
   } catch (error) {
     console.error("Ошибка при загрузке статистики отклоненных плантаций:", error);
+    throw error;
+  }
+}
+
+// Новые API функции согласно документации v2.0
+export async function fetchRegionsStatisticsWithStatus(status = 'all', params = {}, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const queryParams = new URLSearchParams();
+    queryParams.append('status', status);
+    if (params.est_date) queryParams.append('est_date', params.est_date);
+    if (params.planted_year) queryParams.append('planted_year', params.planted_year);
+    if (params.min_fertility) queryParams.append('min_fertility', params.min_fertility);
+    if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    const queryString = queryParams.toString();
+    const url = `${API_BASE_URL2}api/statistics/regions/?${queryString}`;
+    return await dedupeFetchJson(url, { headers });
+  } catch (error) {
+    console.error("Ошибка при загрузке статистики регионов с фильтром:", error);
+    throw error;
+  }
+}
+
+export async function fetchDistrictsStatisticsWithStatus(status = 'all', params = {}, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const queryParams = new URLSearchParams();
+    queryParams.append('status', status);
+    if (params.est_date) queryParams.append('est_date', params.est_date);
+    if (params.planted_year) queryParams.append('planted_year', params.planted_year);
+    if (params.min_fertility) queryParams.append('min_fertility', params.min_fertility);
+    if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    const queryString = queryParams.toString();
+    const url = `${API_BASE_URL2}api/statistics/districts/?${queryString}`;
+    return await dedupeFetchJson(url, { headers });
+  } catch (error) {
+    console.error("Ошибка при загрузке статистики районов с фильтром:", error);
+    throw error;
+  }
+}
+
+export async function fetchFarmersStatisticsWithFilters(params = {}, accessToken) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.append('status', params.status);
+    if (params.region_id) queryParams.append('region_id', params.region_id);
+    if (params.district_id) queryParams.append('district_id', params.district_id);
+    if (params.est_date) queryParams.append('est_date', params.est_date);
+    if (params.planted_year) queryParams.append('planted_year', params.planted_year);
+    if (params.min_fertility) queryParams.append('min_fertility', params.min_fertility);
+    if (params.max_fertility) queryParams.append('max_fertility', params.max_fertility);
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+    const queryString = queryParams.toString();
+    const url = queryString ? 
+      `${API_BASE_URL2}api/statistics/farmers/?${queryString}` : 
+      `${API_BASE_URL2}api/statistics/farmers/`;
+    return await dedupeFetchJson(url, { headers });
+  } catch (error) {
+    console.error("Ошибка при загрузке статистики фермеров с фильтрами:", error);
     throw error;
   }
 }

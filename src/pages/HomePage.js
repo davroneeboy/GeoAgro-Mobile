@@ -89,7 +89,13 @@ const HomePage = () => {
           },
         });
         const data = await response.json();
-        setStatistics(data);
+        
+        // Обрабатываем новую структуру API v2.0
+        if (data.summary) {
+          setStatistics(data.summary);
+        } else {
+          setStatistics(data);
+        }
       } catch (error) {
         console.error("Ошибка при загрузке статистики:", error);
       }
@@ -106,72 +112,68 @@ const HomePage = () => {
   const fullName = `${firstName} ${lastName}`.trim();
   const displayName = fullName || authState?.userInfo?.username || authState?.username || "—";
 
-  // Первый пай-чарт: Типы плантаций
-  const plantationTypesData = {
-    labels: ["Bog'lar", "Uzumzorlar", "Issiqxonalar"],
+  // Первый пай-чарт: Статусы плантаций (согласно новому API v2.0)
+  const plantationStatusData = {
+    labels: ["Tasdiqlangan", "Kutilmoqda", "Rad etilgan"],
     datasets: [
       {
-        label: "Plantatsiya turlari",
+        label: "Plantatsiya holati",
         data: statistics
           ? [
-              statistics.total_bogs,
-              statistics.total_uzumzors,
-              statistics.total_issiqxonas,
+              statistics.approved_plantations || 0,
+              statistics.pending_plantations || 0,
+              statistics.rejected_plantations || 0,
             ]
           : [],
         backgroundColor: [
-          "rgba(34, 197, 94, 0.6)",  // green-500 softer
-          "rgba(59, 130, 246, 0.6)", // blue-500 softer
-          "rgba(234, 179, 8, 0.6)",  // yellow-500 softer
+          "rgba(34, 197, 94, 0.6)",  // green-500 - approved
+          "rgba(245, 158, 11, 0.6)", // yellow-500 - pending
+          "rgba(239, 68, 68, 0.6)",  // red-500 - rejected
         ],
         borderColor: [
           "rgba(34, 197, 94, 0.9)",
-          "rgba(59, 130, 246, 0.9)",
-          "rgba(234, 179, 8, 0.9)",
+          "rgba(245, 158, 11, 0.9)",
+          "rgba(239, 68, 68, 0.9)",
         ],
         borderWidth: 2,
       },
     ],
   };
 
-  // Второй пай-чарт: Площади
+  // Второй пай-чарт: Площади (упрощенный для нового API v2.0)
   const areasData = {
-    labels: ["Umumiy maydon", "Meva maydonlari"],
+    labels: ["Umumiy maydon"],
     datasets: [
       {
         label: "Maydonlar",
         data: statistics
-          ? [statistics.total_area, statistics.total_fruit_areas]
+          ? [statistics.total_area || 0]
           : [],
         backgroundColor: [
-          "rgba(239, 68, 68, 0.5)", // red-500 softer
-          "rgba(99, 102, 241, 0.5)", // indigo-500 softer (вместо насыщенного фиолетового)
+          "rgba(59, 130, 246, 0.6)", // blue-500
         ],
         borderColor: [
-          "rgba(239, 68, 68, 0.9)",
-          "rgba(99, 102, 241, 0.9)",
+          "rgba(59, 130, 246, 0.9)",
         ],
         borderWidth: 2,
       },
     ],
   };
 
-  // Третий пай-чарт: Инвестиции (local vs foreign)
+  // Третий пай-чарт: Инвестиции (упрощенный для нового API v2.0)
   const investmentsData = {
-    labels: ["Mahalliy", "Xorijiy"],
+    labels: ["Jami investitsiyalar"],
     datasets: [
       {
         label: "Investitsiyalar",
-        data: statistics && statistics.investments
-          ? [statistics.investments.local || 0, statistics.investments.foreign || 0]
+        data: statistics
+          ? [statistics.total_area || 0] // Используем total_area как пример, так как инвестиции не в summary
           : [],
         backgroundColor: [
           "rgba(16, 185, 129, 0.6)", // emerald-500
-          "rgba(59, 130, 246, 0.6)", // blue-500
         ],
         borderColor: [
           "rgba(16, 185, 129, 0.9)",
-          "rgba(59, 130, 246, 0.9)",
         ],
         borderWidth: 2,
       },
@@ -226,9 +228,9 @@ const HomePage = () => {
   };
 
   const formatNumber = (n) => new Intl.NumberFormat('uz-UZ').format(Math.round(n));
-  const plantationTotal = statistics ? (statistics.total_bogs + statistics.total_uzumzors + statistics.total_issiqxonas) : 0;
-  const areasTotal = statistics ? ((statistics.total_area || 0) + (statistics.total_fruit_areas || 0)) : 0;
-  const investmentsTotal = (statistics?.investments?.local || 0) + (statistics?.investments?.foreign || 0);
+  const plantationTotal = statistics ? (statistics.total_plantations || 0) : 0;
+  const areasTotal = statistics ? (statistics.total_area || 0) : 0;
+  const investmentsTotal = 0; // Инвестиции не включены в summary API v2.0
 
   const pieChartOptions = {
     responsive: true,
@@ -390,11 +392,11 @@ const HomePage = () => {
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
                   <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <h3 className="text-base font-semibold text-white mb-2 text-center">
-                      Plantatsiya turlari
+                      Plantatsiya holati
                     </h3>
                     <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
-                        data={plantationTypesData}
+                        data={plantationStatusData}
                         options={{
                           ...pieChartOptions,
                           plugins: {
@@ -407,7 +409,7 @@ const HomePage = () => {
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <h3 className="text-base font-semibold text-white mb-2 text-center">
-                      Maydonlar
+                      Umumiy maydon
                     </h3>
                     <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
@@ -424,7 +426,7 @@ const HomePage = () => {
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <h3 className="text-base font-semibold text-white mb-2 text-center">
-                      Investitsiyalar
+                      Jami maydon
                     </h3>
                     <div className="h-48 md:h-52 lg:h-56">
                       <Doughnut
@@ -495,11 +497,11 @@ const HomePage = () => {
                       </svg>
                     </div>
                     <div className="text-center">
-                      <h3 className="text-lg font-bold text-white mb-1">Fermerlar</h3>
+                      <h3 className="text-lg font-bold text-white mb-1">Plantatsiyalar</h3>
                       <p className="text-3xl font-extrabold text-green-400">
-                        {new Intl.NumberFormat('uz-UZ').format(statistics.total_farmers || 0)}
+                        {new Intl.NumberFormat('uz-UZ').format(statistics.total_plantations || 0)}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">Umumiy fermerlar soni</p>
+                      <p className="text-xs text-gray-400 mt-1">Umumiy plantatsiyalar soni</p>
                     </div>
                   </div>
                 </div>
@@ -535,7 +537,7 @@ const HomePage = () => {
                 </h3>
                 <div className="h-64">
                   <Doughnut
-                    data={plantationTypesData}
+                    data={plantationStatusData}
                     options={{
                       ...pieChartOptions,
                       plugins: {

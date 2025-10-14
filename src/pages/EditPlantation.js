@@ -78,6 +78,11 @@ const EditPlantation = () => {
   const [regionLabels, setRegionLabels] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+
+  // Модальное окно для отправки на модерацию удаления
+  const [isDeleteRequestModalOpen, setIsDeleteRequestModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [isSubmittingDeleteRequest, setIsSubmittingDeleteRequest] = useState(false);
   const [farmerPlantsOpen, setFarmerPlantsOpen] = useState(false);
   const [farmerPlants, setFarmerPlants] = useState([]);
   const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
@@ -189,6 +194,54 @@ const EditPlantation = () => {
 
   const openDeleteModal = () => setIsDeleteModalOpen(true);
   const closeDeleteModal = () => setIsDeleteModalOpen(false);
+  
+  const openDeleteRequestModal = () => setIsDeleteRequestModalOpen(true);
+  const closeDeleteRequestModal = () => {
+    setIsDeleteRequestModalOpen(false);
+    setDeleteReason("");
+  };
+
+  // Отправка запроса на удаление
+  const handleDeleteRequest = async () => {
+    if (!deleteReason.trim()) {
+      setError("Sababni kiriting");
+      return;
+    }
+
+    try {
+      setIsSubmittingDeleteRequest(true);
+      setError(null);
+      
+      await apiRequest(
+        `api/plantations/${id}/delete/`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            moderation_comment: [
+              {
+                text: deleteReason.trim(),
+                image: null
+              }
+            ]
+          })
+        },
+        refreshAccessToken,
+        authState.accessToken
+      );
+
+      setSuccessMessage("O'chirish uchun so'rov moderatsiyaga yuborildi");
+      closeDeleteRequestModal();
+      
+      // Обновляем данные плантации
+      await fetchPlantationDetails();
+      
+    } catch (error) {
+      console.error("Error sending delete request:", error);
+      setError("So'rovni yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
+    } finally {
+      setIsSubmittingDeleteRequest(false);
+    }
+  };
 
   const openFarmerPlantsModal = async () => {
     if (!plantation?.farmer?.id && !plantation?.farmer?.inn) return;
@@ -241,6 +294,7 @@ const EditPlantation = () => {
         if (isModalOpen) closeModal();
         if (isApproveModalOpen) closeApproveModal();
         if (isDeleteModalOpen) closeDeleteModal();
+        if (isDeleteRequestModalOpen) closeDeleteRequestModal();
         if (isCommentDeleteOpen) closeCommentDeleteModal();
         if (farmerPlantsOpen) setFarmerPlantsOpen(false);
         if (selectedImage) setSelectedImage(null);
@@ -261,7 +315,7 @@ const EditPlantation = () => {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
+  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isDeleteRequestModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
 
   const handleConfirm = async () => {
     try {
@@ -324,7 +378,7 @@ const EditPlantation = () => {
           for (const [k, v] of fd.entries()) { dbg.push([k, (v && v.name) ? v.name : v]); }
           
         } catch {}
-        await apiRequest(`api/plantations/${plantation.id}/reject/`, {
+      await apiRequest(`api/plantations/${plantation.id}/reject/`, {
           method: 'POST',
           body: fd,
       }, refreshAccessToken, authState.accessToken);
@@ -830,21 +884,21 @@ const EditPlantation = () => {
     mapInstanceRef.current = map;
     mapInitializedRef.current = true;
 
-    const paths = plantation.coordinates.map((coord) => ({
-      lat: coord.latitude,
-      lng: coord.longitude,
-    }));
+      const paths = plantation.coordinates.map((coord) => ({
+        lat: coord.latitude,
+        lng: coord.longitude,
+      }));
 
-    const polygon = new google.maps.Polygon({
-      paths,
-      strokeColor: "#FF0000",
-      strokeOpacity: 1,
-      strokeWeight: 2,
-      fillColor: "#FF0000",
-      fillOpacity: 0.35,
-      map,
-      editable: true,
-      draggable: false,
+      const polygon = new google.maps.Polygon({
+        paths,
+        strokeColor: "#FF0000",
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        fillColor: "#FF0000",
+        fillOpacity: 0.35,
+        map,
+        editable: true,
+        draggable: false,
       zIndex: 2,
     });
 
@@ -890,33 +944,33 @@ const EditPlantation = () => {
     // Начальный расчет площади
     updateAreaDisplay();
 
-    const updateCoordinates = () => {
-      const newPaths = polygon.getPath();
-      const newCoordinates = [];
-      for (let i = 0; i < newPaths.getLength(); i++) {
-        const vertex = newPaths.getAt(i);
-        newCoordinates.push({
-          latitude: vertex.lat(),
-          longitude: vertex.lng(),
-        });
-      }
-      setPlantation((prev) => ({
-        ...prev,
-        coordinates: newCoordinates,
-      }));
+      const updateCoordinates = () => {
+        const newPaths = polygon.getPath();
+        const newCoordinates = [];
+        for (let i = 0; i < newPaths.getLength(); i++) {
+          const vertex = newPaths.getAt(i);
+          newCoordinates.push({
+            latitude: vertex.lat(),
+            longitude: vertex.lng(),
+          });
+        }
+        setPlantation((prev) => ({
+          ...prev,
+          coordinates: newCoordinates,
+        }));
       // Обновляем площадь при изменении координат
       updateAreaDisplay();
-    };
+      };
 
-    polygon.addListener("mouseup", updateCoordinates);
+      polygon.addListener("mouseup", updateCoordinates);
     polygon.addListener("set_at", updateAreaDisplay);
     polygon.addListener("insert_at", updateAreaDisplay);
     polygon.addListener("remove_at", updateAreaDisplay);
 
     // Устанавливаем границы для отображения полигона только при первой инициализации
-    const bounds = new google.maps.LatLngBounds();
-    paths.forEach((coord) => bounds.extend(coord));
-    map.fitBounds(bounds);
+      const bounds = new google.maps.LatLngBounds();
+      paths.forEach((coord) => bounds.extend(coord));
+      map.fitBounds(bounds);
 
       // Сначала загружаем полигоны всех регионов (не кликабельные, подложка)
     loadRegionPolygons(map);
@@ -2079,7 +2133,7 @@ const EditPlantation = () => {
                                 </a>
                               )}
                               {canDeleteComments && mc?.id && (
-                                <button
+              <button
                                   onClick={() => openCommentDeleteModal(mc.id)}
                                   className="text-red-400 hover:text-red-300 shrink-0"
                                   title="O'chirish"
@@ -2087,7 +2141,7 @@ const EditPlantation = () => {
                                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
                                   </svg>
-                                </button>
+              </button>
                               )}
                             </div>
                           ))
@@ -2136,7 +2190,7 @@ const EditPlantation = () => {
                         })}
                       </div>
                       <div className="mt-3 flex items-center gap-2">
-                        <button
+              <button
                           type="button"
                           className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors text-sm flex items-center gap-2"
                            onClick={() => {
@@ -2153,17 +2207,17 @@ const EditPlantation = () => {
                          >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
                           Tanlanganlarni qo'shish
-                        </button>
+                </button>
                         {selectedReasons.length > 0 && (
-                          <button
+                <button
                             type="button"
                             className="px-3 py-1.5 rounded bg-gray-700/70 text-gray-300 hover:bg-gray-600/70 text-xs"
                             onClick={() => setSelectedReasons([])}
                           >
                             Tozalash
-                          </button>
+              </button>
                         )}
-                      </div>
+              </div>
                     </div>
 
                     {/* Drag & Drop hint removed by request */}
@@ -2312,6 +2366,47 @@ const EditPlantation = () => {
                   </div>
                 </div>
               )}
+
+            {/* Модальное окно для отправки запроса на удаление */}
+            {isDeleteRequestModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteRequestModal}>
+                <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={closeDeleteRequestModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                  <h2 className="text-xl mb-4 text-white">O'chirish uchun so'rov</h2>
+                  <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirish uchun so'rov yubormoqchimisiz? So'rov moderatsiyaga yuboriladi.</p>
+                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      O'chirish sababi *
+                    </label>
+                    <textarea
+                      value={deleteReason}
+                      onChange={(e) => setDeleteReason(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      rows={3}
+                      placeholder="O'chirish sababini kiriting..."
+                      required
+                    />
+            </div>
+                  
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50"
+                      onClick={handleDeleteRequest}
+                      disabled={isSubmittingDeleteRequest || !deleteReason.trim()}
+                    >
+                      {isSubmittingDeleteRequest ? "Yuborilmoqda..." : "So'rov yuborish"}
+                    </button>
+                    <button
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                      onClick={closeDeleteRequestModal}
+                    >
+                      Bekor qilish
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Confirm delete moderation comment modal */}
             {authState.userRole === "superuser" && isCommentDeleteOpen && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeCommentDeleteModal}>
@@ -2385,6 +2480,19 @@ const EditPlantation = () => {
               </svg>
               <span>Rad etish</span>
               <span className="text-xs opacity-75">(Alt+Q)</span>
+            </button>
+
+            <div className="w-px h-8 bg-gray-600"></div>
+            
+            <button
+              onClick={openDeleteRequestModal}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
+              title="Moderatsiyaga yuborish"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span>O'chirish uchun so'rov</span>
             </button>
 
             <div className="w-px h-8 bg-gray-600"></div>

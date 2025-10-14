@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Table, Card, Select, Row, Col, Alert, Statistic, Button, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
-import { API_BASE_URL1 } from "../../config";
+import { API_BASE_URL2 } from "../../config";
 import AuthContext from "../../context/AuthContext";
-import { fetchStatisticsData } from "../../utils/apiUtils";
 import { exportToExcel } from "../../utils/excelExport";
 
 const { Option } = Select;
@@ -42,7 +41,7 @@ const FruitsPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        let url = `${API_BASE_URL1}api/statistics/fruits/`;
+        let url = `${API_BASE_URL2}api/statistics/fruits/`;
         const queryParams = new URLSearchParams();
 
         if (filters.regions.length > 0) {
@@ -53,7 +52,19 @@ const FruitsPage = () => {
           url += `?${queryParams.toString()}`;
         }
 
-        const data = await fetchStatisticsData(url, authState.accessToken);
+        // Используем новый API v2.0 с fetch
+        const response = await fetch(url, {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authState.accessToken}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
         setStatistics(data);
       } catch (err) {
         setError(err.message);

@@ -2,10 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Table, Card, Row, Col, Spin, Alert, Statistic, Button, message } from 'antd';
 import StatisticsLayout from '../../layouts/StatisticsLayout';
-import { API_BASE_URL1 } from "../../config";
+import { API_BASE_URL2 } from "../../config";
 import { ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons';
 import AuthContext from '../../context/AuthContext';
-import { fetchStatisticsData } from '../../utils/apiUtils';
 import { exportToExcel } from '../../utils/excelExport';
 
 const FruitDetailPage = () => {
@@ -24,7 +23,19 @@ const FruitDetailPage = () => {
       try {
         setLoading(true);
         
-        const data = await fetchStatisticsData(`${API_BASE_URL1}api/statistics/fruits/${id}/`, authState.accessToken);
+        // Используем новый API v2.0 с fetch
+        const response = await fetch(`${API_BASE_URL2}api/statistics/fruits/${id}/`, {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authState.accessToken}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
         setStatistics(data);
       } catch (err) {
         setError(err.message);

@@ -2,12 +2,10 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Table, Card, Row, Col, Spin, Alert, Statistic, Button, message } from "antd";
 import StatisticsLayout from "../../layouts/StatisticsLayout";
-import { API_BASE_URL1, API_BASE_URL2 } from "../../config";
+import { API_BASE_URL2 } from "../../config";
 import { ArrowLeftOutlined, DownloadOutlined } from "@ant-design/icons";
 import AuthContext from "../../context/AuthContext";
-import { fetchStatisticsData } from "../../utils/apiUtils";
 import { exportToExcel } from "../../utils/excelExport";
-import { API_BASE_URL2 as API2 } from "../../config";
 
 const REGION_NAMES = {
   12: "QQR",
@@ -64,7 +62,7 @@ const RegionDetailPage = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API2}api/districts/`, {
+        const res = await fetch(`${API_BASE_URL2}api/districts/`, {
           headers: { Authorization: `Bearer ${authState.accessToken}` },
         });
         if (res.ok) {
@@ -118,8 +116,8 @@ const RegionDetailPage = () => {
         let data;
         
         if (!dataType || dataType === 'all') {
-          // Для всех плантаций используем обычный API статистики
-          let url = `${API_BASE_URL1}api/statistics/regions/${allowedId}/`;
+          // Для всех плантаций используем новый API статистики
+          let url = `${API_BASE_URL2}api/statistics/regions/${allowedId}/`;
           const queryParams = new URLSearchParams();
           
           if (estDate) {
@@ -136,18 +134,42 @@ const RegionDetailPage = () => {
             url += `?${queryParams.toString()}`;
           }
           
-          data = await fetchStatisticsData(url, authState.accessToken);
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${authState.accessToken}` }
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          data = await response.json();
   
-          // Обрабатываем данные для all - проверяем есть ли TOTAL в by_region
-          if (data && data.by_region && Array.isArray(data.by_region)) {
+          // Обрабатываем данные для all - новая структура API v2.0
+          if (Array.isArray(data)) {
             let totalData = null;
-            const filteredByRegion = data.by_region.filter(item => {
-              if (item.plantation__district__name === "TOTAL") {
+            const dataMap = {};
+            
+            console.log('Processing all data:', data.length, 'items');
+            
+            data.forEach((item, index) => {
+              const districtId = item.district_id?.toString();
+              const districtName = item.district_name;
+              
+              console.log(`Processing item ${index}:`, { districtId, districtName, total_area: item.total_area });
+              
+              if (districtId === "TOTAL") {
+                // Сохраняем данные TOTAL для строки "Jami"
+                console.log('Processing TOTAL row:', {
+                  total_area: item.total_area,
+                  total_plantations: item.total_plantations,
+                  low_fertility: item.low_fertility,
+                  high_fertility: item.high_fertility,
+                  irrigation: item.irrigation
+                });
+                
                 totalData = {
                   total_area: Number(item.total_area || 0),
-                  plantation_count: Number(item.plantation_count || 0),
+                  plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -173,57 +195,76 @@ const RegionDetailPage = () => {
                   bogs_area: Number(item.bogs_area || 0),
                   uzumzors_count: Number(item.uzumzors_count || 0),
                   uzumzors_area: Number(item.uzumzors_area || 0),
-                  issiqxonas_count: Number(item.issiqxonas_count || 0),
-                  issiqxonas_area: Number(item.issiqxonas_area || 0),
+                  district_id: item.district_id || null,
+                  // Новые поля из API
+                  approved_plantations: Number(item.approved_plantations || 0),
+                  pending_plantations: Number(item.pending_plantations || 0),
+                  rejected_plantations: Number(item.rejected_plantations || 0),
+                  plantation_conditions: item.plantation_conditions || {},
+                  agricultural_report: item.agricultural_report || {},
+                  bogs_report: item.bogs_report || {},
+                  uzumzor_report: item.uzumzor_report || {},
+                  subsidy_report: item.subsidy_report || {},
                 };
-                return false; // Исключаем TOTAL из основного массива
+              } else if (districtName) {
+                // Обычные районы
+                console.log(`Processing district ${districtName}:`, {
+                  total_area: item.total_area,
+                  low_fertility: item.low_fertility,
+                  high_fertility: item.high_fertility,
+                  irrigation: item.irrigation
+                });
+                
+                dataMap[districtName] = {
+                  total_area: Number(item.total_area || 0),
+                  plantation_count: Number(item.total_plantations || 0),
+                  planted_area: Number(item.planted_area || 0),
+                  not_used_area: Number(item.not_used_area || 0),
+                  investment: {
+                    local: Number(item.investment?.local || 0),
+                    foreign: Number(item.investment?.foreign || 0),
+                  },
+                  subsidy: {
+                    subsidy_count: Number(item.subsidy?.subsidy_count || 0),
+                    total_subsidy: Number(item.subsidy?.total_subsidy || 0),
+                  },
+                  outdated_ga: Number(item.outdated_ga || 0),
+                  low_fertility: {
+                    count: Number(item.low_fertility?.count || 0),
+                    area: Number(item.low_fertility?.area || 0),
+                  },
+                  high_fertility: {
+                    count: Number(item.high_fertility?.count || 0),
+                    area: Number(item.high_fertility?.area || 0),
+                  },
+                  irrigation: {
+                    area: Number(item.irrigation?.area || 0),
+                    count: Number(item.irrigation?.count || 0),
+                  },
+                  bogs_count: Number(item.bogs_count || 0),
+                  bogs_area: Number(item.bogs_area || 0),
+                  uzumzors_count: Number(item.uzumzors_count || 0),
+                  uzumzors_area: Number(item.uzumzors_area || 0),
+                  district_id: item.district_id || null,
+                  // Новые поля из API
+                  approved_plantations: Number(item.approved_plantations || 0),
+                  pending_plantations: Number(item.pending_plantations || 0),
+                  rejected_plantations: Number(item.rejected_plantations || 0),
+                  plantation_conditions: item.plantation_conditions || {},
+                  agricultural_report: item.agricultural_report || {},
+                  bogs_report: item.bogs_report || {},
+                  uzumzor_report: item.uzumzor_report || {},
+                  subsidy_report: item.subsidy_report || {},
+                };
               }
-              return true;
             });
             
-            // Обновляем данные, исключая TOTAL
-            data.by_region = filteredByRegion;
-            // Если API также прислал totals, используем его приоритетно
-            if (data.totals && typeof data.totals === 'object') {
-              totalData = {
-                total_area: Number(data.totals.total_area || 0),
-                plantation_count: Number(data.totals.plantation_count || 0),
-                planted_area: Number(data.totals.planted_area || 0),
-                not_used_area: Number((data.totals.not_used_area ?? data.totals.not_usable_area ?? 0)),
-                investment: {
-                  local: Number(data.totals.investment?.local || 0),
-                  foreign: Number(data.totals.investment?.foreign || 0),
-                },
-                subsidy: {
-                  subsidy_count: Number(data.totals.subsidy?.subsidy_count || 0),
-                  total_subsidy: Number(data.totals.subsidy?.total_subsidy || 0),
-                },
-                outdated_ga: Number(data.totals.outdated_ga || 0),
-                low_fertility: {
-                  count: Number(data.totals.low_fertility?.count || 0),
-                  area: Number(data.totals.low_fertility?.area || 0),
-                },
-                high_fertility: {
-                  count: Number(data.totals.high_fertility?.count || 0),
-                  area: Number(data.totals.high_fertility?.area || 0),
-                },
-                irrigation: {
-                  area: Number(data.totals.irrigation?.area || 0),
-                  count: Number(data.totals.irrigation?.count || 0),
-                },
-                bogs_count: Number(data.totals.bogs_count || 0),
-                bogs_area: Number(data.totals.bogs_area || 0),
-                uzumzors_count: Number(data.totals.uzumzors_count || 0),
-                uzumzors_area: Number(data.totals.uzumzors_area || 0),
-                issiqxonas_count: Number(data.totals.issiqxonas_count || 0),
-                issiqxonas_area: Number(data.totals.issiqxonas_area || 0),
-              };
-            }
-            data.totalData = totalData;
+            console.log('Final processed all data:', { dataMap: Object.keys(dataMap), totalData });
+            data = { data: dataMap, totalData: totalData };
           }
         } else if (dataType === 'approved') {
           // Для подтвержденных используем новый API endpoint
-          let approvedUrl = `${API_BASE_URL1}api/statistics/regions/${allowedId}/approved/`;
+          let approvedUrl = `${API_BASE_URL2}api/statistics/regions/${allowedId}/approved/`;
           const queryParams = new URLSearchParams();
           
           if (estDate) {
@@ -231,6 +272,9 @@ const RegionDetailPage = () => {
           }
           if (plantationType) {
             queryParams.append("plantation_type", plantationType);
+          }
+          if (regions) {
+            queryParams.append("regions", regions);
           }
           
           if (queryParams.toString()) {
@@ -246,21 +290,34 @@ const RegionDetailPage = () => {
           data = await response.json();
           
 
-          // Обрабатываем данные для approved - API может вернуть { data: Array, totals: Object }
-          if (data && data.data && Array.isArray(data.data)) {
+          // Обрабатываем данные для approved - новая структура API v2.0
+          if (Array.isArray(data)) {
             const dataMap = {};
-            let totalData = null; // Сохраняем данные TOTAL отдельно
+            let totalData = null;
             
-            data.data.forEach((item) => {
-              const districtName = item.district;
+            console.log('Processing approved data:', data.length, 'items');
+            
+            data.forEach((item, index) => {
+              const districtId = item.district_id?.toString();
+              const districtName = item.district_name;
               
-              if (districtName === "TOTAL") {
+              console.log(`Processing approved item ${index}:`, { districtId, districtName, total_area: item.total_area });
+              
+              if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
+                console.log('Processing approved TOTAL row:', {
+                  total_area: item.total_area,
+                  total_plantations: item.total_plantations,
+                  low_fertility: item.low_fertility,
+                  high_fertility: item.high_fertility,
+                  irrigation: item.irrigation
+                });
+                
                 totalData = {
                   total_area: Number(item.total_area || 0),
-                  plantation_count: Number(item.plantation_count || 0),
+                  plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -286,17 +343,31 @@ const RegionDetailPage = () => {
                   bogs_area: Number(item.bogs_area || 0),
                   uzumzors_count: Number(item.uzumzors_count || 0),
                   uzumzors_area: Number(item.uzumzors_area || 0),
-                  issiqxonas_count: Number(item.issiqxonas_count || 0),
-                  issiqxonas_area: Number(item.issiqxonas_area || 0),
                   district_id: item.district_id || null,
+                  // Новые поля из API
+                  approved_plantations: Number(item.approved_plantations || 0),
+                  pending_plantations: Number(item.pending_plantations || 0),
+                  rejected_plantations: Number(item.rejected_plantations || 0),
+                  plantation_conditions: item.plantation_conditions || {},
+                  agricultural_report: item.agricultural_report || {},
+                  bogs_report: item.bogs_report || {},
+                  uzumzor_report: item.uzumzor_report || {},
+                  subsidy_report: item.subsidy_report || {},
                 };
               } else if (districtName) {
                 // Обычные районы
+                console.log(`Processing approved district ${districtName}:`, {
+                  total_area: item.total_area,
+                  low_fertility: item.low_fertility,
+                  high_fertility: item.high_fertility,
+                  irrigation: item.irrigation
+                });
+                
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
-                  plantation_count: Number(item.plantation_count || 0),
+                  plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -322,48 +393,21 @@ const RegionDetailPage = () => {
                   bogs_area: Number(item.bogs_area || 0),
                   uzumzors_count: Number(item.uzumzors_count || 0),
                   uzumzors_area: Number(item.uzumzors_area || 0),
-                  issiqxonas_count: Number(item.issiqxonas_count || 0),
-                  issiqxonas_area: Number(item.issiqxonas_area || 0),
                   district_id: item.district_id || null,
+                  // Новые поля из API
+                  approved_plantations: Number(item.approved_plantations || 0),
+                  pending_plantations: Number(item.pending_plantations || 0),
+                  rejected_plantations: Number(item.rejected_plantations || 0),
+                  plantation_conditions: item.plantation_conditions || {},
+                  agricultural_report: item.agricultural_report || {},
+                  bogs_report: item.bogs_report || {},
+                  uzumzor_report: item.uzumzor_report || {},
+                  subsidy_report: item.subsidy_report || {},
                 };
               }
             });
-            // Если API прислал totals, используем его приоритетно
-            if (data.totals && typeof data.totals === 'object') {
-              totalData = {
-                total_area: Number(data.totals.total_area || 0),
-                plantation_count: Number(data.totals.plantation_count || 0),
-                planted_area: Number(data.totals.planted_area || 0),
-                not_used_area: Number((data.totals.not_used_area ?? data.totals.not_usable_area ?? 0)),
-                investment: {
-                  local: Number(data.totals.investment?.local || 0),
-                  foreign: Number(data.totals.investment?.foreign || 0),
-                },
-                subsidy: {
-                  subsidy_count: Number(data.totals.subsidy?.subsidy_count || 0),
-                  total_subsidy: Number(data.totals.subsidy?.total_subsidy || 0),
-                },
-                outdated_ga: Number(data.totals.outdated_ga || 0),
-                low_fertility: {
-                  count: Number(data.totals.low_fertility?.count || 0),
-                  area: Number(data.totals.low_fertility?.area || 0),
-                },
-                high_fertility: {
-                  count: Number(data.totals.high_fertility?.count || 0),
-                  area: Number(data.totals.high_fertility?.area || 0),
-                },
-                irrigation: {
-                  area: Number(data.totals.irrigation?.area || 0),
-                  count: Number(data.totals.irrigation?.count || 0),
-                },
-                bogs_count: Number(data.totals.bogs_count || 0),
-                bogs_area: Number(data.totals.bogs_area || 0),
-                uzumzors_count: Number(data.totals.uzumzors_count || 0),
-                uzumzors_area: Number(data.totals.uzumzors_area || 0),
-                issiqxonas_count: Number(data.totals.issiqxonas_count || 0),
-                issiqxonas_area: Number(data.totals.issiqxonas_area || 0),
-              };
-            }
+            
+            console.log('Final processed approved data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
         } else if (dataType === 'rejected') {
@@ -372,8 +416,9 @@ const RegionDetailPage = () => {
           const queryParams = new URLSearchParams();
           if (estDate) queryParams.append('est_date', estDate);
           if (plantationType) queryParams.append('plantation_type', plantationType);
+          if (regions) queryParams.append('regions', regions);
           const qs = queryParams.toString();
-          if (qs) rejectedUrl += `&${qs}`;
+          if (qs) rejectedUrl += `?${qs}`;
 
           const rejected = await fetch(rejectedUrl, {
             headers: { Authorization: `Bearer ${authState.accessToken}` },
@@ -381,19 +426,43 @@ const RegionDetailPage = () => {
           if (!rejected.ok) throw new Error(`HTTP error! status: ${rejected.status}`);
           const rejectedData = await rejected.json();
 
-          // Обрабатываем новый формат данных
-          const dataMap = {};
-          let totalData = null;
-
-          if (rejectedData.districts && Array.isArray(rejectedData.districts)) {
-            rejectedData.districts.forEach((item) => {
-              const districtName = item.district;
-              if (districtName) {
-                dataMap[districtName] = {
+          // Обрабатываем данные для rejected - новая структура API v2.0
+          if (Array.isArray(rejectedData)) {
+            const dataMap = {};
+            let totalData = null;
+            
+            console.log('Processing rejected data:', rejectedData.length, 'items');
+            
+            rejectedData.forEach((item, index) => {
+              const districtId = item.district_id?.toString();
+              const districtName = item.district_name;
+              
+              console.log(`Processing rejected item ${index}:`, { 
+                districtId, 
+                districtName, 
+                total_area: item.total_area,
+                irrigation: item.irrigation,
+                irrigation_area: item.irrigation?.area,
+                irrigation_count: item.irrigation?.count
+              });
+              
+              if (districtId === "TOTAL") {
+                // Сохраняем данные TOTAL для строки "Jami"
+                console.log('Processing rejected TOTAL row:', {
+                  total_area: item.total_area,
+                  total_plantations: item.total_plantations,
+                  low_fertility: item.low_fertility,
+                  high_fertility: item.high_fertility,
+                  irrigation: item.irrigation,
+                  irrigation_area: item.irrigation?.area,
+                  irrigation_count: item.irrigation?.count
+                });
+                
+                totalData = {
                   total_area: Number(item.total_area || 0),
-                  total_plantations: Number(item.plantation_count || 0),
+                  plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
-                  not_used_area: Number((item.not_used_area ?? item.not_usable_area ?? 0)),
+                  not_used_area: Number(item.not_used_area || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -419,52 +488,73 @@ const RegionDetailPage = () => {
                   bogs_area: Number(item.bogs_area || 0),
                   uzumzors_count: Number(item.uzumzors_count || 0),
                   uzumzors_area: Number(item.uzumzors_area || 0),
-                  issiqxonas_count: Number(item.issiqxonas_count || 0),
-                  issiqxonas_area: Number(item.issiqxonas_area || 0),
                   district_id: item.district_id || null,
+                  // Новые поля из API
+                  approved_plantations: Number(item.approved_plantations || 0),
+                  pending_plantations: Number(item.pending_plantations || 0),
+                  rejected_plantations: Number(item.rejected_plantations || 0),
+                  plantation_conditions: item.plantation_conditions || {},
+                  agricultural_report: item.agricultural_report || {},
+                  bogs_report: item.bogs_report || {},
+                  uzumzor_report: item.uzumzor_report || {},
+                  subsidy_report: item.subsidy_report || {},
+                };
+              } else if (districtName) {
+                // Обычные районы
+                console.log(`Processing rejected district ${districtName}:`, {
+                  total_area: item.total_area,
+                  low_fertility: item.low_fertility,
+                  high_fertility: item.high_fertility,
+                  irrigation: item.irrigation
+                });
+                
+                dataMap[districtName] = {
+                  total_area: Number(item.total_area || 0),
+                  plantation_count: Number(item.total_plantations || 0),
+                  planted_area: Number(item.planted_area || 0),
+                  not_used_area: Number(item.not_used_area || 0),
+                  investment: {
+                    local: Number(item.investment?.local || 0),
+                    foreign: Number(item.investment?.foreign || 0),
+                  },
+                  subsidy: {
+                    subsidy_count: Number(item.subsidy?.subsidy_count || 0),
+                    total_subsidy: Number(item.subsidy?.total_subsidy || 0),
+                  },
+                  outdated_ga: Number(item.outdated_ga || 0),
+                  low_fertility: {
+                    count: Number(item.low_fertility?.count || 0),
+                    area: Number(item.low_fertility?.area || 0),
+                  },
+                  high_fertility: {
+                    count: Number(item.high_fertility?.count || 0),
+                    area: Number(item.high_fertility?.area || 0),
+                  },
+                  irrigation: {
+                    area: Number(item.irrigation?.area || 0),
+                    count: Number(item.irrigation?.count || 0),
+                  },
+                  bogs_count: Number(item.bogs_count || 0),
+                  bogs_area: Number(item.bogs_area || 0),
+                  uzumzors_count: Number(item.uzumzors_count || 0),
+                  uzumzors_area: Number(item.uzumzors_area || 0),
+                  district_id: item.district_id || null,
+                  // Новые поля из API
+                  approved_plantations: Number(item.approved_plantations || 0),
+                  pending_plantations: Number(item.pending_plantations || 0),
+                  rejected_plantations: Number(item.rejected_plantations || 0),
+                  plantation_conditions: item.plantation_conditions || {},
+                  agricultural_report: item.agricultural_report || {},
+                  bogs_report: item.bogs_report || {},
+                  uzumzor_report: item.uzumzor_report || {},
+                  subsidy_report: item.subsidy_report || {},
                 };
               }
             });
+            
+            console.log('Final processed rejected data:', { dataMap: Object.keys(dataMap), totalData });
+            data = { data: dataMap, totalData: totalData };
           }
-
-          // Используем totals из API для строки "Jami"
-          if (rejectedData.totals) {
-            totalData = {
-              total_area: Number(rejectedData.totals.total_area || 0),
-              plantation_count: Number(rejectedData.totals.plantation_count || 0),
-              planted_area: Number(rejectedData.totals.planted_area || 0),
-              not_used_area: Number((rejectedData.totals.not_used_area ?? rejectedData.totals.not_usable_area ?? 0)),
-              investment: {
-                local: Number(rejectedData.totals.investment?.local || 0),
-                foreign: Number(rejectedData.totals.investment?.foreign || 0),
-              },
-              subsidy: {
-                subsidy_count: Number(rejectedData.totals.subsidy?.subsidy_count || 0),
-                total_subsidy: Number(rejectedData.totals.subsidy?.total_subsidy || 0),
-              },
-              outdated_ga: Number(rejectedData.totals.outdated_ga || 0),
-              low_fertility: {
-                count: Number(rejectedData.totals.low_fertility?.count || 0),
-                area: Number(rejectedData.totals.low_fertility?.area || 0),
-              },
-              high_fertility: {
-                count: Number(rejectedData.totals.high_fertility?.count || 0),
-                area: Number(rejectedData.totals.high_fertility?.area || 0),
-              },
-              irrigation: {
-                area: Number(rejectedData.totals.irrigation?.area || 0),
-                count: Number(rejectedData.totals.irrigation?.count || 0),
-              },
-              bogs_count: Number(rejectedData.totals.bogs_count || 0),
-              bogs_area: Number(rejectedData.totals.bogs_area || 0),
-              uzumzors_count: Number(rejectedData.totals.uzumzors_count || 0),
-              uzumzors_area: Number(rejectedData.totals.uzumzors_area || 0),
-              issiqxonas_count: Number(rejectedData.totals.issiqxonas_count || 0),
-              issiqxonas_area: Number(rejectedData.totals.issiqxonas_area || 0),
-            };
-          }
-
-          data = { data: dataMap, totalData: totalData };
         } else {
           // Для модерации используем новый API: только ожидающие проверки
           const plantationsUrl = `${API_BASE_URL2}api/plantations/moderation/`;
@@ -606,7 +696,7 @@ const RegionDetailPage = () => {
           });
           data = { data: dataMap };
         }
-        
+
         // Если данные приходят в формате { district1: {...}, district2: {...} }
         // то нужно обернуть их в объект с полем data
         let processedData = data;
@@ -693,7 +783,7 @@ const RegionDetailPage = () => {
         const notUsedArea = (notUsedRaw === undefined || notUsedRaw === null)
           ? Math.max(0, Number(totalArea || 0) - Number(plantedArea || 0))
           : Number(notUsedRaw || 0);
-
+        
         const row = {
           key: districtName,
           district: districtName,
@@ -710,9 +800,19 @@ const RegionDetailPage = () => {
           bogs_area: typeData?.bogs_area || 0,
           uzumzors_count: typeData?.uzumzors_count || 0,
           uzumzors_area: typeData?.uzumzors_area || 0,
-          issiqxonas_count: typeData?.issiqxonas_count || 0,
-          issiqxonas_area: typeData?.issiqxonas_area || 0,
           district_id: item.plantation__district__id || null,
+          // Новые поля для статусов (для вкладки "all" могут быть недоступны)
+          approved_plantations: item.approved_plantations || 0,
+          pending_plantations: item.pending_plantations || 0,
+          rejected_plantations: item.rejected_plantations || 0,
+          // Плодородие
+          low_fertility_area: item.low_fertility?.area || 0,
+          high_fertility_area: item.high_fertility?.area || 0,
+          // Орошение
+          irrigation_area: item.irrigation?.area || 0,
+          irrigation_count: item.irrigation?.count || 0,
+          // Эскирган
+          outdated_ga: item.outdated_ga || 0,
         };
         
         return row;
@@ -731,7 +831,7 @@ const RegionDetailPage = () => {
         const fallbackNotUsed = (computedNotUsed === undefined || computedNotUsed === null)
           ? Math.max(0, Number(districtData.total_area || 0) - Number(districtData.planted_area || 0))
           : Number(computedNotUsed || 0);
-
+        
         const row = {
           key: districtName,
           district: districtName,
@@ -748,8 +848,6 @@ const RegionDetailPage = () => {
           bogs_area: districtData.bogs_area || 0,
           uzumzors_count: districtData.uzumzors_count || 0,
           uzumzors_area: districtData.uzumzors_area || 0,
-          issiqxonas_count: districtData.issiqxonas_count || 0,
-          issiqxonas_area: districtData.issiqxonas_area || 0,
           outdated_ga: districtData.outdated_ga || 0,
           low_fertility_count: districtData.low_fertility?.count || 0,
           low_fertility_area: districtData.low_fertility?.area || 0,
@@ -758,6 +856,10 @@ const RegionDetailPage = () => {
           irrigation_area: districtData.irrigation?.area || 0,
           irrigation_count: districtData.irrigation?.count || 0,
           district_id: districtData.district_id,
+          // Новые поля для статусов
+          approved_plantations: districtData.approved_plantations || 0,
+          pending_plantations: districtData.pending_plantations || 0,
+          rejected_plantations: districtData.rejected_plantations || 0,
         };
         
         return row;
@@ -779,6 +881,7 @@ const RegionDetailPage = () => {
           total_plantations: data.plantation_count || data.total_plantations || 0,
           planted_area: data.planted_area,
           not_used_area: (data.not_used_area ?? data.not_usable_area ?? 0),
+          outdated_ga: data.outdated_ga || 0,
           investment_local: data.investment?.local || 0,
           investment_foreign: data.investment?.foreign || 0,
           investment_total: (data.investment?.local || 0) + (data.investment?.foreign || 0),
@@ -788,9 +891,17 @@ const RegionDetailPage = () => {
           bogs_area: data.bogs_area || 0,
           uzumzors_count: data.uzumzors_count || 0,
           uzumzors_area: data.uzumzors_area || 0,
-          issiqxonas_count: data.issiqxonas_count || 0,
-          issiqxonas_area: data.issiqxonas_area || 0,
           district_id: data.district_id,
+          // Новые поля для статусов
+          approved_plantations: data.approved_plantations || 0,
+          pending_plantations: data.pending_plantations || 0,
+          rejected_plantations: data.rejected_plantations || 0,
+          // Плодородие
+          low_fertility_area: data.low_fertility?.area || 0,
+          high_fertility_area: data.high_fertility?.area || 0,
+          // Орошение
+          irrigation_area: data.irrigation?.area || 0,
+          irrigation_count: data.irrigation?.count || 0,
         };
         
         return row;
@@ -821,10 +932,6 @@ const RegionDetailPage = () => {
           return Number(row.uzumzors_count || 0);
         case 'uzumzors_area':
           return Number(row.uzumzors_area || 0);
-        case 'issiqxonas_count':
-          return Number(row.issiqxonas_count || 0);
-        case 'issiqxonas_area':
-          return Number(row.issiqxonas_area || 0);
         case 'investment_local':
           return Number(row.investment_local || 0);
         case 'investment_foreign':
@@ -835,6 +942,22 @@ const RegionDetailPage = () => {
           return Number(row.subsidy_count || 0);
         case 'total_subsidy':
           return Number(row.total_subsidy || 0);
+        case 'approved_plantations':
+          return Number(row.approved_plantations || 0);
+        case 'pending_plantations':
+          return Number(row.pending_plantations || 0);
+        case 'rejected_plantations':
+          return Number(row.rejected_plantations || 0);
+        case 'low_fertility_area':
+          return Number(row.low_fertility_area || 0);
+        case 'high_fertility_area':
+          return Number(row.high_fertility_area || 0);
+        case 'irrigation_area':
+          return Number(row.irrigation_area || 0);
+        case 'irrigation_count':
+          return Number(row.irrigation_count || 0);
+        case 'outdated_ga':
+          return Number(row.outdated_ga || 0);
         default:
           return '';
       }
@@ -967,8 +1090,6 @@ const RegionDetailPage = () => {
         bogs_area: statistics.totalData.bogs_area || 0,
         uzumzors_count: statistics.totalData.uzumzors_count || 0,
         uzumzors_area: statistics.totalData.uzumzors_area || 0,
-        issiqxonas_count: statistics.totalData.issiqxonas_count || 0,
-        issiqxonas_area: statistics.totalData.issiqxonas_area || 0,
         outdated_ga: statistics.totalData.outdated_ga || 0,
         low_fertility_count: statistics.totalData.low_fertility?.count || 0,
         low_fertility_area: statistics.totalData.low_fertility?.area || 0,
@@ -998,7 +1119,8 @@ const RegionDetailPage = () => {
 
   const textLight = { color: '#e5e7eb' };
 
-  const columns = [
+  // Базовые колонки
+  const baseColumns = [
     {
       title: <span style={textLight}>Tuman</span>,
       dataIndex: "district",
@@ -1105,6 +1227,68 @@ const RegionDetailPage = () => {
         ],
     },
     {
+      title: <span style={textLight}>Unumdorlik</span>,
+      children: [
+        {
+          title: <span style={textLight}>Past unumdorlik</span>,
+          dataIndex: "low_fertility_area",
+          key: "low_fertility_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'low_fertility_area' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+              {(value || 0).toFixed(1)}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Yuqori unumdorlik</span>,
+          dataIndex: "high_fertility_area",
+          key: "high_fertility_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'high_fertility_area' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+              {(value || 0).toFixed(1)}
+            </span>
+          ),
+        },
+      ],
+    },
+    {
+      title: <span style={textLight}>Suv berish</span>,
+      children: [
+        {
+          title: <span style={textLight}>Maydon (GA)</span>,
+          dataIndex: "irrigation_area",
+          key: "irrigation_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'irrigation_area' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+              {(value || 0).toFixed(1)}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Soni</span>,
+          dataIndex: "irrigation_count",
+          key: "irrigation_count",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'irrigation_count' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+              {value || 0}
+            </span>
+          ),
+        },
+      ],
+    },
+    {
       title: <span style={textLight}>Investitsiyalar</span>,
       children: [
         {
@@ -1175,6 +1359,58 @@ const RegionDetailPage = () => {
         },
       ],
     },
+  ];
+
+  // Колонка Status только для вкладки "all"
+  const statusColumn = activeTab === 'all' ? [{
+    title: <span style={textLight}>Holat</span>,
+    children: [
+      {
+        title: <span style={textLight}>Tasdiqlangan</span>,
+        dataIndex: "approved_plantations",
+        key: "approved_plantations",
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
+        render: (value, record) => (
+          <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", color: '#10b981' }}>
+            {value || 0}
+          </span>
+        ),
+      },
+      {
+        title: <span style={textLight}>Kutilmoqda</span>,
+        dataIndex: "pending_plantations",
+        key: "pending_plantations",
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'pending_plantations' ? sortConfig.order : null,
+        render: (value, record) => (
+          <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", color: '#f59e0b' }}>
+            {value || 0}
+          </span>
+        ),
+      },
+      {
+        title: <span style={textLight}>Rad etilgan</span>,
+        dataIndex: "rejected_plantations",
+        key: "rejected_plantations",
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
+        render: (value, record) => (
+          <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", color: '#ef4444' }}>
+            {value || 0}
+          </span>
+        ),
+      },
+    ],
+  }] : [];
+
+  // Объединяем все колонки
+  const columns = [
+    ...baseColumns,
+    ...statusColumn,
   ];
 
   if (loading) return <Spin size="large" />;
