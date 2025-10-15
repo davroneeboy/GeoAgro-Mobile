@@ -18,26 +18,11 @@ import StatisticsLayout from "../../layouts/StatisticsLayout";
 import AuthContext from "../../context/AuthContext";
 import { handleApiError } from "../../utils/apiUtils";
 import { exportToExcel } from "../../utils/excelExport";
-import { fetchUsersStatisticsByRole } from "../../api/api";
+import { API_BASE_URL2 } from "../../config";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-const REGION_NAMES = {
-  1: "Tashkent",
-  2: "Andijan",
-  3: "Bukhara",
-  4: "Fergana",
-  5: "Jizzakh",
-  6: "Kashkadarya",
-  7: "Navoi",
-  8: "Namangan",
-  9: "Samarkand",
-  10: "Sirdarya",
-  11: "Surkhandarya",
-  12: "Karakalpakstan",
-  13: "Xorazm",
-};
 
 // Порядок регионов по умолчанию (как на скриншоте)
 const REGION_ORDER = ["12","2","3","5","6","7","8","9","11","10","1","4","13"];
@@ -72,60 +57,69 @@ const ControllersPage = () => {
       try {
         setLoading(true);
         setError(null);
-        // RBAC: выбираем эндпоинт по роли
-        const data = await fetchUsersStatisticsByRole(authState.userRole, {}, authState.accessToken);
         
-        if (data) {
-          // Для superuser: данные в формате regional_distribution
-          if (data.regional_distribution) {
-            const rows = Array.isArray(data.regional_distribution) ? data.regional_distribution : [];
-            const filtered = rows.filter((r) => {
-              const allNullMain = r.district__region == null && r.district__name == null && r.total_plantations == null && r.approved_plantations == null && r.rejected_plantations == null && r.rejected_percentage == null;
-              const loc = r.location || {};
-              const allNullLoc = loc.region == null && loc.district == null && loc.district_id == null;
-              return !(allNullMain && allNullLoc);
-            });
-            setStatistics(filtered);
-            setHeaderTotals({
-              total_users: Number(data.total_users || 0),
-              active_users: Number(data.active_users || 0),
-              inactive_users: Number(data.inactive_users || 0),
-            });
-          }
-          // Для headof_region: данные в формате results (массив пользователей)
-          else if (data.results) {
-            const users = Array.isArray(data.results) ? data.results : [];
-            // Преобразуем формат пользователей в формат regional_distribution
-            const transformedData = users.map(user => ({
-              id: user.id,
-              username: user.username,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              phone_number: user.phone_number,
-              location: user.location,
-              last_login: user.last_login,
-              kpi_current: user.kpi_current,
-              plantations_stats: user.plantations_stats,
-              // Добавляем поля для совместимости с существующим кодом
-              district__region: user.location?.region,
-              district__name: user.location?.district,
-              district_id: user.location?.district_id,
-              total_plantations: user.plantations_stats?.total || 0,
-              approved_plantations: user.plantations_stats?.approved || 0,
-              rejected_plantations: user.plantations_stats?.rejected || 0,
-              rejected_percentage: user.plantations_stats?.rejection_rate || 0,
-            }));
-            setStatistics(transformedData);
-            setHeaderTotals({
-              total_users: Number(data.count || 0),
-              active_users: Number(data.count || 0), // Для headof_region все пользователи активны
-              inactive_users: 0,
-            });
-          }
-          else {
-            setStatistics([]);
-            setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
-          }
+        // Новый API эндпоинт для детальной статистики пользователей
+        const response = await fetch(`${API_BASE_URL2}api/statistics/users/detailed/`, {
+          headers: {
+            'Authorization': `Bearer ${authState.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && Array.isArray(data)) {
+          // Обрабатываем новый формат данных с полными полями
+          const processedData = data.map(controller => ({
+            user_id: controller.user_id,
+            username: controller.username,
+            full_name: controller.full_name,
+            user_role: controller.user_role,
+            user_role_display: controller.user_role_display,
+            district_id: controller.district_id,
+            district_name: controller.district_name,
+            region_id: controller.region_id,
+            region_name: controller.region_name,
+            is_active: controller.is_active,
+            date_joined: controller.date_joined,
+            last_login: controller.last_login,
+            plantations: controller.plantations,
+            // Основные поля plantatsiyalar
+            total_plantations: controller.plantations?.total_plantations || 0,
+            approved_plantations: controller.plantations?.approved_plantations || 0,
+            pending_plantations: controller.plantations?.pending_plantations || 0,
+            rejected_plantations: controller.plantations?.rejected_plantations || 0,
+            // Поля maydon
+            total_area: controller.plantations?.total_area || 0,
+            approved_area: controller.plantations?.approved_area || 0,
+            pending_area: controller.plantations?.pending_area || 0,
+            rejected_area: controller.plantations?.rejected_area || 0,
+            last_created: controller.plantations?.last_created,
+            // Процент отклонения
+            rejected_percentage: controller.plantations?.total_plantations > 0 
+              ? (controller.plantations?.rejected_plantations / controller.plantations?.total_plantations) * 100 
+              : 0,
+            // Процент ожидания
+            pending_percentage: controller.plantations?.total_plantations > 0 
+              ? (controller.plantations?.pending_plantations / controller.plantations?.total_plantations) * 100 
+              : 0,
+          }));
+          
+          setStatistics(processedData);
+          
+          // Подсчитываем общие статистики
+          const activeUsers = processedData.filter(user => user.is_active).length;
+          const totalUsers = processedData.length;
+          
+          setHeaderTotals({
+            total_users: totalUsers,
+            active_users: activeUsers,
+            inactive_users: totalUsers - activeUsers,
+          });
         } else {
           setStatistics([]);
           setHeaderTotals({ total_users: 0, active_users: 0, inactive_users: 0 });
@@ -133,7 +127,7 @@ const ControllersPage = () => {
       } catch (err) {
         console.error("Error details:", err);
         handleApiError(err);
-        setError(err.message || "Маълумотларни юклашда хатолик" );
+        setError(err.message || "Маълумотларни юклашда хатолик");
         setStatistics([]);
       } finally {
         setLoading(false);
@@ -141,7 +135,7 @@ const ControllersPage = () => {
     };
 
     fetchData();
-  }, [authState.userRole, authState.accessToken]);
+  }, [authState.accessToken]);
 
   const handleResetFilters = () => {
     setFilters({
@@ -178,12 +172,20 @@ const ControllersPage = () => {
     try {
       setExporting(true);
       const exportData = sortedTableData;
+      const totalArea = tableData.reduce((sum, row) => sum + (row.total_area || 0), 0);
+      const approvedArea = tableData.reduce((sum, row) => sum + (row.approved_area || 0), 0);
+      const pendingArea = tableData.reduce((sum, row) => sum + (row.pending_area || 0), 0);
+      const rejectedArea = tableData.reduce((sum, row) => sum + (row.rejected_area || 0), 0);
+      
       const exportTotals = {
         total_plantations: totals.total || 0,
         approved_plantations: totals.approved || 0,
+        pending_plantations: totals.pending || 0,
         rejected_plantations: totals.rejected || 0,
-        kpi_points: totals.kpiPoints || 0,
-        kpi_amount: totals.kpiAmount || 0,
+        total_area: totalArea,
+        approved_area: approvedArea,
+        pending_area: pendingArea,
+        rejected_area: rejectedArea,
       };
       const timeFilter = timeFilterApplied 
         ? (filters.timeFilter === 'custom' ? 'custom' : filters.timeFilter)
@@ -203,42 +205,38 @@ const ControllersPage = () => {
     }
   };
 
-  // Подготовка данных для таблицы (адаптировано для обеих ролей)
+  // Подготовка данных для таблицы (обновлено для нового API)
   const tableData = Array.isArray(statistics)
     ? statistics.map((row, idx) => {
-        // Для headof_region: показываем данные по пользователям
-        if (authState.userRole === "headof_region") {
-          return {
-            key: row?.id ?? idx,
-            user_id: row?.id,
-            username: row?.username ?? "—",
-            full_name: `${row?.first_name || ""} ${row?.last_name || ""}`.trim() || "—",
-            phone_number: row?.phone_number ?? "—",
-            region_code: row?.location?.region ?? null,
-            region_name: mapRegion(row?.location?.region),
-            district_name: row?.location?.district ?? "—",
-            last_login: row?.last_login,
-            kpi_points: Number(row?.kpi_current?.points || 0),
-            kpi_amount: Number(row?.kpi_current?.amount || 0),
-            total_plantations: Number(row?.total_plantations || 0),
-            approved_plantations: Number(row?.approved_plantations || 0),
-            rejected_plantations: Number(row?.rejected_plantations || 0),
-            rejected_percentage: Number(row?.rejected_percentage || 0),
-          };
-        }
-        // Для superuser: показываем данные по районам (существующая логика)
-        else {
-          return {
-            key: row?.location?.district_id ?? `${row?.district__region || 'nr'}-${row?.district__name || idx}`,
-            region_code: row?.district__region ?? row?.location?.region ?? null,
-            region_name: mapRegion(row?.district__region ?? row?.location?.region),
-            district_name: row?.district__name ?? row?.location?.district ?? "—",
-            total_plantations: Number(row?.total_plantations || 0),
-            approved_plantations: Number(row?.approved_plantations || 0),
-            rejected_plantations: Number(row?.rejected_plantations || 0),
-            rejected_percentage: Number(row?.rejected_percentage || 0),
-          };
-        }
+        return {
+          key: row?.user_id ?? idx,
+          user_id: row?.user_id,
+          username: row?.username ?? "—",
+          full_name: row?.full_name ?? "—",
+          user_role: row?.user_role,
+          user_role_display: row?.user_role_display ?? "—",
+          district_id: row?.district_id,
+          district_name: row?.district_name ?? "—",
+          region_id: row?.region_id,
+          region_name: row?.region_name ?? "—",
+          is_active: row?.is_active,
+          date_joined: row?.date_joined,
+          last_login: row?.last_login,
+          // Plantatsiyalar
+          total_plantations: Number(row?.total_plantations || 0),
+          approved_plantations: Number(row?.approved_plantations || 0),
+          pending_plantations: Number(row?.pending_plantations || 0),
+          rejected_plantations: Number(row?.rejected_plantations || 0),
+          // Maydon
+          total_area: Number(row?.total_area || 0),
+          approved_area: Number(row?.approved_area || 0),
+          pending_area: Number(row?.pending_area || 0),
+          rejected_area: Number(row?.rejected_area || 0),
+          last_created: row?.last_created,
+          // Проценты
+          rejected_percentage: Number(row?.rejected_percentage || 0),
+          pending_percentage: Number(row?.pending_percentage || 0),
+        };
       })
     : [];
 
@@ -247,20 +245,14 @@ const ControllersPage = () => {
     (acc, curr) => ({
       total: acc.total + (curr.total_plantations || 0),
       approved: acc.approved + (curr.approved_plantations || 0),
+      pending: acc.pending + (curr.pending_plantations || 0),
       rejected: acc.rejected + (curr.rejected_plantations || 0),
     }),
-    { total: 0, approved: 0, rejected: 0 }
+    { total: 0, approved: 0, pending: 0, rejected: 0 }
   );
 
   const textLight = { color: '#e5e7eb' };
 
-  function mapRegion(value) {
-    if (value == null) return "—";
-    const num = Number(value);
-    return Number.isFinite(num) && REGION_NAMES[num]
-      ? REGION_NAMES[num]
-      : (REGION_NAMES[value] || String(value));
-  }
 
 
   const sortedTableData = React.useMemo(() => {
@@ -280,26 +272,39 @@ const ControllersPage = () => {
     const collator = new Intl.Collator('ru', { sensitivity: 'base' });
     const getVal = (record) => {
       switch (sortConfig.field) {
+        case 'username':
+          return record.username || '';
+        case 'user_role_display':
+          return record.user_role_display || '';
         case 'region':
           return record.region_name || '';
         case 'district':
           return record.district_name || '';
-        case 'username':
-          return record.username || '';
-        case 'phone_number':
-          return record.phone_number || '';
+        case 'is_active':
+          return record.is_active ? 1 : 0;
         case 'total_plantations':
           return Number(record.total_plantations || 0);
         case 'approved_plantations':
           return Number(record.approved_plantations || 0);
+        case 'pending_plantations':
+          return Number(record.pending_plantations || 0);
         case 'rejected_plantations':
           return Number(record.rejected_plantations || 0);
         case 'rejection_rate':
           return Number(record.rejected_percentage || 0);
-        case 'kpi_points':
-          return Number(record.kpi_points || 0);
-        case 'kpi_amount':
-          return Number(record.kpi_amount || 0);
+        case 'pending_rate':
+          return Number(record.pending_percentage || 0);
+        case 'distribution':
+          // Сортируем по общему количеству plantatsiyalar для колонки распределения
+          return Number(record.total_plantations || 0);
+        case 'total_area':
+          return Number(record.total_area || 0);
+        case 'approved_area':
+          return Number(record.approved_area || 0);
+        case 'pending_area':
+          return Number(record.pending_area || 0);
+        case 'rejected_area':
+          return Number(record.rejected_area || 0);
         default:
           return '';
       }
@@ -321,74 +326,78 @@ const ControllersPage = () => {
     return rows;
   }, [tableData, sortConfig]);
 
-  // Динамические колонки в зависимости от роли
+  // Колонки таблицы для контроллеров
   const columns = React.useMemo(() => {
-    const baseColumns = [];
-    
-    // Для headof_region: показываем информацию о пользователях
-    if (authState.userRole === "headof_region") {
-      baseColumns.push(
-        {
-          title: <span style={textLight}>Foydalanuvchi</span>,
-          dataIndex: 'username',
-          key: 'username',
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'username' ? sortConfig.order : null,
-          render: (value, record) => (
-            <div>
-              <div style={textLight}>{value || '—'}</div>
-              <div style={{...textLight, fontSize: '12px', opacity: 0.7}}>
-                {record.full_name}
-              </div>
+    const baseColumns = [
+      {
+        title: <span style={textLight}>Foydalanuvchi</span>,
+        dataIndex: 'username',
+        key: 'username',
+        fixed: 'left',
+        width: 150,
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'username' ? sortConfig.order : null,
+        render: (value, record) => (
+          <div>
+            <div style={textLight}>{value || '—'}</div>
+            <div style={{...textLight, fontSize: '12px', opacity: 0.7}}>
+              {record.full_name}
             </div>
-          ),
-        },
-        {
-          title: <span style={textLight}>Telefon</span>,
-          dataIndex: 'phone_number',
-          key: 'phone_number',
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'phone_number' ? sortConfig.order : null,
-          render: (value) => <span style={textLight}>{value || '—'}</span>,
-        },
-        {
-          title: <span style={textLight}>Tuman</span>,
-          dataIndex: 'district_name',
-          key: 'district',
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
-          render: (value) => <span style={textLight}>{value || '—'}</span>,
-        }
-      );
-    }
-    // Для superuser: показываем данные по регионам
-    else {
-      baseColumns.push(
-        {
-          title: <span style={textLight}>Region</span>,
-          dataIndex: 'region_name',
-          key: 'region',
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
-          render: (value) => <span style={textLight}>{value || '—'}</span>,
-        },
-        {
-          title: <span style={textLight}>Tuman</span>,
-          dataIndex: 'district_name',
-          key: 'district',
-          sorter: true,
-          sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
-          render: (value) => <span style={textLight}>{value || '—'}</span>,
-        }
-      );
-    }
+          </div>
+        ),
+      },
+      {
+        title: <span style={textLight}>Rol</span>,
+        dataIndex: 'user_role_display',
+        key: 'user_role_display',
+        fixed: 'left',
+        width: 120,
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'user_role_display' ? sortConfig.order : null,
+        render: (value) => <span style={textLight}>{value || '—'}</span>,
+      },
+      {
+        title: <span style={textLight}>Viloyat</span>,
+        dataIndex: 'region_name',
+        key: 'region',
+        fixed: 'left',
+        width: 120,
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'region' ? sortConfig.order : null,
+        render: (value) => <span style={textLight}>{value || '—'}</span>,
+      },
+      {
+        title: <span style={textLight}>Tuman</span>,
+        dataIndex: 'district_name',
+        key: 'district',
+        fixed: 'left',
+        width: 120,
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
+        render: (value) => <span style={textLight}>{value || '—'}</span>,
+      },
+      {
+        title: <span style={textLight}>Faol</span>,
+        dataIndex: 'is_active',
+        key: 'is_active',
+        fixed: 'left',
+        width: 80,
+        sorter: true,
+        sortDirections: ['ascend','descend'],
+        sortOrder: sortConfig.field === 'is_active' ? sortConfig.order : null,
+        render: (value) => (
+          <span style={{...textLight, color: value ? '#10b981' : '#ef4444'}}>
+            {value ? 'Ha' : 'Yo\'q'}
+          </span>
+        ),
+      }
+    ];
     
-    // Добавляем колонки Plantatsiyalar для обеих ролей
+    // Добавляем колонки Plantatsiyalar
     baseColumns.push({
       title: <span style={textLight}>Plantatsiyalar</span>,
       children: [
@@ -408,7 +417,24 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
-          render: (v) => <span style={textLight}>{v ?? 0}</span>,
+          render: (v) => (
+            <span style={{...textLight, color: '#10b981', fontWeight: 'bold'}}>
+              {v ?? 0}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Kutilmoqda</span>,
+          dataIndex: 'pending_plantations',
+          key: 'pending_plantations',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'pending_plantations' ? sortConfig.order : null,
+          render: (v) => (
+            <span style={{...textLight, color: '#f59e0b', fontWeight: 'bold'}}>
+              {v ?? 0}
+            </span>
+          ),
         },
         {
           title: <span style={textLight}>Rad etilgan</span>,
@@ -417,7 +443,11 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
-          render: (v) => <span style={textLight}>{v ?? 0}</span>,
+          render: (v) => (
+            <span style={{...textLight, color: '#ef4444', fontWeight: 'bold'}}>
+              {v ?? 0}
+            </span>
+          ),
         },
         {
           title: <span style={textLight}>Rad etish %</span>,
@@ -426,69 +456,149 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejection_rate' ? sortConfig.order : null,
-          render: (v) => <span style={textLight}>{v ? `${Number(v).toFixed(1)}%` : '0%'}</span>,
+          render: (v) => (
+            <span style={{...textLight, color: '#ef4444', fontWeight: 'bold'}}>
+              {v ? `${Number(v).toFixed(1)}%` : '0%'}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Kutilmoqda %</span>,
+          dataIndex: 'pending_percentage',
+          key: 'pending_rate',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'pending_rate' ? sortConfig.order : null,
+          render: (v) => (
+            <span style={{...textLight, color: '#f59e0b', fontWeight: 'bold'}}>
+              {v ? `${Number(v).toFixed(1)}%` : '0%'}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Taqsimot</span>,
+          key: 'distribution',
+          render: (_, record) => {
+            const total = record.total_plantations || 0;
+            if (total === 0) return <span style={textLight}>—</span>;
+            
+            const approved = record.approved_plantations || 0;
+            const pending = record.pending_plantations || 0;
+            const rejected = record.rejected_plantations || 0;
+            
+            return (
+              <div className="w-16 h-2 bg-gray-600 rounded-full overflow-hidden">
+                <div className="h-full flex">
+                  <div 
+                    className="bg-green-500" 
+                    style={{ width: `${(approved / total) * 100}%` }}
+                    title={`Tasdiqlangan: ${approved}`}
+                  ></div>
+                  <div 
+                    className="bg-yellow-500" 
+                    style={{ width: `${(pending / total) * 100}%` }}
+                    title={`Kutilmoqda: ${pending}`}
+                  ></div>
+                  <div 
+                    className="bg-red-500" 
+                    style={{ width: `${(rejected / total) * 100}%` }}
+                    title={`Rad etilgan: ${rejected}`}
+                  ></div>
+                </div>
+              </div>
+            );
+          },
         },
       ],
     });
 
-    // Для headof_region добавляем колонки KPI
-    if (authState.userRole === "headof_region") {
-      baseColumns.push({
-        title: <span style={textLight}>KPI</span>,
-        children: [
-          {
-            title: <span style={textLight}>Ball</span>,
-            dataIndex: 'kpi_points',
-            key: 'kpi_points',
-            sorter: true,
-            sortDirections: ['ascend','descend'],
-            sortOrder: sortConfig.field === 'kpi_points' ? sortConfig.order : null,
-            render: (v) => <span style={textLight}>{v ?? 0}</span>,
-          },
-          {
-            title: <span style={textLight}>Summa</span>,
-            dataIndex: 'kpi_amount',
-            key: 'kpi_amount',
-            sorter: true,
-            sortDirections: ['ascend','descend'],
-            sortOrder: sortConfig.field === 'kpi_amount' ? sortConfig.order : null,
-            render: (v) => <span style={textLight}>{v ? `${Number(v).toFixed(2)}` : '0.00'}</span>,
-          },
-        ],
-      });
-    }
+    // Добавляем колонки Maydon (GA)
+    baseColumns.push({
+      title: <span style={textLight}>Maydon (GA)</span>,
+      children: [
+        {
+          title: <span style={textLight}>Umumiy</span>,
+          dataIndex: 'total_area',
+          key: 'total_area',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
+          render: (v) => <span style={textLight}>{v ? Number(v).toFixed(1) : '0.0'}</span>,
+        },
+        {
+          title: <span style={textLight}>Tasdiqlangan</span>,
+          dataIndex: 'approved_area',
+          key: 'approved_area',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'approved_area' ? sortConfig.order : null,
+          render: (v) => (
+            <span style={{...textLight, color: '#10b981', fontWeight: 'bold'}}>
+              {v ? Number(v).toFixed(1) : '0.0'}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Kutilmoqda</span>,
+          dataIndex: 'pending_area',
+          key: 'pending_area',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'pending_area' ? sortConfig.order : null,
+          render: (v) => (
+            <span style={{...textLight, color: '#f59e0b', fontWeight: 'bold'}}>
+              {v ? Number(v).toFixed(1) : '0.0'}
+            </span>
+          ),
+        },
+        {
+          title: <span style={textLight}>Rad etilgan</span>,
+          dataIndex: 'rejected_area',
+          key: 'rejected_area',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'rejected_area' ? sortConfig.order : null,
+          render: (v) => (
+            <span style={{...textLight, color: '#ef4444', fontWeight: 'bold'}}>
+              {v ? Number(v).toFixed(1) : '0.0'}
+            </span>
+          ),
+        },
+      ],
+    });
 
     return baseColumns;
   }, [authState.userRole, sortConfig, textLight]);
 
-  // Итоговая строка таблицы (адаптировано для обеих ролей)
+  // Итоговая строка таблицы
   const totalRow = React.useMemo(() => {
-    const baseRow = {
+    const totalArea = tableData.reduce((sum, row) => sum + (row.total_area || 0), 0);
+    const approvedArea = tableData.reduce((sum, row) => sum + (row.approved_area || 0), 0);
+    const pendingArea = tableData.reduce((sum, row) => sum + (row.pending_area || 0), 0);
+    const rejectedArea = tableData.reduce((sum, row) => sum + (row.rejected_area || 0), 0);
+
+    return {
       key: 'total',
+      username: 'Jami',
+      full_name: '',
+      user_role_display: '',
+      region_name: '',
+      district_name: '',
+      is_active: '',
       total_plantations: totals.total,
       approved_plantations: totals.approved,
+      pending_plantations: totals.pending,
       rejected_plantations: totals.rejected,
+      total_area: totalArea,
+      approved_area: approvedArea,
+      pending_area: pendingArea,
+      rejected_area: rejectedArea,
       rejected_percentage: totals.total > 0 ? (totals.rejected / totals.total) * 100 : 0,
+      pending_percentage: totals.total > 0 ? (totals.pending / totals.total) * 100 : 0,
+      // Добавляем стили для итоговой строки
+      _isTotalRow: true,
     };
-
-    if (authState.userRole === "headof_region") {
-      return {
-        ...baseRow,
-        username: 'Jami',
-        full_name: '',
-        phone_number: '',
-        district_name: '',
-        kpi_points: tableData.reduce((sum, row) => sum + (row.kpi_points || 0), 0),
-        kpi_amount: tableData.reduce((sum, row) => sum + (row.kpi_amount || 0), 0),
-      };
-    } else {
-      return {
-        ...baseRow,
-        region_name: 'Jami',
-        district_name: '',
-      };
-    }
-  }, [totals, authState.userRole, tableData]);
+  }, [totals, tableData]);
 
   const dataWithTotal = [...sortedTableData, totalRow];
 
@@ -529,12 +639,26 @@ const ControllersPage = () => {
     <StatisticsLayout>
       <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
-          <h1 className="text-lg sm:text-xl font-bold text-white">
-            {authState.userRole === "headof_region" 
-              ? "Mening viloyatimdagi foydalanuvchilar" 
-              : "Nazoratchilar bo'yicha statistika"
-            }
-          </h1>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-white mb-2">
+              Nazoratchilar bo'yicha statistika
+            </h1>
+            {/* Легенда статусов */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-gray-300">Tasdiqlangan</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span className="text-gray-300">Kutilmoqda</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-gray-300">Rad etilgan</span>
+              </div>
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button 
               type="primary"
@@ -607,12 +731,22 @@ const ControllersPage = () => {
                   value={sortConfig.field}
                   onChange={(value) => setSortConfig((prev) => ({ ...prev, field: value || null }))}
                 >
-                  <Option value="region">Region</Option>
+                  <Option value="username">Foydalanuvchi</Option>
+                  <Option value="user_role_display">Rol</Option>
+                  <Option value="region">Viloyat</Option>
                   <Option value="district">Tuman</Option>
+                  <Option value="is_active">Faol</Option>
                   <Option value="total_plantations">Plantatsiyalar — Umumiy</Option>
                   <Option value="approved_plantations">Plantatsiyalar — Tasdiqlangan</Option>
+                  <Option value="pending_plantations">Plantatsiyalar — Kutilmoqda</Option>
                   <Option value="rejected_plantations">Plantatsiyalar — Rad etilgan</Option>
                   <Option value="rejection_rate">Plantatsiyalar — Rad etish %</Option>
+                  <Option value="pending_rate">Plantatsiyalar — Kutilmoqda %</Option>
+                  <Option value="distribution">Plantatsiyalar — Taqsimot</Option>
+                  <Option value="total_area">Maydon — Umumiy</Option>
+                  <Option value="approved_area">Maydon — Tasdiqlangan</Option>
+                  <Option value="pending_area">Maydon — Kutilmoqda</Option>
+                  <Option value="rejected_area">Maydon — Rad etilgan</Option>
                 </Select>
               </div>
             </Col>
@@ -661,10 +795,81 @@ const ControllersPage = () => {
               />
             </Card>
           </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} styles={{ body: { padding: 16 } }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>Kutilmoqda</span>}
+                value={totals.pending}
+                precision={0}
+                valueStyle={{ color: '#f59e0b' }}
+              />
+            </Card>
+          </Col>
         </Row>
 
         {/* Main Table */}
-        <div className="overflow-x-auto controllers-table">
+        <div className="overflow-x-auto controllers-table" style={{ position: 'relative' }}>
+          <style jsx>{`
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left {
+              background: #1f2937 !important;
+              border-right: 2px solid #6b7280 !important;
+              z-index: 10 !important;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left {
+              background: #1f2937 !important;
+              border-right: 2px solid #6b7280 !important;
+              z-index: 9 !important;
+            }
+            .controllers-table .ant-table-tbody > tr.total-row > td.ant-table-cell-fix-left {
+              background: #374151 !important;
+              border-right: 2px solid #6b7280 !important;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left:last-child {
+              border-right: 2px solid #6b7280 !important;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:last-child {
+              border-right: 2px solid #6b7280 !important;
+            }
+            .controllers-table .ant-table-container {
+              position: relative;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left {
+              position: sticky !important;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left {
+              position: sticky !important;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left:nth-child(1) {
+              left: 0px;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left:nth-child(2) {
+              left: 150px;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left:nth-child(3) {
+              left: 270px;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left:nth-child(4) {
+              left: 390px;
+            }
+            .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left:nth-child(5) {
+              left: 510px;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(1) {
+              left: 0px;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(2) {
+              left: 150px;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(3) {
+              left: 270px;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(4) {
+              left: 390px;
+            }
+            .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(5) {
+              left: 510px;
+            }
+          `}</style>
           <ConfigProvider locale={{ Pagination: { items_per_page: 'Sahifa' } }}>
             <Table
               loading={loading}
@@ -683,6 +888,7 @@ const ControllersPage = () => {
               scroll={{ x: "max-content" }}
               bordered
               size="small"
+              sticky={{ offsetHeader: 0 }}
               pagination={{
                 current: currentPage,
                 pageSize: pageSize,
@@ -702,6 +908,27 @@ const ControllersPage = () => {
               className="region-statistics-table"
               style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 700 }}
               rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
+              components={{
+                body: {
+                  row: (props) => {
+                    const { children, ...restProps } = props;
+                    const isTotalRow = restProps.className?.includes('total-row');
+                    return (
+                      <tr 
+                        {...restProps}
+                        style={{
+                          ...restProps.style,
+                          backgroundColor: isTotalRow ? '#374151' : undefined,
+                          fontWeight: isTotalRow ? 'bold' : undefined,
+                          borderTop: isTotalRow ? '2px solid #6b7280' : undefined,
+                        }}
+                      >
+                        {children}
+                      </tr>
+                    );
+                  }
+                }
+              }}
             />
           </ConfigProvider>
         </div>

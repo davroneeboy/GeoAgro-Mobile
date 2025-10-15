@@ -71,18 +71,18 @@ const RejectedPlantations = () => {
   // Функция для получения названия региона
   const getRegionNameById = (regionId) => {
     const regionNames = {
-      1: "Andijon",
-      2: "Buxoro", 
-      3: "Farg'ona",
-      4: "Jizzax",
-      5: "Namangan",
-      6: "Navoiy",
-      7: "Qashqadaryo",
-      8: "Qoraqalpog'iston",
+      1: "Toshkent",
+      2: "Andijon",
+      3: "Buxoro",
+      4: "Farg'ona",
+      5: "Jizzax",
+      6: "Qashqadaryo",
+      7: "Navoiy",
+      8: "Namangan",
       9: "Samarqand",
       10: "Sirdaryo",
       11: "Surxondaryo",
-      12: "Toshkent",
+      12: "Qoraqalpog'iston",
       13: "Xorazm"
     };
     return regionNames[regionId] || "Noma'lum";
@@ -354,19 +354,19 @@ const RejectedPlantations = () => {
                   onChange={(e) => handleFilterChange('region', e.target.value)}
                 >
                   <option value="All">Barcha viloyatlar</option>
-                  <option value="1">Tashkent</option>
-                  <option value="2">Andijan</option>
-                  <option value="3">Bukhara</option>
-                  <option value="4">Fergana</option>
-                  <option value="5">Jizzakh</option>
-                  <option value="6">Kashkadarya</option>
-                  <option value="7">Navoi</option>
+                  <option value="1">Toshkent</option>
+                  <option value="2">Andijon</option>
+                  <option value="3">Buxoro</option>
+                  <option value="4">Farg'ona</option>
+                  <option value="5">Jizzax</option>
+                  <option value="6">Qashqadaryo</option>
+                  <option value="7">Navoiy</option>
                   <option value="8">Namangan</option>
-                  <option value="9">Samarkand</option>
-                  <option value="10">Sirdarya</option>
-                  <option value="11">Surkhandarya</option>
-                  <option value="12">Karakalpakstan</option>
-                  <option value="13">Khorazm</option>
+                  <option value="9">Samarqand</option>
+                  <option value="10">Sirdaryo</option>
+                  <option value="11">Surxondaryo</option>
+                  <option value="12">Qoraqalpog'iston</option>
+                  <option value="13">Xorazm</option>
                 </select>
                 
                 <select
@@ -600,19 +600,19 @@ const RejectedPlantations = () => {
                 className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="All">Barcha viloyatlar</option>
-                <option value="1">Tashkent</option>
-                <option value="2">Andijan</option>
-                <option value="3">Bukhara</option>
-                <option value="4">Fergana</option>
-                <option value="5">Jizzakh</option>
-                <option value="6">Kashkadarya</option>
-                <option value="7">Navoi</option>
+                <option value="1">Toshkent</option>
+                <option value="2">Andijon</option>
+                <option value="3">Buxoro</option>
+                <option value="4">Farg'ona</option>
+                <option value="5">Jizzax</option>
+                <option value="6">Qashqadaryo</option>
+                <option value="7">Navoiy</option>
                 <option value="8">Namangan</option>
-                <option value="9">Samarkand</option>
-                <option value="10">Sirdarya</option>
-                <option value="11">Surkhandarya</option>
-                <option value="12">Karakalpakstan</option>
-                <option value="13">Khorazm</option>
+                <option value="9">Samarqand</option>
+                <option value="10">Sirdaryo</option>
+                <option value="11">Surxondaryo</option>
+                <option value="12">Qoraqalpog'iston</option>
+                <option value="13">Xorazm</option>
               </select>
             </div>
             

@@ -4,20 +4,26 @@ import { API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import ContactsPanel from "../components/ContactsPanel";
-import { Doughnut } from "react-chartjs-2";
+import { Doughnut, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
   Title,
   Tooltip,
   Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
 } from "chart.js";
 
 ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement
 );
 
 // Плагин для вывода текста по центру пончик-чарта
@@ -120,9 +126,9 @@ const HomePage = () => {
         label: "Plantatsiya holati",
         data: statistics
           ? [
-              statistics.approved_plantations || 0,
-              statistics.pending_plantations || 0,
-              statistics.rejected_plantations || 0,
+              statistics.plantations?.approved_plantations || 0,
+              statistics.plantations?.pending_plantations || 0,
+              statistics.plantations?.rejected_plantations || 0,
             ]
           : [],
         backgroundColor: [
@@ -147,7 +153,7 @@ const HomePage = () => {
       {
         label: "Maydonlar",
         data: statistics
-          ? [statistics.total_area || 0]
+          ? [statistics.plantations?.total_area || 0]
           : [],
         backgroundColor: [
           "rgba(59, 130, 246, 0.6)", // blue-500
@@ -167,7 +173,7 @@ const HomePage = () => {
       {
         label: "Investitsiyalar",
         data: statistics
-          ? [statistics.total_area || 0] // Используем total_area как пример, так как инвестиции не в summary
+          ? [statistics.investment?.total_investment || 0]
           : [],
         backgroundColor: [
           "rgba(16, 185, 129, 0.6)", // emerald-500
@@ -181,56 +187,171 @@ const HomePage = () => {
   };
 
   // Ирригация (sug'oriladigan) против неирригации
-  const irrigationTotal = statistics?.irrigation_stats?.total_irrigation_area || 0;
-  const totalAreaAll = statistics?.total_area || 0;
+  const irrigationTotal = statistics?.irrigation?.total_irrigation_area || 0;
+  const totalAreaAll = statistics?.plantations?.total_area || 0;
   const nonIrrigation = Math.max(totalAreaAll - irrigationTotal, 0);
-  const irrigationPercent = statistics?.irrigation_stats?.percentage_of_total ?? (totalAreaAll ? (irrigationTotal / totalAreaAll) * 100 : 0);
-  const irrigationData = {
+
+
+
+
+  // Bar chart данные для типов плантаций
+  const plantationTypesBarData = {
+    labels: ["Bog'lar", "Uzumzorlar", "Issiqxonalar"],
+    datasets: [
+      {
+        label: "Maydon (ga)",
+        data: statistics
+          ? [
+              statistics.plantation_types?.bogs_area || 0,
+              statistics.plantation_types?.uzumzors_area || 0,
+              statistics.plantation_types?.issiqxonas_area || 0,
+            ]
+          : [],
+        backgroundColor: [
+          "rgba(34, 197, 94, 0.8)",   // green-500 - bogs
+          "rgba(168, 85, 247, 0.8)",  // purple-500 - uzumzors
+          "rgba(245, 158, 11, 0.8)",   // yellow-500 - issiqxonas
+        ],
+        borderColor: [
+          "rgba(34, 197, 94, 1)",
+          "rgba(168, 85, 247, 1)",
+          "rgba(245, 158, 11, 1)",
+        ],
+        borderWidth: 2,
+      }
+    ]
+  };
+
+  // Bar chart данные для экономических зон
+  const economicAreasBarData = {
+    labels: ["Ekonomik samarali", "Ekonomik samarasiz", "Foydalanib bo'lmaydigan"],
+    datasets: [
+      {
+        label: "Maydon (ga)",
+        data: statistics
+          ? [
+              statistics.economic_areas?.planted_area || 0,
+              statistics.economic_areas?.economic_inefficient_area || 0,
+              statistics.economic_areas?.not_usable_area || 0,
+            ]
+          : [],
+        backgroundColor: [
+          "rgba(34, 197, 94, 0.8)",   // green-500 - efficient
+          "rgba(245, 158, 11, 0.8)",  // yellow-500 - inefficient
+          "rgba(239, 68, 68, 0.8)",    // red-500 - not usable
+        ],
+        borderColor: [
+          "rgba(34, 197, 94, 1)",
+          "rgba(245, 158, 11, 1)",
+          "rgba(239, 68, 68, 1)",
+        ],
+        borderWidth: 2,
+      }
+    ]
+  };
+
+
+  // Bar chart данные для ирригации
+  const irrigationBarData = {
     labels: ["Sug'oriladigan", "Sug'orilmaydigan"],
     datasets: [
       {
-        label: "Sug'orish holati",
+        label: "Maydon (ga)",
         data: [irrigationTotal, nonIrrigation],
         backgroundColor: [
-          "rgba(20, 184, 166, 0.6)", // teal-500
-          "rgba(75, 85, 99, 0.5)",   // gray-600
+          "rgba(20, 184, 166, 0.8)",  // teal-500 - irrigated
+          "rgba(75, 85, 99, 0.8)",    // gray-600 - non-irrigated
         ],
         borderColor: [
-          "rgba(20, 184, 166, 0.9)",
-          "rgba(75, 85, 99, 0.9)",
+          "rgba(20, 184, 166, 1)",
+          "rgba(75, 85, 99, 1)",
         ],
         borderWidth: 2,
       }
     ]
   };
 
-  // Плодородие: низкая vs высокая, центр — средний балл
-  const fertilityLow = statistics?.fertility_stats?.low_fertility_area || 0;
-  const fertilityHigh = statistics?.fertility_stats?.high_fertility_area || 0;
-  const averageFertilityScore = statistics?.fertility_stats?.average_score || 0;
-  const fertilityData = {
+  // Bar chart данные для фруктов
+  const fruitsBarData = {
+    labels: ["Frukt turlari", "Navlar soni"],
+    datasets: [
+      {
+        label: "Soni",
+        data: statistics
+          ? [
+              statistics.fruits?.fruits_count || 0,
+              statistics.fruits?.varieties_count || 0,
+            ]
+          : [],
+        backgroundColor: [
+          "rgba(34, 197, 94, 0.8)",   // green-500 - fruits
+          "rgba(168, 85, 247, 0.8)",  // purple-500 - varieties
+        ],
+        borderColor: [
+          "rgba(34, 197, 94, 1)",
+          "rgba(168, 85, 247, 1)",
+        ],
+        borderWidth: 2,
+      }
+    ]
+  };
+
+
+
+
+  // Bar Chart данные для инвестиций по типам (заменяем Line на Bar)
+  const investmentBarData = {
+    labels: ["Mahalliy", "Xorijiy"],
+    datasets: [
+      {
+        label: "Investitsiyalar (mlrd so'm)",
+        data: statistics
+          ? [
+              (statistics.investment?.total_local_investment || 0) / 1e9,
+              (statistics.investment?.total_foreign_investment || 0) / 1e9,
+            ]
+          : [],
+        backgroundColor: [
+          "rgba(34, 197, 94, 0.8)",
+          "rgba(59, 130, 246, 0.8)",
+        ],
+        borderColor: [
+          "rgba(34, 197, 94, 1)",
+          "rgba(59, 130, 246, 1)",
+        ],
+        borderWidth: 2,
+      }
+    ]
+  };
+
+  // Doughnut Chart данные для плодородия (заменяем Radar на Doughnut)
+  const fertilityDoughnutData = {
     labels: ["Past unumdorlik", "Yuqori unumdorlik"],
     datasets: [
       {
-        label: "Tuproq unumdorligi",
-        data: [fertilityLow, fertilityHigh],
+        label: "Unumdorlik maydoni (ga)",
+        data: [
+          statistics?.fertility?.low_fertility_area || 0,
+          statistics?.fertility?.high_fertility_area || 0,
+        ],
         backgroundColor: [
-          "rgba(239, 68, 68, 0.5)", // red-500
-          "rgba(34, 197, 94, 0.6)", // green-500
+          "rgba(239, 68, 68, 0.8)",
+          "rgba(34, 197, 94, 0.8)",
         ],
         borderColor: [
-          "rgba(239, 68, 68, 0.9)",
-          "rgba(34, 197, 94, 0.9)",
+          "rgba(239, 68, 68, 1)",
+          "rgba(34, 197, 94, 1)",
         ],
         borderWidth: 2,
       }
     ]
   };
 
+
   const formatNumber = (n) => new Intl.NumberFormat('uz-UZ').format(Math.round(n));
-  const plantationTotal = statistics ? (statistics.total_plantations || 0) : 0;
-  const areasTotal = statistics ? (statistics.total_area || 0) : 0;
-  const investmentsTotal = 0; // Инвестиции не включены в summary API v2.0
+  const plantationTotal = statistics?.plantations?.total_plantations || 0;
+  const areasTotal = statistics?.plantations?.total_area || 0;
+  const investmentsTotal = statistics?.investment?.total_investment || 0;
 
   const pieChartOptions = {
     responsive: true,
@@ -278,6 +399,76 @@ const HomePage = () => {
       easing: 'easeInOutQuart'
     }
   };
+
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 8,
+          font: {
+            size: window.innerWidth < 768 ? 9 : 11,
+            weight: 'bold',
+            color: '#ffffff'
+          },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(26, 26, 26, 0.95)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(50, 205, 50, 0.3)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            return `${context.label}: ${new Intl.NumberFormat('uz-UZ').format(context.parsed.y)} ga`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#ffffff',
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+            weight: 'bold'
+          }
+        },
+        grid: {
+          color: 'rgba(75, 85, 99, 0.3)'
+        }
+      },
+      y: {
+        ticks: {
+          color: '#ffffff',
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+            weight: 'bold'
+          },
+          callback: function(value) {
+            return new Intl.NumberFormat('uz-UZ').format(value);
+          }
+        },
+        grid: {
+          color: 'rgba(75, 85, 99, 0.3)'
+        }
+      }
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart'
+    }
+  };
+
 
   return (
     <div className="h-screen bg-gray-900 overflow-hidden">
@@ -388,123 +579,174 @@ const HomePage = () => {
             {/* removed quick action buttons */}
 
             {statistics ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
-                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <h3 className="text-base font-semibold text-white mb-2 text-center">
-                      Plantatsiya holati
-                    </h3>
-                    <div className="h-48 md:h-52 lg:h-56">
-                      <Doughnut
-                        data={plantationStatusData}
-                        options={{
-                          ...pieChartOptions,
-                          plugins: {
-                            ...pieChartOptions.plugins,
-                            centerText: { display: true, text: formatNumber(plantationTotal), label: 'Jami' }
-                          }
-                        }}
-                      />
+              <div className="space-y-6">
+                {/* Основные KPI карточки */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 border border-green-500/20 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm font-medium">Jami plantatsiyalar</p>
+                        <p className="text-white text-2xl font-bold">22,054</p>
+                      </div>
+                      <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-6 h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <h3 className="text-base font-semibold text-white mb-2 text-center">
-                      Umumiy maydon
-                    </h3>
-                    <div className="h-48 md:h-52 lg:h-56">
-                      <Doughnut
-                        data={areasData}
-                        options={{
-                          ...pieChartOptions,
-                          plugins: {
-                            ...pieChartOptions.plugins,
-                            centerText: { display: true, text: formatNumber(areasTotal), label: 'Jami' }
-                          }
-                        }}
-                      />
+                  
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 border border-blue-500/20 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm font-medium">Umumiy maydon</p>
+                        <p className="text-white text-2xl font-bold">301,229 GA</p>
+                      </div>
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <h3 className="text-base font-semibold text-white mb-2 text-center">
-                      Jami maydon
-                    </h3>
-                    <div className="h-48 md:h-52 lg:h-56">
-                      <Doughnut
-                        data={investmentsData}
-                        options={{
-                          ...pieChartOptions,
-                          plugins: {
-                            ...pieChartOptions.plugins,
-                            tooltip: {
-                              ...pieChartOptions.plugins.tooltip,
-                              callbacks: {
-                                label: function(context) {
-                                  const formatter = new Intl.NumberFormat('uz-UZ');
-                                  const value = context.parsed;
-                                  return `${context.label}: ${formatter.format(value)} so'm`;
-                                }
-                              }
-                            },
-                            centerText: { display: true, text: `${formatCompact(investmentsTotal)}`, label: "so'm" }
-                          }
-                        }}
-                      />
+                  
+                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 border border-purple-500/20 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm font-medium">Jami investitsiyalar</p>
+                        <p className="text-white text-2xl font-bold">24.5 trln</p>
+                      </div>
+                      <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-6 border border-orange-500/20 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-sm font-medium">Fermerlar soni</p>
+                        <p className="text-white text-2xl font-bold">18,105</p>
+                      </div>
+                      <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-6 h-6 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Дополнительные диаграммы: Ирригация и Уруқдорлик */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <h3 className="text-base font-semibold text-white mb-2 text-center">Sug'orish</h3>
-                    <div className="h-48 md:h-52 lg:h-56">
-                      <Doughnut
-                        data={irrigationData}
-                        options={{
-                          ...pieChartOptions,
-                          plugins: {
-                            ...pieChartOptions.plugins,
-                            centerText: { display: true, text: `${irrigationPercent.toFixed(1)}%`, label: "Sug'oriladigan" }
-                          }
+
+                {/* Основные чарты */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  {/* Статус плантаций */}
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Plantatsiya holati</h3>
+                      <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="h-64">
+                      <Bar
+                        data={{
+                          labels: ["Tasdiqlangan", "Kutilmoqda", "Rad etilgan"],
+                          datasets: [{
+                            label: "Plantatsiya soni",
+                            data: [7728, 13281, 1045],
+                            backgroundColor: [
+                              "rgba(34, 197, 94, 0.8)",   // green - approved
+                              "rgba(245, 158, 11, 0.8)",  // yellow - pending
+                              "rgba(239, 68, 68, 0.8)",    // red - rejected
+                            ],
+                            borderColor: [
+                              "rgba(34, 197, 94, 1)",
+                              "rgba(245, 158, 11, 1)",
+                              "rgba(239, 68, 68, 1)",
+                            ],
+                            borderWidth: 2,
+                          }]
                         }}
+                        options={barChartOptions}
                       />
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <h3 className="text-base font-semibold text-white mb-2 text-center">Tuproq unumdorligi</h3>
-                    <div className="h-48 md:h-52 lg:h-56">
-                      <Doughnut
-                        data={fertilityData}
-                        options={{
-                          ...pieChartOptions,
-                          plugins: {
-                            ...pieChartOptions.plugins,
-                            centerText: { display: true, text: `${averageFertilityScore.toFixed(1)}`, label: "o'rtacha ball" }
-                          }
+                  {/* Типы плантаций */}
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Plantatsiya turlari</h3>
+                      <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="h-64">
+                      <Bar
+                        data={{
+                          labels: ["Bog'lar", "Uzumzorlar", "Issiqxonalar"],
+                          datasets: [{
+                            label: "Plantatsiya soni",
+                            data: [18110, 3783, 64],
+                            backgroundColor: [
+                              "rgba(34, 197, 94, 0.8)",   // green - bogs
+                              "rgba(168, 85, 247, 0.8)",  // purple - uzumzors
+                              "rgba(245, 158, 11, 0.8)",  // yellow - issiqxonas
+                            ],
+                            borderColor: [
+                              "rgba(34, 197, 94, 1)",
+                              "rgba(168, 85, 247, 1)",
+                              "rgba(245, 158, 11, 1)",
+                            ],
+                            borderWidth: 2,
+                          }]
                         }}
+                        options={barChartOptions}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Плодородие почвы */}
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Tuproq unumdorligi</h3>
+                      <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="h-64">
+                      <Bar
+                        data={{
+                          labels: ["Past unumdorlik", "Yuqori unumdorlik"],
+                          datasets: [{
+                            label: "Maydon (ga)",
+                            data: [131279, 169950],
+                            backgroundColor: [
+                              "rgba(239, 68, 68, 0.8)",   // red - low fertility
+                              "rgba(34, 197, 94, 0.8)",   // green - high fertility
+                            ],
+                            borderColor: [
+                              "rgba(239, 68, 68, 1)",
+                              "rgba(34, 197, 94, 1)",
+                            ],
+                            borderWidth: 2,
+                          }]
+                        }}
+                        options={barChartOptions}
                       />
                     </div>
                   </div>
                 </div>
                 
-                {/* Карточка с фермерами */}
-                <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-3 border border-gray-600">
-                  <div className="flex items-center justify-center">
-                    <div className="bg-green-500 rounded-full p-3 mr-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <h3 className="text-lg font-bold text-white mb-1">Plantatsiyalar</h3>
-                      <p className="text-3xl font-extrabold text-green-400">
-                        {new Intl.NumberFormat('uz-UZ').format(statistics.total_plantations || 0)}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">Umumiy plantatsiyalar soni</p>
-                    </div>
-                  </div>
-                </div>
+
+                
 
 
 
@@ -596,15 +838,9 @@ const HomePage = () => {
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                 <h3 className="text-lg font-semibold text-white mb-4 text-center">Sug'orish</h3>
                 <div className="h-64">
-                  <Doughnut
-                    data={irrigationData}
-                    options={{
-                      ...pieChartOptions,
-                      plugins: {
-                        ...pieChartOptions.plugins,
-                        centerText: { display: true, text: `${irrigationPercent.toFixed(1)}%`, label: "Sug'oriladigan" }
-                      }
-                    }}
+                  <Bar
+                    data={irrigationBarData}
+                    options={barChartOptions}
                   />
                 </div>
               </div>
@@ -613,17 +849,56 @@ const HomePage = () => {
                 <h3 className="text-lg font-semibold text-white mb-4 text-center">Tuproq unumdorligi</h3>
                 <div className="h-64">
                   <Doughnut
-                    data={fertilityData}
-                    options={{
-                      ...pieChartOptions,
-                      plugins: {
-                        ...pieChartOptions.plugins,
-                        centerText: { display: true, text: `${averageFertilityScore.toFixed(1)}`, label: "o'rtacha ball" }
-                      }
-                    }}
+                    data={fertilityDoughnutData}
+                    options={pieChartOptions}
                   />
                 </div>
               </div>
+
+              {/* Новые pie charts для мобильной версии */}
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">Plantatsiya turlari</h3>
+                <div className="h-64">
+                  <Bar
+                    data={plantationTypesBarData}
+                    options={barChartOptions}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">Ekonomik zonalar</h3>
+                <div className="h-64">
+                  <Bar
+                    data={economicAreasBarData}
+                    options={barChartOptions}
+                  />
+                </div>
+              </div>
+
+              {/* Дополнительные графики для мобильной версии */}
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">Frukt turlari</h3>
+                <div className="h-64">
+                  <Bar
+                    data={fruitsBarData}
+                    options={barChartOptions}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">Investitsiya turlari</h3>
+                <div className="h-64">
+                  <Bar
+                    data={investmentBarData}
+                    options={barChartOptions}
+                  />
+                </div>
+              </div>
+
+
+
               
               {/* Мобильная карточка с фермерами */}
               <div className="bg-gradient-to-r from-gray-700 to-gray-600 rounded-xl p-4 border border-gray-500">
@@ -635,9 +910,9 @@ const HomePage = () => {
                   </div>
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-white mb-1">Fermerlar</h3>
-                    <p className="text-3xl font-extrabold text-green-400">
-                      {new Intl.NumberFormat('uz-UZ').format(statistics.total_farmers || 0)}
-                    </p>
+                      <p className="text-3xl font-extrabold text-green-400">
+                        {new Intl.NumberFormat('uz-UZ').format(statistics.farmers?.total_farmers || 0)}
+                      </p>
                     <p className="text-xs text-gray-400 mt-1">Umumiy fermerlar soni</p>
                   </div>
                 </div>

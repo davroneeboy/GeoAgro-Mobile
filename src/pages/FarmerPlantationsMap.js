@@ -310,7 +310,7 @@ const FarmerPlantationsMap = () => {
                     <div className="flex justify-between text-gray-300"><span>ID:</span><span className="text-white">{selected.id}</span></div>
                     <div className="flex justify-between text-gray-300"><span>Maydon:</span><span className="text-white">{Number(selected.total_area || 0).toFixed(1)} ga</span></div>
                     <div className="flex justify-between text-gray-300"><span>Holat:</span><span className="text-white">{selected.is_checked ? 'Tasdiqlangan' : (selected.is_rejected ? 'Rad etilgan' : 'Kutilmoqda')}</span></div>
-                    <div className="flex justify-between text-gray-300"><span>Fertility:</span><span className="text-white">{Number(selected.fertility_score || 0).toFixed(0)}</span></div>
+                    <div className="flex justify-between text-gray-300"><span>Unumdorlik:</span><span className="text-white">{Number(selected.fertility_score || 0).toFixed(0)}</span></div>
                   </div>
                   {Array.isArray(selected.images) && selected.images.length > 0 && (
                     <div className="mt-4">

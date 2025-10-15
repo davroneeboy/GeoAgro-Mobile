@@ -390,18 +390,19 @@ const ApprovedPlantations = () => {
     if (!regionId) return "—";
     
     const regionNames = {
-      1: "Tashkent",
-      2: "Andijan",
-      3: "Bukhara",
-      4: "Fergana",
-      5: "Jizzakh",
-      6: "Kashkadarya",
-      7: "Navoi",
+      1: "Toshkent",
+      2: "Andijon",
+      3: "Buxoro",
+      4: "Farg'ona",
+      5: "Jizzax",
+      6: "Qashqadaryo",
+      7: "Navoiy",
       8: "Namangan",
-      9: "Samarkand",
-      10: "Sirdarya",
-      11: "Surkhandarya",
-      12: "Karakalpakstan",
+      9: "Samarqand",
+      10: "Sirdaryo",
+      11: "Surxondaryo",
+      12: "Qoraqalpog'iston",
+      13: "Xorazm",
     };
     
     // Если regionId - это строка с названием региона, возвращаем как есть
@@ -546,18 +547,19 @@ const ApprovedPlantations = () => {
                 onChange={(e) => handleFilterChange('region', e.target.value)}
               >
                 <option value="All">Region</option>
-                <option value="1">Tashkent</option>
-                <option value="2">Andijan</option>
-                <option value="3">Bukhara</option>
-                <option value="4">Fergana</option>
-                <option value="5">Jizzakh</option>
-                <option value="6">Kashkadarya</option>
-                <option value="7">Navoi</option>
+                <option value="1">Toshkent</option>
+                <option value="2">Andijon</option>
+                <option value="3">Buxoro</option>
+                <option value="4">Farg'ona</option>
+                <option value="5">Jizzax</option>
+                <option value="6">Qashqadaryo</option>
+                <option value="7">Navoiy</option>
                 <option value="8">Namangan</option>
-                <option value="9">Samarkand</option>
-                <option value="10">Sirdarya</option>
-                <option value="11">Surkhandarya</option>
-                <option value="12">Karakalpakstan</option>
+                <option value="9">Samarqand</option>
+                <option value="10">Sirdaryo</option>
+                <option value="11">Surxondaryo</option>
+                <option value="12">Qoraqalpog'iston</option>
+                <option value="13">Xorazm</option>
               </select>
               {filters.region !== "All" && (
                 <select
@@ -840,18 +842,19 @@ const ApprovedPlantations = () => {
                 className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
               >
                 <option value="All">Barcha viloyatlar</option>
-                <option value="1">Tashkent</option>
-                <option value="2">Andijan</option>
-                <option value="3">Bukhara</option>
-                <option value="4">Fergana</option>
-                <option value="5">Jizzakh</option>
-                <option value="6">Kashkadarya</option>
-                <option value="7">Navoi</option>
+                <option value="1">Toshkent</option>
+                <option value="2">Andijon</option>
+                <option value="3">Buxoro</option>
+                <option value="4">Farg'ona</option>
+                <option value="5">Jizzax</option>
+                <option value="6">Qashqadaryo</option>
+                <option value="7">Navoiy</option>
                 <option value="8">Namangan</option>
-                <option value="9">Samarkand</option>
-                <option value="10">Sirdarya</option>
-                <option value="11">Surkhandarya</option>
-                <option value="12">Karakalpakstan</option>
+                <option value="9">Samarqand</option>
+                <option value="10">Sirdaryo</option>
+                <option value="11">Surxondaryo</option>
+                <option value="12">Qoraqalpog'iston</option>
+                <option value="13">Xorazm</option>
               </select>
             </div>
             {filters.region !== "All" && (

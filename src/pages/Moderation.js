@@ -387,18 +387,18 @@ const Moderation = () => {
     if (!regionId) return "—";
     
     const regionNames = {
-      1: "Tashkent",
-      2: "Andijan", 
-      3: "Bukhara",
-      4: "Fergana",
-      5: "Jizzakh",
-      6: "Kashkadarya",
-      7: "Navoi",
+      1: "Toshkent",
+      2: "Andijon", 
+      3: "Buxoro",
+      4: "Farg'ona",
+      5: "Jizzax",
+      6: "Qashqadaryo",
+      7: "Navoiy",
       8: "Namangan",
-      9: "Samarkand",
-      10: "Sirdarya",
-      11: "Surkhandarya",
-      12: "Karakalpakstan",
+      9: "Samarqand",
+      10: "Sirdaryo",
+      11: "Surxondaryo",
+      12: "Qoraqalpog'iston",
       13: "Xorazm",
     };
     
@@ -1606,4 +1606,3 @@ const Moderation = () => {
 };
 
 export default Moderation;
-

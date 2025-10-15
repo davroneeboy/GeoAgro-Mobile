@@ -39,6 +39,7 @@ const RegionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState({});
+  const tableContainerRef = useRef(null);
   const [filters, setFilters] = useState({
     plantation_type: [],
     garden_established_year: null,
@@ -55,6 +56,41 @@ const RegionsPage = () => {
   const [rejectedTotals, setRejectedTotals] = useState(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // Обработчик горизонтального скролла колесиком мыши
+  const handleWheelScroll = useCallback((e) => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    // Проверяем состояние скролла
+    const { scrollTop, scrollHeight, clientHeight, scrollLeft, scrollWidth, clientWidth } = container;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
+    const isAtTop = scrollTop <= 5;
+    const canScrollHorizontally = scrollWidth > clientWidth;
+
+    // Если вертикальный скролл достиг конца и есть горизонтальный скролл
+    if ((isAtBottom || isAtTop) && canScrollHorizontally) {
+      e.preventDefault();
+      e.stopPropagation();
+      const scrollAmount = e.deltaY * 0.8;
+      const newScrollLeft = scrollLeft + scrollAmount;
+      container.scrollLeft = Math.max(0, Math.min(newScrollLeft, scrollWidth - clientWidth));
+    }
+  }, []);
+
+  // Привязываем обработчик события колесика мыши
+  useEffect(() => {
+    const container = tableContainerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheelScroll, { 
+        passive: false, 
+        capture: true 
+      });
+      return () => {
+        container.removeEventListener('wheel', handleWheelScroll, { capture: true });
+      };
+    }
+  }, [handleWheelScroll]);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
@@ -1123,7 +1159,7 @@ const RegionsPage = () => {
   // Остальные колонки
   const otherColumns = [
     {
-      title: "Fertility",
+      title: "Unumdorlik",
       children: [
         {
           title: "Past unumdorlik",
@@ -1525,10 +1561,37 @@ const RegionsPage = () => {
         </Row>
 
         {/* Main Table */}
-        <div className="overflow-x-auto mb-6 mr-4" style={{ 
-          borderRadius: '8px',
-          padding: '0'
-        }}>
+        <div 
+          ref={tableContainerRef}
+          className="overflow-x-auto mb-6 mr-4" 
+          style={{ 
+            borderRadius: '8px',
+            padding: '0',
+            position: 'relative'
+          }}
+        >
+          
+          {/* CSS стили для улучшения скролла */}
+          <style jsx>{`
+            .overflow-x-auto {
+              scrollbar-width: thin;
+              scrollbar-color: #6b7280 #374151;
+            }
+            .overflow-x-auto::-webkit-scrollbar {
+              height: 8px;
+            }
+            .overflow-x-auto::-webkit-scrollbar-track {
+              background: #374151;
+              border-radius: 4px;
+            }
+            .overflow-x-auto::-webkit-scrollbar-thumb {
+              background: #6b7280;
+              border-radius: 4px;
+            }
+            .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+              background: #9ca3af;
+            }
+          `}</style>
           <Table
             loading={loading}
             columns={columns}

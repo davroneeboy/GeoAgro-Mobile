@@ -92,11 +92,13 @@ const FruitsPage = () => {
       const exportData = sortedTableData;
       const exportTotals = {
         total_area: totals.total_area || 0,
-        outdated_ga: totals.outdated_ga || 0,
-        low_fertility_count: totals.low_fertility_count || 0,
-        low_fertility_area: totals.low_fertility_area || 0,
-        high_fertility_count: totals.high_fertility_count || 0,
-        high_fertility_area: totals.high_fertility_area || 0,
+        plantation_count: totals.plantation_count || 0,
+        approved_plantations: totals.approved_plantations || 0,
+        approved_area: totals.approved_area || 0,
+        pending_plantations: totals.pending_plantations || 0,
+        pending_area: totals.pending_area || 0,
+        rejected_plantations: totals.rejected_plantations || 0,
+        rejected_area: totals.rejected_area || 0,
       };
       
       // Генерируем имя файла
@@ -121,36 +123,50 @@ const FruitsPage = () => {
     }
   };
 
-  // Transform to table rows
+  // Transform to table rows - обновлено для новой структуры API
   const tableData = Array.isArray(statistics)
     ? statistics.map((item) => ({
-        key: item.fruit_id ?? item.fruit ?? Math.random().toString(36).slice(2),
-        id: item.fruit_id ?? item.id ?? null,
-        fruit: item.fruit ?? item.name ?? '—',
-        total_area: Number(item.total_area || item.area_total || 0),
-        plantation_count: Number(item.plantation_count || 0),
-        outdated_ga: Number(item.outdated_ga || item.outdated_area || 0),
-        low_fertility_count: Number(item.low_fertility?.count || item.low_fertility_count || 0),
-        low_fertility_area: Number(item.low_fertility?.area || item.low_fertility_area || 0),
-        high_fertility_count: Number(item.high_fertility?.count || item.high_fertility_count || 0),
-        high_fertility_area: Number(item.high_fertility?.area || item.high_fertility_area || 0),
-        avg_fertility_score: Number(item.avg_fertility_score || item.average_fertility_score || 0),
-        regions: item.regions || {},
+        key: item.fruit_id ?? Math.random().toString(36).slice(2),
+        id: item.fruit_id ?? null,
+        fruit: item.fruit_name ?? '—',
+        total_area: Number(item.total_area || 0),
+        plantation_count: Number(item.total_plantations || 0),
+        approved_plantations: Number(item.approved_plantations || 0),
+        approved_area: Number(item.approved_area || 0),
+        pending_plantations: Number(item.pending_plantations || 0),
+        pending_area: Number(item.pending_area || 0),
+        rejected_plantations: Number(item.rejected_plantations || 0),
+        rejected_area: Number(item.rejected_area || 0),
+        // Старые поля для совместимости
+        outdated_ga: 0,
+        low_fertility_count: 0,
+        low_fertility_area: 0,
+        high_fertility_count: 0,
+        high_fertility_area: 0,
+        avg_fertility_score: 0,
+        regions: {},
       }))
     : Object.entries(statistics || {}).map(([fruitId, data]) => ({
         key: fruitId,
-        id: Number(fruitId) || data.id || data.fruit_id || null,
-        fruit: data.fruit || data.name || fruitId,
-        total_area: Number(data.total_area || data.area_total || 0),
-        plantation_count: Number(data.plantation_count || 0),
-        outdated_ga: Number(data.outdated_ga || data.outdated_area || 0),
-        low_fertility_count: Number(data.low_fertility?.count || data.low_fertility_count || 0),
-        low_fertility_area: Number(data.low_fertility?.area || data.low_fertility_area || 0),
-        high_fertility_count: Number(data.high_fertility?.count || data.high_fertility_count || 0),
-        high_fertility_area: Number(data.high_fertility?.area || data.high_fertility_area || 0),
-        avg_fertility_score: Number(data.avg_fertility_score || data.average_fertility_score || 0),
-    regions: data.regions || {},
-  }));
+        id: Number(fruitId) || data.fruit_id || null,
+        fruit: data.fruit_name || data.fruit || fruitId,
+        total_area: Number(data.total_area || 0),
+        plantation_count: Number(data.total_plantations || 0),
+        approved_plantations: Number(data.approved_plantations || 0),
+        approved_area: Number(data.approved_area || 0),
+        pending_plantations: Number(data.pending_plantations || 0),
+        pending_area: Number(data.pending_area || 0),
+        rejected_plantations: Number(data.rejected_plantations || 0),
+        rejected_area: Number(data.rejected_area || 0),
+        // Старые поля для совместимости
+        outdated_ga: 0,
+        low_fertility_count: 0,
+        low_fertility_area: 0,
+        high_fertility_count: 0,
+        high_fertility_area: 0,
+        avg_fertility_score: 0,
+        regions: {},
+      }));
 
   // Sorted data
   const sortedTableData = React.useMemo(() => {
@@ -162,16 +178,20 @@ const FruitsPage = () => {
           return row.fruit || '';
         case 'total_area':
           return Number(row.total_area || 0);
-        case 'outdated_ga':
-          return Number(row.outdated_ga || 0);
-        case 'low_fertility_count':
-          return Number(row.low_fertility_count || 0);
-        case 'low_fertility_area':
-          return Number(row.low_fertility_area || 0);
-        case 'high_fertility_count':
-          return Number(row.high_fertility_count || 0);
-        case 'high_fertility_area':
-          return Number(row.high_fertility_area || 0);
+        case 'approved_area':
+          return Number(row.approved_area || 0);
+        case 'pending_area':
+          return Number(row.pending_area || 0);
+        case 'rejected_area':
+          return Number(row.rejected_area || 0);
+        case 'plantation_count':
+          return Number(row.plantation_count || 0);
+        case 'approved_plantations':
+          return Number(row.approved_plantations || 0);
+        case 'pending_plantations':
+          return Number(row.pending_plantations || 0);
+        case 'rejected_plantations':
+          return Number(row.rejected_plantations || 0);
         case 'avg_fertility_score':
           return Number(row.avg_fertility_score || 0);
         default:
@@ -193,16 +213,23 @@ const FruitsPage = () => {
     return rows;
   }, [tableData, sortConfig]);
 
-  // Calculate totals
+  // Calculate totals - обновлено для новых полей
   const totals = tableData.reduce(
     (acc, curr) => ({
       total_area: (acc.total_area || 0) + (curr.total_area || 0),
       plantation_count: (acc.plantation_count || 0) + (curr.plantation_count || 0),
-      outdated_ga: (acc.outdated_ga || 0) + (curr.outdated_ga || 0),
-      low_fertility_count: (acc.low_fertility_count || 0) + (curr.low_fertility_count || 0),
-      low_fertility_area: (acc.low_fertility_area || 0) + (curr.low_fertility_area || 0),
-      high_fertility_count: (acc.high_fertility_count || 0) + (curr.high_fertility_count || 0),
-      high_fertility_area: (acc.high_fertility_area || 0) + (curr.high_fertility_area || 0),
+      approved_plantations: (acc.approved_plantations || 0) + (curr.approved_plantations || 0),
+      approved_area: (acc.approved_area || 0) + (curr.approved_area || 0),
+      pending_plantations: (acc.pending_plantations || 0) + (curr.pending_plantations || 0),
+      pending_area: (acc.pending_area || 0) + (curr.pending_area || 0),
+      rejected_plantations: (acc.rejected_plantations || 0) + (curr.rejected_plantations || 0),
+      rejected_area: (acc.rejected_area || 0) + (curr.rejected_area || 0),
+      // Старые поля для совместимости
+      outdated_ga: 0,
+      low_fertility_count: 0,
+      low_fertility_area: 0,
+      high_fertility_count: 0,
+      high_fertility_area: 0,
     }),
     {}
   );
@@ -213,6 +240,7 @@ const FruitsPage = () => {
       dataIndex: "fruit",
       key: "fruit",
       fixed: "left",
+      width: 150,
       sorter: true,
       sortDirections: ['ascend','descend'],
       sortOrder: sortConfig.field === 'fruit' ? sortConfig.order : null,
@@ -227,10 +255,10 @@ const FruitsPage = () => {
       ),
     },
     {
-      title: <span style={{ color: '#e5e7eb' }}>Umumiy maydon</span>,
+      title: <span style={{ color: '#e5e7eb' }}>Maydon (GA)</span>,
       children: [
         {
-          title: <span style={{ color: '#e5e7eb' }}>Jami (GA)</span>,
+          title: <span style={{ color: '#e5e7eb' }}>Jami</span>,
           dataIndex: "total_area",
           key: "total_area",
           sorter: true,
@@ -243,14 +271,49 @@ const FruitsPage = () => {
           ),
         },
         {
-          title: <span style={{ color: '#e5e7eb' }}>Eskirgan (GA)</span>,
-          dataIndex: "outdated_ga",
-          key: "outdated_ga",
+          title: <span style={{ color: '#e5e7eb' }}>Tasdiqlangan</span>,
+          dataIndex: "approved_area",
+          key: "approved_area",
           sorter: true,
           sortDirections: ['ascend','descend'],
-          sortOrder: sortConfig.field === 'outdated_ga' ? sortConfig.order : null,
+          sortOrder: sortConfig.field === 'approved_area' ? sortConfig.order : null,
           render: (value, record) => (
-            <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
+            <span style={{ 
+              fontWeight: record.key === "total" ? "bold" : "bold", 
+              color: record.key === "total" ? '#e5e7eb' : '#10b981' 
+            }}>
+              {(value || 0).toFixed(1)}
+            </span>
+          ),
+        },
+        {
+          title: <span style={{ color: '#e5e7eb' }}>Kutilmoqda</span>,
+          dataIndex: "pending_area",
+          key: "pending_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'pending_area' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ 
+              fontWeight: record.key === "total" ? "bold" : "bold", 
+              color: record.key === "total" ? '#e5e7eb' : '#f59e0b' 
+            }}>
+              {(value || 0).toFixed(1)}
+            </span>
+          ),
+        },
+        {
+          title: <span style={{ color: '#e5e7eb' }}>Rad etilgan</span>,
+          dataIndex: "rejected_area",
+          key: "rejected_area",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'rejected_area' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ 
+              fontWeight: record.key === "total" ? "bold" : "bold", 
+              color: record.key === "total" ? '#e5e7eb' : '#ef4444' 
+            }}>
               {(value || 0).toFixed(1)}
             </span>
           ),
@@ -259,16 +322,69 @@ const FruitsPage = () => {
     },
     {
       title: <span style={{ color: '#e5e7eb' }}>Subyektlar</span>,
-      dataIndex: "plantation_count",
-      key: "plantation_count",
-              sorter: true,
-              sortDirections: ['ascend','descend'],
-      sortOrder: sortConfig.field === 'plantation_count' ? sortConfig.order : null,
-              render: (value, record) => (
-                <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
-          {value || 0}
-                </span>
-              ),
+      children: [
+        {
+          title: <span style={{ color: '#e5e7eb' }}>Jami</span>,
+          dataIndex: "plantation_count",
+          key: "plantation_count",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'plantation_count' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ fontWeight: record.key === "total" ? "bold" : "normal", color: '#e5e7eb' }}>
+              {value || 0}
+            </span>
+          ),
+        },
+        {
+          title: <span style={{ color: '#e5e7eb' }}>Tasdiqlangan</span>,
+          dataIndex: "approved_plantations",
+          key: "approved_plantations",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ 
+              fontWeight: record.key === "total" ? "bold" : "bold", 
+              color: record.key === "total" ? '#e5e7eb' : '#10b981' 
+            }}>
+              {value || 0}
+            </span>
+          ),
+        },
+        {
+          title: <span style={{ color: '#e5e7eb' }}>Kutilmoqda</span>,
+          dataIndex: "pending_plantations",
+          key: "pending_plantations",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'pending_plantations' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ 
+              fontWeight: record.key === "total" ? "bold" : "bold", 
+              color: record.key === "total" ? '#e5e7eb' : '#f59e0b' 
+            }}>
+              {value || 0}
+            </span>
+          ),
+        },
+        {
+          title: <span style={{ color: '#e5e7eb' }}>Rad etilgan</span>,
+          dataIndex: "rejected_plantations",
+          key: "rejected_plantations",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ 
+              fontWeight: record.key === "total" ? "bold" : "bold", 
+              color: record.key === "total" ? '#e5e7eb' : '#ef4444' 
+            }}>
+              {value || 0}
+            </span>
+          ),
+        },
+      ],
     },
     {
       title: <span style={{ color: '#e5e7eb' }}>O'rtacha Hosildorlik</span>,
@@ -282,6 +398,40 @@ const FruitsPage = () => {
           {record.key === "total" ? '-' : (value || 0).toFixed(1)}
         </span>
       ),
+    },
+    {
+      title: <span style={{ color: '#e5e7eb' }}>Taqsimot</span>,
+      key: 'distribution',
+      render: (_, record) => {
+        const total = record.plantation_count || 0;
+        if (total === 0) return <span style={{ color: '#e5e7eb' }}>—</span>;
+        
+        const approved = record.approved_plantations || 0;
+        const pending = record.pending_plantations || 0;
+        const rejected = record.rejected_plantations || 0;
+        
+        return (
+          <div className="w-16 h-2 bg-gray-600 rounded-full overflow-hidden">
+            <div className="h-full flex">
+              <div 
+                className="bg-green-500" 
+                style={{ width: `${(approved / total) * 100}%` }}
+                title={`Tasdiqlangan: ${approved}`}
+              ></div>
+              <div 
+                className="bg-yellow-500" 
+                style={{ width: `${(pending / total) * 100}%` }}
+                title={`Kutilmoqda: ${pending}`}
+              ></div>
+              <div 
+                className="bg-red-500" 
+                style={{ width: `${(rejected / total) * 100}%` }}
+                title={`Rad etilgan: ${rejected}`}
+              ></div>
+            </div>
+          </div>
+        );
+      },
     },
   ];
 
@@ -299,7 +449,24 @@ const FruitsPage = () => {
     <StatisticsLayout>
       <div className="p-3 sm:p-4" style={{ background: '#111827', minHeight: '100vh' }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
-          <h1 className="text-lg sm:text-xl font-bold text-white">Mevalar bo'yicha statistika</h1>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-white mb-2">Mevalar bo'yicha statistika</h1>
+            {/* Легенда статусов */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-gray-300">Tasdiqlangan</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span className="text-gray-300">Kutilmoqda</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-gray-300">Rad etilgan</span>
+              </div>
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button 
               type="primary"
@@ -422,7 +589,44 @@ const FruitsPage = () => {
         </Row>
 
         {/* Main Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto fruits-table" style={{ position: 'relative' }}>
+          <style jsx>{`
+            .fruits-table .ant-table-thead > tr > th.ant-table-cell-fix-left {
+              background: #1f2937 !important;
+              border-right: 2px solid #6b7280 !important;
+              z-index: 10 !important;
+            }
+            .fruits-table .ant-table-tbody > tr > td.ant-table-cell-fix-left {
+              background: #1f2937 !important;
+              border-right: 2px solid #6b7280 !important;
+              z-index: 9 !important;
+            }
+            .fruits-table .ant-table-tbody > tr.total-row > td.ant-table-cell-fix-left {
+              background: #374151 !important;
+              border-right: 2px solid #6b7280 !important;
+            }
+            .fruits-table .ant-table-thead > tr > th.ant-table-cell-fix-left:last-child {
+              border-right: 2px solid #6b7280 !important;
+            }
+            .fruits-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:last-child {
+              border-right: 2px solid #6b7280 !important;
+            }
+            .fruits-table .ant-table-container {
+              position: relative;
+            }
+            .fruits-table .ant-table-thead > tr > th.ant-table-cell-fix-left {
+              position: sticky !important;
+            }
+            .fruits-table .ant-table-tbody > tr > td.ant-table-cell-fix-left {
+              position: sticky !important;
+            }
+            .fruits-table .ant-table-thead > tr > th.ant-table-cell-fix-left:nth-child(1) {
+              left: 0px;
+            }
+            .fruits-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(1) {
+              left: 0px;
+            }
+          `}</style>
           <Table
             loading={loading}
             columns={columns}
@@ -441,9 +645,31 @@ const FruitsPage = () => {
             bordered
             size="small"
             pagination={false}
+            sticky={{ offsetHeader: 0 }}
             className="region-statistics-table"
             style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
             rowClassName={(record) => record.key === 'total' ? 'total-row' : ''}
+            components={{
+              body: {
+                row: (props) => {
+                  const { children, ...restProps } = props;
+                  const isTotalRow = restProps.className?.includes('total-row');
+                  return (
+                    <tr 
+                      {...restProps}
+                      style={{
+                        ...restProps.style,
+                        backgroundColor: isTotalRow ? '#374151' : undefined,
+                        fontWeight: isTotalRow ? 'bold' : undefined,
+                        borderTop: isTotalRow ? '2px solid #6b7280' : undefined,
+                      }}
+                    >
+                      {children}
+                    </tr>
+                  );
+                }
+              }
+            }}
           />
         </div>
       </div>
