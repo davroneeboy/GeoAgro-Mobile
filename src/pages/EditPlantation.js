@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
@@ -15,18 +15,11 @@ import PlantationStatusIndicator from "../components/PlantationStatusIndicator";
 const EditPlantation = () => {
   const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [plantation, setPlantation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [polygonAreaHectares, setPolygonAreaHectares] = useState(null);
   
-  // Навигация между плантациями
-  const [autoNavigate, setAutoNavigate] = useState(() => {
-    return localStorage.getItem('autoNavigateAfterModeration') === 'true';
-  });
-  const [moderationList, setModerationList] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(-1);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customReason, setCustomReason] = useState("");
@@ -339,14 +332,6 @@ const EditPlantation = () => {
       closeModal();
       // Redirect back to moderation/list after short delay
       setTimeout(() => {
-        // Если включен автопереход и есть следующая плантация - переходим к ней
-        if (autoNavigate && currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
-          navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
-            state: location.state,
-            replace: false
-          });
-          return;
-        }
         
         // Иначе возвращаемся в модерацию
         const fromPage = location.state?.from;
@@ -370,6 +355,33 @@ const EditPlantation = () => {
             if (savedFilters.region && savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
             if (savedFilters.district && savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
             if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+            // новые фильтры
+            if (savedFilters.farmer_id && savedFilters.farmer_id !== 'All') searchParams.set('farmer_id', savedFilters.farmer_id);
+            if (savedFilters.min_area && savedFilters.min_area !== 'All') searchParams.set('min_area', savedFilters.min_area);
+            if (savedFilters.max_area && savedFilters.max_area !== 'All') searchParams.set('max_area', savedFilters.max_area);
+            if (savedFilters.min_fertility_score && savedFilters.min_fertility_score !== 'All') searchParams.set('min_fertility_score', savedFilters.min_fertility_score);
+            if (savedFilters.max_fertility_score && savedFilters.max_fertility_score !== 'All') searchParams.set('max_fertility_score', savedFilters.max_fertility_score);
+            if (savedFilters.min_irrigation_area && savedFilters.min_irrigation_area !== 'All') searchParams.set('min_irrigation_area', savedFilters.min_irrigation_area);
+            if (savedFilters.max_irrigation_area && savedFilters.max_irrigation_area !== 'All') searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);
+            if (savedFilters.is_fertile && savedFilters.is_fertile !== 'All') searchParams.set('is_fertile', savedFilters.is_fertile);
+            if (savedFilters.is_checked && savedFilters.is_checked !== 'All') searchParams.set('is_checked', savedFilters.is_checked);
+            if (savedFilters.is_rejected && savedFilters.is_rejected !== 'All') searchParams.set('is_rejected', savedFilters.is_rejected);
+            if (savedFilters.is_deleting && savedFilters.is_deleting !== 'All') searchParams.set('is_deleting', savedFilters.is_deleting);
+            if (savedFilters.land_type && savedFilters.land_type !== 'All') searchParams.set('land_type', savedFilters.land_type);
+            if (savedFilters.created_after && savedFilters.created_after !== 'All') searchParams.set('created_after', savedFilters.created_after);
+            if (savedFilters.created_before && savedFilters.created_before !== 'All') searchParams.set('created_before', savedFilters.created_before);
+            if (savedFilters.moderated_after && savedFilters.moderated_after !== 'All') searchParams.set('moderated_after', savedFilters.moderated_after);
+            if (savedFilters.moderated_before && savedFilters.moderated_before !== 'All') searchParams.set('moderated_before', savedFilters.moderated_before);
+            if (savedFilters.garden_established_year && savedFilters.garden_established_year !== 'All') searchParams.set('garden_established_year', savedFilters.garden_established_year);
+            if (savedFilters.min_established_year && savedFilters.min_established_year !== 'All') searchParams.set('min_established_year', savedFilters.min_established_year);
+            if (savedFilters.max_established_year && savedFilters.max_established_year !== 'All') searchParams.set('max_established_year', savedFilters.max_established_year);
+            if (savedFilters.created_by && savedFilters.created_by !== 'All') searchParams.set('created_by', savedFilters.created_by);
+            if (savedFilters.created_by_username && savedFilters.created_by_username !== 'All') searchParams.set('created_by_username', savedFilters.created_by_username);
+            if (savedFilters.moderated_by && savedFilters.moderated_by !== 'All') searchParams.set('moderated_by', savedFilters.moderated_by);
+            if (savedFilters.moderated_by_username && savedFilters.moderated_by_username !== 'All') searchParams.set('moderated_by_username', savedFilters.moderated_by_username);
+            if (savedFilters.has_moderation_comment && savedFilters.has_moderation_comment !== 'All') searchParams.set('has_moderation_comment', savedFilters.has_moderation_comment);
+            if (savedFilters.sort_by) searchParams.set('sort_by', savedFilters.sort_by);
+            if (savedFilters.sort_order) searchParams.set('sort_order', savedFilters.sort_order);
           }
           const newUrl = `/moderation?${searchParams.toString()}`;
           window.location.href = newUrl;
@@ -412,14 +424,6 @@ const EditPlantation = () => {
       setIsDeleted(true);
       closeDeleteModal();
 
-      // Если включен автопереход и есть следующая плантация - переходим к ней
-      if (autoNavigate && currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
-        navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
-          state: location.state,
-          replace: false
-        });
-        return;
-      }
 
       // Перенаправляем обратно на страницу модерации/списков с восстановлением фильтров
       const fromPage = location.state?.from;
@@ -544,92 +548,10 @@ const EditPlantation = () => {
     }
   }, [id, authState.accessToken, refreshAccessToken, fetchUserDetails]);
 
-  // Получение списка плантаций на модерации
-  const fetchModerationList = useCallback(async () => {
-    try {
-      const filters = location.state?.filters || {};
-      const params = new URLSearchParams();
-      
-      // Применяем фильтры из location.state
-      if (filters.status && filters.status !== 'All') params.set('status', filters.status);
-      if (filters.type && filters.type !== 'All') params.set('type', filters.type);
-      if (filters.region && filters.region !== 'All') params.set('region', filters.region);
-      if (filters.district && filters.district !== 'All') params.set('district', filters.district);
-      
-      const response = await apiRequest(
-        `api/plantations/?${params.toString()}`, 
-        {}, 
-        refreshAccessToken, 
-        authState.accessToken
-      );
-      
-      const list = response.results || [];
-      setModerationList(list);
-      
-      // Находим индекс текущей плантации
-      const idx = list.findIndex(p => String(p.id) === String(id));
-      setCurrentIndex(idx);
-    } catch (error) {
-      console.error("Error fetching moderation list:", error);
-    }
-  }, [id, location.state, authState.accessToken, refreshAccessToken]);
 
-  // Навигация к предыдущей/следующей плантации
-  const navigateToPrevious = useCallback(() => {
-    if (currentIndex > 0 && moderationList[currentIndex - 1]) {
-      navigate(`/plantations/edit/${moderationList[currentIndex - 1].id}`, {
-        state: location.state,
-        replace: false
-      });
-    }
-  }, [currentIndex, moderationList, navigate, location.state]);
 
-  const navigateToNext = useCallback(() => {
-    if (currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
-      navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
-        state: location.state,
-        replace: false
-      });
-    }
-  }, [currentIndex, moderationList, navigate, location.state]);
 
-  const toggleAutoNavigate = () => {
-    const newValue = !autoNavigate;
-    setAutoNavigate(newValue);
-    localStorage.setItem('autoNavigateAfterModeration', String(newValue));
-  };
 
-  // Загрузка списка плантаций на модерации
-  useEffect(() => {
-    if (authState.userRole === "superuser") {
-      fetchModerationList();
-    }
-  }, [authState.userRole, fetchModerationList, id]);
-
-  // Горячие клавиши для навигации
-  useEffect(() => {
-    const handleNavigationKeys = (e) => {
-      // Игнорируем если фокус в поле ввода
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return;
-      }
-      
-      // ArrowLeft - Предыдущая плантация
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        navigateToPrevious();
-      }
-      
-      // ArrowRight - Следующая плантация
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        navigateToNext();
-      }
-    };
-    
-    document.addEventListener('keydown', handleNavigationKeys);
-    return () => document.removeEventListener('keydown', handleNavigationKeys);
-  }, [navigateToPrevious, navigateToNext]);
 
 
   // Функция для добавления обработчиков событий к полигону
@@ -1077,14 +999,6 @@ const EditPlantation = () => {
       
       // Задержка перед редиректом, чтобы пользователь увидел уведомление
       setTimeout(() => {
-        // Если включен автопереход и есть следующая плантация - переходим к ней
-        if (autoNavigate && currentIndex < moderationList.length - 1 && moderationList[currentIndex + 1]) {
-          navigate(`/plantations/edit/${moderationList[currentIndex + 1].id}`, {
-            state: location.state,
-            replace: false
-          });
-          return;
-        }
         
         // Определяем, откуда пришел пользователь
         const fromPage = location.state?.from;
@@ -1116,6 +1030,34 @@ const EditPlantation = () => {
             if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
             if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
             if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+            if (savedFilters.farmer !== "All") searchParams.set('farmer', savedFilters.farmer);
+            // новые фильтры
+            if (savedFilters.farmer_id !== "All") searchParams.set('farmer_id', savedFilters.farmer_id);
+            if (savedFilters.min_area !== "All") searchParams.set('min_area', savedFilters.min_area);
+            if (savedFilters.max_area !== "All") searchParams.set('max_area', savedFilters.max_area);
+            if (savedFilters.min_fertility_score !== "All") searchParams.set('min_fertility_score', savedFilters.min_fertility_score);
+            if (savedFilters.max_fertility_score !== "All") searchParams.set('max_fertility_score', savedFilters.max_fertility_score);
+            if (savedFilters.min_irrigation_area !== "All") searchParams.set('min_irrigation_area', savedFilters.min_irrigation_area);
+            if (savedFilters.max_irrigation_area !== "All") searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);
+            if (savedFilters.is_fertile !== "All") searchParams.set('is_fertile', savedFilters.is_fertile);
+            if (savedFilters.is_checked !== "All") searchParams.set('is_checked', savedFilters.is_checked);
+            if (savedFilters.is_rejected !== "All") searchParams.set('is_rejected', savedFilters.is_rejected);
+            if (savedFilters.is_deleting !== "All") searchParams.set('is_deleting', savedFilters.is_deleting);
+            if (savedFilters.land_type !== "All") searchParams.set('land_type', savedFilters.land_type);
+            if (savedFilters.created_after !== "All") searchParams.set('created_after', savedFilters.created_after);
+            if (savedFilters.created_before !== "All") searchParams.set('created_before', savedFilters.created_before);
+            if (savedFilters.moderated_after !== "All") searchParams.set('moderated_after', savedFilters.moderated_after);
+            if (savedFilters.moderated_before !== "All") searchParams.set('moderated_before', savedFilters.moderated_before);
+            if (savedFilters.garden_established_year !== "All") searchParams.set('garden_established_year', savedFilters.garden_established_year);
+            if (savedFilters.min_established_year !== "All") searchParams.set('min_established_year', savedFilters.min_established_year);
+            if (savedFilters.max_established_year !== "All") searchParams.set('max_established_year', savedFilters.max_established_year);
+            if (savedFilters.created_by !== "All") searchParams.set('created_by', savedFilters.created_by);
+            if (savedFilters.created_by_username !== "All") searchParams.set('created_by_username', savedFilters.created_by_username);
+            if (savedFilters.moderated_by !== "All") searchParams.set('moderated_by', savedFilters.moderated_by);
+            if (savedFilters.moderated_by_username !== "All") searchParams.set('moderated_by_username', savedFilters.moderated_by_username);
+            if (savedFilters.has_moderation_comment !== "All") searchParams.set('has_moderation_comment', savedFilters.has_moderation_comment);
+            if (savedFilters.sort_by) searchParams.set('sort_by', savedFilters.sort_by);
+            if (savedFilters.sort_order) searchParams.set('sort_order', savedFilters.sort_order);
           }
           
           const newUrl = `/moderation?${searchParams.toString()}`;
@@ -1365,6 +1307,34 @@ const EditPlantation = () => {
                     if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
                     if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
                     if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
+                    if (savedFilters.farmer !== "All") searchParams.set('farmer', savedFilters.farmer);
+                    // новые фильтры
+                    if (savedFilters.farmer_id !== "All") searchParams.set('farmer_id', savedFilters.farmer_id);
+                    if (savedFilters.min_area !== "All") searchParams.set('min_area', savedFilters.min_area);
+                    if (savedFilters.max_area !== "All") searchParams.set('max_area', savedFilters.max_area);
+                    if (savedFilters.min_fertility_score !== "All") searchParams.set('min_fertility_score', savedFilters.min_fertility_score);
+                    if (savedFilters.max_fertility_score !== "All") searchParams.set('max_fertility_score', savedFilters.max_fertility_score);
+                    if (savedFilters.min_irrigation_area !== "All") searchParams.set('min_irrigation_area', savedFilters.min_irrigation_area);
+                    if (savedFilters.max_irrigation_area !== "All") searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);
+                    if (savedFilters.is_fertile !== "All") searchParams.set('is_fertile', savedFilters.is_fertile);
+                    if (savedFilters.is_checked !== "All") searchParams.set('is_checked', savedFilters.is_checked);
+                    if (savedFilters.is_rejected !== "All") searchParams.set('is_rejected', savedFilters.is_rejected);
+                    if (savedFilters.is_deleting !== "All") searchParams.set('is_deleting', savedFilters.is_deleting);
+                    if (savedFilters.land_type !== "All") searchParams.set('land_type', savedFilters.land_type);
+                    if (savedFilters.created_after !== "All") searchParams.set('created_after', savedFilters.created_after);
+                    if (savedFilters.created_before !== "All") searchParams.set('created_before', savedFilters.created_before);
+                    if (savedFilters.moderated_after !== "All") searchParams.set('moderated_after', savedFilters.moderated_after);
+                    if (savedFilters.moderated_before !== "All") searchParams.set('moderated_before', savedFilters.moderated_before);
+                    if (savedFilters.garden_established_year !== "All") searchParams.set('garden_established_year', savedFilters.garden_established_year);
+                    if (savedFilters.min_established_year !== "All") searchParams.set('min_established_year', savedFilters.min_established_year);
+                    if (savedFilters.max_established_year !== "All") searchParams.set('max_established_year', savedFilters.max_established_year);
+                    if (savedFilters.created_by !== "All") searchParams.set('created_by', savedFilters.created_by);
+                    if (savedFilters.created_by_username !== "All") searchParams.set('created_by_username', savedFilters.created_by_username);
+                    if (savedFilters.moderated_by !== "All") searchParams.set('moderated_by', savedFilters.moderated_by);
+                    if (savedFilters.moderated_by_username !== "All") searchParams.set('moderated_by_username', savedFilters.moderated_by_username);
+                    if (savedFilters.has_moderation_comment !== "All") searchParams.set('has_moderation_comment', savedFilters.has_moderation_comment);
+                    if (savedFilters.sort_by) searchParams.set('sort_by', savedFilters.sort_by);
+                    if (savedFilters.sort_order) searchParams.set('sort_order', savedFilters.sort_order);
                   }
                   
                   const newUrl = `/moderation?${searchParams.toString()}`;
@@ -1376,56 +1346,6 @@ const EditPlantation = () => {
               ✕
             </button>
             
-            {/* Навигация между плантациями */}
-            {authState.userRole === "superuser" && moderationList.length > 0 && (
-              <div className="mb-4 mt-6 flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={navigateToPrevious}
-                    disabled={currentIndex <= 0}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
-                    title="Предыдущая плантация (←)"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    <span>Oldingi</span>
-                  </button>
-                  
-                  <span className="text-gray-400 text-sm px-2">
-                    {currentIndex + 1} / {moderationList.length}
-                  </span>
-                  
-                  <button
-                    onClick={navigateToNext}
-                    disabled={currentIndex >= moderationList.length - 1}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
-                    title="Следующая плантация (→)"
-                  >
-                    <span>Keyingi</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                  </button>
-                </div>
-                
-                {/* Toggle автоперехода */}
-                <button
-                  onClick={toggleAutoNavigate}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all text-sm ${
-                    autoNavigate 
-                      ? 'bg-green-600 text-white hover:bg-green-700' 
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                  title={autoNavigate ? "Avtoperekhod yoqilgan" : "Avtoperekhod o'chirilgan"}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                  </svg>
-                  <span>{autoNavigate ? 'Avto: ON' : 'Avto: OFF'}</span>
-                </button>
-              </div>
-            )}
             
             <h1 className="text-lg font-semibold text-white mb-3 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
             

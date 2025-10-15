@@ -201,41 +201,45 @@ const districtsByRegion = {
 const Moderation = () => {
   const [moderations, setModerations] = useState([]);
   
-  const [filters, setFilters] = useState({
-    action: "All",
-    status: "All",
-    type: "All",
-    region: "All",
-    district: "All",
-    farmer: "All",
-    // новые фильтры
-    farmer_id: "All",
-    min_area: "All",
-    max_area: "All",
-    min_fertility_score: "All",
-    max_fertility_score: "All",
-    min_irrigation_area: "All",
-    max_irrigation_area: "All",
-    is_fertile: "All",
-    is_checked: "All",
-    is_rejected: "All",
-    is_deleting: "All",
-    land_type: "All",
-    created_after: "All",
-    created_before: "All",
-    moderated_after: "All",
-    moderated_before: "All",
-    garden_established_year: "All",
-    min_established_year: "All",
-    max_established_year: "All",
-    created_by: "All",
-    created_by_username: "All",
-    moderated_by: "All",
-    moderated_by_username: "All",
-    has_moderation_comment: "All",
-    // сортировка
-    sort_by: "default",
-    sort_order: "asc",
+  const [filters, setFilters] = useState(() => {
+    // Читаем параметры из URL при инициализации
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      action: urlParams.get('action') || "All",
+      status: urlParams.get('status') || "All",
+      type: urlParams.get('type') || "All",
+      region: urlParams.get('region') || "All",
+      district: urlParams.get('district') || "All",
+      farmer: urlParams.get('farmer') || "All",
+      // новые фильтры
+      farmer_id: urlParams.get('farmer_id') || "All",
+      min_area: urlParams.get('min_area') || "All",
+      max_area: urlParams.get('max_area') || "All",
+      min_fertility_score: urlParams.get('min_fertility_score') || "All",
+      max_fertility_score: urlParams.get('max_fertility_score') || "All",
+      min_irrigation_area: urlParams.get('min_irrigation_area') || "All",
+      max_irrigation_area: urlParams.get('max_irrigation_area') || "All",
+      is_fertile: "All",
+      is_checked: "All",
+      is_rejected: "All",
+      is_deleting: "All",
+      land_type: "All",
+      created_after: "All",
+      created_before: "All",
+      moderated_after: "All",
+      moderated_before: "All",
+      garden_established_year: "All",
+      min_established_year: "All",
+      max_established_year: "All",
+      created_by: "All",
+      created_by_username: "All",
+      moderated_by: "All",
+      moderated_by_username: "All",
+      has_moderation_comment: "All",
+      // сортировка
+      sort_by: "default",
+      sort_order: "asc"
+    };
   });
 
   const navigate = useNavigate();
