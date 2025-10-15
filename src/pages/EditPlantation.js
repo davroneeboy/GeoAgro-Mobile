@@ -79,10 +79,6 @@ const EditPlantation = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
 
-  // Модальное окно для отправки на модерацию удаления
-  const [isDeleteRequestModalOpen, setIsDeleteRequestModalOpen] = useState(false);
-  const [deleteReason, setDeleteReason] = useState("");
-  const [isSubmittingDeleteRequest, setIsSubmittingDeleteRequest] = useState(false);
   const [farmerPlantsOpen, setFarmerPlantsOpen] = useState(false);
   const [farmerPlants, setFarmerPlants] = useState([]);
   const [farmerPlantsLoading, setFarmerPlantsLoading] = useState(false);
@@ -195,53 +191,7 @@ const EditPlantation = () => {
   const openDeleteModal = () => setIsDeleteModalOpen(true);
   const closeDeleteModal = () => setIsDeleteModalOpen(false);
   
-  const openDeleteRequestModal = () => setIsDeleteRequestModalOpen(true);
-  const closeDeleteRequestModal = () => {
-    setIsDeleteRequestModalOpen(false);
-    setDeleteReason("");
-  };
 
-  // Отправка запроса на удаление
-  const handleDeleteRequest = async () => {
-    if (!deleteReason.trim()) {
-      setError("Sababni kiriting");
-      return;
-    }
-
-    try {
-      setIsSubmittingDeleteRequest(true);
-      setError(null);
-      
-      await apiRequest(
-        `api/plantations/${id}/delete/`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({
-            moderation_comment: [
-              {
-                text: deleteReason.trim(),
-                image: null
-              }
-            ]
-          })
-        },
-        refreshAccessToken,
-        authState.accessToken
-      );
-
-      setSuccessMessage("O'chirish uchun so'rov moderatsiyaga yuborildi");
-      closeDeleteRequestModal();
-      
-      // Обновляем данные плантации
-      await fetchPlantationDetails();
-      
-    } catch (error) {
-      console.error("Error sending delete request:", error);
-      setError("So'rovni yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
-    } finally {
-      setIsSubmittingDeleteRequest(false);
-    }
-  };
 
   const openFarmerPlantsModal = async () => {
     if (!plantation?.farmer?.id && !plantation?.farmer?.inn) return;
@@ -294,7 +244,6 @@ const EditPlantation = () => {
         if (isModalOpen) closeModal();
         if (isApproveModalOpen) closeApproveModal();
         if (isDeleteModalOpen) closeDeleteModal();
-        if (isDeleteRequestModalOpen) closeDeleteRequestModal();
         if (isCommentDeleteOpen) closeCommentDeleteModal();
         if (farmerPlantsOpen) setFarmerPlantsOpen(false);
         if (selectedImage) setSelectedImage(null);
@@ -315,7 +264,7 @@ const EditPlantation = () => {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isDeleteRequestModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
+  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
 
   const handleConfirm = async () => {
     try {
@@ -2367,46 +2316,6 @@ const EditPlantation = () => {
                 </div>
               )}
 
-            {/* Модальное окно для отправки запроса на удаление */}
-            {isDeleteRequestModalOpen && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteRequestModal}>
-                <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={closeDeleteRequestModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
-                  <h2 className="text-xl mb-4 text-white">O'chirish uchun so'rov</h2>
-                  <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirish uchun so'rov yubormoqchimisiz? So'rov moderatsiyaga yuboriladi.</p>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      O'chirish sababi *
-                    </label>
-                    <textarea
-                      value={deleteReason}
-                      onChange={(e) => setDeleteReason(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      rows={3}
-                      placeholder="O'chirish sababini kiriting..."
-                      required
-                    />
-            </div>
-                  
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50"
-                      onClick={handleDeleteRequest}
-                      disabled={isSubmittingDeleteRequest || !deleteReason.trim()}
-                    >
-                      {isSubmittingDeleteRequest ? "Yuborilmoqda..." : "So'rov yuborish"}
-                    </button>
-                    <button
-                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-                      onClick={closeDeleteRequestModal}
-                    >
-                      Bekor qilish
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
             {/* Confirm delete moderation comment modal */}
             {authState.userRole === "superuser" && isCommentDeleteOpen && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeCommentDeleteModal}>
@@ -2484,18 +2393,6 @@ const EditPlantation = () => {
 
             <div className="w-px h-8 bg-gray-600"></div>
             
-            <button
-              onClick={openDeleteRequestModal}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg"
-              title="Moderatsiyaga yuborish"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              <span>O'chirish uchun so'rov</span>
-            </button>
-
-            <div className="w-px h-8 bg-gray-600"></div>
             
             <button
               onClick={openDeleteModal}
