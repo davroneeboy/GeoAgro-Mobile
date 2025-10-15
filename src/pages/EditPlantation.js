@@ -355,6 +355,9 @@ const EditPlantation = () => {
           window.location.href = `/approved-plantations?page=${currentPage}`;
         } else if (fromPage === '/rejected-plantations') {
           window.location.href = '/rejected-plantations';
+        } else if (fromPage === '/deletion-requests') {
+          const currentPage = location.state?.page || 1;
+          window.location.href = `/deletion-requests?page=${currentPage}`;
         } else if (fromPage === '/moderation') {
           const currentPage = localStorage.getItem('moderationPage') || 1;
           const savedFilters = location.state?.filters;
@@ -425,6 +428,9 @@ const EditPlantation = () => {
         window.location.href = `/approved-plantations?page=${currentPage}`;
       } else if (fromPage === '/rejected-plantations') {
         window.location.href = '/rejected-plantations';
+      } else if (fromPage === '/deletion-requests') {
+        const currentPage = location.state?.page || 1;
+        window.location.href = `/deletion-requests?page=${currentPage}`;
       } else {
         const currentPage = localStorage.getItem('moderationPage') || 1;
         const savedFilters = location.state?.filters;
@@ -1091,6 +1097,10 @@ const EditPlantation = () => {
         } else if (fromPage === '/rejected-plantations') {
           // Если пришел с rejected-plantations, возвращаемся туда
           window.location.href = '/rejected-plantations';
+        } else if (fromPage === '/deletion-requests') {
+          // Если пришел с deletion-requests, возвращаемся туда с сохранением страницы
+          const currentPage = location.state?.page || 1;
+          window.location.href = `/deletion-requests?page=${currentPage}`;
         } else {
           // По умолчанию возвращаемся на moderation
         const currentPage = localStorage.getItem('moderationPage') || 1;
@@ -1332,6 +1342,10 @@ const EditPlantation = () => {
                 } else if (fromPage === '/rejected-plantations') {
                   // Если пришел с rejected-plantations, возвращаемся туда
                   window.location.href = '/rejected-plantations';
+                } else if (fromPage === '/deletion-requests') {
+                  // Если пришел с deletion-requests, возвращаемся туда с сохранением страницы
+                  const currentPage = location.state?.page || 1;
+                  window.location.href = `/deletion-requests?page=${currentPage}`;
                 } else if (fromPage === '/plantations/uz') {
                   // Если пришли с карты плантаций, возвращаемся на неё
                   window.location.href = '/plantations/uz';
