@@ -28,6 +28,18 @@ const DeletionRequests = () => {
   const navigate = useNavigate();
   const { authState, refreshAccessToken, logout } = useContext(AuthContext);
 
+  // Функция для перевода action значений
+  const translateAction = (action) => {
+    const actionTranslations = {
+      'delete_request': 'O\'chirish so\'rovi',
+      'approve': 'Tasdiqlash',
+      'reject': 'Rad etish',
+      'modify': 'O\'zgartirish',
+      'review': 'Ko\'rib chiqish'
+    };
+    return actionTranslations[action] || action;
+  };
+
   // Словарь регионов
   const regions = {
     1: "Toshkent shahri",
@@ -312,13 +324,64 @@ const DeletionRequests = () => {
                   </div>
                 </div>
 
-                {/* Комментарии к запросу на удаление */}
-                {request.moderation_comment && request.moderation_comment.length > 0 && (
-                  <div className="bg-orange-900/20 border border-orange-600/50 p-2 rounded-lg mb-3">
-                    <p className="text-xs text-orange-300 font-semibold mb-1">O'chirish so'rovi sababi:</p>
-                    {request.moderation_comment.map((comment, idx) => (
-                      <p key={idx} className="text-orange-200 text-xs">{comment.text}</p>
-                    ))}
+                {/* Расширенные комментарии к запросу на удаление */}
+                {request.moderation_comment && request.moderation_comment.filter(mc => mc?.author || mc?.action || mc?.timestamp || mc?.author_role).length > 0 && (
+                  <div className="bg-blue-900/20 border border-blue-500/50 p-3 rounded-lg mb-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-xs text-blue-300 font-semibold">Maxsus o'chirish so'rovi:</p>
+                    </div>
+                    {request.moderation_comment
+                      .filter(mc => mc?.author || mc?.action || mc?.timestamp || mc?.author_role)
+                      .map((comment, idx) => (
+                        <div key={idx} className="border-b border-blue-500/30 pb-2 mb-2 last:border-b-0 last:mb-0">
+                          <p className="text-blue-200 text-xs mb-2">{comment.text}</p>
+                          <div className="flex items-center gap-3 text-xs text-blue-300">
+                            {comment?.author && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span>Muallif: {comment.author}</span>
+                              </div>
+                            )}
+                            {comment?.author_role && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Rol: {comment.author_role}</span>
+                              </div>
+                            )}
+                            {comment?.timestamp && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>
+                                  {new Date(comment.timestamp).toLocaleString("ru-RU", {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                            {comment?.action && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>Harakat: {translateAction(comment.action)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>
