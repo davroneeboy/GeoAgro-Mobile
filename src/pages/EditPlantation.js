@@ -26,7 +26,7 @@ const EditPlantation = () => {
   const [moderationItems, setModerationItems] = useState([]);
   const { authState, refreshAccessToken } = useContext(AuthContext);
   const canDeleteComments = authState?.userRole === 'superuser';
-
+  
   // Функция для перевода action значений
   const translateAction = (action) => {
     const actionTranslations = {
@@ -1798,10 +1798,10 @@ const EditPlantation = () => {
                           <div className="flex-1">
                             <div className="text-gray-200 text-sm whitespace-pre-wrap">{mc?.text || ''}</div>
                           </div>
-                          {mc?.image && typeof mc.image === 'string' && (
-                            <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                              <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
-                            </a>
+                        {mc?.image && typeof mc.image === 'string' && (
+                          <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                            <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
+                          </a>
                           )}
                         </div>
                       </div>
@@ -1816,7 +1816,7 @@ const EditPlantation = () => {
                 <div className="flex items-center gap-2 mb-2 text-white">
                   <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <span className="font-semibold text-blue-300">Maxsus moderatsiya kommenti</span>
-                </div>
+                      </div>
                 <div className="p-3 rounded-lg border border-blue-500/50 bg-blue-900/10 space-y-3">
                   {plantation.moderation_comment
                     .filter(mc => mc?.author || mc?.action || mc?.timestamp || mc?.author_role)
@@ -2101,23 +2101,23 @@ const EditPlantation = () => {
                                       <div className="text-gray-200 text-sm whitespace-pre-wrap">{mc?.text || ''}</div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      {mc?.image && typeof mc.image === 'string' && (
-                                        <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                                          <img src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-gray-600" />
-                                        </a>
-                                      )}
-                                      {canDeleteComments && mc?.id && (
-                                        <button
-                                          onClick={() => openCommentDeleteModal(mc.id)}
-                                          className="text-red-400 hover:text-red-300 shrink-0"
-                                          title="O'chirish"
-                                        >
-                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
-                                          </svg>
-                                        </button>
-                                      )}
-                                    </div>
+                              {mc?.image && typeof mc.image === 'string' && (
+                                <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                                  <img src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-gray-600" />
+                                </a>
+                              )}
+                              {canDeleteComments && mc?.id && (
+              <button
+                                  onClick={() => openCommentDeleteModal(mc.id)}
+                                  className="text-red-400 hover:text-red-300 shrink-0"
+                                  title="O'chirish"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+                                  </svg>
+              </button>
+                              )}
+                            </div>
                                   </div>
                                 </div>
                               ))}
