@@ -16,6 +16,7 @@ const FarmerPlantationsMap = () => {
   const [error, setError] = useState(null);
   const [plantations, setPlantations] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [cacheKey, setCacheKey] = useState(null);
   const farmerInn = location.state?.farmer_inn || null;
 
   const mapRef = useRef(null);
@@ -113,8 +114,17 @@ const FarmerPlantationsMap = () => {
         setError(null);
         setLoading(true);
         const inn = (farmerInn && String(farmerInn).trim() !== '' && Number(farmerInn) > 0) ? farmerInn : undefined;
+        // Простое кэширование - проверяем, изменились ли параметры
+        const currentCacheKey = `${id}-${inn || 'no-inn'}`;
+        if (cacheKey === currentCacheKey && plantations.length > 0) {
+          setLoading(false);
+          return;
+        }
+        
         const results = await fetchFarmerPlantations({ farmer_id: id, farmer_inn: inn }, authState.accessToken);
         setPlantations(Array.isArray(results) ? results : []);
+        setCacheKey(currentCacheKey);
+        // API возвращает count, но наша функция его не возвращает - можно добавить в будущем
       } catch (e) {
         setError(e.message || "Ma'lumotlarni yuklashda xatolik yuz berdi");
       } finally {
@@ -123,6 +133,42 @@ const FarmerPlantationsMap = () => {
     };
     load();
   }, [id, farmerInn, authState.accessToken]);
+
+  // Обработчик для показа предпросмотра плантации
+  const handlePlantationPreview = async (plantation) => {
+    try {
+      // Загружаем детальную информацию о плантации, если её нет
+      let detailedPlantation = plantation;
+      if (!Array.isArray(plantation.images)) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (authState.accessToken) headers.Authorization = `Bearer ${authState.accessToken}`;
+        const res = await fetch(`${API_BASE_URL2}api/plantations/${plantation.id}/`, { headers });
+        if (res.ok) {
+          detailedPlantation = await res.json();
+        }
+      }
+      
+      // Переходим на страницу предпросмотра
+      navigate(`/plantations/preview/${plantation.id}`, {
+        state: {
+          previewPlantation: detailedPlantation,
+          from: `/farmers/${id}/map`,
+          farmer_inn: farmerInn
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка загрузки деталей плантации:', error);
+      // Переходим на страницу предпросмотра даже при ошибке
+      navigate(`/plantations/preview/${plantation.id}`, {
+        state: {
+          previewPlantation: plantation,
+          from: `/farmers/${id}/map`,
+          farmer_inn: farmerInn
+        }
+      });
+    }
+  };
+
 
   // Фокус на выбранной плантации: подстройка масштаба и выделение контура + загрузка картинок
   const focusOnPlantation = async (p) => {
@@ -238,25 +284,40 @@ const FarmerPlantationsMap = () => {
 
       plantations.forEach((p) => {
         const coords = parseCoords(p.coordinates);
-        if (!coords.length) return;
+        
+        if (!coords.length) {
+          return;
+        }
+        
         anyCoords = true;
         const isApproved = !!p.is_checked;
         const isRejected = !!p.is_rejected;
         const stroke = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : '#fadb14');
+        
+        
         const poly = new google.maps.Polygon({
           paths: coords,
           strokeColor: stroke,
           strokeOpacity: 1,
           strokeWeight: 2,
-          fillOpacity: 0,
+          fillColor: stroke,
+          fillOpacity: 0.2,
           map,
           zIndex: 10,
         });
+        
         polysRef.current.push({ poly, data: p });
         coords.forEach(c => bounds.extend(c));
-        poly.addListener('mouseover', () => { poly.setOptions({ strokeWeight: 3 }); });
-        poly.addListener('mouseout', () => { if (!selected || selected?.id !== p.id) poly.setOptions({ strokeWeight: 2 }); });
-        poly.addListener('click', () => { focusOnPlantation(p); });
+        
+        poly.addListener('mouseover', () => { 
+          poly.setOptions({ strokeWeight: 3 }); 
+        });
+        poly.addListener('mouseout', () => { 
+          if (!selected || selected?.id !== p.id) poly.setOptions({ strokeWeight: 2 }); 
+        });
+        poly.addListener('click', () => { 
+          focusOnPlantation(p); 
+        });
       });
 
       if (anyCoords) {
@@ -279,6 +340,11 @@ const FarmerPlantationsMap = () => {
           </button>
           <div className="text-gray-100 font-semibold text-base md:text-xl tracking-tight">
             Fermer planstasiyalari xaritasi
+            {plantations.length > 0 && (
+              <span className="text-sm text-gray-400 ml-2">
+                ({plantations.length} ta)
+              </span>
+            )}
           </div>
           <div className="w-8" />
         </div>
@@ -298,7 +364,9 @@ const FarmerPlantationsMap = () => {
             ) : selected ? (
                 <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-base font-bold text-white mr-3 truncate">{selected.name || 'Fermer'}</h2>
+                    <h2 className="text-base font-bold text-white mr-3 truncate">
+                      {selected.farmer_name || selected.name || 'Fermer'}
+                    </h2>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full border ${selected.is_checked ? 'bg-green-600/20 text-green-300 border-green-500/50' : (selected.is_rejected ? 'bg-red-600/20 text-red-300 border-red-500/50' : 'bg-yellow-600/20 text-yellow-300 border-yellow-500/50')}`}>
                         {selected.is_checked ? 'Tasdiqlangan' : (selected.is_rejected ? 'Rad etilgan' : 'Kutilmoqda')}
@@ -310,7 +378,12 @@ const FarmerPlantationsMap = () => {
                     <div className="flex justify-between text-gray-300"><span>ID:</span><span className="text-white">{selected.id}</span></div>
                     <div className="flex justify-between text-gray-300"><span>Maydon:</span><span className="text-white">{Number(selected.total_area || 0).toFixed(1)} ga</span></div>
                     <div className="flex justify-between text-gray-300"><span>Holat:</span><span className="text-white">{selected.is_checked ? 'Tasdiqlangan' : (selected.is_rejected ? 'Rad etilgan' : 'Kutilmoqda')}</span></div>
-                    <div className="flex justify-between text-gray-300"><span>Unumdorlik:</span><span className="text-white">{Number(selected.fertility_score || 0).toFixed(0)}</span></div>
+                    <div className="flex justify-between text-gray-300">
+                      <span>Unumdorlik:</span>
+                      <span className={`text-white ${selected.fertility_score > 70 ? 'text-green-400' : selected.fertility_score > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {Number(selected.fertility_score || 0).toFixed(0)}
+                      </span>
+                    </div>
                   </div>
                   {Array.isArray(selected.images) && selected.images.length > 0 && (
                     <div className="mt-4">
@@ -341,12 +414,21 @@ const FarmerPlantationsMap = () => {
                       const badgeCls = isApproved ? 'bg-green-600/20 text-green-300 border-green-500/50' : (isRejected ? 'bg-red-600/20 text-red-300 border-red-500/50' : 'bg-yellow-600/20 text-yellow-300 border-yellow-500/50');
                       const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : 'Kutilmoqda');
                       return (
-                        <div key={p.id} className={`p-3 bg-gray-700 rounded border border-gray-600 hover:bg-gray-650 cursor-pointer`} onClick={() => focusOnPlantation(p)}>
+                        <div key={p.id} className={`p-3 bg-gray-700 rounded border border-gray-600 hover:bg-gray-650 cursor-pointer`} onClick={() => handlePlantationPreview(p)}>
                           <div className="flex items-center justify-between">
-                            <div className="text-white font-medium truncate">{p.name || 'Fermer'}</div>
+                            <div className="text-white font-medium truncate">
+                              {p.farmer_name || p.name || 'Fermer'}
+                            </div>
                             <span className={`ml-2 text-xs px-2 py-0.5 rounded-full border ${badgeCls}`}>{statusText}</span>
                           </div>
-                          <div className="text-gray-400 text-xs mt-1">ID: {p.id} • Maydon: {Number(p.total_area || 0).toFixed(1)} ga</div>
+                          <div className="text-gray-400 text-xs mt-1">
+                            ID: {p.id} • Maydon: {Number(p.total_area || 0).toFixed(1)} ga
+                            {p.fertility_score > 0 && (
+                              <span className="ml-2 text-yellow-400">
+                                • Unumdorlik: {Number(p.fertility_score).toFixed(0)}
+                              </span>
+                            )}
+                          </div>
                           {Array.isArray(p.images) && p.images.length > 0 && (
                             <div className="mt-2 grid grid-cols-2 gap-2">
                               {p.images.slice(0,2).map((img, idx) => (
@@ -367,4 +449,5 @@ const FarmerPlantationsMap = () => {
   );
 };
 
-export default FarmerPlantationsMap; 
+export default FarmerPlantationsMap;
+

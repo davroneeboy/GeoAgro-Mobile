@@ -14,7 +14,7 @@ const Farmers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [noPlantsModalOpen, setNoPlantsModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -44,13 +44,13 @@ const Farmers = () => {
         setLoading(true);
         setError(null);
 
-        const digitsOnly = (debouncedSearch || "").replace(/\D/g, "");
-        const isNumericSearch = debouncedSearch.length > 0 && digitsOnly.length === debouncedSearch.length;
+        const digitsOnly = (searchQuery || "").replace(/\D/g, "");
+        const isNumericSearch = searchQuery.length > 0 && digitsOnly.length === searchQuery.length;
         const PAGE_SIZE = 20;
 
         const params = new URLSearchParams();
         params.set("page", String(page));
-        if (debouncedSearch && !isNumericSearch) params.set("search", debouncedSearch);
+        if (searchQuery && !isNumericSearch) params.set("search", searchQuery);
         if (isNumericSearch && digitsOnly.length === 9) params.set("inn", digitsOnly);
 
         let url = `${API_BASE_URL2}api/farmers/?${params.toString()}`;
@@ -118,31 +118,35 @@ const Farmers = () => {
         setLoading(false);
       }
     },
-    [debouncedSearch, authState.accessToken]
+    [searchQuery, authState.accessToken]
   );
 
-  // Debounce search input (быстрее)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  // Сбрасывать на первую страницу при изменении поискового запроса
-  useEffect(() => {
+  // Функция для выполнения поиска
+  const handleSearch = () => {
+    setSearchQuery(search.trim());
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  };
+
+  // Сброс поиска
+  const handleClearSearch = () => {
+    setSearch("");
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     fetchFarmers(currentPage);
   }, [currentPage, fetchFarmers]);
 
+  // Сбрасывать на первую страницу при изменении поискового запроса
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   // Fallback to test data if API is not available (только когда нет активного поиска)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (loading && farmers.length === 0 && !debouncedSearch) {
+      if (loading && farmers.length === 0 && !searchQuery) {
         
         const testFarmers = [
           {
@@ -210,7 +214,7 @@ const Farmers = () => {
     }, 5000); // 5 second timeout
 
     return () => clearTimeout(timeoutId);
-  }, [loading, farmers.length, debouncedSearch]);
+  }, [loading, farmers.length, searchQuery]);
 
   const handleEdit = (id) => {
     navigate(`/farmers/${id}`);
@@ -342,14 +346,30 @@ const Farmers = () => {
             Fermerlar
           </h2>
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 sticky top-[64px] z-10 bg-gray-900/80 backdrop-blur-md p-3 md:p-0 md:bg-transparent">
-            <input
-              type="text"
-              placeholder="Qidirish..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') setDebouncedSearch(search.trim()); }}
-              className="w-full sm:w-72 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-800 text-white border-gray-600 placeholder-gray-400"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Qidirish..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-800 text-white border-gray-600 placeholder-gray-400"
+              />
+              <button
+                onClick={handleSearch}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              >
+                Qidirish
+              </button>
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                >
+                  Tozalash
+                </button>
+              )}
+            </div>
             {authState.userRole === "superuser" && (
               <button
                 onClick={() => navigate("/farmers/new")}

@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import MapContainer from "./pages/mapContainer";
 import PlantationDetail from "./pages/PlantationDetail";
 import EditPlantation from "./pages/EditPlantation";
+import PlantationPreviewPage from "./pages/PlantationPreviewPage";
 import UserInfo from "./pages/UserInfo";
 import Farmers from "./pages/Farmers";
 import FarmerEdit from "./pages/FarmerEdit";
@@ -46,6 +47,7 @@ export default function AppRouter() {
       <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser"]}><ApprovedPlantations /></ProtectedRoute>} />
       <Route path="/plantations/uz" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><MapContainer /></ProtectedRoute>} />
       <Route path="/plantations/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><PlantationDetail /></ProtectedRoute>} />
+      <Route path="/plantations/preview/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><PlantationPreviewPage /></ProtectedRoute>} />
       <Route path="/plantations/edit/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><EditPlantation /></ProtectedRoute>} />
       <Route path="/user/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><UserInfo /></ProtectedRoute>} />
       <Route path="/statistics/regions" element={<ProtectedRoute allowedRoles={["superuser", "observer"]}><RegionsPage /></ProtectedRoute>} />
@@ -65,3 +67,4 @@ export default function AppRouter() {
     </Routes>
   );
 }
+

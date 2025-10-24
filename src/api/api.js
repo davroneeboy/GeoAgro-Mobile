@@ -323,24 +323,41 @@ export async function fetchFarmerPlantations({ farmer_id, farmer_inn }, accessTo
   try {
     const data = await dedupeFetchJson(url, { headers });
     const results = Array.isArray(data?.results) ? data.results : [];
-    return results.map(p => ({
-      id: p.id,
-      name: p.name,
-      is_checked: !!p.is_checked,
-      coordinates: Array.isArray(p.coordinates) ? p.coordinates : [],
-      fertility_score: Number(p.fertility_score ?? 0),
-      total_area: Number(p.total_area ?? 0),
-      images: Array.isArray(p.images) ? p.images : undefined,
-    }));
+    return results.map(p => {
+      
+      const result = {
+        id: p.id,
+        name: p.name, // Это имя фермера согласно API документации
+        farmer_name: p.farmer_name || p.name, // Используем farmer_name из API, если есть, иначе name
+        is_checked: !!p.is_checked,
+        is_rejected: !!p.is_rejected,
+        coordinates: Array.isArray(p.coordinates) ? p.coordinates : [],
+        fertility_score: Number(p.fertility_score ?? 0),
+        total_area: Number(p.total_area ?? 0),
+        images: Array.isArray(p.images) ? p.images : undefined,
+      };
+      
+      
+      return result;
+    });
   } catch (error) {
-    // Пробрасываем понятные ошибки доступа/валидации из описания
-    const msg = String(error?.message || '').toLowerCase();
-    if (msg.includes('403')) {
+    // Специфичная обработка ошибок согласно API документации
+    const status = error?.response?.status;
+    const errorMessage = error?.response?.data?.error || error?.message || '';
+    
+    if (status === 400) {
+      if (errorMessage.includes('farmer_inn') || errorMessage.includes('farmer_id')) {
+        throw new Error('Необходимо указать farmer_inn или farmer_id');
+      }
+      throw new Error('Неверные параметры запроса');
+    }
+    if (status === 403) {
       throw new Error('Недостаточно прав для доступа к этой информации');
     }
-    if (msg.includes('400')) {
-      throw new Error('Необходимо указать farmer_inn или farmer_id');
+    if (status === 500) {
+      throw new Error('Произошла ошибка при получении данных');
     }
+    
     console.error('Ошибка при загрузке плантаций фермера:', error);
     throw error;
   }
@@ -590,4 +607,3 @@ export async function fetchFarmersStatisticsWithFilters(params = {}, accessToken
     throw error;
   }
 }
-
