@@ -16,9 +16,9 @@ const PlantationPreviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [regionPolygons, setRegionPolygons] = useState([]);
-  const [regionLabels, setRegionLabels] = useState([]);
-  const [otherPlantations, setOtherPlantations] = useState([]);
+  const [, setRegionPolygons] = useState([]);
+  const [, setRegionLabels] = useState([]);
+  const [, setOtherPlantations] = useState([]);
   const mapRef = useRef(null);
   const polygonRef = useRef(null);
 
