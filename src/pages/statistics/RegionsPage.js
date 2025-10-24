@@ -264,7 +264,6 @@ const RegionsPage = () => {
           // Загружаем данные через новый API с фильтром по статусу
           const allData = await fetchRegionsStatisticsWithStatus('all', params, authState.accessToken);
           
-          console.log('API Response:', allData); // Для отладки
           
           // Преобразуем данные в нужный формат для таблицы
           data = {};

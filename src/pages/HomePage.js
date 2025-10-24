@@ -77,6 +77,7 @@ const HomePage = () => {
   const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
   const [statistics, setStatistics] = useState(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // удалены состояния контроллеров — панель перенесена в LeftNav
   const isAt = (path) => location.pathname.startsWith(path);
@@ -95,13 +96,8 @@ const HomePage = () => {
           },
         });
         const data = await response.json();
-        
-        // Обрабатываем новую структуру API v2.0
-        if (data.summary) {
-          setStatistics(data.summary);
-        } else {
-          setStatistics(data);
-        }
+        setStatistics(data);
+        setIsDataLoaded(true);
       } catch (error) {
         console.error("Ошибка при загрузке статистики:", error);
       }
@@ -123,8 +119,8 @@ const HomePage = () => {
     labels: ["Tasdiqlangan", "Kutilmoqda", "Rad etilgan"],
     datasets: [
       {
-        label: "Plantatsiya holati",
-        data: statistics
+        label: "Plantatsiya soni",
+        data: isDataLoaded && statistics
           ? [
               statistics.plantations?.approved_plantations || 0,
               statistics.plantations?.pending_plantations || 0,
@@ -146,13 +142,14 @@ const HomePage = () => {
     ],
   };
 
+
   // Второй пай-чарт: Площади (упрощенный для нового API v2.0)
   const areasData = {
     labels: ["Umumiy maydon"],
     datasets: [
       {
         label: "Maydonlar",
-        data: statistics
+        data: isDataLoaded && statistics
           ? [statistics.plantations?.total_area || 0]
           : [],
         backgroundColor: [
@@ -166,13 +163,14 @@ const HomePage = () => {
     ],
   };
 
+
   // Третий пай-чарт: Инвестиции (упрощенный для нового API v2.0)
   const investmentsData = {
     labels: ["Jami investitsiyalar"],
     datasets: [
       {
         label: "Investitsiyalar",
-        data: statistics
+        data: isDataLoaded && statistics
           ? [statistics.investment?.total_investment || 0]
           : [],
         backgroundColor: [
@@ -186,10 +184,7 @@ const HomePage = () => {
     ],
   };
 
-  // Ирригация (sug'oriladigan) против неирригации
-  const irrigationTotal = statistics?.irrigation?.total_irrigation_area || 0;
-  const totalAreaAll = statistics?.plantations?.total_area || 0;
-  const nonIrrigation = Math.max(totalAreaAll - irrigationTotal, 0);
+
 
 
 
@@ -200,7 +195,7 @@ const HomePage = () => {
     datasets: [
       {
         label: "Maydon (ga)",
-        data: statistics
+        data: isDataLoaded && statistics
           ? [
               statistics.plantation_types?.bogs_area || 0,
               statistics.plantation_types?.uzumzors_area || 0,
@@ -222,107 +217,14 @@ const HomePage = () => {
     ]
   };
 
-  // Bar chart данные для экономических зон
-  const economicAreasBarData = {
-    labels: ["Ekonomik samarali", "Ekonomik samarasiz", "Foydalanib bo'lmaydigan"],
-    datasets: [
-      {
-        label: "Maydon (ga)",
-        data: statistics
-          ? [
-              statistics.economic_areas?.planted_area || 0,
-              statistics.economic_areas?.economic_inefficient_area || 0,
-              statistics.economic_areas?.not_usable_area || 0,
-            ]
-          : [],
-        backgroundColor: [
-          "rgba(34, 197, 94, 0.8)",   // green-500 - efficient
-          "rgba(245, 158, 11, 0.8)",  // yellow-500 - inefficient
-          "rgba(239, 68, 68, 0.8)",    // red-500 - not usable
-        ],
-        borderColor: [
-          "rgba(34, 197, 94, 1)",
-          "rgba(245, 158, 11, 1)",
-          "rgba(239, 68, 68, 1)",
-        ],
-        borderWidth: 2,
-      }
-    ]
-  };
-
-
-  // Bar chart данные для ирригации
-  const irrigationBarData = {
-    labels: ["Sug'oriladigan", "Sug'orilmaydigan"],
-    datasets: [
-      {
-        label: "Maydon (ga)",
-        data: [irrigationTotal, nonIrrigation],
-        backgroundColor: [
-          "rgba(20, 184, 166, 0.8)",  // teal-500 - irrigated
-          "rgba(75, 85, 99, 0.8)",    // gray-600 - non-irrigated
-        ],
-        borderColor: [
-          "rgba(20, 184, 166, 1)",
-          "rgba(75, 85, 99, 1)",
-        ],
-        borderWidth: 2,
-      }
-    ]
-  };
-
-  // Bar chart данные для фруктов
-  const fruitsBarData = {
-    labels: ["Frukt turlari", "Navlar soni"],
-    datasets: [
-      {
-        label: "Soni",
-        data: statistics
-          ? [
-              statistics.fruits?.fruits_count || 0,
-              statistics.fruits?.varieties_count || 0,
-            ]
-          : [],
-        backgroundColor: [
-          "rgba(34, 197, 94, 0.8)",   // green-500 - fruits
-          "rgba(168, 85, 247, 0.8)",  // purple-500 - varieties
-        ],
-        borderColor: [
-          "rgba(34, 197, 94, 1)",
-          "rgba(168, 85, 247, 1)",
-        ],
-        borderWidth: 2,
-      }
-    ]
-  };
 
 
 
 
-  // Bar Chart данные для инвестиций по типам (заменяем Line на Bar)
-  const investmentBarData = {
-    labels: ["Mahalliy", "Xorijiy"],
-    datasets: [
-      {
-        label: "Investitsiyalar (mlrd so'm)",
-        data: statistics
-          ? [
-              (statistics.investment?.total_local_investment || 0) / 1e9,
-              (statistics.investment?.total_foreign_investment || 0) / 1e9,
-            ]
-          : [],
-        backgroundColor: [
-          "rgba(34, 197, 94, 0.8)",
-          "rgba(59, 130, 246, 0.8)",
-        ],
-        borderColor: [
-          "rgba(34, 197, 94, 1)",
-          "rgba(59, 130, 246, 1)",
-        ],
-        borderWidth: 2,
-      }
-    ]
-  };
+
+
+
+
 
   // Doughnut Chart данные для плодородия (заменяем Radar на Doughnut)
   const fertilityDoughnutData = {
@@ -330,10 +232,10 @@ const HomePage = () => {
     datasets: [
       {
         label: "Unumdorlik maydoni (ga)",
-        data: [
+        data: isDataLoaded && statistics ? [
           statistics?.fertility?.low_fertility_area || 0,
           statistics?.fertility?.high_fertility_area || 0,
-        ],
+        ] : [],
         backgroundColor: [
           "rgba(239, 68, 68, 0.8)",
           "rgba(34, 197, 94, 0.8)",
@@ -400,6 +302,77 @@ const HomePage = () => {
     }
   };
 
+  // Настройки для чартов с количеством (не гектары)
+  const barChartOptionsCount = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 8,
+          font: {
+            size: window.innerWidth < 768 ? 9 : 11,
+            weight: 'bold',
+            color: '#ffffff'
+          },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(26, 26, 26, 0.95)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(50, 205, 50, 0.3)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            return `${context.label}: ${new Intl.NumberFormat('uz-UZ').format(context.parsed.y)} ta`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#ffffff',
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+            weight: 'bold'
+          }
+        },
+        grid: {
+          color: 'rgba(75, 85, 99, 0.3)'
+        }
+      },
+      y: {
+        ticks: {
+          color: '#ffffff',
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+            weight: 'bold'
+          },
+          callback: function(value) {
+            return new Intl.NumberFormat('uz-UZ').format(value);
+          }
+        },
+        grid: {
+          color: 'rgba(75, 85, 99, 0.3)'
+        }
+      }
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart'
+    }
+  };
+
+  // Настройки для чартов с площадями (гектары)
   const barChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -586,7 +559,7 @@ const HomePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-100 text-sm font-medium">Jami plantatsiyalar</p>
-                        <p className="text-white text-2xl font-bold">22,054</p>
+                        <p className="text-white text-2xl font-bold">{statistics?.plantations?.total_plantations ? statistics.plantations.total_plantations.toLocaleString() : '—'}</p>
                       </div>
                       <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                         <svg className="w-6 h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -600,7 +573,7 @@ const HomePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-blue-100 text-sm font-medium">Umumiy maydon</p>
-                        <p className="text-white text-2xl font-bold">301,229 GA</p>
+                        <p className="text-white text-2xl font-bold">{statistics?.plantations?.total_area ? `${formatCompact(statistics.plantations.total_area)} GA` : '—'}</p>
                       </div>
                       <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
                         <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -614,7 +587,7 @@ const HomePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-purple-100 text-sm font-medium">Jami investitsiyalar</p>
-                        <p className="text-white text-2xl font-bold">24.5 trln</p>
+                        <p className="text-white text-2xl font-bold">{statistics?.investment?.total_investment ? `${formatCompact(statistics.investment.total_investment)} so'm` : '—'}</p>
                       </div>
                       <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
                         <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -628,7 +601,7 @@ const HomePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-orange-100 text-sm font-medium">Fermerlar soni</p>
-                        <p className="text-white text-2xl font-bold">18,105</p>
+                        <p className="text-white text-2xl font-bold">{statistics?.farmers?.total_farmers ? statistics.farmers.total_farmers.toLocaleString() : '—'}</p>
                       </div>
                       <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
                         <svg className="w-6 h-6 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -652,27 +625,11 @@ const HomePage = () => {
                       </div>
                     </div>
                     <div className="h-64">
-                      <Bar
-                        data={{
-                          labels: ["Tasdiqlangan", "Kutilmoqda", "Rad etilgan"],
-                          datasets: [{
-                            label: "Plantatsiya soni",
-                            data: [7728, 13281, 1045],
-                            backgroundColor: [
-                              "rgba(34, 197, 94, 0.8)",   // green - approved
-                              "rgba(245, 158, 11, 0.8)",  // yellow - pending
-                              "rgba(239, 68, 68, 0.8)",    // red - rejected
-                            ],
-                            borderColor: [
-                              "rgba(34, 197, 94, 1)",
-                              "rgba(245, 158, 11, 1)",
-                              "rgba(239, 68, 68, 1)",
-                            ],
-                            borderWidth: 2,
-                          }]
-                        }}
-                        options={barChartOptions}
-                      />
+                       <Bar
+                         key={`plantation-status-${statistics?.plantations?.total_plantations || 0}`}
+                         data={plantationStatusData}
+                         options={barChartOptionsCount}
+                       />
                     </div>
                   </div>
 
@@ -688,24 +645,8 @@ const HomePage = () => {
                     </div>
                     <div className="h-64">
                       <Bar
-                        data={{
-                          labels: ["Bog'lar", "Uzumzorlar", "Issiqxonalar"],
-                          datasets: [{
-                            label: "Plantatsiya soni",
-                            data: [18110, 3783, 64],
-                            backgroundColor: [
-                              "rgba(34, 197, 94, 0.8)",   // green - bogs
-                              "rgba(168, 85, 247, 0.8)",  // purple - uzumzors
-                              "rgba(245, 158, 11, 0.8)",  // yellow - issiqxonas
-                            ],
-                            borderColor: [
-                              "rgba(34, 197, 94, 1)",
-                              "rgba(168, 85, 247, 1)",
-                              "rgba(245, 158, 11, 1)",
-                            ],
-                            borderWidth: 2,
-                          }]
-                        }}
+                        key={`plantation-types-${statistics?.plantation_types?.bogs_area || 0}`}
+                        data={plantationTypesBarData}
                         options={barChartOptions}
                       />
                     </div>
@@ -723,22 +664,8 @@ const HomePage = () => {
                     </div>
                     <div className="h-64">
                       <Bar
-                        data={{
-                          labels: ["Past unumdorlik", "Yuqori unumdorlik"],
-                          datasets: [{
-                            label: "Maydon (ga)",
-                            data: [131279, 169950],
-                            backgroundColor: [
-                              "rgba(239, 68, 68, 0.8)",   // red - low fertility
-                              "rgba(34, 197, 94, 0.8)",   // green - high fertility
-                            ],
-                            borderColor: [
-                              "rgba(239, 68, 68, 1)",
-                              "rgba(34, 197, 94, 1)",
-                            ],
-                            borderWidth: 2,
-                          }]
-                        }}
+                        key={`fertility-${statistics?.fertility?.avg_fertility_score || 0}`}
+                        data={fertilityDoughnutData}
                         options={barChartOptions}
                       />
                     </div>
@@ -779,6 +706,7 @@ const HomePage = () => {
                 </h3>
                 <div className="h-64">
                   <Doughnut
+                    key={`plantation-status-${statistics?.plantations?.total_plantations || 0}`}
                     data={plantationStatusData}
                     options={{
                       ...pieChartOptions,
@@ -796,6 +724,7 @@ const HomePage = () => {
                 </h3>
                 <div className="h-64">
                   <Doughnut
+                    key={`areas-${statistics?.plantations?.total_area || 0}`}
                     data={areasData}
                     options={{
                       ...pieChartOptions,
@@ -813,6 +742,7 @@ const HomePage = () => {
                 </h3>
                 <div className="h-64">
                   <Doughnut
+                    key={`investments-${statistics?.investment?.total_investment || 0}`}
                     data={investmentsData}
                     options={{
                       ...pieChartOptions,
@@ -834,68 +764,7 @@ const HomePage = () => {
                   />
                 </div>
               </div>
-              {/* Mobile: Ирригация и Уруқдорлик */}
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Sug'orish</h3>
-                <div className="h-64">
-                  <Bar
-                    data={irrigationBarData}
-                    options={barChartOptions}
-                  />
-                </div>
-              </div>
 
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Tuproq unumdorligi</h3>
-                <div className="h-64">
-                  <Doughnut
-                    data={fertilityDoughnutData}
-                    options={pieChartOptions}
-                  />
-                </div>
-              </div>
-
-              {/* Новые pie charts для мобильной версии */}
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Plantatsiya turlari</h3>
-                <div className="h-64">
-                  <Bar
-                    data={plantationTypesBarData}
-                    options={barChartOptions}
-                  />
-                </div>
-              </div>
-
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Ekonomik zonalar</h3>
-                <div className="h-64">
-                  <Bar
-                    data={economicAreasBarData}
-                    options={barChartOptions}
-                  />
-                </div>
-              </div>
-
-              {/* Дополнительные графики для мобильной версии */}
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Frukt turlari</h3>
-                <div className="h-64">
-                  <Bar
-                    data={fruitsBarData}
-                    options={barChartOptions}
-                  />
-                </div>
-              </div>
-
-              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Investitsiya turlari</h3>
-                <div className="h-64">
-                  <Bar
-                    data={investmentBarData}
-                    options={barChartOptions}
-                  />
-                </div>
-              </div>
 
 
 

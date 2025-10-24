@@ -147,23 +147,14 @@ const RegionDetailPage = () => {
             let totalData = null;
             const dataMap = {};
             
-            console.log('Processing all data:', data.length, 'items');
             
             data.forEach((item, index) => {
               const districtId = item.district_id?.toString();
               const districtName = item.district_name;
               
-              console.log(`Processing item ${index}:`, { districtId, districtName, total_area: item.total_area });
               
               if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
-                console.log('Processing TOTAL row:', {
-                  total_area: item.total_area,
-                  total_plantations: item.total_plantations,
-                  low_fertility: item.low_fertility,
-                  high_fertility: item.high_fertility,
-                  irrigation: item.irrigation
-                });
                 
                 totalData = {
                   total_area: Number(item.total_area || 0),
