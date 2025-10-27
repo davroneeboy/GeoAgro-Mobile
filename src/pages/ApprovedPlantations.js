@@ -12,7 +12,6 @@ const ApprovedPlantations = () => {
   const [filters, setFilters] = useState({
     region: "All",
     district: "All",
-    crop_type: "All",
     farmer: "All",
     plantation_id: "All",
   });
@@ -54,7 +53,6 @@ const ApprovedPlantations = () => {
     return {
       region: searchParams.get('region') || "All",
       district: searchParams.get('district') || "All",
-      crop_type: searchParams.get('crop_type') || "All",
       farmer: searchParams.get('farmer') || "All",
       plantation_id: searchParams.get('plantation_id') || "All",
     };
@@ -70,7 +68,6 @@ const ApprovedPlantations = () => {
     // Добавляем фильтры только если они не "All"
     if (newFilters.region !== "All") searchParams.set('region', newFilters.region);
     if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
-    if (newFilters.crop_type !== "All") searchParams.set('crop_type', newFilters.crop_type);
     if (newFilters.farmer && newFilters.farmer !== "All") searchParams.set('farmer', newFilters.farmer);
     if (newFilters.plantation_id && newFilters.plantation_id !== "All") searchParams.set('plantation_id', newFilters.plantation_id);
     
@@ -237,25 +234,15 @@ const ApprovedPlantations = () => {
         const params = {
           page: page.toString(),
           page_size: pageSize.toString(),
-          is_checked: 'True',
-          is_rejected: 'False',
-          region: filters.region !== "All" ? filters.region : undefined,
-          district: filters.district !== "All" ? filters.district : undefined,
-          crop_type: filters.crop_type !== "All" ? filters.crop_type : undefined,
+          // Новые параметры согласно API
+          region_id: filters.region !== "All" ? filters.region : undefined,
+          district_id: filters.district !== "All" ? filters.district : undefined,
           farmer: filters.farmer && filters.farmer !== "All" ? filters.farmer : undefined,
           plantation_id: filters.plantation_id && filters.plantation_id !== "All" ? filters.plantation_id : undefined,
         };
 
-        // RBAC: Определяем endpoint в зависимости от роли пользователя
-        // Примечание: обычный пользователь (user) не имеет доступа к этой странице
-        let plantationsEndpoint;
-        if (authState.userRole === 'headof_region' && authState.regionId) {
-          // Для главы региона используем специальный endpoint для его региона
-          plantationsEndpoint = `${API_BASE_URL2}api/plantations/forme/approved/`;
-        } else {
-          // Для суперпользователя и наблюдателя используем общий endpoint
-          plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;
-        }
+        // Используем новый endpoint для одобренных плантаций
+        const plantationsEndpoint = `${API_BASE_URL2}api/approved-plantations/`;
 
         // Используем endpoint для плантаций с пагинацией
         const response = await axios.get(
@@ -268,43 +255,15 @@ const ApprovedPlantations = () => {
           }
         );
 
-        // Обрабатываем данные с пагинацией
+        // Обрабатываем данные с пагинацией - новый endpoint уже возвращает полную информацию
         const plantationsData = response.data.results || [];
         
-        // Загружаем детальную информацию только для видимых плантаций
-        const detailedPlantationsPromises = plantationsData.map(async (plantation) => {
-          try {
-            const detailResponse = await axios.get(
-              `${API_BASE_URL2}api/plantations/${plantation.id}/`,
-              {
-                headers: {
-                  Authorization: `Bearer ${authState.accessToken}`,
-                },
-                validateStatus: function (status) {
-                  return status < 500; // Не считаем 500 ошибкой для axios
-                }
-              }
-            );
-            return detailResponse.data;
-          } catch (error) {
-            // Если плантация удалена (404 или 500), возвращаем базовые данные
-            if (error.response?.status === 404 || error.response?.status === 500) {
-              
-              return plantation; // Используем данные из списка
-            }
-            console.error(`Error fetching details for plantation ${plantation.id}:`, error);
-            return plantation; // Для других ошибок возвращаем базовые данные
-          }
-        });
-        
-        const detailedPlantations = await Promise.all(detailedPlantationsPromises);
-        
-        setPlantations(detailedPlantations);
-        setCount(response.data.count || detailedPlantations.length);
+        setPlantations(plantationsData);
+        setCount(response.data.count || plantationsData.length);
 
         // Загружаем информацию о пользователях для отображения имен создателей и модераторов
         const userIds = new Set();
-        detailedPlantations.forEach(plantation => {
+        plantationsData.forEach(plantation => {
           if (plantation.created_by) userIds.add(plantation.created_by);
           if (plantation.moderated_by) userIds.add(plantation.moderated_by);
         });
@@ -353,7 +312,7 @@ const ApprovedPlantations = () => {
     };
 
     fetchApprovedPlantations();
-  }, [page, filters.region, filters.district, filters.crop_type, filters.farmer, filters.plantation_id, authState.accessToken, logout, navigate]);
+  }, [page, filters.region, filters.district, filters.farmer, filters.plantation_id, authState.accessToken, logout, navigate]);
 
   // eslint-disable-next-line no-unused-vars
   const handlePageChange = (newPage) => {
@@ -427,7 +386,7 @@ const ApprovedPlantations = () => {
 
 
   const handleResetFilters = () => {
-    const resetFilters = { region: "All", district: "All", crop_type: "All", farmer: "All", plantation_id: "All" };
+    const resetFilters = { region: "All", district: "All", farmer: "All", plantation_id: "All" };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('approvedPlantationsPage', '1');
@@ -591,16 +550,6 @@ const ApprovedPlantations = () => {
                   )}
                 </select>
               )}
-              <select
-                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                value={filters.crop_type}
-                onChange={(e) => handleFilterChange('crop_type', e.target.value)}
-              >
-                <option value="All">Ekin turi</option>
-                <option value="Bog'lar">Bog'lar</option>
-                <option value="Issiqxonalar">Issiqxonalar</option>
-                <option value="Uzumzorlar">Uzumzorlar</option>
-              </select>
             </div>
 
             {/* Информация о загрузке */}
@@ -687,7 +636,7 @@ const ApprovedPlantations = () => {
                         <div className="text-white font-semibold text-xs">
                           {plantation.fruit_areas && plantation.fruit_areas.length > 0 
                             ? plantation.fruit_areas.map(fruit => fruit.fruit).join(', ')
-                            : plantation.crop_type || "—"}
+                            : plantation.land_type || "—"}
                         </div>
                       </div>
                     </div>
@@ -904,22 +853,6 @@ const ApprovedPlantations = () => {
                 </select>
               </div>
             )}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Ekin turi
-              </label>
-              <select
-                value={filters.crop_type}
-                onChange={(e) => handleFilterChange('crop_type', e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="All">Barcha ekinlar</option>
-                <option value="uzum">Uzum</option>
-                <option value="olma">Olma</option>
-                <option value="banan">Banan</option>
-                <option value="apelsin">Apelsin</option>
-              </select>
-            </div>
           </div>
 
           {/* Мобильный список */}
@@ -997,7 +930,7 @@ const ApprovedPlantations = () => {
                       <div className="text-white font-semibold text-xs">
                         {plantation.fruit_areas && plantation.fruit_areas.length > 0 
                           ? plantation.fruit_areas.map(fruit => fruit.fruit).join(', ')
-                          : plantation.crop_type || "—"}
+                          : plantation.land_type || "—"}
                       </div>
                     </div>
                   </div>
