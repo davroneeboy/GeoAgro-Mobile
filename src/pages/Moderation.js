@@ -223,6 +223,7 @@ const Moderation = () => {
       farmer: urlParams.get('farmer') || "All",
       // новые фильтры
       farmer_id: urlParams.get('farmer_id') || "All",
+      plantation_id: urlParams.get('plantation_id') || "All",
       min_area: urlParams.get('min_area') || "All",
       max_area: urlParams.get('max_area') || "All",
       min_fertility_score: urlParams.get('min_fertility_score') || "All",
@@ -268,6 +269,7 @@ const Moderation = () => {
       farmer: searchParams.get('farmer') || "All",
       // новые
       farmer_id: searchParams.get('farmer_id') || "All",
+      plantation_id: searchParams.get('plantation_id') || "All",
       min_area: searchParams.get('min_area') || "All",
       max_area: searchParams.get('max_area') || "All",
       min_fertility_score: searchParams.get('min_fertility_score') || "All",
@@ -314,6 +316,7 @@ const Moderation = () => {
     if (newFilters.farmer !== "All") searchParams.set('farmer', newFilters.farmer);
     // новые
     if (newFilters.farmer_id !== "All") searchParams.set('farmer_id', newFilters.farmer_id);
+    if (newFilters.plantation_id !== "All") searchParams.set('plantation_id', newFilters.plantation_id);
     if (newFilters.min_area !== "All") searchParams.set('min_area', newFilters.min_area);
     if (newFilters.max_area !== "All") searchParams.set('max_area', newFilters.max_area);
     if (newFilters.min_fertility_score !== "All") searchParams.set('min_fertility_score', newFilters.min_fertility_score);
@@ -528,6 +531,7 @@ const Moderation = () => {
           farmer: filters.farmer !== "All" ? filters.farmer : undefined,
           // новые
           farmer_id: filters.farmer_id !== "All" ? filters.farmer_id : undefined,
+          plantation_id: filters.plantation_id !== "All" ? filters.plantation_id : undefined,
           min_area: filters.min_area !== "All" ? filters.min_area : undefined,
           max_area: filters.max_area !== "All" ? filters.max_area : undefined,
           min_fertility_score: filters.min_fertility_score !== "All" ? filters.min_fertility_score : undefined,
@@ -718,7 +722,7 @@ const Moderation = () => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     fetchModerations().finally(() => { isFetchingRef.current = false; });
-  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.moderation_type, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
+  }, [page, filters.action, filters.status, filters.type, filters.region, filters.district, filters.farmer, filters.plantation_id, filters.moderation_type, filters.sort_by, filters.sort_order, navigate, authState.accessToken, logout]);
 
   const handleResetFilters = () => {
     const resetFilters = { 
@@ -728,6 +732,7 @@ const Moderation = () => {
       region: "All", 
       district: "All", 
       farmer: "All", 
+      plantation_id: "All",
       moderation_type: "All",
       sort_by: "default", 
       sort_order: "asc" 
@@ -950,6 +955,20 @@ const Moderation = () => {
                 value={filters.farmer === "All" ? "" : filters.farmer}
                 onChange={(e) => {
                   const newFilters = { ...filters, farmer: e.target.value || "All" };
+                  setFilters(newFilters);
+                  setPage(1);
+                  localStorage.setItem('moderationPage', '1');
+                  saveFiltersToUrl(newFilters, 1);
+                }}
+              />
+
+              <input
+                type="text"
+                placeholder="Planatsiya ID"
+                className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base placeholder-gray-400"
+                value={filters.plantation_id === "All" ? "" : filters.plantation_id}
+                onChange={(e) => {
+                  const newFilters = { ...filters, plantation_id: e.target.value || "All" };
                   setFilters(newFilters);
                   setPage(1);
                   localStorage.setItem('moderationPage', '1');
@@ -1392,6 +1411,19 @@ const Moderation = () => {
               value={filters.farmer === "All" ? "" : filters.farmer}
               onChange={(e) => {
                 const newFilters = { ...filters, farmer: e.target.value || "All" };
+                setFilters(newFilters);
+                setPage(1);
+                localStorage.setItem('moderationPage', '1');
+                saveFiltersToUrl(newFilters, 1);
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Planatsiya ID"
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
+              value={filters.plantation_id === "All" ? "" : filters.plantation_id}
+              onChange={(e) => {
+                const newFilters = { ...filters, plantation_id: e.target.value || "All" };
                 setFilters(newFilters);
                 setPage(1);
                 localStorage.setItem('moderationPage', '1');

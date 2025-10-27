@@ -20,7 +20,8 @@ const RejectedPlantations = () => {
   const [filters, setFilters] = useState({
     region: 'All',
     crop_type: 'All',
-    farmer: 'All'
+    farmer: 'All',
+    plantation_id: 'All'
   });
 
   const pageSize = 20;
@@ -58,7 +59,8 @@ const RejectedPlantations = () => {
     setFilters({
       region: 'All',
       crop_type: 'All',
-      farmer: 'All'
+      farmer: 'All',
+      plantation_id: 'All'
     });
     setPage(1);
   };
@@ -157,6 +159,9 @@ const RejectedPlantations = () => {
       }
       if (filters.farmer && filters.farmer !== 'All') {
         params.append('farmer', filters.farmer);
+      }
+      if (filters.plantation_id && filters.plantation_id !== 'All') {
+        params.append('plantation_id', filters.plantation_id);
       }
 
       // RBAC: Для headof_region принудительно устанавливаем фильтр по региону
@@ -346,6 +351,13 @@ const RejectedPlantations = () => {
                   placeholder="Fermer INN yoki ID"
                   value={filters.farmer === 'All' ? '' : filters.farmer}
                   onChange={(e) => handleFilterChange('farmer', e.target.value.trim() || 'All')}
+                />
+                <input
+                  type="text"
+                  className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  placeholder="Planatsiya ID"
+                  value={filters.plantation_id === 'All' ? '' : filters.plantation_id}
+                  onChange={(e) => handleFilterChange('plantation_id', e.target.value.trim() || 'All')}
                 />
                 
                 <select
@@ -587,6 +599,18 @@ const RejectedPlantations = () => {
                 onChange={(e) => handleFilterChange('farmer', e.target.value.trim() || 'All')}
                 className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 placeholder="Masalan: 305123456"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Planatsiya ID
+              </label>
+              <input
+                type="text"
+                value={filters.plantation_id === 'All' ? '' : filters.plantation_id}
+                onChange={(e) => handleFilterChange('plantation_id', e.target.value.trim() || 'All')}
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="Masalan: 12345"
               />
             </div>
             

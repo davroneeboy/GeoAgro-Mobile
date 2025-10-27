@@ -14,6 +14,7 @@ const ApprovedPlantations = () => {
     district: "All",
     crop_type: "All",
     farmer: "All",
+    plantation_id: "All",
   });
   const [districts, setDistricts] = useState([]);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
@@ -55,6 +56,7 @@ const ApprovedPlantations = () => {
       district: searchParams.get('district') || "All",
       crop_type: searchParams.get('crop_type') || "All",
       farmer: searchParams.get('farmer') || "All",
+      plantation_id: searchParams.get('plantation_id') || "All",
     };
   };
 
@@ -70,6 +72,7 @@ const ApprovedPlantations = () => {
     if (newFilters.district !== "All") searchParams.set('district', newFilters.district);
     if (newFilters.crop_type !== "All") searchParams.set('crop_type', newFilters.crop_type);
     if (newFilters.farmer && newFilters.farmer !== "All") searchParams.set('farmer', newFilters.farmer);
+    if (newFilters.plantation_id && newFilters.plantation_id !== "All") searchParams.set('plantation_id', newFilters.plantation_id);
     
     const newUrl = `/approved-plantations?${searchParams.toString()}`;
     navigate(newUrl, { replace: true });
@@ -240,6 +243,7 @@ const ApprovedPlantations = () => {
           district: filters.district !== "All" ? filters.district : undefined,
           crop_type: filters.crop_type !== "All" ? filters.crop_type : undefined,
           farmer: filters.farmer && filters.farmer !== "All" ? filters.farmer : undefined,
+          plantation_id: filters.plantation_id && filters.plantation_id !== "All" ? filters.plantation_id : undefined,
         };
 
         // RBAC: Определяем endpoint в зависимости от роли пользователя
@@ -349,7 +353,7 @@ const ApprovedPlantations = () => {
     };
 
     fetchApprovedPlantations();
-  }, [page, filters.region, filters.district, filters.crop_type, authState.accessToken, logout, navigate]);
+  }, [page, filters.region, filters.district, filters.crop_type, filters.farmer, filters.plantation_id, authState.accessToken, logout, navigate]);
 
   // eslint-disable-next-line no-unused-vars
   const handlePageChange = (newPage) => {
@@ -423,7 +427,7 @@ const ApprovedPlantations = () => {
 
 
   const handleResetFilters = () => {
-    const resetFilters = { region: "All", district: "All", crop_type: "All", farmer: "All" };
+    const resetFilters = { region: "All", district: "All", crop_type: "All", farmer: "All", plantation_id: "All" };
     setFilters(resetFilters);
     setPage(1);
     localStorage.setItem('approvedPlantationsPage', '1');
@@ -540,6 +544,13 @@ const ApprovedPlantations = () => {
                 placeholder="Fermer INN yoki ID"
                 value={filters.farmer === "All" ? "" : filters.farmer}
                 onChange={(e) => handleFilterChange('farmer', e.target.value.trim() || "All")}
+              />
+              <input
+                type="text"
+                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="Planatsiya ID"
+                value={filters.plantation_id === "All" ? "" : filters.plantation_id}
+                onChange={(e) => handleFilterChange('plantation_id', e.target.value.trim() || "All")}
               />
               <select
                 className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -830,6 +841,18 @@ const ApprovedPlantations = () => {
                 onChange={(e) => handleFilterChange('farmer', e.target.value.trim() || "All")}
                 className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
                 placeholder="Masalan: 305123456"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Planatsiya ID
+              </label>
+              <input
+                type="text"
+                value={filters.plantation_id === "All" ? "" : filters.plantation_id}
+                onChange={(e) => handleFilterChange('plantation_id', e.target.value.trim() || "All")}
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+                placeholder="Masalan: 12345"
               />
             </div>
             <div>

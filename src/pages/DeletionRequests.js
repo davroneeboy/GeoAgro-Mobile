@@ -19,7 +19,8 @@ const DeletionRequests = () => {
     region: "All",
     district: "All",
     farmer: "All",
-    status: "All"
+    status: "All",
+    plantation_id: "All"
   });
   const [bulkAction, setBulkAction] = useState('');
   const [bulkComment, setBulkComment] = useState('');
@@ -71,6 +72,7 @@ const DeletionRequests = () => {
       if (filters.region !== "All") params.set('region', filters.region);
       if (filters.district !== "All") params.set('district', filters.district);
       if (filters.farmer !== "All") params.set('farmer', filters.farmer);
+      if (filters.plantation_id !== "All") params.set('plantation_id', filters.plantation_id);
 
       const response = await apiRequest(
         `api/plantations/moderation/?${params.toString()}`,
@@ -228,6 +230,14 @@ const DeletionRequests = () => {
               className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500"
               value={filters.farmer}
               onChange={(e) => setFilters({...filters, farmer: e.target.value})}
+            />
+
+            <input
+              type="text"
+              placeholder="Planatsiya ID..."
+              className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500"
+              value={filters.plantation_id}
+              onChange={(e) => setFilters({...filters, plantation_id: e.target.value})}
             />
 
             <select
