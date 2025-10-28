@@ -635,11 +635,7 @@ const PlantationDetail = () => {
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Maydoni:</p>
-                <p className="text-white">{Number(plantation.total_area).toFixed(1)} GA</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Poligon maydoni:</p>
-                <p className="text-white">{plantation.polygon_area ? Number(plantation.polygon_area).toFixed(2) + ' GA' : '—'}</p>
+                <p className="text-white font-bold">{Number(plantation.total_area).toFixed(1)} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Hosildorlik bahosi:</p>
@@ -651,11 +647,11 @@ const PlantationDetail = () => {
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Bo'sh maydon:</p>
-                <p className="text-white">{plantation.empty_area} GA</p>
+                <p className="text-white font-bold">{plantation.empty_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Yaroqsiz maydon:</p>
-                <p className="text-white">{plantation.not_usable_area ?? '—'} GA</p>
+                <p className="text-white font-bold">{plantation.not_usable_area ?? '—'} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Suv xovузlari soni:</p>
@@ -667,7 +663,7 @@ const PlantationDetail = () => {
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
-                <p className="text-white">{plantation.irrigation_area} GA</p>
+                <p className="text-white font-bold">{plantation.irrigation_area} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
                 <p className="font-semibold text-gray-300">Kontur raqami:</p>
@@ -865,18 +861,40 @@ const PlantationDetail = () => {
                   </div>
                   </div>
                 )}
-              {plantation.fruit_areas?.length > 0 && (
-                <div className="bg-gray-700 p-4 rounded-lg">
+              {/* Блок для экономически неэффективных площадей */}
+              {plantation.fruit_areas && plantation.fruit_areas.some(area => area.iqtisodiy_samarasiz) && (
+                <div className="bg-gray-700 p-3 rounded-lg shadow-2xl border border-gray-500 hover:bg-gray-600 transition-all duration-300 hover:shadow-3xl hover:scale-[1.02]">
                   <div className="flex items-center gap-2 mb-2 text-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" /></svg>
-                    <span className="font-semibold">Mevali hududlar</span>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-bold text-xl">Iqtisodiy samarasiz</span>
+                  </div>
+                  <div className="pr-1 space-y-2">
+                    {plantation.fruit_areas
+                      .filter(area => area.iqtisodiy_samarasiz)
+                      .map((area, idx) => (
+                        <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
+                          <p>Meva: {area.fruit}</p>
+                          <p>Nav: {area.variety}</p>
+                          <p>Iqtisodiy samarasiz maydoni: <span className="font-bold">{area.economic_inefficient_area || 0} GA</span></p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+              {plantation.fruit_areas?.length > 0 && (
+                <div className="bg-gray-700 p-4 rounded-lg shadow-2xl border border-gray-500 hover:bg-gray-600 transition-all duration-300 hover:shadow-3xl hover:scale-[1.02]">
+                  <div className="flex items-center gap-2 mb-2 text-white">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" /></svg>
+                    <span className="font-bold text-xl">Mevali hududlar</span>
                   </div>
                   <div className="pr-1 space-y-2">
                     {plantation.fruit_areas.map((area, idx) => (
                       <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
                         <p>Meva: {area.fruit}</p>
                         <p>Nav: {area.variety}</p>
-                        <p>Maydoni: {area.area} GA</p>
+                        <p>Maydoni: <span className="font-bold">{area.area} GA</span></p>
                         <p>Ekilgan yili: {area.planted_year}</p>
                         <p>Podvoy: {area.rootstock || '—'}</p>
                         <p>Sxema: {area.schema || '—'}</p>
@@ -1049,7 +1067,7 @@ const PlantationDetail = () => {
                           {trellisTypeMapping[trellis.trellis_type]}
                         </p>
                         <p>
-                          Shpalla maydoni: {trellis.trellis_installed_area} GA
+                          Shpalla maydoni: <span className="font-bold">{trellis.trellis_installed_area} GA</span>
                         </p>
                         <p>Shpallar soni: {trellis.trellis_count}</p>
                       </div>
@@ -1100,7 +1118,7 @@ const PlantationDetail = () => {
                       <div key={idx} className="border-b border-gray-600 pb-2 mb-2 text-gray-300">
                         <p>Meva: {area.fruit}</p>
                         <p>Nav: {area.variety}</p>
-                        <p>Maydoni: {area.area} GA</p>
+                        <p>Maydoni: <span className="font-bold">{area.area} GA</span></p>
                         <p>Ekilgan yili: {area.planted_year}</p>
                       </div>
                     ))}
@@ -1188,7 +1206,7 @@ const PlantationDetail = () => {
                               <div className="text-white font-medium truncate">{p.name || 'Fermer'}</div>
                               <span className={`ml-2 text-xs px-2 py-0.5 rounded-full border ${badgeCls}`}>{statusText}</span>
                             </div>
-                            <div className="text-gray-400 text-xs mt-1">ID: {p.id} • Maydon: {Number(p.total_area || 0).toFixed(1)} ga</div>
+                            <div className="text-gray-400 text-xs mt-1">ID: {p.id} • Maydon: <span className="font-bold">{Number(p.total_area || 0).toFixed(1)} ga</span></div>
                           </div>
                   );
                 })}
