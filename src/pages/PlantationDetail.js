@@ -605,7 +605,14 @@ const PlantationDetail = () => {
                   const currentPage = localStorage.getItem('moderationPage') || 1;
                   navigate(`/moderation?page=${currentPage}`);
                 } else if (referrer.includes('/rejected-plantations')) {
-                  navigate('/rejected-plantations');
+                  // Используем сохраненный URL из state если есть, иначе используем сохраненную страницу
+                  const returnUrl = location.state?.from;
+                  if (returnUrl) {
+                    navigate(returnUrl);
+                  } else {
+                    const currentPage = localStorage.getItem('rejectedPlantationsPage') || 1;
+                    navigate(`/rejected-plantations?page=${currentPage}`);
+                  }
                 } else if (referrer.includes('/plantations/uz')) {
                   navigate('/plantations/uz');
                 } else if (referrer.includes('/farmers/') && referrer.includes('/map')) {

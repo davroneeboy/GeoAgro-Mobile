@@ -1,12 +1,215 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
 import axios from "axios";
 import { API_BASE_URL2 } from "../config";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import AuthContext from "../context/AuthContext";
 
+// Список районов по регионам (вынесен за пределы компонента для оптимизации)
+const districtsByRegion = {
+    "1": [ // Toshkent
+      { id: "1", name: "Oqqorgon" },
+      { id: "2", name: "Ohangaron" },
+      { id: "3", name: "Bekobod" },
+      { id: "4", name: "Bo'stonliq" },
+      { id: "5", name: "Bo'ka" },
+      { id: "6", name: "Quyi Chirchiq" },
+      { id: "7", name: "Zangiota" },
+      { id: "8", name: "Toshkent" },
+      { id: "9", name: "Yuqori Chirchiq" },
+      { id: "10", name: "Qibray" },
+      { id: "11", name: "Parkent" },
+      { id: "12", name: "Piskent" },
+      { id: "13", name: "O'rta Chirchiq" },
+      { id: "14", name: "Chinoz" },
+      { id: "15", name: "Yangiyo'l" },
+    ],
+    "2": [ // Andijon
+      { id: "16", name: "Andijon" },
+      { id: "17", name: "Asaka" },
+      { id: "18", name: "Baliqchi" },
+      { id: "19", name: "Buloqboshi" },
+      { id: "20", name: "Bo'ston" },
+      { id: "21", name: "Jalaquduq" },
+      { id: "22", name: "Izboskan" },
+      { id: "23", name: "Ulug'nor" },
+      { id: "24", name: "Marhamat" },
+      { id: "25", name: "Oltinko'l" },
+      { id: "26", name: "Paxtaobod" },
+      { id: "27", name: "Xo'jaobod" },
+      { id: "28", name: "Shahrixon" },
+      { id: "29", name: "Qo'rg'ontepa" },
+      { id: "30", name: "Andijon sh" },
+      { id: "31", name: "Xonobod sh" },
+    ],
+    "3": [ // Buxoro
+      { id: "32", name: "Buxoro" },
+      { id: "33", name: "Vobkent" },
+      { id: "35", name: "Kogon" },
+      { id: "36", name: "Qorakul" },
+      { id: "37", name: "Qorovulbozor" },
+      { id: "38", name: "Olot" },
+      { id: "39", name: "Peshku" },
+      { id: "41", name: "Shofirkon" },
+      { id: "42", name: "G'ijduvon" },
+      { id: "43", name: "Buxoro sh" },
+      { id: "34", name: "Jondor" },
+      { id: "40", name: "Romitan" },
+    ],
+    "4": [ // Farg'ona
+      { id: "44", name: "Quvasoy sh" },
+      { id: "46", name: "Marg'ilon sh" },
+      { id: "47", name: "Farg'ona sh" },
+      { id: "48", name: "Beshariq" },
+      { id: "50", name: "Buvayda" },
+      { id: "51", name: "Dang'ara" },
+      { id: "52", name: "Yozyovon" },
+      { id: "53", name: "Quva" },
+      { id: "54", name: "Oltiariq" },
+      { id: "56", name: "Rishton" },
+      { id: "57", name: "So'x" },
+      { id: "58", name: "Toshloq" },
+      { id: "59", name: "O'zbekiston" },
+      { id: "61", name: "Farg'ona" },
+      { id: "62", name: "Furqat" },
+      { id: "45", name: "Qo'qon sh" },
+      { id: "49", name: "Bog'dod" },
+      { id: "55", name: "Qo'shtepa" },
+      { id: "60", name: "Uchko'prik" },
+    ],
+    "5": [ // Jizzakh
+      { id: "63", name: "Arnasoy" },
+      { id: "64", name: "Baxmal" },
+      { id: "66", name: "Sh.Rashidov" },
+      { id: "67", name: "Do'stlik" },
+      { id: "68", name: "Zomin" },
+      { id: "69", name: "Zarbdor" },
+      { id: "71", name: "Zafarobod" },
+      { id: "72", name: "Paxtakor" },
+      { id: "73", name: "Forish" },
+      { id: "74", name: "Yangiobod" },
+      { id: "75", name: "Jizzax sh" },
+      { id: "65", name: "G'allaorol" },
+      { id: "70", name: "Mirzacho'l" },
+    ],
+    "6": [ // Qashqadaryo
+      { id: "76", name: "G'uzor t" },
+      { id: "77", name: "Dehqonobod t" },
+      { id: "78", name: "Qamashi t" },
+      { id: "79", name: "Qarshi t" },
+      { id: "81", name: "Kitob t" },
+      { id: "82", name: "Koson t" },
+      { id: "83", name: "Muborak t" },
+      { id: "84", name: "Nishon t" },
+      { id: "86", name: "Chiroqchi t" },
+      { id: "87", name: "Shahrisabz t" },
+      { id: "89", name: "Ko'kdala t" },
+      { id: "80", name: "Kasbi t" },
+      { id: "85", name: "Mirishkor t" },
+      { id: "88", name: "Yakkabog' t" },
+    ],
+    "7": [ // Navoiy
+      { id: "90", name: "Karmana" },
+      { id: "91", name: "Konimeh" },
+      { id: "92", name: "Qiziltepa" },
+      { id: "94", name: "Nurota" },
+      { id: "95", name: "Xatirchi" },
+      { id: "93", name: "Navbahor" },
+    ],
+    "8": [ // Namangan
+      { id: "96", name: "Mingbuloq" },
+      { id: "97", name: "Kosonsoy" },
+      { id: "99", name: "Norin" },
+      { id: "100", name: "Pop" },
+      { id: "101", name: "To'raqo'rg'on" },
+      { id: "102", name: "Uychi" },
+      { id: "103", name: "Uchqo'rg'on" },
+      { id: "105", name: "Chust" },
+      { id: "106", name: "Yangiqo'rg'on" },
+      { id: "107", name: "Namangan sh" },
+      { id: "98", name: "Namangan" },
+      { id: "104", name: "Chortoq" },
+    ],
+    "9": [ // Samarqand
+      { id: "108", name: "Bulung'ur" },
+      { id: "110", name: "Ishtixon" },
+      { id: "111", name: "Kattaqo'rg'on" },
+      { id: "112", name: "Narpay" },
+      { id: "113", name: "Nurobod" },
+      { id: "115", name: "Pastdarg'om" },
+      { id: "116", name: "Paxtachi" },
+      { id: "117", name: "Payariq" },
+      { id: "119", name: "Tayloq" },
+      { id: "120", name: "Urgut" },
+      { id: "121", name: "Qo'shrabot" },
+      { id: "109", name: "Jomboy" },
+      { id: "114", name: "Oqdaryo" },
+      { id: "118", name: "Samarqand" },
+    ],
+    "10": [ // Sirdaryo
+      { id: "122", name: "Boyovut" },
+      { id: "124", name: "Mirzaobod" },
+      { id: "125", name: "Oqoltin" },
+      { id: "126", name: "Sardoba" },
+      { id: "127", name: "Sayxunobod" },
+      { id: "129", name: "Xovos" },
+      { id: "123", name: "Guliston" },
+      { id: "128", name: "Sirdaryo" },
+    ],
+    "11": [ // Surxondaryo
+      { id: "130", name: "Angor" },
+      { id: "131", name: "Bandixon" },
+      { id: "132", name: "Boysun" },
+      { id: "133", name: "Denov" },
+      { id: "135", name: "Qiziriq" },
+      { id: "136", name: "Qumqo'rg'on" },
+      { id: "137", name: "Muzrabot" },
+      { id: "138", name: "Oltinsoy" },
+      { id: "140", name: "Termiz" },
+      { id: "141", name: "Uzun" },
+      { id: "142", name: "Sherobod" },
+      { id: "143", name: "Sho'rchi" },
+      { id: "134", name: "Jarqo'rg'on" },
+      { id: "139", name: "Sariosiyo" },
+    ],
+    "12": [ // Qoraqalpog'iston
+      { id: "144", name: "To'rtko'l" },
+      { id: "146", name: "Ellikqal'a" },
+      { id: "147", name: "Amudaryo" },
+      { id: "148", name: "Tahiatosh" },
+      { id: "150", name: "Shumanay" },
+      { id: "151", name: "Qonliko'l" },
+      { id: "152", name: "Qo'ng'irot" },
+      { id: "153", name: "Nukus" },
+      { id: "154", name: "Kegeyli" },
+      { id: "155", name: "Bo'zotov" },
+      { id: "156", name: "Chimboy" },
+      { id: "157", name: "Qorao'zak" },
+      { id: "158", name: "Taxtako'pir" },
+      { id: "159", name: "Mo'ynoq" },
+      { id: "160", name: "Nukus sh" },
+      { id: "145", name: "Beruniy" },
+      { id: "149", name: "Xo'jayli" },
+    ],
+    "13": [ // Xorazm
+      { id: "161", name: "Bog'ot" },
+      { id: "162", name: "Gurlan" },
+      { id: "163", name: "Qo'shko'pir" },
+      { id: "164", name: "Urganch" },
+      { id: "165", name: "Xazorasp" },
+      { id: "166", name: "Xonqa" },
+      { id: "167", name: "Xiva" },
+      { id: "168", name: "Shovot" },
+      { id: "169", name: "Yangiariq" },
+      { id: "170", name: "Yangibozor" },
+      { id: "171", name: "Tuproqqal'a" },
+      { id: "172", name: "Xiva sh" },
+    ],
+  };
+
 const RejectedPlantations = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
   
   const [plantations, setPlantations] = useState([]);
@@ -14,15 +217,61 @@ const RejectedPlantations = () => {
   const [error, setError] = useState(null);
   const [count, setCount] = useState(0);
   const [users, setUsers] = useState({});
+  const loadingUsersRef = useRef(new Set()); // Отслеживаем загружаемых пользователей
+  const loadedUsersRef = useRef(new Set()); // Отслеживаем уже загруженных пользователей
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageInput, setPageInput] = useState('');
-  const [filters, setFilters] = useState({
-    region: 'All',
-    crop_type: 'All',
-    farmer: 'All',
-    plantation_id: 'All'
-  });
+  
+  // Инициализируем страницу из URL или localStorage
+  const initialPageFromUrl = (() => {
+    const urlParams = new URLSearchParams(location.search);
+    const pageParam = parseInt(urlParams.get("page") || "1", 10);
+    const savedPage = parseInt(localStorage.getItem('rejectedPlantationsPage') || "1", 10);
+    
+    const pageToUse = urlParams.get("page") ? pageParam : savedPage;
+    const validPage = pageToUse > 0 ? pageToUse : 1;
+    
+    if (!urlParams.get("page") && savedPage !== validPage) {
+      window.history.replaceState(null, '', `/rejected-plantations?page=${validPage}`);
+    }
+    
+    return validPage;
+  })();
+  
+  const [page, setPage] = useState(initialPageFromUrl);
+  const [pageInput, setPageInput] = useState(initialPageFromUrl.toString());
+
+  // Функция для получения фильтров из URL
+  const getFiltersFromUrl = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return {
+      region: searchParams.get('region') || 'All',
+      district: searchParams.get('district') || 'All',
+      crop_type: searchParams.get('crop_type') || 'All',
+      farmer: searchParams.get('farmer') || 'All',
+      plantation_id: searchParams.get('plantation_id') || 'All'
+    };
+  };
+
+  // Функция для сохранения фильтров в URL
+  const saveFiltersToUrl = (newFilters, newPage = 1) => {
+    const searchParams = new URLSearchParams();
+    
+    // Добавляем страницу
+    searchParams.set('page', newPage.toString());
+    
+    // Добавляем фильтры только если они не "All"
+    if (newFilters.region !== 'All') searchParams.set('region', newFilters.region);
+    if (newFilters.district !== 'All') searchParams.set('district', newFilters.district);
+    if (newFilters.crop_type !== 'All') searchParams.set('crop_type', newFilters.crop_type);
+    if (newFilters.farmer && newFilters.farmer !== 'All') searchParams.set('farmer', newFilters.farmer);
+    if (newFilters.plantation_id && newFilters.plantation_id !== 'All') searchParams.set('plantation_id', newFilters.plantation_id);
+    
+    const newUrl = `/rejected-plantations?${searchParams.toString()}`;
+    navigate(newUrl, { replace: true });
+    localStorage.setItem('rejectedPlantationsPage', newPage.toString());
+  };
+
+  const [filters, setFilters] = useState(() => getFiltersFromUrl());
 
   const pageSize = 20;
   const totalPages = Math.ceil(count / pageSize);
@@ -38,31 +287,51 @@ const RejectedPlantations = () => {
     if (newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
       setPageInput('');
+      saveFiltersToUrl(filters, newPage);
     }
   };
 
-  const goToFirstPage = () => setPage(1);
-  const goToLastPage = () => setPage(totalPages);
+  const goToFirstPage = () => {
+    setPage(1);
+    setPageInput('1');
+    saveFiltersToUrl(filters, 1);
+  };
+  
+  const goToLastPage = () => {
+    setPage(totalPages);
+    setPageInput(totalPages.toString());
+    saveFiltersToUrl(filters, totalPages);
+  };
 
   // Функции для работы с фильтрами
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: value
-    }));
+    setFilters(prev => {
+      // При изменении региона сбрасываем туман
+      const newFilters = { ...prev, [filterType]: value };
+      if (filterType === 'region') {
+        newFilters.district = 'All';
+      }
+      // Сохраняем фильтры в URL
+      saveFiltersToUrl(newFilters, 1);
+      return newFilters;
+    });
     
     // Сброс страницы при изменении фильтров
     setPage(1);
+    localStorage.setItem('rejectedPlantationsPage', '1');
   };
 
   const handleResetFilters = () => {
-    setFilters({
+    const resetFilters = {
       region: 'All',
+      district: 'All',
       crop_type: 'All',
       farmer: 'All',
       plantation_id: 'All'
-    });
+    };
+    setFilters(resetFilters);
     setPage(1);
+    saveFiltersToUrl(resetFilters, 1);
   };
 
   // Проверяем является ли пользователь админом или главой региона
@@ -111,20 +380,29 @@ const RejectedPlantations = () => {
   };
 
   // Функция для получения информации о пользователе
-  const fetchUserDetails = async (userId) => {
-    if (!userId || users[userId]) return;
+  const fetchUserDetails = useCallback(async (userId) => {
+    if (!userId || loadingUsersRef.current.has(userId) || loadedUsersRef.current.has(userId)) {
+      return;
+    }
+    
+    loadingUsersRef.current.add(userId);
     
     try {
       const response = await axios.get(`${API_BASE_URL2}api/users/${userId}/`, {
         headers: { Authorization: `Bearer ${authState.accessToken}` }
       });
       setUsers(prev => ({ ...prev, [userId]: response.data }));
+      loadedUsersRef.current.add(userId);
     } catch (error) {
       console.error("Error fetching user details:", error);
+    } finally {
+      loadingUsersRef.current.delete(userId);
     }
-  };
+  }, [authState.accessToken]);
 
-  const fetchRejectedPlantations = async () => {
+  const fetchRejectedPlantations = useCallback(async () => {
+    if (!authState?.accessToken) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -150,9 +428,17 @@ const RejectedPlantations = () => {
         page_size: pageSize.toString()
       });
 
-      // Добавляем фильтры в параметры запроса
-      if (filters.region !== 'All') {
+      // RBAC: Для headof_region принудительно устанавливаем фильтр по региону в первую очередь
+      if ((authState.userRole === 'headof_region' || authState.userRole === 2) && authState.regionId && authState.regionId !== null && authState.regionId !== 'null') {
+        params.set('region_id', authState.regionId.toString());
+      } else if (filters.region !== 'All') {
+        // Добавляем фильтр по региону только если он не установлен принудительно
         params.append('region_id', filters.region);
+      }
+
+      // Добавляем остальные фильтры в параметры запроса
+      if (filters.district !== 'All') {
+        params.append('district_id', filters.district);
       }
       if (filters.crop_type !== 'All') {
         params.append('land_type', filters.crop_type);
@@ -162,11 +448,6 @@ const RejectedPlantations = () => {
       }
       if (filters.plantation_id && filters.plantation_id !== 'All') {
         params.append('plantation_id', filters.plantation_id);
-      }
-
-      // RBAC: Для headof_region принудительно устанавливаем фильтр по региону
-      if ((authState.userRole === 'headof_region' || authState.userRole === 2) && authState.regionId && authState.regionId !== null && authState.regionId !== 'null') {
-        params.set('region_id', authState.regionId.toString());
       }
       
       const response = await axios.get(`${plantationsEndpoint}?${params.toString()}`, {
@@ -199,7 +480,7 @@ const RejectedPlantations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authState.userRole, authState.regionId, authState.accessToken, page, filters, fetchUserDetails]);
 
   const handleLogout = () => {
     logout();
@@ -208,20 +489,102 @@ const RejectedPlantations = () => {
 
   // Переход к деталям плантации
   const handlePlantationClick = (plantationId) => {
+    // Сохраняем текущие фильтры и страницу перед переходом
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', page.toString());
+    
+    if (filters.region !== 'All') searchParams.set('region', filters.region);
+    if (filters.district !== 'All') searchParams.set('district', filters.district);
+    if (filters.crop_type !== 'All') searchParams.set('crop_type', filters.crop_type);
+    if (filters.farmer && filters.farmer !== 'All') searchParams.set('farmer', filters.farmer);
+    if (filters.plantation_id && filters.plantation_id !== 'All') searchParams.set('plantation_id', filters.plantation_id);
+    
+    const returnUrl = `/rejected-plantations?${searchParams.toString()}`;
+    
     navigate(`/plantations/${plantationId}`, { 
-      state: { from: '/rejected-plantations' } 
+      state: { 
+        from: returnUrl,
+        filters: filters,
+        page: page
+      } 
     });
   };
+
+  // Читаем номер страницы из URL параметров при загрузке
+  useEffect(() => {
+    const search = location.search;
+    const urlParams = new URLSearchParams(search);
+    const pageFromUrl = urlParams.get('page');
+    
+    if (!pageFromUrl) {
+      const savedPage = parseInt(localStorage.getItem('rejectedPlantationsPage') || "1", 10);
+      const validSavedPage = savedPage > 0 ? savedPage : 1;
+      setPage(validSavedPage);
+      window.history.replaceState(null, '', `/rejected-plantations?page=${validSavedPage}`);
+      return;
+    }
+    
+    const pageNumber = parseInt(pageFromUrl);
+    
+    if (pageNumber > 0) {
+      setPage(pageNumber);
+      localStorage.setItem('rejectedPlantationsPage', pageNumber.toString());
+    } else {
+      setPage(1);
+      localStorage.setItem('rejectedPlantationsPage', '1');
+      navigate('/rejected-plantations?page=1', { replace: true });
+    }
+  }, [location.search, navigate]);
+
+  // Синхронизируем URL с состоянием страницы
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const urlPage = parseInt(urlParams.get("page") || "1", 10);
+    
+    if (urlPage !== page && page > 0) {
+      const searchParams = new URLSearchParams();
+      searchParams.set('page', page.toString());
+      
+      if (filters.region !== 'All') searchParams.set('region', filters.region);
+      if (filters.district !== 'All') searchParams.set('district', filters.district);
+      if (filters.crop_type !== 'All') searchParams.set('crop_type', filters.crop_type);
+      if (filters.farmer && filters.farmer !== 'All') searchParams.set('farmer', filters.farmer);
+      if (filters.plantation_id && filters.plantation_id !== 'All') searchParams.set('plantation_id', filters.plantation_id);
+      
+      const newUrl = `/rejected-plantations?${searchParams.toString()}`;
+      navigate(newUrl, { replace: true });
+      localStorage.setItem('rejectedPlantationsPage', page.toString());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  // Обновляем фильтры при изменении URL
+  useEffect(() => {
+    const newFilters = getFiltersFromUrl();
+    // Обновляем только если фильтры действительно изменились
+    setFilters(prev => {
+      const hasChanged = 
+        prev.region !== newFilters.region ||
+        prev.district !== newFilters.district ||
+        prev.crop_type !== newFilters.crop_type ||
+        prev.farmer !== newFilters.farmer ||
+        prev.plantation_id !== newFilters.plantation_id;
+      
+      return hasChanged ? newFilters : prev;
+    });
+  }, [location.search]);
 
   // RBAC: Автоматически устанавливаем фильтр региона для главы региона
   useEffect(() => {
     if (authState.userRole === 'headof_region' && authState.regionId && filters.region === 'All') {
-      setFilters(prev => ({
-        ...prev,
+      const newFilters = {
+        ...filters,
         region: authState.regionId.toString()
-      }));
+      };
+      setFilters(newFilters);
+      saveFiltersToUrl(newFilters, page);
     }
-  }, [authState.userRole, authState.regionId, filters.region]);
+  }, [authState.userRole, authState.regionId]);
 
   useEffect(() => {
     if (authState?.accessToken) {
@@ -229,7 +592,7 @@ const RejectedPlantations = () => {
     } else {
       navigate('/login');
     }
-  }, [authState, navigate, page, filters]);
+  }, [authState?.accessToken, navigate, fetchRejectedPlantations]);
 
   useEffect(() => {
     if (authState.userRole === 'observer') {
@@ -241,8 +604,10 @@ const RejectedPlantations = () => {
         const query = params.toString();
         navigate(`/rejected-plantations${query ? `?${query}` : ''}`, { replace: true });
       }
-      setFilters(prev => ({ ...prev, region: 'All', crop_type: 'All', farmer: 'All' }));
+      const resetFilters = { region: 'All', district: 'All', crop_type: 'All', farmer: 'All', plantation_id: 'All' };
+      setFilters(resetFilters);
       setPage(1);
+      saveFiltersToUrl(resetFilters, 1);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authState.userRole]);
@@ -381,6 +746,22 @@ const RejectedPlantations = () => {
                   <option value="13">Xorazm</option>
                 </select>
                 
+                {/* Фильтр по районам - появляется при выборе региона */}
+                {filters.region !== "All" && districtsByRegion[filters.region] && (
+                  <select
+                    className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    value={filters.district}
+                    onChange={(e) => handleFilterChange('district', e.target.value)}
+                  >
+                    <option value="All">Tuman (barchasi)</option>
+                    {districtsByRegion[filters.region].map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                
                 <select
                   className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   value={filters.crop_type}
@@ -507,7 +888,11 @@ const RejectedPlantations = () => {
                       {/* Кнопка "Назад" */}
                       <button
                         className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                        onClick={() => setPage(Math.max(page - 1, 1))}
+                        onClick={() => {
+                          const newPage = Math.max(page - 1, 1);
+                          setPage(newPage);
+                          saveFiltersToUrl(filters, newPage);
+                        }}
                         disabled={page <= 1}
                       >
                         Orqaga
@@ -535,7 +920,11 @@ const RejectedPlantations = () => {
                       {/* Кнопка "Вперед" */}
                       <button
                         className="px-3 sm:px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                        onClick={() => setPage(Math.min(page + 1, totalPages))}
+                        onClick={() => {
+                          const newPage = Math.min(page + 1, totalPages);
+                          setPage(newPage);
+                          saveFiltersToUrl(filters, newPage);
+                        }}
                         disabled={page >= totalPages}
                       >
                         Oldinga
@@ -640,6 +1029,27 @@ const RejectedPlantations = () => {
               </select>
             </div>
             
+            {/* Фильтр по районам - появляется при выборе региона */}
+            {filters.region !== "All" && districtsByRegion[filters.region] && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Tuman
+                </label>
+                <select
+                  value={filters.district}
+                  onChange={(e) => handleFilterChange('district', e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="All">Tuman (barchasi)</option>
+                  {districtsByRegion[filters.region].map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Ekin turi
@@ -736,7 +1146,11 @@ const RejectedPlantations = () => {
                 {/* Основные кнопки навигации */}
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => setPage(Math.max(page - 1, 1))}
+                    onClick={() => {
+                      const newPage = Math.max(page - 1, 1);
+                      setPage(newPage);
+                      saveFiltersToUrl(filters, newPage);
+                    }}
                     disabled={page <= 1}
                     className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
@@ -748,7 +1162,11 @@ const RejectedPlantations = () => {
                   </span>
                   
                   <button
-                    onClick={() => setPage(Math.min(page + 1, totalPages))}
+                    onClick={() => {
+                      const newPage = Math.min(page + 1, totalPages);
+                      setPage(newPage);
+                      saveFiltersToUrl(filters, newPage);
+                    }}
                     disabled={page >= totalPages}
                     className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
