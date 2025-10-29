@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
 import { API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
-import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { Doughnut, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -72,19 +70,11 @@ const formatCompact = (value) => {
 };
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { authState, logout } = useContext(AuthContext);
+  const { authState } = useContext(AuthContext);
   const [statistics, setStatistics] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // удалены состояния контроллеров — панель перенесена в LeftNav
-  const isAt = (path) => location.pathname.startsWith(path);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
 
   useEffect(() => {
     const fetchStatistics = async () => {
@@ -444,91 +434,6 @@ const HomePage = () => {
 
   return (
     <div className="h-screen bg-gray-900 overflow-hidden">
-      {/* Мобильное меню */}
-      <div className="lg:hidden bg-gray-800 shadow-lg p-4 border-b border-gray-700 sticky top-0 z-20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <img
-              className="h-10 w-auto mr-3"
-              src={uzbekistanEmblem}
-              alt="O'zbekiston gerbi"
-            />
-            <div>
-              <p className="text-sm font-bold text-white leading-tight">
-                Agrosanoatni rivojlantirish agentligi
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-                        <button
-              onClick={handleLogout}
-              className="px-2 py-1 bg-green-500 text-white rounded text-xs flex items-center"
-            >
-              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-              </svg>
-              Chiqish
-            </button>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
-            >
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        {/* Мобильное меню выпадающее */}
-        {isMobileMenuOpen && (
-          <div className="mt-4 space-y-2">
-            <Link
-              to="/plantations/uz"
-              className={`block w-full ${isAt('/plantations/uz') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Bog'larga o'tish
-            </Link>
-            <Link
-              to={authState.userRole === "headof_region" ? "/statistics/controllers" : "/statistics/regions"}
-              className={`block w-full ${isAt('/statistics') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              To'liq statistika
-            </Link>
-            <Link
-              to="/farmers"
-              className={`block w-full ${isAt('/farmers') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Fermerlar
-            </Link>
-            {/* Kontaktlar перенесены в компактную панель, ссылка убрана */}
-            <Link
-              to="/moderation"
-              className={`block w-full ${isAt('/moderation') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Moderatsiya
-            </Link>
-            <Link
-              to="/approved-plantations"
-              className={`block w-full ${isAt('/approved-plantations') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Tasdiqlangan bog'lar
-            </Link>
-            <Link
-              to="/rejected-plantations"
-              className={`block w-full ${isAt('/rejected-plantations') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 border border-gray-600 hover:bg-gray-600'} text-white py-2 rounded-lg font-medium text-center transition-colors`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Rad etilgan bog'lar
-            </Link>
-          </div>
-        )}
-      </div>
 
       {/* Основная область (без левой панели — теперь она общая) */}
       <div className="hidden lg:flex lg:flex-col lg:h-full lg:overflow-hidden">

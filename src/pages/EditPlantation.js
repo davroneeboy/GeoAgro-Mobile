@@ -355,6 +355,9 @@ const EditPlantation = () => {
         } else if (fromPage === '/deletion-requests') {
           const currentPage = location.state?.page || 1;
           window.location.href = `/deletion-requests?page=${currentPage}`;
+        } else if (fromPage && fromPage.includes('/farmers/') && fromPage.includes('/map')) {
+          // Возвращаемся на карту плантаций фермера
+          window.location.href = fromPage;
         } else if (fromPage === '/moderation') {
           const currentPage = localStorage.getItem('moderationPage') || 1;
           const savedFilters = location.state?.filters;
@@ -447,6 +450,9 @@ const EditPlantation = () => {
       } else if (fromPage === '/deletion-requests') {
         const currentPage = location.state?.page || 1;
         window.location.href = `/deletion-requests?page=${currentPage}`;
+      } else if (fromPage && fromPage.includes('/farmers/') && fromPage.includes('/map')) {
+        // Возвращаемся на карту плантаций фермера
+        window.location.href = fromPage;
       } else {
         const currentPage = localStorage.getItem('moderationPage') || 1;
         const savedFilters = location.state?.filters;
