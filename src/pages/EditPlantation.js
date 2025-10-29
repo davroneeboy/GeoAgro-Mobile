@@ -1675,7 +1675,7 @@ const EditPlantation = () => {
                 <p className="text-white font-bold">{Number(plantation.total_area).toFixed(1)} GA</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Hosildorlik bahosi:</p>
+                <p className="font-semibold text-gray-300">Banitet bali:</p>
                 <p className="text-white">{Number(plantation.fertility_score).toFixed(1)}</p>
               </div>
               <div className="bg-gray-700 p-3 rounded-lg">
