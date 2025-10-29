@@ -1,7 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-// import Contacts from "./pages/Contacts";
 import Moderation from "./pages/Moderation";
 import RejectedPlantations from "./pages/RejectedPlantations";
 import ApprovedPlantations from "./pages/ApprovedPlantations";
@@ -40,11 +39,10 @@ export default function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
       <Route path="/plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MapContainer /></ProtectedRoute>} />
-      {/* <Route path="/contacts" element={<Contacts />} /> */}
-      <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser"]}><Moderation /></ProtectedRoute>} />
-      <Route path="/deletion-requests" element={<ProtectedRoute allowedRoles={["superuser"]}><DeletionRequests /></ProtectedRoute>} />
-      <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser"]}><RejectedPlantations /></ProtectedRoute>} />
-      <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser"]}><ApprovedPlantations /></ProtectedRoute>} />
+      <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Moderation /></ProtectedRoute>} />
+      <Route path="/deletion-requests" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><DeletionRequests /></ProtectedRoute>} />
+      <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><RejectedPlantations /></ProtectedRoute>} />
+      <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ApprovedPlantations /></ProtectedRoute>} />
       <Route path="/plantations/uz" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><MapContainer /></ProtectedRoute>} />
       <Route path="/plantations/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><PlantationDetail /></ProtectedRoute>} />
       <Route path="/plantations/preview/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><PlantationPreviewPage /></ProtectedRoute>} />

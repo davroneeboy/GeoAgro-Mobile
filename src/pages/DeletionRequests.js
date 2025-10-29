@@ -69,13 +69,31 @@ const DeletionRequests = () => {
       params.set('moderation_type', 'delete');
       params.set('sort_by', 'default');
       
-      if (filters.region !== "All") params.set('region', filters.region);
-      if (filters.district !== "All") params.set('district', filters.district);
+      if (filters.region !== "All") params.set('region_id', filters.region);
+      if (filters.district !== "All") params.set('district_id', filters.district);
       if (filters.farmer !== "All") params.set('farmer', filters.farmer);
       if (filters.plantation_id !== "All") params.set('plantation_id', filters.plantation_id);
 
+      // RBAC: Для главы региона автоматически устанавливаем фильтр по региону
+      if ((authState.userRole === 'headof_region' || authState.userRole === 2) && authState.regionId && authState.regionId !== null && authState.regionId !== 'null') {
+        params.set('region_id', authState.regionId.toString());
+      }
+
+      // RBAC: Определяем endpoint в зависимости от роли пользователя
+      let endpoint;
+      if (authState.userRole === 'headof_region' || authState.userRole === 2) {
+        // Для главы региона используем специальный endpoint для его региона
+        endpoint = `api/plantations/forme/moderation/?${params.toString()}`;
+      } else if (authState.userRole === 'observer') {
+        // Для наблюдателя — сразу общий список плантаций с фильтрами
+        endpoint = `api/plantations/?${params.toString()}`;
+      } else {
+        // Для суперпользователя используем общий endpoint модерации
+        endpoint = `api/plantations/moderation/?${params.toString()}`;
+      }
+
       const response = await apiRequest(
-        `api/plantations/moderation/?${params.toString()}`,
+        endpoint,
         {},
         refreshAccessToken,
         authState.accessToken

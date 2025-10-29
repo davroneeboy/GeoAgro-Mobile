@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { API_BASE_URL1, API_BASE_URL2 } from "../config";
+import { API_BASE_URL2 } from "../config";
 import { useNavigate, Link } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import AuthContext from "../context/AuthContext";
@@ -135,13 +135,13 @@ const RejectedPlantations = () => {
       
       if (authState.userRole === 'superuser' || authState.userRole === 'observer') {
         // Для суперпользователя и наблюдателя используем API для просмотра всех отклоненных плантаций
-        plantationsEndpoint = `${API_BASE_URL1}api/plantations/moderation/rejected/`;
-      } else if (authState.userRole === 'headof_region') {
+        plantationsEndpoint = `${API_BASE_URL2}api/plantations/moderation/rejected/`;
+      } else if (authState.userRole === 'headof_region' || authState.userRole === 2) {
         // Для главы региона используем API для их региона с фильтрацией по региону
-        plantationsEndpoint = `${API_BASE_URL1}api/plantations/forme/rejected/`;
+        plantationsEndpoint = `${API_BASE_URL2}api/plantations/forme/moderation/rejected/`;
       } else {
         // Для обычных пользователей используем API для их района (но они не имеют доступа к этой странице)
-        plantationsEndpoint = `${API_BASE_URL1}api/plantations/forme/rejected/`;
+        plantationsEndpoint = `${API_BASE_URL2}api/plantations/forme/moderation/rejected/`;
       }
 
       // Получаем список отклоненных плантаций с деталями через новый endpoint
@@ -152,10 +152,10 @@ const RejectedPlantations = () => {
 
       // Добавляем фильтры в параметры запроса
       if (filters.region !== 'All') {
-        params.append('region', filters.region);
+        params.append('region_id', filters.region);
       }
       if (filters.crop_type !== 'All') {
-        params.append('crop_type', filters.crop_type);
+        params.append('land_type', filters.crop_type);
       }
       if (filters.farmer && filters.farmer !== 'All') {
         params.append('farmer', filters.farmer);
@@ -165,8 +165,8 @@ const RejectedPlantations = () => {
       }
 
       // RBAC: Для headof_region принудительно устанавливаем фильтр по региону
-      if (authState.userRole === 'headof_region' && authState.regionId) {
-        params.set('region', authState.regionId.toString());
+      if ((authState.userRole === 'headof_region' || authState.userRole === 2) && authState.regionId && authState.regionId !== null && authState.regionId !== 'null') {
+        params.set('region_id', authState.regionId.toString());
       }
       
       const response = await axios.get(`${plantationsEndpoint}?${params.toString()}`, {

@@ -240,6 +240,7 @@ const Moderation = () => {
       moderated_after: "All",
       moderated_before: "All",
       garden_established_year: "All",
+      planted_year: "All",
       min_established_year: "All",
       max_established_year: "All",
       created_by: "All",
@@ -247,9 +248,10 @@ const Moderation = () => {
       moderated_by: "All",
       moderated_by_username: "All",
       has_moderation_comment: "All",
+      moderation_type: urlParams.get('moderation_type') || "All",
       // сортировка
-      sort_by: "default",
-      sort_order: "asc"
+      sort_by: urlParams.get('sort_by') || "default",
+      sort_order: urlParams.get('sort_order') || "asc"
     };
   });
 
@@ -516,7 +518,7 @@ const Moderation = () => {
       try {
         // RBAC: Для главы региона используем выбранный фильтр региона или автоматически устанавливаем свой регион
         let regionFilter = filters.region !== "All" ? filters.region : undefined;
-        if (authState.userRole === 'headof_region' && authState.regionId && !regionFilter) {
+        if ((authState.userRole === 'headof_region' || authState.userRole === 2) && authState.regionId && authState.regionId !== null && authState.regionId !== 'null' && !regionFilter) {
           regionFilter = authState.regionId.toString();
         }
 
@@ -534,8 +536,8 @@ const Moderation = () => {
           plantation_id: filters.plantation_id !== "All" ? filters.plantation_id : undefined,
           min_area: filters.min_area !== "All" ? filters.min_area : undefined,
           max_area: filters.max_area !== "All" ? filters.max_area : undefined,
-          min_fertility_score: filters.min_fertility_score !== "All" ? filters.min_fertility_score : undefined,
-          max_fertility_score: filters.max_fertility_score !== "All" ? filters.max_fertility_score : undefined,
+          min_fertility: filters.min_fertility_score !== "All" ? filters.min_fertility_score : undefined,
+          max_fertility: filters.max_fertility_score !== "All" ? filters.max_fertility_score : undefined,
           min_irrigation_area: filters.min_irrigation_area !== "All" ? filters.min_irrigation_area : undefined,
           max_irrigation_area: filters.max_irrigation_area !== "All" ? filters.max_irrigation_area : undefined,
           is_fertile: filters.is_fertile !== "All" ? filters.is_fertile : undefined,
@@ -548,6 +550,7 @@ const Moderation = () => {
           moderated_after: filters.moderated_after !== "All" ? filters.moderated_after : undefined,
           moderated_before: filters.moderated_before !== "All" ? filters.moderated_before : undefined,
           garden_established_year: filters.garden_established_year !== "All" ? filters.garden_established_year : undefined,
+          planted_year: filters.planted_year !== "All" ? filters.planted_year : undefined,
           min_established_year: filters.min_established_year !== "All" ? filters.min_established_year : undefined,
           max_established_year: filters.max_established_year !== "All" ? filters.max_established_year : undefined,
           created_by: filters.created_by !== "All" ? filters.created_by : undefined,
@@ -574,7 +577,9 @@ const Moderation = () => {
 
         // RBAC: Определяем endpoint в зависимости от роли пользователя
         let moderationEndpoint;
-        if (authState.userRole === 'headof_region' && authState.regionId) {
+        const isHeadOfRegion = (authState.userRole === 'headof_region' || authState.userRole === 2 || authState.userRole === '2');
+        
+        if (isHeadOfRegion) {
           // Для главы региона используем специальный endpoint для его региона
           moderationEndpoint = `${API_BASE_URL2}api/plantations/forme/moderation/`;
         } else if (authState.userRole === 'observer') {
@@ -584,7 +589,6 @@ const Moderation = () => {
           // Для суперпользователя используем общий endpoint модерации
           moderationEndpoint = `${API_BASE_URL2}api/plantations/moderation/`;
         }
-        
         let response;
         try {
           response = await axios.get(

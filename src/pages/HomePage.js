@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
-import ContactsPanel from "../components/ContactsPanel";
 import { Doughnut, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -470,7 +469,6 @@ const HomePage = () => {
               </svg>
               Chiqish
             </button>
-            <ContactsPanel />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"

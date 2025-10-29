@@ -241,8 +241,23 @@ const ApprovedPlantations = () => {
           plantation_id: filters.plantation_id && filters.plantation_id !== "All" ? filters.plantation_id : undefined,
         };
 
-        // Используем новый endpoint для одобренных плантаций
-        const plantationsEndpoint = `${API_BASE_URL2}api/approved-plantations/`;
+        // RBAC: Для главы региона автоматически устанавливаем фильтр по региону
+        if ((authState.userRole === 'headof_region' || authState.userRole === 2) && authState.regionId && authState.regionId !== null && authState.regionId !== 'null') {
+          params.region_id = authState.regionId.toString();
+        }
+
+        // RBAC: Определяем endpoint в зависимости от роли пользователя
+        let plantationsEndpoint;
+        if (authState.userRole === 'headof_region' || authState.userRole === 2) {
+          // Для главы региона используем специальный endpoint для его региона
+          plantationsEndpoint = `${API_BASE_URL2}api/plantations/forme/approved-plantations/`;
+        } else if (authState.userRole === 'observer') {
+          // Для наблюдателя — сразу общий список плантаций с фильтрами
+          plantationsEndpoint = `${API_BASE_URL2}api/plantations/`;
+        } else {
+          // Для суперпользователя используем общий endpoint одобренных плантаций
+          plantationsEndpoint = `${API_BASE_URL2}api/approved-plantations/`;
+        }
 
         // Используем endpoint для плантаций с пагинацией
         const response = await axios.get(

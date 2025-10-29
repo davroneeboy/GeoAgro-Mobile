@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import AuthContext from "../context/AuthContext";
-import ContactsPanel from "./ContactsPanel";
 import { UserOutlined, BookOutlined, SettingOutlined } from "@ant-design/icons";
 
 const MENU_ITEMS = [
@@ -88,6 +87,10 @@ const getMenuItemsByRole = (role, regionId) => {
   if (isHeadOfRegion(role)) {
     const plantationsItem = MENU_ITEMS.find(item => item.to === "/plantations/uz");
     const farmersItem = MENU_ITEMS.find(item => item.to === "/farmers");
+    const moderationItem = MENU_ITEMS.find(item => item.to === "/moderation");
+    const deletionRequestsItem = MENU_ITEMS.find(item => item.to === "/deletion-requests");
+    const approvedPlantationsItem = MENU_ITEMS.find(item => item.to === "/approved-plantations");
+    const rejectedPlantationsItem = MENU_ITEMS.find(item => item.to === "/rejected-plantations");
 
     const statsItem = regionId ? {
       to: `/statistics/regions/${regionId}`,
@@ -103,6 +106,10 @@ const getMenuItemsByRole = (role, regionId) => {
       plantationsItem,
       ...(statsItem ? [statsItem] : []),
       farmersItem,
+      moderationItem,
+      deletionRequestsItem,
+      approvedPlantationsItem,
+      rejectedPlantationsItem,
       { to: "/my/logs", label: "Mening loglarim", icon: (
         <UserOutlined className="w-5 h-5 text-white" />
       ) },
@@ -297,11 +304,6 @@ const LeftNav = () => {
         )}
       </nav>
       
-      {location.pathname === '/' && (
-        <div className="px-3 pb-3">
-          <ContactsPanel buttonClassName={`w-full ${collapsed ? 'justify-center' : 'justify-between'} flex items-center text-white font-medium bg-gray-700 hover:bg-gray-600 transition-colors px-3 py-2 rounded-lg border border-gray-600`} label={collapsed ? '' : 'Kontaktlar'} variant="full" />
-        </div>
-      )}
 
       {/* РљРЅРѕРїРєР° РІС‡РµСЂС‡РёРІР° РІ СѓРіР»Сѓ */}
       <button
