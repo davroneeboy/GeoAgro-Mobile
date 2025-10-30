@@ -15,7 +15,7 @@ export default function PlantationHistory({
   const totalPages = Math.ceil((data?.count || 0) / (data?.page_size || pageSize || 1));
 
   return (
-    <div className="mt-6 bg-gray-700 p-4 rounded-lg">
+    <div className="mt-6 mb-6 bg-gray-700 p-4 rounded-lg">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-semibold text-lg text-white">{title}</h2>
         <div className="flex items-center gap-2">

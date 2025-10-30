@@ -5,13 +5,18 @@ import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
 import usePlantationHistory from "../hooks/usePlantationHistory";
 import PlantationHistory from "../components/common/PlantationHistory";
+import PlantationMetaCards from "../components/common/PlantationMetaCards";
 import { fetchFarmerPlantations } from "../api/api";
 import {
-  landTypeMapping,
   trellisTypeMapping,
   reservoirTypeMapping,
 } from "../context/constants";
+import translateAction from "../utils/moderationUtils";
 import PlantationStatusIndicator from "../components/PlantationStatusIndicator";
+import ModerationComments from "../components/common/ModerationComments";
+import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
+import FruitAreasList from "../components/common/FruitAreasList";
+import InefficientAreasList from "../components/common/InefficientAreasList";
 /* global google */
 
 const EditPlantation = () => {
@@ -42,17 +47,7 @@ const EditPlantation = () => {
     refetch: refetchLogs,
   } = usePlantationHistory(id, { initialAction: "", pageSize: 50 });
   
-  // Функция для перевода action значений
-  const translateAction = (action) => {
-    const actionTranslations = {
-      'delete_request': 'O\'chirish so\'rovi',
-      'approve': 'Tasdiqlash',
-      'reject': 'Rad etish',
-      'modify': 'O\'zgartirish',
-      'review': 'Ko\'rib chiqish'
-    };
-    return actionTranslations[action] || action;
-  };
+  // Перевод действий через общий util translateAction
   
   // Права доступа для удаления
   const canDeletePlantation = () => {
@@ -487,8 +482,7 @@ const EditPlantation = () => {
           if (savedFilters.min_fertility_score && savedFilters.min_fertility_score !== 'All') searchParams.set('min_fertility_score', savedFilters.min_fertility_score);
           if (savedFilters.max_fertility_score && savedFilters.max_fertility_score !== 'All') searchParams.set('max_fertility_score', savedFilters.max_fertility_score);
           if (savedFilters.min_irrigation_area && savedFilters.min_irrigation_area !== 'All') searchParams.set('min_irrigation_area', savedFilters.min_irrigation_area);
-          if (savedFilters.max_irrigation_area && savedFilters.max_irrigation_area !== 'All') searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);
-          if (savedFilters.is_fertile && savedFilters.is_fertile !== 'All') searchParams.set('is_fertile', savedFilters.is_fertile);
+          if (savedFilters.max_irrigation_area && savedFilters.max_irrigation_area !== 'All') searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);          if (savedFilters.is_fertile && savedFilters.is_fertile !== 'All') searchParams.set('is_fertile', savedFilters.is_fertile);
           if (savedFilters.is_checked && savedFilters.is_checked !== 'All') searchParams.set('is_checked', savedFilters.is_checked);
           if (savedFilters.is_rejected && savedFilters.is_rejected !== 'All') searchParams.set('is_rejected', savedFilters.is_rejected);
           if (savedFilters.is_deleting && savedFilters.is_deleting !== 'All') searchParams.set('is_deleting', savedFilters.is_deleting);
@@ -1100,8 +1094,7 @@ const EditPlantation = () => {
     } catch (error) {
       console.error("Error approving plantation:", error);
       setError("Plantatsiyani tasdiqlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
-    }
-  };
+    }  };
 
 
 
@@ -1303,81 +1296,7 @@ const EditPlantation = () => {
           </div>
           <div className="w-full md:w-1/2 h-full overflow-y-auto p-6 bg-gray-800 shadow-lg relative">
             {/* Кнопка закрытия */}
-            <button
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-full transition-colors z-10"
-              onClick={() => {
-                // Определяем, откуда пришел пользователь
-                const fromPage = location.state?.from;
-            
-                
-                if (fromPage === '/approved-plantations') {
-                  // Если пришел с approved-plantations, возвращаемся туда
-                  const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
-                  window.location.href = `/approved-plantations?page=${currentPage}`;
-                } else if (fromPage === '/rejected-plantations') {
-                  // Если пришел с rejected-plantations, возвращаемся туда
-                  window.location.href = '/rejected-plantations';
-                } else if (fromPage === '/deletion-requests') {
-                  // Если пришел с deletion-requests, возвращаемся туда с сохранением страницы
-                  const currentPage = location.state?.page || 1;
-                  window.location.href = `/deletion-requests?page=${currentPage}`;
-                } else if (fromPage === '/plantations/uz') {
-                  // Если пришли с карты плантаций, возвращаемся на неё
-                  window.location.href = '/plantations/uz';
-                } else {
-                  // По умолчанию возвращаемся на moderation
-                
-                const currentPage = localStorage.getItem('moderationPage') || 1;
-                  const savedFilters = location.state?.filters;
-                  
-                  // Восстанавливаем фильтры в URL
-                  const searchParams = new URLSearchParams();
-                  searchParams.set('page', currentPage.toString());
-                  
-                  if (savedFilters) {
-                    if (savedFilters.action !== "All") searchParams.set('action', savedFilters.action);
-                    if (savedFilters.status !== "All") searchParams.set('status', savedFilters.status);
-                    if (savedFilters.type !== "All") searchParams.set('type', savedFilters.type);
-                    if (savedFilters.region !== "All") searchParams.set('region', savedFilters.region);
-                    if (savedFilters.district !== "All") searchParams.set('district', savedFilters.district);
-                    if (savedFilters.farmer !== "All") searchParams.set('farmer', savedFilters.farmer);
-                    // новые фильтры
-                    if (savedFilters.farmer_id !== "All") searchParams.set('farmer_id', savedFilters.farmer_id);
-                    if (savedFilters.min_area !== "All") searchParams.set('min_area', savedFilters.min_area);
-                    if (savedFilters.max_area !== "All") searchParams.set('max_area', savedFilters.max_area);
-                    if (savedFilters.min_fertility_score !== "All") searchParams.set('min_fertility_score', savedFilters.min_fertility_score);
-                    if (savedFilters.max_fertility_score !== "All") searchParams.set('max_fertility_score', savedFilters.max_fertility_score);
-                    if (savedFilters.min_irrigation_area !== "All") searchParams.set('min_irrigation_area', savedFilters.min_irrigation_area);
-                    if (savedFilters.max_irrigation_area !== "All") searchParams.set('max_irrigation_area', savedFilters.max_irrigation_area);
-                    if (savedFilters.is_fertile !== "All") searchParams.set('is_fertile', savedFilters.is_fertile);
-                    if (savedFilters.is_checked !== "All") searchParams.set('is_checked', savedFilters.is_checked);
-                    if (savedFilters.is_rejected !== "All") searchParams.set('is_rejected', savedFilters.is_rejected);
-                    if (savedFilters.is_deleting !== "All") searchParams.set('is_deleting', savedFilters.is_deleting);
-                    if (savedFilters.land_type !== "All") searchParams.set('land_type', savedFilters.land_type);
-                    if (savedFilters.created_after !== "All") searchParams.set('created_after', savedFilters.created_after);
-                    if (savedFilters.created_before !== "All") searchParams.set('created_before', savedFilters.created_before);
-                    if (savedFilters.moderated_after !== "All") searchParams.set('moderated_after', savedFilters.moderated_after);
-                    if (savedFilters.moderated_before !== "All") searchParams.set('moderated_before', savedFilters.moderated_before);
-                    if (savedFilters.garden_established_year !== "All") searchParams.set('garden_established_year', savedFilters.garden_established_year);
-                    if (savedFilters.min_established_year !== "All") searchParams.set('min_established_year', savedFilters.min_established_year);
-                    if (savedFilters.max_established_year !== "All") searchParams.set('max_established_year', savedFilters.max_established_year);
-                    if (savedFilters.created_by !== "All") searchParams.set('created_by', savedFilters.created_by);
-                    if (savedFilters.created_by_username !== "All") searchParams.set('created_by_username', savedFilters.created_by_username);
-                    if (savedFilters.moderated_by !== "All") searchParams.set('moderated_by', savedFilters.moderated_by);
-                    if (savedFilters.moderated_by_username !== "All") searchParams.set('moderated_by_username', savedFilters.moderated_by_username);
-                    if (savedFilters.has_moderation_comment !== "All") searchParams.set('has_moderation_comment', savedFilters.has_moderation_comment);
-                    if (savedFilters.sort_by) searchParams.set('sort_by', savedFilters.sort_by);
-                    if (savedFilters.sort_order) searchParams.set('sort_order', savedFilters.sort_order);
-                  }
-                  
-                  const newUrl = `/moderation?${searchParams.toString()}`;
-                  window.location.href = newUrl;
-                }
-              }}
-              title="Закрыть"
-            >
-              ✕
-            </button>
+            <CloseButtonWithReturn />
             
             
             <h1 className="text-lg font-semibold text-white mb-3 pr-12">{plantation.farmer ? plantation.farmer.name : "Nomalum fermer"} <span className="text-xs text-gray-400 ml-2">ID: {plantation?.id || id}</span></h1>
@@ -1396,7 +1315,7 @@ const EditPlantation = () => {
               pageSize={logsPageSize}
               onReload={refetchLogs}
             />
-
+            
             {/* Автоматическое сравнение площадей */}
             {polygonAreaHectares !== null && plantation.total_area && (
               (() => {
@@ -1692,244 +1611,22 @@ const EditPlantation = () => {
               );
             })()}
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Yer turi:</p>
-                <p className="text-white">{landTypeMapping[plantation.land_type]}</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Maydoni:</p>
-                <p className="text-white font-bold">{Number(plantation.total_area).toFixed(1)} GA</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Banitet bali:</p>
-                <p className="text-white">{Number(plantation.fertility_score).toFixed(1)}</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Devor bilan o'ralgan:</p>
-                <p className="text-white">{plantation.fenced ? "✅" : "🚫"}</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Bo'sh maydon:</p>
-                <p className="text-white font-bold">{plantation.empty_area} GA</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Yaroqsiz maydon:</p>
-                <p className="text-white font-bold">{plantation.not_usable_area ?? '—'} GA</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Suv xovuzlari soni:</p>
-                <p className="text-white">{plantation.reservoir_count}</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Quduqlar soni:</p>
-                <p className="text-white">{plantation.pump_station_count}</p>
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Qo'shilgan vaqti:</p>
-                <p className="text-white">
-                  {plantation.created_at 
-                    ? new Date(plantation.created_at).toLocaleString("ru-RU", {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })
-                    : "—"
-                  }
-                </p>
-                {plantation.updated_at && (
-                  <div className="mt-2 text-xs text-amber-300 flex items-center gap-2">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-900/50 border border-amber-600/60">Yangilangan</span>
-                    <span className="text-white">
-                      {new Date(plantation.updated_at).toLocaleString("ru-RU", {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Tomchilab sug'oriladigan maydon:</p>
-                <p className="text-white font-bold">{plantation.irrigation_area} GA</p>
-              </div>
-              {plantation.investments && plantation.investments.length > 0 && (
-                <div className="bg-gray-700 p-3 rounded-lg">
-                  <p className="font-semibold text-gray-300 mb-2">Investitsiyalar:</p>
-                  <div className="space-y-1 mb-3">
-                    {plantation.investments.map((investment, index) => (
-                      <div key={investment.id || index} className="text-white text-sm">
-                        <span className="text-gray-400">
-                          {investment.invest_type === 1 ? 'Mahalliy' : investment.invest_type === 2 ? 'Xorijiy' : `Turi ${investment.invest_type}`}:
-                        </span>
-                        <span className="ml-2 font-medium">
-                          {new Intl.NumberFormat('uz-UZ').format(investment.investment_amount)} UZS
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-gray-600 pt-2">
-                    <p className="font-semibold text-gray-300">Jami investitsiyalar:</p>
-                    <p className="text-white font-bold text-green-400 text-lg">
-                      {new Intl.NumberFormat('uz-UZ').format(
-                        plantation.investments.reduce((total, inv) => total + (inv.investment_amount || 0), 0)
-                      )} UZS
-                    </p>
-                  </div>
-                </div>
-              )}
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <p className="font-semibold text-gray-300">Kontur raqami:</p>
-                <div className="flex items-center gap-2 text-white text-sm">
-                  <span className="break-all">
-                    {Array.isArray(plantation.kontur_number)
-                      ? (() => {
-                          const arr = plantation.kontur_number.map((v) => String(v)).filter((s) => s.trim().length > 0);
-                          if (arr.length === 0) return '—';
-                          const limit = 5;
-                          const shown = arr.slice(0, limit).join(', ');
-                          const extra = arr.length - limit;
-                          return extra > 0 ? `${shown} … va yana ${extra} ta` : shown;
-                        })()
-                      : (plantation.kontur_number || '—')}
-                  </span>
-                  {Array.isArray(plantation.kontur_number) && plantation.kontur_number.length > 0 && (
-                    <button
-                      onClick={() => { try { navigator.clipboard.writeText(plantation.kontur_number.map((v) => String(v)).join(', ')); } catch(_) {} }}
-                      className="text-gray-300 hover:text-white"
-                      title="Nusxa olish"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    </button>
-                  )}
-                </div>
-              </div>
-              {/* Блок для экономически неэффективных площадей */}
-              {plantation.fruit_areas && plantation.fruit_areas.some(area => area.iqtisodiy_samarasiz) && (
-                <div className="bg-gray-700 p-3 rounded-lg shadow-2xl border border-gray-500 hover:bg-gray-600 transition-all duration-300 hover:shadow-3xl hover:scale-[1.02]">
-                  <div className="flex items-center gap-2 mb-2 text-white">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-bold text-xl">Iqtisodiy samarasiz</span>
-                  </div>
-                  <div className="pr-1 space-y-2">
-                    {plantation.fruit_areas
-                      .filter(area => area.iqtisodiy_samarasiz)
-                      .map((area, idx) => (
-                        <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
-                          <p>Meva: {area.fruit}</p>
-                          <p>Nav: {area.variety}</p>
-                          <p>Iqtisodiy samarasiz maydoni: <span className="font-bold">{area.economic_inefficient_area || 0} GA</span></p>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <PlantationMetaCards plantation={plantation} />
+            <InefficientAreasList fruit_areas={plantation.fruit_areas} />
 
-            {/* Секция с обычными комментариями модерации */}
-            {Array.isArray(plantation.moderation_comment) && plantation.moderation_comment.filter(mc => !mc?.author && !mc?.action && !mc?.timestamp && !mc?.author_role).length > 0 && (
-              <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2 text-white">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <span className="font-semibold">Moderatsiya kommenti</span>
-                </div>
-                <div className="p-3 rounded-lg border border-gray-600 bg-gray-800/50 space-y-3">
-                  {plantation.moderation_comment
-                    .filter(mc => !mc?.author && !mc?.action && !mc?.timestamp && !mc?.author_role)
-                    .map((mc, idx) => (
-                      <div key={mc?.id ?? idx} className="border-b border-gray-600 pb-3 last:border-b-0">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1">
-                            <div className="text-gray-200 text-sm whitespace-pre-wrap">{mc?.text || ''}</div>
-                          </div>
-                        {mc?.image && typeof mc.image === 'string' && (
-                          <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                            <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-gray-600" />
-                          </a>
+            {/* Mavjud moderatsiya izohlari: ko'rish va o'chirish */}
+            <div className="mb-4 p-3 rounded-md border border-gray-600 bg-gray-700/40">
+              <div className="text-sm text-gray-300 mb-2">Mavjud izohlar</div>
+              <div className="space-y-2">
+                {Array.isArray(plantation.moderation_comment) && plantation.moderation_comment.length > 0 ? (
+                  <>
+                    <ModerationComments comments={plantation.moderation_comment} />
+                  </>
+                ) : (
+                  <div className="text-gray-400 text-sm">Izohlar mavjud emas</div>
                           )}
                         </div>
                       </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Секция с расширенными комментариями модерации */}
-            {Array.isArray(plantation.moderation_comment) && plantation.moderation_comment.filter(mc => mc?.author || mc?.action || mc?.timestamp || mc?.author_role).length > 0 && (
-              <div className="mb-6 bg-blue-900/20 p-4 rounded-lg border border-blue-500/30">
-                <div className="flex items-center gap-2 mb-2 text-white">
-                  <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <span className="font-semibold text-blue-300">Maxsus moderatsiya kommenti</span>
-                      </div>
-                <div className="p-3 rounded-lg border border-blue-500/50 bg-blue-900/10 space-y-3">
-                  {plantation.moderation_comment
-                    .filter(mc => mc?.author || mc?.action || mc?.timestamp || mc?.author_role)
-                    .map((mc, idx) => (
-                      <div key={mc?.id ?? idx} className="border-b border-blue-500/30 pb-3 last:border-b-0">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1">
-                            <div className="text-gray-200 text-sm whitespace-pre-wrap mb-2">{mc?.text || ''}</div>
-                            <div className="flex items-center gap-4 text-xs text-blue-300">
-                              {mc?.author && (
-                                <div className="flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                  <span>Muallif: {mc.author}</span>
-                                </div>
-                              )}
-                              {mc?.author_role && (
-                                <div className="flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  <span>Rol: {mc.author_role}</span>
-                                </div>
-                              )}
-                              {mc?.timestamp && (
-                                <div className="flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  <span>
-                                    {new Date(mc.timestamp).toLocaleString("ru-RU", {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </span>
-                                </div>
-                              )}
-                              {mc?.action && (
-                                <div className="flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                  </svg>
-                                  <span>Harakat: {translateAction(mc.action)}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {mc?.image && typeof mc.image === 'string' && (
-                            <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                              <img src={mc.image} alt="comment" className="w-16 h-16 object-cover rounded border border-blue-500/50" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
 
             {/* Двойной ряд: Fermer + Mevali hududlar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -1949,29 +1646,8 @@ const EditPlantation = () => {
                   </div>
                 )}
               {Array.isArray(plantation.fruit_areas) && plantation.fruit_areas.length > 0 && (
-                <div className="bg-gray-700 p-4 rounded-lg shadow-2xl border border-gray-500 hover:bg-gray-600 transition-all duration-300 hover:shadow-3xl hover:scale-[1.02]">
-                  <div className="flex items-center gap-2 mb-2 text-white">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" /></svg>
-                    <span className="font-bold text-xl">Mevali hududlar</span>
-                  </div>
-                  <div className="pr-1 space-y-2">
-                    {plantation.fruit_areas.map((area, idx) => (
-                      <div key={idx} className="border-b border-gray-600 pb-2 text-gray-300 text-sm last:border-b-0">
-                        <p>Meva: {area.fruit}</p>
-                        <p>Nav: {area.variety}</p>
-                        <p>Maydoni: <span className="font-bold">{area.area} GA</span></p>
-                        <p>Ekilgan yili: {area.planted_year}</p>
-                        <p>Podvoy: {area.rootstock || '—'}</p>
-                        <p>Sxema: {area.schema || '—'}</p>
-                        <p>Og'irlik: {area.weight ?? '—'}</p>
-                        <p>Sentner: {area.hundredweight ?? '—'}</p>
-                        <p>Ko'chat soni: {area.kochat_soni ?? '—'}</p>
-                        <p>O'ralgan: {area.fenced ? "✅" : "🚫"}</p>
-                      </div>
-                    ))}
-                  </div>
-              </div>
-            )}
+                <FruitAreasList fruit_areas={plantation.fruit_areas} />
+              )}
             </div>
 
             {createdByUser && (
@@ -2614,7 +2290,4 @@ const EditPlantation = () => {
     </div>
   );
 };
-
 export default EditPlantation;
-
-
