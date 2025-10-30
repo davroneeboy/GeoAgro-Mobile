@@ -3,6 +3,8 @@ import { useParams, useLocation } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { GOOGLE_API_KEY } from "../config";
 import { apiRequest } from "../utils/apiUtils";
+import usePlantationHistory from "../hooks/usePlantationHistory";
+import PlantationHistory from "../components/common/PlantationHistory";
 import { fetchFarmerPlantations } from "../api/api";
 import {
   landTypeMapping,
@@ -26,6 +28,19 @@ const EditPlantation = () => {
   const [moderationItems, setModerationItems] = useState([]);
   const { authState, refreshAccessToken } = useContext(AuthContext);
   const canDeleteComments = authState?.userRole === 'superuser';
+  
+  // Logs via hook
+  const {
+    data: logsData,
+    loading: logsLoading,
+    error: logsError,
+    action: logsActionFilter,
+    setAction: setLogsActionFilter,
+    page: logsPage,
+    setPage: setLogsPage,
+    pageSize: logsPageSize,
+    refetch: refetchLogs,
+  } = usePlantationHistory(id, { initialAction: "", pageSize: 50 });
   
   // Функция для перевода action значений
   const translateAction = (action) => {
@@ -1370,6 +1385,18 @@ const EditPlantation = () => {
             {/* Блок статуса плантации */}
             <PlantationStatusIndicator plantation={plantation} />
             
+            <PlantationHistory
+              data={logsData}
+              loading={logsLoading}
+              error={logsError}
+              action={logsActionFilter}
+              setAction={setLogsActionFilter}
+              page={logsPage}
+              setPage={setLogsPage}
+              pageSize={logsPageSize}
+              onReload={refetchLogs}
+            />
+
             {/* Автоматическое сравнение площадей */}
             {polygonAreaHectares !== null && plantation.total_area && (
               (() => {

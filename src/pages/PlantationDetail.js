@@ -12,6 +12,8 @@ import {
   reservoirTypeMapping,
 } from "../context/constants";
 import PlantationStatusIndicator from "../components/PlantationStatusIndicator";
+import usePlantationHistory from "../hooks/usePlantationHistory";
+import PlantationHistory from "../components/common/PlantationHistory";
 /* global google */
 
 const PlantationDetail = () => {
@@ -36,6 +38,18 @@ const PlantationDetail = () => {
   const [polygonAreaHectares, setPolygonAreaHectares] = useState(null);
   const navigate = useNavigate();
   const { authState, refreshAccessToken } = useContext(AuthContext);
+
+  // История через общий хук
+  const {
+    data: logsData,
+    loading: logsLoading,
+    error: logsError,
+    action: logsActionFilter,
+    setAction: setLogsActionFilter,
+    page: logsPage,
+    setPage: setLogsPage,
+    pageSize: logsPageSize,
+  } = usePlantationHistory(id, { initialAction: "", pageSize: 50 });
 
   // Функция для перевода action значений
   const translateAction = (action) => {
@@ -753,6 +767,17 @@ const PlantationDetail = () => {
                 </div>
               )}
             </div>
+
+            <PlantationHistory
+              data={logsData}
+              loading={logsLoading}
+              error={logsError}
+              action={logsActionFilter}
+              setAction={setLogsActionFilter}
+              page={logsPage}
+              setPage={setLogsPage}
+              pageSize={logsPageSize}
+            />
 
             {/* Секция с обычными комментариями модерации */}
             {Array.isArray(plantation.moderation_comment) && plantation.moderation_comment.filter(mc => !mc?.author && !mc?.action && !mc?.timestamp && !mc?.author_role).length > 0 && (
