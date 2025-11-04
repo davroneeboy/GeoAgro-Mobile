@@ -211,17 +211,24 @@ const districtsByRegion = {
 
 const ApprovedPlantations = () => {
   const [plantations, setPlantations] = useState([]);
-  const [filters, setFilters] = useState({
-    region: "All",
-    district: "All",
-    farmer: "All",
-    plantation_id: "All",
-  });
-  const [users, setUsers] = useState({}); // Кеш пользователей
-
   const navigate = useNavigate();
   const location = useLocation();
   const { authState, logout } = useContext(AuthContext);
+
+  // Функция для получения фильтров из URL
+  const getFiltersFromUrl = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return {
+      region: searchParams.get('region') || "All",
+      district: searchParams.get('district') || "All",
+      farmer: searchParams.get('farmer') || "All",
+      plantation_id: searchParams.get('plantation_id') || "All",
+    };
+  };
+
+  // Инициализируем фильтры из URL при первой загрузке
+  const [filters, setFilters] = useState(() => getFiltersFromUrl());
+  const [users, setUsers] = useState({}); // Кеш пользователей
 
   // Инициализируем страницу из URL или localStorage
   const initialPageFromUrl = (() => {
@@ -246,17 +253,6 @@ const ApprovedPlantations = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pageSize = 20; // Максимум 20 плантаций на страницу
   const [pageInput, setPageInput] = useState(initialPageFromUrl.toString()); // для поля ввода страницы
-
-  // Функция для получения фильтров из URL
-  const getFiltersFromUrl = () => {
-    const searchParams = new URLSearchParams(location.search);
-    return {
-      region: searchParams.get('region') || "All",
-      district: searchParams.get('district') || "All",
-      farmer: searchParams.get('farmer') || "All",
-      plantation_id: searchParams.get('plantation_id') || "All",
-    };
-  };
 
   // Функция для сохранения фильтров в URL
   const saveFiltersToUrl = (newFilters, newPage = 1) => {
@@ -286,7 +282,16 @@ const ApprovedPlantations = () => {
   // Обновляем фильтры при изменении URL
   useEffect(() => {
     const newFilters = getFiltersFromUrl();
-    setFilters(newFilters);
+    // Обновляем только если фильтры действительно изменились
+    setFilters(prev => {
+      const hasChanged = 
+        prev.region !== newFilters.region ||
+        prev.district !== newFilters.district ||
+        prev.farmer !== newFilters.farmer ||
+        prev.plantation_id !== newFilters.plantation_id;
+      
+      return hasChanged ? newFilters : prev;
+    });
   }, [location.search]);
 
   const handleLogout = () => {

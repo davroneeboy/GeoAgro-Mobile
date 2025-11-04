@@ -882,10 +882,14 @@ const PlantationDetail = () => {
               <button
                 className="w-full sm:w-auto py-2 px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                 onClick={() => {
-                  // Передаем информацию о том, откуда пришли
+                  // Передаем информацию о том, откуда пришли, включая фильтры
                   const fromPage = location.state?.from || '/moderation';
                   navigate(`/plantations/edit/${plantation.id}`, {
-                    state: { from: fromPage }
+                    state: { 
+                      from: fromPage,
+                      filters: location.state?.filters,
+                      page: location.state?.page
+                    }
                   });
                 }}
               >

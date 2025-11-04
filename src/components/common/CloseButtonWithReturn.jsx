@@ -7,12 +7,17 @@ export default function CloseButtonWithReturn({ fallback }) {
 
   const handleClose = () => {
     const fromState = location.state?.from;
-    const savedFilters = location.state?.filters;
-    const savedPage = location.state?.page;
     const referrer = document.referrer || '';
 
     if (fromState && typeof fromState === 'string') {
-      // Если есть сохранённые фильтры, используем их
+      // Если fromState уже содержит полный URL с параметрами, используем его напрямую
+      if (fromState.includes('?')) {
+        navigate(fromState);
+        return;
+      }
+      // Если fromState - это просто путь, но есть сохранённые фильтры
+      const savedFilters = location.state?.filters;
+      const savedPage = location.state?.page;
       if (savedFilters && fromState.includes('/approved-plantations')) {
         const searchParams = new URLSearchParams();
         const pageToUse = savedPage || localStorage.getItem('approvedPlantationsPage') || 1;
