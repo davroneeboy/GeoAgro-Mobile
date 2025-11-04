@@ -357,9 +357,21 @@ const EditPlantation = () => {
         
         // Иначе возвращаемся в модерацию
         const fromPage = location.state?.from;
-        if (fromPage === '/approved-plantations') {
-          const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
-          window.location.href = `/approved-plantations?page=${currentPage}`;
+        const savedFilters = location.state?.filters;
+        const savedPage = location.state?.page;
+        if (fromPage && fromPage.includes('/approved-plantations')) {
+          const searchParams = new URLSearchParams();
+          const pageToUse = savedPage || localStorage.getItem('approvedPlantationsPage') || 1;
+          searchParams.set('page', pageToUse.toString());
+          
+          if (savedFilters) {
+            if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+            if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+            if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+            if (savedFilters.plantation_id && savedFilters.plantation_id !== 'All') searchParams.set('plantation_id', savedFilters.plantation_id);
+          }
+          
+          window.location.href = `/approved-plantations?${searchParams.toString()}`;
         } else if (fromPage === '/rejected-plantations') {
           window.location.href = '/rejected-plantations';
         } else if (fromPage === '/deletion-requests') {
@@ -452,9 +464,21 @@ const EditPlantation = () => {
 
       // Перенаправляем обратно на страницу модерации/списков с восстановлением фильтров
       const fromPage = location.state?.from;
-      if (fromPage === '/approved-plantations') {
-        const currentPage = localStorage.getItem('approvedPlantationsPage') || 1;
-        window.location.href = `/approved-plantations?page=${currentPage}`;
+      const savedFilters = location.state?.filters;
+      const savedPage = location.state?.page;
+      if (fromPage && fromPage.includes('/approved-plantations')) {
+        const searchParams = new URLSearchParams();
+        const pageToUse = savedPage || localStorage.getItem('approvedPlantationsPage') || 1;
+        searchParams.set('page', pageToUse.toString());
+        
+        if (savedFilters) {
+          if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+          if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+          if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          if (savedFilters.plantation_id && savedFilters.plantation_id !== 'All') searchParams.set('plantation_id', savedFilters.plantation_id);
+        }
+        
+        window.location.href = `/approved-plantations?${searchParams.toString()}`;
       } else if (fromPage === '/rejected-plantations') {
         window.location.href = '/rejected-plantations';
       } else if (fromPage === '/deletion-requests') {

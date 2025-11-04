@@ -7,9 +7,25 @@ export default function CloseButtonWithReturn({ fallback }) {
 
   const handleClose = () => {
     const fromState = location.state?.from;
+    const savedFilters = location.state?.filters;
+    const savedPage = location.state?.page;
     const referrer = document.referrer || '';
 
     if (fromState && typeof fromState === 'string') {
+      // Если есть сохранённые фильтры, используем их
+      if (savedFilters && fromState.includes('/approved-plantations')) {
+        const searchParams = new URLSearchParams();
+        const pageToUse = savedPage || localStorage.getItem('approvedPlantationsPage') || 1;
+        searchParams.set('page', pageToUse.toString());
+        
+        if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+        if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+        if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+        if (savedFilters.plantation_id && savedFilters.plantation_id !== 'All') searchParams.set('plantation_id', savedFilters.plantation_id);
+        
+        navigate(`/approved-plantations?${searchParams.toString()}`);
+        return;
+      }
       navigate(fromState);
       return;
     }

@@ -7,6 +7,208 @@ import AuthContext from "../context/AuthContext";
 // eslint-disable-next-line no-unused-vars
 import { landTypeMapping } from "../context/constants";
 
+// Список районов по регионам (вынесен за пределы компонента для оптимизации)
+const districtsByRegion = {
+    "1": [ // Toshkent
+      { id: "1", name: "Oqqorgon" },
+      { id: "2", name: "Ohangaron" },
+      { id: "3", name: "Bekobod" },
+      { id: "4", name: "Bo'stonliq" },
+      { id: "5", name: "Bo'ka" },
+      { id: "6", name: "Quyi Chirchiq" },
+      { id: "7", name: "Zangiota" },
+      { id: "8", name: "Toshkent" },
+      { id: "9", name: "Yuqori Chirchiq" },
+      { id: "10", name: "Qibray" },
+      { id: "11", name: "Parkent" },
+      { id: "12", name: "Piskent" },
+      { id: "13", name: "O'rta Chirchiq" },
+      { id: "14", name: "Chinoz" },
+      { id: "15", name: "Yangiyo'l" },
+    ],
+    "2": [ // Andijon
+      { id: "16", name: "Andijon" },
+      { id: "17", name: "Asaka" },
+      { id: "18", name: "Baliqchi" },
+      { id: "19", name: "Buloqboshi" },
+      { id: "20", name: "Bo'ston" },
+      { id: "21", name: "Jalaquduq" },
+      { id: "22", name: "Izboskan" },
+      { id: "23", name: "Ulug'nor" },
+      { id: "24", name: "Marhamat" },
+      { id: "25", name: "Oltinko'l" },
+      { id: "26", name: "Paxtaobod" },
+      { id: "27", name: "Xo'jaobod" },
+      { id: "28", name: "Shahrixon" },
+      { id: "29", name: "Qo'rg'ontepa" },
+      { id: "30", name: "Andijon sh" },
+      { id: "31", name: "Xonobod sh" },
+    ],
+    "3": [ // Buxoro
+      { id: "32", name: "Buxoro" },
+      { id: "33", name: "Vobkent" },
+      { id: "35", name: "Kogon" },
+      { id: "36", name: "Qorakul" },
+      { id: "37", name: "Qorovulbozor" },
+      { id: "38", name: "Olot" },
+      { id: "39", name: "Peshku" },
+      { id: "41", name: "Shofirkon" },
+      { id: "42", name: "G'ijduvon" },
+      { id: "43", name: "Buxoro sh" },
+      { id: "34", name: "Jondor" },
+      { id: "40", name: "Romitan" },
+    ],
+    "4": [ // Farg'ona
+      { id: "44", name: "Quvasoy sh" },
+      { id: "46", name: "Marg'ilon sh" },
+      { id: "47", name: "Farg'ona sh" },
+      { id: "48", name: "Beshariq" },
+      { id: "50", name: "Buvayda" },
+      { id: "51", name: "Dang'ara" },
+      { id: "52", name: "Yozyovon" },
+      { id: "53", name: "Quva" },
+      { id: "54", name: "Oltiariq" },
+      { id: "56", name: "Rishton" },
+      { id: "57", name: "So'x" },
+      { id: "58", name: "Toshloq" },
+      { id: "59", name: "O'zbekiston" },
+      { id: "61", name: "Farg'ona" },
+      { id: "62", name: "Furqat" },
+      { id: "45", name: "Qo'qon sh" },
+      { id: "49", name: "Bog'dod" },
+      { id: "55", name: "Qo'shtepa" },
+      { id: "60", name: "Uchko'prik" },
+    ],
+    "5": [ // Jizzakh
+      { id: "63", name: "Arnasoy" },
+      { id: "64", name: "Baxmal" },
+      { id: "66", name: "Sh.Rashidov" },
+      { id: "67", name: "Do'stlik" },
+      { id: "68", name: "Zomin" },
+      { id: "69", name: "Zarbdor" },
+      { id: "71", name: "Zafarobod" },
+      { id: "72", name: "Paxtakor" },
+      { id: "73", name: "Forish" },
+      { id: "74", name: "Yangiobod" },
+      { id: "75", name: "Jizzax sh" },
+      { id: "65", name: "G'allaorol" },
+      { id: "70", name: "Mirzacho'l" },
+    ],
+    "6": [ // Qashqadaryo
+      { id: "76", name: "G'uzor t" },
+      { id: "77", name: "Dehqonobod t" },
+      { id: "78", name: "Qamashi t" },
+      { id: "79", name: "Qarshi t" },
+      { id: "81", name: "Kitob t" },
+      { id: "82", name: "Koson t" },
+      { id: "83", name: "Muborak t" },
+      { id: "84", name: "Nishon t" },
+      { id: "86", name: "Chiroqchi t" },
+      { id: "87", name: "Shahrisabz t" },
+      { id: "89", name: "Ko'kdala t" },
+      { id: "80", name: "Kasbi t" },
+      { id: "85", name: "Mirishkor t" },
+      { id: "88", name: "Yakkabog' t" },
+    ],
+    "7": [ // Navoiy
+      { id: "90", name: "Karmana" },
+      { id: "91", name: "Konimeh" },
+      { id: "92", name: "Qiziltepa" },
+      { id: "94", name: "Nurota" },
+      { id: "95", name: "Xatirchi" },
+      { id: "93", name: "Navbahor" },
+    ],
+    "8": [ // Namangan
+      { id: "96", name: "Mingbuloq" },
+      { id: "97", name: "Kosonsoy" },
+      { id: "99", name: "Norin" },
+      { id: "100", name: "Pop" },
+      { id: "101", name: "To'raqo'rg'on" },
+      { id: "102", name: "Uychi" },
+      { id: "103", name: "Uchqo'rg'on" },
+      { id: "105", name: "Chust" },
+      { id: "106", name: "Yangiqo'rg'on" },
+      { id: "107", name: "Namangan sh" },
+      { id: "98", name: "Namangan" },
+      { id: "104", name: "Chortoq" },
+    ],
+    "9": [ // Samarqand
+      { id: "108", name: "Bulung'ur" },
+      { id: "110", name: "Ishtixon" },
+      { id: "111", name: "Kattaqo'rg'on" },
+      { id: "112", name: "Narpay" },
+      { id: "113", name: "Nurobod" },
+      { id: "115", name: "Pastdarg'om" },
+      { id: "116", name: "Paxtachi" },
+      { id: "117", name: "Payariq" },
+      { id: "119", name: "Tayloq" },
+      { id: "120", name: "Urgut" },
+      { id: "121", name: "Qo'shrabot" },
+      { id: "109", name: "Jomboy" },
+      { id: "114", name: "Oqdaryo" },
+      { id: "118", name: "Samarqand" },
+    ],
+    "10": [ // Sirdaryo
+      { id: "122", name: "Boyovut" },
+      { id: "124", name: "Mirzaobod" },
+      { id: "125", name: "Oqoltin" },
+      { id: "126", name: "Sardoba" },
+      { id: "127", name: "Sayxunobod" },
+      { id: "129", name: "Xovos" },
+      { id: "123", name: "Guliston" },
+      { id: "128", name: "Sirdaryo" },
+    ],
+    "11": [ // Surxondaryo
+      { id: "130", name: "Angor" },
+      { id: "131", name: "Bandixon" },
+      { id: "132", name: "Boysun" },
+      { id: "133", name: "Denov" },
+      { id: "135", name: "Qiziriq" },
+      { id: "136", name: "Qumqo'rg'on" },
+      { id: "137", name: "Muzrabot" },
+      { id: "138", name: "Oltinsoy" },
+      { id: "140", name: "Termiz" },
+      { id: "141", name: "Uzun" },
+      { id: "142", name: "Sherobod" },
+      { id: "143", name: "Sho'rchi" },
+      { id: "134", name: "Jarqo'rg'on" },
+      { id: "139", name: "Sariosiyo" },
+    ],
+    "12": [ // Qoraqalpog'iston
+      { id: "144", name: "To'rtko'l" },
+      { id: "146", name: "Ellikqal'a" },
+      { id: "147", name: "Amudaryo" },
+      { id: "148", name: "Tahiatosh" },
+      { id: "150", name: "Shumanay" },
+      { id: "151", name: "Qonliko'l" },
+      { id: "152", name: "Qo'ng'irot" },
+      { id: "153", name: "Nukus" },
+      { id: "154", name: "Kegeyli" },
+      { id: "155", name: "Bo'zotov" },
+      { id: "156", name: "Chimboy" },
+      { id: "157", name: "Qorao'zak" },
+      { id: "158", name: "Taxtako'pir" },
+      { id: "159", name: "Mo'ynoq" },
+      { id: "160", name: "Nukus sh" },
+      { id: "145", name: "Beruniy" },
+      { id: "149", name: "Xo'jayli" },
+    ],
+    "13": [ // Xorazm
+      { id: "161", name: "Bog'ot" },
+      { id: "162", name: "Gurlan" },
+      { id: "163", name: "Qo'shko'pir" },
+      { id: "164", name: "Urganch" },
+      { id: "165", name: "Xazorasp" },
+      { id: "166", name: "Xonqa" },
+      { id: "167", name: "Xiva" },
+      { id: "168", name: "Shovot" },
+      { id: "169", name: "Yangiariq" },
+      { id: "170", name: "Yangibozor" },
+      { id: "171", name: "Tuproqqal'a" },
+      { id: "172", name: "Xiva sh" },
+    ],
+  };
+
 const ApprovedPlantations = () => {
   const [plantations, setPlantations] = useState([]);
   const [filters, setFilters] = useState({
@@ -15,8 +217,6 @@ const ApprovedPlantations = () => {
     farmer: "All",
     plantation_id: "All",
   });
-  const [districts, setDistricts] = useState([]);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [users, setUsers] = useState({}); // Кеш пользователей
 
   const navigate = useNavigate();
@@ -94,40 +294,26 @@ const ApprovedPlantations = () => {
     navigate("/login");
   };
 
-  // Функция для загрузки районов по региону
-  const fetchDistricts = async (regionId) => {
-    if (!regionId || regionId === "All") {
-      setDistricts([]);
-      return;
-    }
-
-    setLoadingDistricts(true);
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL2}api/districts/?region=${regionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authState.accessToken}`,
-          },
-        }
-      );
-      
-      if (response.data && response.data.results) {
-        setDistricts(response.data.results);
-      } else {
-        setDistricts([]);
-      }
-    } catch (error) {
-      console.error("Ошибка при загрузке районов:", error);
-      setDistricts([]);
-      
-      if (error.response?.status === 401) {
-        logout();
-        navigate('/login');
-      }
-    } finally {
-      setLoadingDistricts(false);
-    }
+  // Функция для обработки клика на плантацию с сохранением фильтров
+  const handlePlantationClick = (plantationId) => {
+    // Сохраняем текущие фильтры и страницу перед переходом
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', page.toString());
+    
+    if (filters.region !== 'All') searchParams.set('region', filters.region);
+    if (filters.district !== 'All') searchParams.set('district', filters.district);
+    if (filters.farmer && filters.farmer !== 'All') searchParams.set('farmer', filters.farmer);
+    if (filters.plantation_id && filters.plantation_id !== 'All') searchParams.set('plantation_id', filters.plantation_id);
+    
+    const returnUrl = `/approved-plantations?${searchParams.toString()}`;
+    
+    navigate(`/plantations/${plantationId}`, { 
+      state: { 
+        from: returnUrl,
+        filters: filters,
+        page: page
+      } 
+    });
   };
 
   // Синхронизируем URL с состоянием страницы
@@ -166,10 +352,6 @@ const ApprovedPlantations = () => {
     }
   }, [location.search, navigate]);
 
-  // Загружаем районы при изменении региона
-  useEffect(() => {
-    fetchDistricts(filters.region);
-  }, [filters.region]);
 
   // Вычисляем totalPages
   const totalPages = Math.ceil(count / pageSize);
@@ -546,23 +728,18 @@ const ApprovedPlantations = () => {
                 <option value="12">Qoraqalpog'iston</option>
                 <option value="13">Xorazm</option>
               </select>
-              {filters.region !== "All" && (
+              {filters.region !== "All" && districtsByRegion[filters.region] && (
                 <select
                   className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   value={filters.district}
                   onChange={(e) => handleFilterChange('district', e.target.value)}
-                  disabled={loadingDistricts}
                 >
                   <option value="All">Barcha tumanlar</option>
-                  {loadingDistricts ? (
-                    <option value="" disabled>Yuklanmoqda...</option>
-                  ) : (
-                    districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))
-                  )}
+                  {districtsByRegion[filters.region].map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
                 </select>
               )}
             </div>
@@ -593,10 +770,9 @@ const ApprovedPlantations = () => {
             ) : (
               <div className="space-y-4">
                 {plantations.map((plantation) => (
-                  <Link
+                  <div
                     key={plantation.id}
-                    to={`/plantations/${plantation.id}`}
-                    state={{ from: '/approved-plantations' }}
+                    onClick={() => handlePlantationClick(plantation.id)}
                     className="group block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-gray-700 hover:border-green-500 hover:from-gray-750 hover:to-gray-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-green-500/10"
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -664,7 +840,7 @@ const ApprovedPlantations = () => {
                         </svg>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
@@ -844,7 +1020,7 @@ const ApprovedPlantations = () => {
                 <option value="13">Xorazm</option>
               </select>
             </div>
-            {filters.region !== "All" && (
+            {filters.region !== "All" && districtsByRegion[filters.region] && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Tuman
@@ -853,18 +1029,13 @@ const ApprovedPlantations = () => {
                   value={filters.district}
                   onChange={(e) => handleFilterChange('district', e.target.value)}
                   className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
-                  disabled={loadingDistricts}
                 >
                   <option value="All">Barcha tumanlar</option>
-                  {loadingDistricts ? (
-                    <option value="" disabled>Yuklanmoqda...</option>
-                  ) : (
-                    districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))
-                  )}
+                  {districtsByRegion[filters.region].map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -887,10 +1058,9 @@ const ApprovedPlantations = () => {
           ) : (
             <div className="space-y-4">
               {plantations.map((plantation) => (
-                <Link
+                <div
                   key={plantation.id}
-                  to={`/plantations/${plantation.id}`}
-                  state={{ from: '/approved-plantations' }}
+                  onClick={() => handlePlantationClick(plantation.id)}
                   className="group block bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg p-3 border border-gray-600 hover:border-green-500 hover:from-gray-650 hover:to-gray-750 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -958,7 +1128,7 @@ const ApprovedPlantations = () => {
                       </svg>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
