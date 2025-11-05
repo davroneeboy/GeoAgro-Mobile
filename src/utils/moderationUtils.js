@@ -5,13 +5,18 @@ export const translateAction = (action) => {
   const key = String(action).toLowerCase();
   const map = {
     create: "Yaratish",
-    update: "Yangilash",
+    update: "O'zgartirish",
     approve: "Tasdiqlash",
     reject: "Rad etish",
     delete: "O'chirish",
     delete_request: "O'chirish so'rovi",
     modify: "O'zgartirish",
     review: "Ko'rib chiqish",
+    // Переводы для action_display с бэка
+    "создание": "Yaratish",
+    "изменение": "O'zgartirish",
+    "Изменение": "O'zgartirish",
+    "Создание": "Yaratish",
   };
   return map[key] || action;
 };
