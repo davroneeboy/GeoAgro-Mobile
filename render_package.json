@@ -1,0 +1,24 @@
+{
+  "name": "geoagro-update-server-render",
+  "version": "1.0.0",
+  "description": "Сервер обновлений для GEO AGRO на Render",
+  "main": "render_server.js",
+  "scripts": {
+    "start": "node render_server.js",
+    "dev": "nodemon render_server.js"
+  },
+  "keywords": [
+    "flutter",
+    "app-update",
+    "api",
+    "render"
+  ],
+  "author": "GEO AGRO Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
