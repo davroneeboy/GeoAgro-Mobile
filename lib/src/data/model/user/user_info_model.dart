@@ -11,6 +11,8 @@ class UserInfoModel {
   final bool isHeadofRegion;
   final bool isSuperuser;
   final String? flutterVersion; // Версия приложения с сервера
+  final bool isSpecialUser; // Специальный пользователь (может загружать фото с галереи)
+  final double? limitKm; // Лимит координат в км (null = дефолт 1 км)
 
   UserInfoModel({
     required this.id,
@@ -25,6 +27,8 @@ class UserInfoModel {
     required this.isHeadofRegion,
     required this.isSuperuser,
     this.flutterVersion,
+    this.isSpecialUser = false, // По умолчанию false
+    this.limitKm, // Nullable - если null, используется дефолт 1 км
   });
 
   factory UserInfoModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +45,8 @@ class UserInfoModel {
       isHeadofRegion: json['is_headof_region'] ?? false,
       isSuperuser: json['is_superuser'] ?? false,
       flutterVersion: json['flutter_version']?.toString(),
+      isSpecialUser: json['is_specialuser'] ?? false,
+      limitKm: json['limit_km']?.toDouble(),
     );
   }
 

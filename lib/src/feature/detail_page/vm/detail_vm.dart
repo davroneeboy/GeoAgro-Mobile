@@ -13,6 +13,7 @@ import 'package:l/l.dart';
 
 import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
+import '../../../core/storage/app_storage.dart';
 
 final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
   return DetailVM();
@@ -68,6 +69,7 @@ class DetailVM extends ChangeNotifier {
   FruitRootstocksModel? selectedFruitRoot;
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
+  bool _isSpecialUser = false; // Флаг специального пользователя
   final switchTomchi = StateProvider<bool>((ref) => false);
   final switchFenced = StateProvider<bool>((ref) => false);
   final switchIsFertile = StateProvider<bool>((ref) => false);
@@ -578,8 +580,55 @@ class DetailVM extends ChangeNotifier {
     ref.read(switchFenced.notifier).state = false;
   }
 
+  /// Загрузить информацию о пользователе (isSpecialUser) из storage
+  Future<void> loadUserInfo() async {
+    _isSpecialUser = await AppStorage.$readBool(key: StorageKey.isSpecialUser) ?? false;
+    p.log('🔍 Loaded isSpecialUser: $_isSpecialUser');
+  }
+
+  /// Показать диалог выбора источника изображения (Camera/Gallery)
+  /// Для специальных пользователей показывает оба варианта
+  Future<void> showImagePicker(BuildContext context, int cardId) async {
+    // Загружаем информацию о пользователе перед показом
+    await loadUserInfo();
+    
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              // Показываем галерею только для специальных пользователей
+              if (_isSpecialUser) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+
+    if (source != null) {
+      await pickImage(cardId: cardId, source: source);
+    }
+  }
+
+  /// Старый метод для обратной совместимости (используется в некоторых местах)
   Future<void> pickImageFromCamera(int cardId) =>
       pickImage(cardId: cardId, source: ImageSource.camera);
+      
+  /// Основной метод для выбора изображения
   Future<void> pickImage(
       {required int cardId, required ImageSource source}) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);

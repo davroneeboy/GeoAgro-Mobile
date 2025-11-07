@@ -113,11 +113,25 @@ class LoginVm extends ChangeNotifier {
           debugPrint("💾 Stored districtId: $dId");
         }
         
-        // Проверяем версию приложения
+        // Проверяем версию приложения и сохраняем специальные поля
         final userInfo = UserInfoModel.fromJson(decoded);
         if (userInfo.flutterVersion != null) {
           debugPrint("🔍 App version check: server=${userInfo.flutterVersion}");
           // Версия будет проверена в drawer при первом открытии
+        }
+        
+        // Сохраняем is_specialuser
+        await AppStorage.$writeBool(key: StorageKey.isSpecialUser, value: userInfo.isSpecialUser);
+        debugPrint("💾 Stored isSpecialUser: ${userInfo.isSpecialUser}");
+        
+        // Сохраняем limit_km (если не null)
+        if (userInfo.limitKm != null) {
+          await AppStorage.$writeDouble(key: StorageKey.limitKm, value: userInfo.limitKm!);
+          debugPrint("💾 Stored limitKm: ${userInfo.limitKm} km");
+        } else {
+          // Если null, удаляем старое значение (будет использован дефолт 1 км)
+          await AppStorage.$delete(key: StorageKey.limitKm);
+          debugPrint("💾 limitKm is null, will use default 1 km");
         }
       }
     } catch (e) {

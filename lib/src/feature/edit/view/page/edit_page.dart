@@ -480,7 +480,7 @@ class _EditPageState extends ConsumerState<EditPage> {
               MainText(text: "Bog`ning rasmlarini qayta yuklang"),
               EditImageUploadListWidget(
                 existingImages: edit.existingImages,
-                pickImageFromCamera: edit.pickImageFromCamera,
+                showImagePicker: edit.showImagePicker,
                 getImageFile: edit.getImageFile,
                 removeExistingImage: edit.removeExistingImage,
                 isUploadingAt: edit.isUploadingAt,

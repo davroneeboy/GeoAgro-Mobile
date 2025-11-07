@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EditImageUploadListWidget extends StatelessWidget {
-  final Future<String?> Function(int) pickImageFromCamera;
+  final Function(BuildContext, int) showImagePicker; // Обновлено: новый метод
   final Function(int) getImageFile;
   final List<String>? existingImages;
   final Future<String?> Function(int)? removeExistingImage;
@@ -12,7 +12,7 @@ class EditImageUploadListWidget extends StatelessWidget {
 
   const EditImageUploadListWidget({
     super.key,
-    required this.pickImageFromCamera,
+    required this.showImagePicker,
     required this.getImageFile,
     this.existingImages,
     this.removeExistingImage,
@@ -38,56 +38,50 @@ class EditImageUploadListWidget extends StatelessWidget {
           return Padding(
             padding: REdgeInsets.only(right: 16.0, left: 2),
             child: MaterialButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return Padding(
-                      padding: REdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (networkImage != null) ...[
+              onPressed: () async {
+                // Если есть существующее изображение, показываем опцию удаления
+                if (networkImage != null && removeExistingImage != null) {
+                  final action = await showModalBottomSheet<String>(
+                    context: context,
+                    builder: (context) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             ListTile(
                               leading: const Icon(Icons.delete, color: Colors.red),
                               title: const Text('O\'chirish'),
-                              onTap: () async {
-                                String? msg;
-                                if (removeExistingImage != null) {
-                                  msg = await removeExistingImage!(index);
-                                }
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                  if (msg != null && msg.isNotEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(msg)),
-                                    );
-                                  }
-                                }
-                              },
+                              onTap: () => Navigator.pop(context, 'delete'),
                             ),
                             const Divider(),
+                            ListTile(
+                              leading: const Icon(Icons.edit),
+                              title: const Text('O\'zgartirish'),
+                              onTap: () => Navigator.pop(context, 'edit'),
+                            ),
                           ],
-                          ListTile(
-                            leading: const Icon(Icons.camera),
-                            title: const Text('Camera'),
-                            onTap: () async {
-                              final message = await pickImageFromCamera(index);
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                                if (message != null && message.isNotEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(message)),
-                                  );
-                                }
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
+                        ),
+                      );
+                    },
+                  );
+                  
+                  if (action == 'delete') {
+                    final msg = await removeExistingImage!(index);
+                    if (context.mounted && msg != null && msg.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(msg)),
+                      );
+                    }
+                    return;
+                  } else if (action == 'edit') {
+                    // Продолжаем к выбору изображения
+                    showImagePicker(context, index);
+                    return;
+                  }
+                } else {
+                  // Нет существующего изображения - сразу показываем выбор
+                  showImagePicker(context, index);
+                }
               },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),

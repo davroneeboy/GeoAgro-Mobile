@@ -463,7 +463,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
               ),
               MainText(text: "Bog`ning rasmlarini yuklang"),
               ImageUploadListWidget(
-                pickImageFromCamera: detailVm.pickImageFromCamera,
+                showImagePicker: detailVm.showImagePicker,
                 getImageFile: detailVm.getImageFile,
               ),
               SizedBox(height: 16.h),

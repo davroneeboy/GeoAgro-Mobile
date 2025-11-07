@@ -51,24 +51,18 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               if (vm.polylineCoordinates.length < 3) {
                 Utils.fireTopSnackBar(
                     "Madyon to'gri kiritilmadi", AppColors.cE60C0C, context);
-              } else if (vm.currentLocation == null) {
-                Utils.fireTopSnackBar("Foydalanuvchi joylashuvi aniqlanmadi",
-                    AppColors.cE60C0C, context);
-              } else if (!vm.isPointInPolygon(
-                      vm.currentLocation!, vm.polylineCoordinates) &&
-                  vm.findMinimumDistance(
-                          vm.polylineCoordinates, vm.currentLocation!) >
-                      1000) {
-                Utils.fireTopSnackBar(
-                    "Foydalanuvchi kiritilgan maydonning 1000 metr radiusida emas",
-                    AppColors.cE60C0C,
-                    context);
-              } else if (vm.checkPolygonOverlap()) {
-                Utils.fireTopSnackBar(
-                    "Plantatsiya boshqa plantatsiyalar ustiga chizilgan. Iltimos, boshqa joy tanlang",
-                    AppColors.cE60C0C,
-                    context);
               } else {
+                // Валидация координат с учетом limit_km (включает проверку currentLocation)
+                final validationError = vm.validateCoordinatesWithLimit(
+                    vm.polylineCoordinates, vm.currentLocation);
+                if (validationError != null) {
+                  Utils.fireTopSnackBar(validationError, AppColors.cE60C0C, context);
+                } else if (vm.checkPolygonOverlap()) {
+                  Utils.fireTopSnackBar(
+                      "Plantatsiya boshqa plantatsiyalar ustiga chizilgan. Iltimos, boshqa joy tanlang",
+                      AppColors.cE60C0C,
+                      context);
+                } else {
                 final value = vm.cordinatesConverter();
 
                 final model = {
@@ -81,6 +75,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                   "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}/${AppRouteNames.detailPage}",
                   extra: model,
                 );
+                }
               }
             },
             icon: Icon(

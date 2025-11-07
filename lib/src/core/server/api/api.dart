@@ -15,6 +15,7 @@ import "api_connection.dart";
 import "../../storage/app_storage.dart";
 import "../interceptors/connectivity_interceptor.dart";
 import "../interceptors/token_interceptor.dart";
+import "../interceptors/secure_logger_interceptor.dart";
 import "../../../data/model/response/api_response.dart";
 
 @immutable
@@ -42,15 +43,19 @@ class ApiService {
           connectivity: Connectivity(),
         ),
       ),
-      // Reduce verbose logs to avoid memory pressure in debug on large payloads
-      PrettyDioLogger(
-        requestHeader: false,
-        requestBody: false,
-        responseHeader: false,
-        responseBody: false,
-        compact: true,
-        enabled: !kReleaseMode,
-      ),
+      // Secure logger (masks sensitive data) - always enabled in debug
+      SecureLoggerInterceptor(),
+      // PrettyDioLogger for detailed logs (only in debug mode, shows masked data)
+      // Note: SecureLoggerInterceptor already logs, so PrettyDioLogger is optional
+      if (kDebugMode)
+        PrettyDioLogger(
+          requestHeader: false, // Already logged by SecureLoggerInterceptor
+          requestBody: false,   // Already logged by SecureLoggerInterceptor
+          responseHeader: false,
+          responseBody: false,
+          compact: true,
+          enabled: false, // Disabled - using SecureLoggerInterceptor instead
+        ),
     ]);
 
     // Deprecated bo'lgan onHttpClientCreate o'rniga createHttpClient'dan foydalanamiz

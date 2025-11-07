@@ -6,6 +6,7 @@ import 'package:agro_employee_public/firebase_options.dart';
 import '../../data/model/fruits/fruit_model.dart';
 import '../storage/app_storage.dart';
 import '../../data/repository/app_repository_impl.dart';
+import '../../../localization/app_strings.dart' show AppLocalizedMaps;
 
 String? accessToken;
 bool isBloc = false;
@@ -26,6 +27,9 @@ Future<void> setup() async {
   }
   
   try {
+    // Initialize storage and migrate tokens if needed
+    await AppStorage.initialize();
+    
     accessToken = await AppStorage.$read(key: StorageKey.accessToken);
     isBloc = await AppStorage.$readBool(key: StorageKey.isBlocked) ?? false;
     username = await AppStorage.$read(key: StorageKey.username);
@@ -65,6 +69,20 @@ Future<void> setup() async {
               await AppStorage.$writeInt(key: StorageKey.districtId, value: apiDistrictId);
               log('Refreshed districtId from API: $districtId');
             }
+            
+            // Load is_specialuser and limit_km from API response
+            final apiIsSpecialUser = decoded['is_specialuser'] ?? false;
+            await AppStorage.$writeBool(key: StorageKey.isSpecialUser, value: apiIsSpecialUser);
+            log('Refreshed isSpecialUser from API: $apiIsSpecialUser');
+            
+            final apiLimitKm = decoded['limit_km']?.toDouble();
+            if (apiLimitKm != null) {
+              await AppStorage.$writeDouble(key: StorageKey.limitKm, value: apiLimitKm);
+              log('Refreshed limitKm from API: $apiLimitKm km');
+            } else {
+              await AppStorage.$delete(key: StorageKey.limitKm);
+              log('limitKm is null, using default 1 km');
+            }
           }
         }
       } catch (e) {
@@ -80,62 +98,29 @@ Future<void> setup() async {
   }
 }
 
-const Map<int, String> plantatiopnType = {
-  1: "Bog`",
-  2: "Uzumzor",
-  3: "Issiqxona",
-};
+// Legacy constants - now using AppLocalizedMaps
+// Keeping for backward compatibility during migration
+// Note: Using getter methods instead of const to maintain compatibility
+@Deprecated('Use AppLocalizedMaps.plantationTypes instead')
+Map<int, String> get plantatiopnType => AppLocalizedMaps.plantationTypes;
 
-const Map<int, String> issiqxonaType = {
-  1: "Mahalliy",
-  2: "Zamonaviy",
-};
+@Deprecated('Use AppLocalizedMaps.issiqxonaTypes instead')
+Map<int, String> get issiqxonaType => AppLocalizedMaps.issiqxonaTypes;
 
-const Map<int, String> uzumType = {
-  1: "Xo`raki",
-  2: "Kishmish bop",
-  3: "Sanoat bop (vino bop)"
-};
+@Deprecated('Use AppLocalizedMaps.uzumTypes instead')
+Map<int, String> get uzumType => AppLocalizedMaps.uzumTypes;
 
-const Map<int, String> bogType = {
-  1: "Intensiv",
-  2: "Mahalliy",
-};
+@Deprecated('Use AppLocalizedMaps.bogTypes instead')
+Map<int, String> get bogType => AppLocalizedMaps.bogTypes;
 
-const Map<int, String> bogSubtype = {
-  1: "Pakana",
-  2: "Yarim pakana",
-};
+@Deprecated('Use AppLocalizedMaps.bogSubtypes instead')
+Map<int, String> get bogSubtype => AppLocalizedMaps.bogSubtypes;
 
- 
+@Deprecated('Use AppLocalizedMaps.yerTuri instead')
+Map<int, String> get yerTuri => AppLocalizedMaps.yerTuri;
 
-const Map<int, String> yerTuri = {
-  1: "Lalmi",
-  2: "Tog`oldi",
-  3: "Adir",
-  4: "Suvli maydon",
-};
+@Deprecated('Use AppLocalizedMaps.subsidyTypes instead')
+Map<int, String> get subsidyType => AppLocalizedMaps.subsidyTypes;
 
-const Map<int, String> subsidyType = {
-  1: "Limon",
-  2: "Shpalier",
-  3: "Ko`chat",
-  4: "Quduq",
-  5: "Tomchilatib",
-  6: "Muqobilenergiya",
-};
-
-const Map<int, String> region = {
-  1: 'Tashkent',
-  2: 'Andijan',
-  3: 'Bukhara',
-  4: 'Fergana',
-  5: 'Jizzakh',
-  6: 'Kashkadarya',
-  7: 'Navoi',
-  8: 'Namangan',
-  9: 'Samarkand',
-  10: 'Sirdarya',
-  11: 'Surkhandarya',
-  12: 'Karakalpakstan',
-};
+@Deprecated('Use AppLocalizedMaps.regions instead')
+Map<int, String> get region => AppLocalizedMaps.regions;

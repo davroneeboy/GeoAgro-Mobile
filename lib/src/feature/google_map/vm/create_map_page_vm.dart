@@ -11,6 +11,7 @@ import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/model/plantation/nearby_plantations_model.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
+import '../../../core/storage/app_storage.dart';
 
 List<LatLng> polygoneCoordinates = [];
 
@@ -38,6 +39,10 @@ class CreateMapPageVm extends ChangeNotifier {
   List<NearbyPlantation> nearbyPlantations = [];
   List<FormeMapPlantation> userPlantations = [];
   bool isLoadingNearby = false;
+  
+  // Лимит координат в метрах (дефолт 1000м = 1км)
+  double _limitKm = 1.0;
+  double get limitKm => _limitKm;
   
   // Состояние для диалога с информацией о плантации
   FormeMapPlantation? selectedPlantation;
@@ -790,10 +795,47 @@ class CreateMapPageVm extends ChangeNotifier {
     return false;
   }
 
+  /// Загрузить лимит координат из storage
+  Future<void> loadLimitKm() async {
+    final storedLimitKm = await AppStorage.$readDouble(key: StorageKey.limitKm);
+    _limitKm = storedLimitKm ?? 1.0; // Дефолт 1 км если не установлен
+    debugPrint('📍 Loaded coordinate limit: ${_limitKm} km');
+  }
+
+  /// Валидировать координаты с учетом лимита
+  /// Возвращает null если валидно, иначе сообщение об ошибке
+  String? validateCoordinatesWithLimit(List<LatLng> coordinates, LatLng? currentLocation) {
+    if (currentLocation == null) {
+      return "Foydalanuvchi joylashuvi aniqlanmadi";
+    }
+    
+    if (coordinates.length < 3) {
+      return "Madyon to'gri kiritilmadi";
+    }
+    
+    // Проверяем, находится ли пользователь внутри полигона
+    final isInside = isPointInPolygon(currentLocation, coordinates);
+    
+    // Если не внутри, проверяем минимальное расстояние
+    if (!isInside) {
+      final minDistance = findMinimumDistance(coordinates, currentLocation);
+      final limitMeters = _limitKm * 1000; // Конвертируем км в метры
+      
+      if (minDistance > limitMeters) {
+        return "Foydalanuvchi kiritilgan maydonning ${_limitKm.toStringAsFixed(_limitKm.truncateToDouble() == _limitKm ? 0 : 1)} km radiusida emas";
+      }
+    }
+    
+    return null; // Валидно
+  }
+
   Future<void> getCurrentLocation() async {
     if (!isLocationPermissionGranted) {
       await requestLocationPermission();
     }
+
+    // Загружаем лимит координат при инициализации
+    await loadLimitKm();
 
     _setLoading(true);
     try {

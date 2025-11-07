@@ -22,6 +22,7 @@ import '../../feature/google_map/view/pages/create_map_page.dart';
 import '../../feature/google_map/view/pages/plantation_map_view_page.dart';
 import '../../feature/fermers/view/pages/farmers_statistics_page.dart';
 import 'app_route_names.dart';
+import '../../../dev/dev_menu_page.dart';
 
 GlobalKey<NavigatorState> parentNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -70,6 +71,12 @@ final class RouterConfigService {
         accessToken == null ? AppRouteNames.login : AppRouteNames.home,
     // initialLocation: AppRouteNames.login,
     routes: <RouteBase>[
+      // Dev Menu (only in debug mode)
+      GoRoute(
+        path: '/dev-menu',
+        builder: (context, state) => const DevMenuPage(),
+      ),
+      
       // Login
       GoRoute(
         path: AppRouteNames.login,

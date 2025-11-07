@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ImageUploadListWidget extends StatelessWidget {
-  final Function(int) pickImageFromCamera;
+  final Function(BuildContext, int) showImagePicker; // Обновлено: принимает context
   final Function(int) getImageFile;
   final List<String>? images;
 
   const ImageUploadListWidget({
     super.key,
-    required this.pickImageFromCamera,
+    required this.showImagePicker,
     required this.getImageFile,
     this.images,
   });
@@ -32,29 +32,8 @@ class ImageUploadListWidget extends StatelessWidget {
             padding: REdgeInsets.only(right: 16.0, left: 2),
             child: MaterialButton(
               onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return Padding(
-                      padding: REdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListTile(
-                            leading: const Icon(Icons.camera),
-                            title: const Text('Camera'),
-                            onTap: () async {
-                              await pickImageFromCamera(index);
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
+                // Используем новый метод showImagePicker из VM
+                showImagePicker(context, index);
               },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),

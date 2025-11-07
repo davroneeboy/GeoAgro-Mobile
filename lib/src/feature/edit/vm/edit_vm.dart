@@ -15,6 +15,7 @@ import '../../../data/model/fruits/fruit_model.dart';
 import '../../../data/model/fruits/fruit_rootstocks_model.dart';
 import '../../../data/model/fruits/fruit_verity_modell.dart';
 import '../../../core/utils/thousands_separator_input_formatter.dart';
+import '../../../core/storage/app_storage.dart';
 
 
 final editVm = ChangeNotifierProvider.autoDispose<EditVM>((ref) {
@@ -90,6 +91,7 @@ class EditVM extends ChangeNotifier {
   List<Subsidy> selectedEditSubsidy = [];
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
+  bool _isSpecialUser = false; // Флаг специального пользователя
   File? getImageFile(int cardId) => _imageFiles[cardId];
   int? _uploadingIndex;
   bool _isUploadingImage = false;
@@ -886,8 +888,52 @@ class EditVM extends ChangeNotifier {
     }
   }
 
-  Future<String?> pickImageFromCamera(int cardId) async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+  /// Загрузить информацию о пользователе (isSpecialUser) из storage
+  Future<void> loadUserInfo() async {
+    _isSpecialUser = await AppStorage.$readBool(key: StorageKey.isSpecialUser) ?? false;
+  }
+
+  /// Показать диалог выбора источника изображения (Camera/Gallery)
+  /// Для специальных пользователей показывает оба варианта
+  Future<void> showImagePicker(BuildContext context, int cardId) async {
+    // Загружаем информацию о пользователе перед показом
+    await loadUserInfo();
+    
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              // Показываем галерею только для специальных пользователей
+              if (_isSpecialUser) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+
+    if (source != null) {
+      await pickImage(cardId: cardId, source: source);
+    }
+  }
+
+  /// Основной метод для загрузки изображения (используется после выбора source)
+  Future<String?> pickImage({required int cardId, required ImageSource source}) async {
+    final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile == null) return null;
     // Set loader state for this slot
     _uploadingIndex = cardId;
@@ -931,6 +977,11 @@ class EditVM extends ChangeNotifier {
       _isUploadingImage = false;
       notifyListeners();
     }
+  }
+
+  /// Старый метод для обратной совместимости
+  Future<String?> pickImageFromCamera(int cardId) async {
+    return await pickImage(cardId: cardId, source: ImageSource.camera);
   }
 
   Future<void> getFruit() async {
