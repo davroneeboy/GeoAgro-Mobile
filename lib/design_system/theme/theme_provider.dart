@@ -7,8 +7,9 @@ import 'app_theme.dart';
 const String _themeModeKey = 'theme_mode';
 
 /// Theme provider for managing app theme
+/// Default: Dark theme
 class AppThemeProvider extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.dark; // Default to dark theme
 
   AppThemeProvider() {
     _loadThemeMode();
@@ -20,9 +21,9 @@ class AppThemeProvider extends ChangeNotifier {
   ThemeData getTheme(Brightness brightness) {
     if (_themeMode == ThemeMode.dark || 
         (_themeMode == ThemeMode.system && brightness == Brightness.dark)) {
-      return AppTheme.darkTheme;
+      return AppTheme.dark;
     }
-    return AppTheme.lightTheme;
+    return AppTheme.light;
   }
 
   /// Set theme mode

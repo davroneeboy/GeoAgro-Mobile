@@ -12,10 +12,16 @@ import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
+import '../../../fermers/view/pages/fermers_page.dart';
+import '../../../fermers/view/pages/farmers_statistics_page.dart';
+import '../../../profile/view/pages/profile_settings_page.dart';
+import 'natification_page.dart';
 import '../widgets/home_page_floataction_button_widget.dart';
 import '../widgets/home_drower.dart';
 import '../widgets/home_page_card_widget.dart';
 import '../../vm/home_page_vm.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignColors;
 
 final homePageVM = ChangeNotifierProvider.autoDispose<HomePageVm>((ref) {
   return HomePageVm(AppRepositoryImpl());
@@ -29,13 +35,14 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  int _selectedIndex = 0;
   late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    
+
     // Данные загружаются автоматически в конструкторе HomePageVm
     // Не нужно вызывать здесь, чтобы избежать лишних rebuilds
   }
@@ -54,14 +61,82 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(homePageVM);
-    
-    return _buildContent(vm);
+
+    final tabs = <Widget>[
+      _buildContent(vm),
+      const FermersPage(),
+      const FarmersStatisticsPage(),
+      const ProfileSettingsPage(),
+    ];
+
+    return Scaffold(
+      backgroundColor: DesignColors.AppColors.darkBackground,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: tabs,
+      ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: DesignColors.AppColors.darkSurfaceVariant,
+          indicatorColor: DesignColors.AppColors.accentGreen.withOpacity(0.16),
+          labelTextStyle: MaterialStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontWeight: states.contains(MaterialState.selected)
+                  ? FontWeight.w600
+                  : FontWeight.w500,
+              color: states.contains(MaterialState.selected)
+                  ? DesignColors.AppColors.darkTextPrimary
+                  : DesignColors.AppColors.darkTextTertiary,
+            ),
+          ),
+          iconTheme: MaterialStateProperty.resolveWith(
+            (states) => IconThemeData(
+              color: states.contains(MaterialState.selected)
+                  ? DesignColors.AppColors.accentGreen
+                  : DesignColors.AppColors.darkTextSecondary.withOpacity(0.7),
+            ),
+          ),
+          elevation: 12,
+        ),
+        child: NavigationBar(
+          height: 70,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: "Uy",
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.agriculture_outlined),
+              selectedIcon: Icon(Icons.agriculture),
+              label: "Fermerlar",
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart),
+              label: "Statistika",
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: "Profil",
+            ),
+          ],
+        ),
+      ),
+    );
   }
-  
+
   Widget _buildContent(HomePageVm vm) {
     if (vm.isLoading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: DesignColors.AppColors.darkBackground,
         appBar: CustomAppBarWidget(
           title: "Ma`lumotlar yuklanmoqda",
           canPop: false,
@@ -69,22 +144,27 @@ class _HomePageState extends ConsumerState<HomePage> {
             SearchBarWidget(
               key: const ValueKey('home_search'),
               onSearchChanged: (query) {
-                vm.getPlantationsModel(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.getPlantationsModel(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
             IconButton(
               onPressed: () {
-                context.go("${AppRouteNames.home}${AppRouteNames.natificationPage}");
+                context.go(
+                    "${AppRouteNames.home}${AppRouteNames.natificationPage}");
               },
               icon: Icon(Icons.notifications_none),
             ),
           ],
         ),
-        body: Center(child: Lottie.asset('assets/lotties/search.json', width: 300.w, height: 300.h, fit: BoxFit.contain)),
+        body: Center(
+            child: Lottie.asset('assets/lotties/search.json',
+                width: 300.w, height: 300.h, fit: BoxFit.contain)),
       );
     }
     if (vm.errorMessage != null) {
       return Scaffold(
+        backgroundColor: DesignColors.AppColors.darkBackground,
         appBar: CustomAppBarWidget(
           title: "Kutilmagan xatolik",
           canPop: false,
@@ -92,36 +172,42 @@ class _HomePageState extends ConsumerState<HomePage> {
             SearchBarWidget(
               key: const ValueKey('home_search'),
               onSearchChanged: (query) {
-                vm.getPlantationsModel(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.getPlantationsModel(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
             IconButton(
               onPressed: () {
-                context.go("${AppRouteNames.home}${AppRouteNames.natificationPage}");
+                context.go(
+                    "${AppRouteNames.home}${AppRouteNames.natificationPage}");
               },
               icon: Icon(Icons.notifications_none),
             ),
           ],
         ),
-        body: ErrorStateWidget(errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdi", onTap: () => vm.getPlantationsModel(isLoadMore: false)),
+        body: ErrorStateWidget(
+            errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdi",
+            onTap: () => vm.getPlantationsModel(isLoadMore: false)),
       );
     }
     return Scaffold(
       appBar: CustomAppBarWidget(
-        title: "GEO Agro",
+        title: "Uy sahifasi",
         canPop: false,
         actions: [
           SearchBarWidget(
             key: const ValueKey('home_search'),
             onSearchChanged: (query) {
-              vm.getPlantationsModel(isLoadMore: false, search: query.isEmpty ? null : query);
+              vm.getPlantationsModel(
+                  isLoadMore: false, search: query.isEmpty ? null : query);
             },
           ),
           Stack(
             children: [
               IconButton(
                 onPressed: () {
-                  context.go("${AppRouteNames.home}${AppRouteNames.natificationPage}");
+                  context.go(
+                      "${AppRouteNames.home}${AppRouteNames.natificationPage}");
                 },
                 icon: Icon(Icons.notifications_none),
               ),
@@ -139,8 +225,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               onRefresh: () async {
                 await vm.getPlantationsModel(isLoadMore: false);
               },
-              color: AppColors.c28A745,
-              backgroundColor: AppColors.cF7F7F7,
+              color: DesignColors.AppColors.accentGreen,
+              backgroundColor: DesignColors.AppColors.darkSurface,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: SizedBox(
@@ -149,12 +235,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SvgPicture.asset('assets/svg/last_transaction.svg', fit: BoxFit.contain),
+                          SvgPicture.asset('assets/svg/last_transaction.svg',
+                              fit: BoxFit.contain),
                           16.verticalSpace,
                           Text(
                             maxLines: 2,
                             "Sizning hududingizga doir \n hech qanday Bog', Issiqxona, Uzumzor yoq",
-                            style: TextStyle(fontSize: 18.sp, color: AppColors.c1E1E1E),
+                            style: TextStyle(
+                                fontSize: 18.sp,
+                                color: DesignColors.AppColors.darkTextPrimary),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -166,27 +255,31 @@ class _HomePageState extends ConsumerState<HomePage> {
               onRefresh: () async {
                 await vm.getPlantationsModel(isLoadMore: false);
               },
-              color: AppColors.c28A745,
-              backgroundColor: AppColors.cF7F7F7,
+              color: DesignColors.AppColors.accentGreen,
+              backgroundColor: DesignColors.AppColors.darkSurface,
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 controller: _scrollController,
                 separatorBuilder: (_, __) => 16.verticalSpace,
                 padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: vm.plantationsList.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
+                itemCount: vm.plantationsList.length +
+                    ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == vm.plantationsList.length && !vm.isSearching) {
                     // Кнопка "Qolganlarini ko'rish"
                     return Container(
                       margin: REdgeInsets.symmetric(vertical: 16),
                       child: ElevatedButton(
-                        onPressed: vm.isFetchingMore ? null : () {
-                          vm.getPlantationsModel(isLoadMore: true);
-                        },
+                        onPressed: vm.isFetchingMore
+                            ? null
+                            : () {
+                                vm.getPlantationsModel(isLoadMore: true);
+                              },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.c28A745,
+                          backgroundColor: DesignColors.AppColors.accentGreen,
                           foregroundColor: Colors.white,
-                          padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                          padding: REdgeInsets.symmetric(
+                              vertical: 16, horizontal: 32),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -204,10 +297,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     ),
                                   ),
                                   8.horizontalSpace,
-                                  Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
+                                  Text("Yuklanmoqda...",
+                                      style: TextStyle(fontSize: 16.sp)),
                                 ],
                               )
-                            : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
+                            : Text("Qolganlarini ko'rish",
+                                style: TextStyle(fontSize: 16.sp)),
                       ),
                     );
                   }

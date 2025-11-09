@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../design_system/tokens/radii.dart';
+import '../../../design_system/tokens/spacing.dart';
+import '../../../design_system/tokens/typography.dart';
 
-import '../style/app_colors.dart';
-
+/// Modern text field with dark theme
 class CustomTextField extends StatelessWidget {
   final String? label;
   final TextEditingController controller;
@@ -50,10 +53,11 @@ class CustomTextField extends StatelessWidget {
             children: [
               Text(
                 label!,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                style: AppTypography.body(context).copyWith(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: DesignColors.AppColors.darkTextPrimary,
+                  letterSpacing: 0.2,
                 ),
               ),
               if (isRequired) ...[
@@ -61,15 +65,15 @@ class CustomTextField extends StatelessWidget {
                 Text(
                   '*',
                   style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.red,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: DesignColors.AppColors.error,
                   ),
                 ),
               ],
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: AppSpacing.xs),
         ],
         TextField(
           controller: controller,
@@ -80,51 +84,74 @@ class CustomTextField extends StatelessWidget {
           textInputAction: textInputAction,
           onTap: onTap,
           readOnly: readOnly,
-          style: TextStyle(
+          style: AppTypography.body(context).copyWith(
             fontSize: 16.sp,
-            color: enabled ? Colors.black87 : Colors.grey[600],
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
+            color: enabled
+                ? DesignColors.AppColors.darkTextPrimary
+                : DesignColors.AppColors.darkTextSecondary,
           ),
+          cursorColor: DesignColors.AppColors.accentGreen,
           decoration: InputDecoration(
-            fillColor: enabled ? Colors.white : Colors.grey[100],
+            fillColor: enabled
+                ? DesignColors.AppColors.darkSurface
+                : DesignColors.AppColors.darkSurfaceVariant,
             filled: true,
             hintText: hintText,
             hintStyle: TextStyle(
               fontSize: 16.sp,
-              color: Colors.grey[500],
+              color: DesignColors.AppColors.darkTextTertiary,
               fontWeight: FontWeight.w400,
             ),
             suffixIcon: suffixIcon,
             prefixIcon: prefixIcon,
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: errorText != null 
-                    ? Colors.red 
-                    : AppColors.c1E1E1E16,
+                color: errorText != null
+                    ? DesignColors.AppColors.error
+                    : DesignColors.AppColors.darkBorder,
+                width: 1.5,
               ),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadii.input),
             ),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: errorText != null 
-                    ? Colors.red 
-                    : AppColors.c1E1E1E70,
+                color: errorText != null
+                    ? DesignColors.AppColors.error
+                    : DesignColors.AppColors.accentGreen,
+                width: 2.0,
               ),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadii.input),
             ),
             disabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(
+                color: DesignColors.AppColors.darkBorder,
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(AppRadii.input),
             ),
             errorBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
-              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(
+                color: DesignColors.AppColors.error,
+                width: 1.5,
+              ),
+              borderRadius: BorderRadius.circular(AppRadii.input),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
-              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(
+                color: DesignColors.AppColors.error,
+                width: 2.0,
+              ),
+              borderRadius: BorderRadius.circular(AppRadii.input),
             ),
-            contentPadding: REdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
+            counterStyle: TextStyle(
+              color: DesignColors.AppColors.darkTextSecondary,
+              fontSize: 12.sp,
+            ),
           ),
           onChanged: onChanged,
         ),
@@ -134,7 +161,8 @@ class CustomTextField extends StatelessWidget {
             errorText!,
             style: TextStyle(
               fontSize: 12.sp,
-              color: Colors.red,
+              color: DesignColors.AppColors.error,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -143,7 +171,7 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-// Специализированный виджет для номеров решений
+/// Qaror raqami uchun maydon (Decision Number Field)
 class DecisionNumberField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
@@ -164,21 +192,21 @@ class DecisionNumberField extends StatelessWidget {
       label: "Qaror raqamini kiriting",
       controller: controller,
       onChanged: onChanged,
-      hintText: "qaror raqami kiritilmagan",
-      keyboardType: TextInputType.text, // Позволяет вводить цифры и символы
+      hintText: "Qaror raqami kiritilmagan",
+      keyboardType: TextInputType.text,
       isRequired: isRequired,
       errorText: errorText,
-      maxLength: 50, // Ограничиваем длину
+      maxLength: 50,
       suffixIcon: Icon(
         Icons.description,
-        color: Colors.grey[500],
+        color: DesignColors.AppColors.darkTextSecondary,
         size: 20.sp,
       ),
     );
   }
 }
 
-// Специализированный виджет для контрактных номеров
+/// Shartnoma raqami uchun maydon (Contract Number Field)
 class ContractNumberField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
@@ -199,21 +227,21 @@ class ContractNumberField extends StatelessWidget {
       label: "Shartnoma raqamini kiriting",
       controller: controller,
       onChanged: onChanged,
-      hintText: "shartnoma raqami kiritilmagan",
-      keyboardType: TextInputType.text, // Позволяет вводить цифры и символы
+      hintText: "Shartnoma raqami kiritilmagan",
+      keyboardType: TextInputType.text,
       isRequired: isRequired,
       errorText: errorText,
-      maxLength: 50, // Ограничиваем длину
+      maxLength: 50,
       suffixIcon: Icon(
         Icons.assignment,
-        color: Colors.grey[500],
+        color: DesignColors.AppColors.darkTextSecondary,
         size: 20.sp,
       ),
     );
   }
 }
 
-// Специализированный виджет для числовых полей
+/// Raqamlar uchun maydon (Number Field)
 class NumberField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
@@ -243,7 +271,7 @@ class NumberField extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       hintText: hintText,
-      keyboardType: allowDecimal 
+      keyboardType: allowDecimal
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.number,
       isRequired: isRequired,
@@ -251,18 +279,22 @@ class NumberField extends StatelessWidget {
       inputFormatters: [
         if (!allowDecimal) FilteringTextInputFormatter.digitsOnly,
       ],
-      suffixIcon: suffix != null 
+      suffixIcon: suffix != null
           ? Padding(
-              padding: REdgeInsets.only(right: 16),
-              child: Text(
-                suffix!,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.grey[600],
+              padding: EdgeInsets.only(right: AppSpacing.md),
+              child: Center(
+                widthFactor: 1.0,
+                child: Text(
+                  suffix!,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: DesignColors.AppColors.darkTextSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             )
           : null,
     );
   }
-} 
+}

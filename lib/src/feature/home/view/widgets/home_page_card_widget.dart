@@ -3,17 +3,22 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/routes/app_route_names.dart';
-import '../../../../core/setting/setup.dart';
-import '../../../../core/style/app_colors.dart';
-import '../../../../core/widgets/custom_card_widget.dart';
-import '../../../../core/widgets/custom_list_tile_widget.dart';
-import '../../../../core/widgets/custom_driver.dart';
-import '../../../../data/model/plantation/plantations_list_model.dart';
-import '../../../../core/utils/date_utils.dart' as app_date;
+import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
+import 'package:agro_employee_public/src/core/setting/setup.dart';
+import 'package:agro_employee_public/src/core/style/app_colors.dart';
+import 'package:agro_employee_public/src/core/utils/date_utils.dart' as app_date;
+import 'package:agro_employee_public/src/core/widgets/custom_card_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/custom_driver.dart';
+import 'package:agro_employee_public/src/core/widgets/custom_list_tile_widget.dart';
+import 'package:agro_employee_public/src/data/model/plantation/plantations_list_model.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:agro_employee_public/src/feature/home/vm/home_page_vm.dart';
+import 'package:agro_employee_public/src/feature/home/view/pages/home_page.dart';
+
 import '../widgets/delete_confirmation_dialog.dart';
-import '../../vm/home_page_vm.dart'; // Import HomePageVm
-import '../pages/home_page.dart'; // Import to use homePageVM provider
 
 class HomePageCardWidget extends StatelessWidget {
   final Result plantation;
@@ -106,84 +111,84 @@ class HomePageCardWidget extends StatelessWidget {
     // return InkWell(
     //   onTap: onPressed,
     //   child: CustomCardWidget(
+    final farmerName = plantation.farmerName ?? "Noma'lum fermer";
+    final plantationId = plantation.id?.toString() ?? "N/A";
+    final landType = yerTuri[plantation.landType] ?? "Noma'lum";
+    final areaText = "${_formatNumber(plantation.totalArea)} ga";
+    final establishedYear =
+        plantation.gardenEstablishedYear != null ? "${plantation.gardenEstablishedYear} yil" : null;
+    final createdAt = plantation.createdAt != null ? _formatCreatedAt(plantation.createdAt!) : null;
+
     return CustomCardWidget(
-      horizontal: 16,
-      vertical: 16,
+      horizontal: AppSpacing.lg,
+      vertical: AppSpacing.lg,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomListTileWidget(
-            title: "Hudud",
-            contextText: "${plantation.district?.name}",
-          ),
-          12.verticalSpace,
-          const CustomDriver(),
-          12.verticalSpace,
-          CustomListTileWidget(
-            title: "Fermer",
-            contextText: plantation.farmerName ?? "Noma'lum",
-          ),
-          12.verticalSpace,
-          const CustomDriver(),
-          12.verticalSpace,
-          CustomListTileWidget(
-            title: "Yer turi",
-            contextText: yerTuri[plantation.landType] ?? "Noma'lum",
-          ),
-          12.verticalSpace,
-          const CustomDriver(),
-          12.verticalSpace,
-          CustomListTileWidget(
-            title: "Yer maydoni",
-            contextText: "${_formatNumber(plantation.totalArea)} ga",
-          ),
-          12.verticalSpace,
-          const CustomDriver(),
-          12.verticalSpace,
-          CustomListTileWidget(
-            title: "ID",
-            contextText: "${plantation.id ?? 'N/A'}",
-          ),
-          12.verticalSpace,
-          const CustomDriver(),
-          12.verticalSpace,
-          CustomListTileWidget(
-            title: "Bog tashkil topgan yil",
-            contextText: "${plantation.gardenEstablishedYear} yil",
-          ),
-          12.verticalSpace,
-          const CustomDriver(),
-          12.verticalSpace,
-          if (plantation.createdAt != null)
-            CustomListTileWidget(
-              title: "Qo'shilgan vaqt",
-              contextText: _formatCreatedAt(plantation.createdAt!),
-            ),
-          12.verticalSpace,
-          if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
-            const CustomDriver(),
-            12.verticalSpace,
-          ],
-          if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
-            Row(
-              children: [
-                Text(
-                  "Tafsilot",
-                  style: TextStyle(fontSize: 16.sp, color: AppColors.c1E1E1E, fontWeight: FontWeight.w600),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      farmerName,
+                      style: AppTypography.title(context).copyWith(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w700,
+                        color: DesignColors.AppColors.darkTextPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.xs),
+                    if (createdAt != null)
+                      Text(
+                        "Qo'shilgan: $createdAt",
+                        style: AppTypography.bodySmall(context).copyWith(
+                          color: DesignColors.AppColors.darkTextTertiary,
+                        ),
+                      ),
+                  ],
                 ),
-                16.horizontalSpace,
-                Expanded(
-                  child: Text(
-                    plantation.moderationComments!.first.text ?? '',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
-                  ),
+              ),
+              _IdBadge(context: context, id: plantationId),
+            ],
+          ),
+          SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.sm,
+            children: [
+              _InfoChip(
+                context: context,
+                icon: Icons.eco_outlined,
+                label: "Yer turi",
+                value: landType,
+              ),
+              _InfoChip(
+                context: context,
+                icon: Icons.square_foot_outlined,
+                label: "Maydon",
+                value: areaText,
+              ),
+              if (establishedYear != null)
+                _InfoChip(
+                  context: context,
+                  icon: Icons.calendar_month_outlined,
+                  label: "Bog tashkil topgan yil",
+                  value: establishedYear,
                 ),
-              ],
+            ],
+          ),
+          if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
+            SizedBox(height: AppSpacing.lg),
+            _ModerationNote(
+              context: context,
+              message: plantation.moderationComments!.first.text ?? '',
             ),
-            12.verticalSpace,
           ],
-          24.verticalSpace,
+          SizedBox(height: AppSpacing.lg),
           if (canEdit)
             Row(
               children: [
@@ -238,25 +243,151 @@ class HomePageCardWidget extends StatelessWidget {
             ),
         ],
       ),
-      // ),
     );
   }
 
   
+  Widget _IdBadge({required BuildContext context, required String id}) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "ID",
+            style: AppTypography.caption(context).copyWith(
+              color: DesignColors.AppColors.darkTextTertiary,
+              letterSpacing: 0.4,
+            ),
+          ),
+          Text(
+            id,
+            style: AppTypography.bodySmall(context).copyWith(
+              color: DesignColors.AppColors.darkTextPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _InfoChip({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16.sp,
+            color: DesignColors.AppColors.accentGreen,
+          ),
+          SizedBox(width: AppSpacing.sm),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: AppTypography.caption(context).copyWith(
+                  color: DesignColors.AppColors.darkTextTertiary,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              SizedBox(height: AppSpacing.xs / 2),
+              Text(
+                value,
+                style: AppTypography.bodySmall(context).copyWith(
+                  color: DesignColors.AppColors.darkTextPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ModerationNote({
+    required BuildContext context,
+    required String message,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.warning.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+        border: Border.all(
+          color: DesignColors.AppColors.warning.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 18.sp,
+            color: DesignColors.AppColors.warning,
+          ),
+          SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Tafsilot",
+                  style: AppTypography.bodySmall(context).copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: DesignColors.AppColors.darkTextPrimary,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.xs),
+                Text(
+                  message,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: DesignColors.AppColors.darkTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   String _formatCreatedAt(String raw) {
     try {
-      // Парсим дату с учетом часового пояса
       final dt = DateTime.parse(raw);
-      
-      // Если дата содержит часовой пояс (+05:00), то DateTime.parse() конвертирует в UTC
-      // Нам нужно восстановить оригинальное время, добавив смещение часового пояса
       if (raw.contains('+05:00')) {
-        // Добавляем 5 часов к UTC времени, чтобы получить оригинальное время
-        final localTime = dt.add(Duration(hours: 5));
+        final localTime = dt.add(const Duration(hours: 5));
         return app_date.DateUtils.formatDateTime(localTime);
       } else if (raw.contains('+')) {
-        // Для других часовых поясов извлекаем смещение
         final timezoneMatch = RegExp(r'\+(\d{2}):(\d{2})').firstMatch(raw);
         if (timezoneMatch != null) {
           final hours = int.parse(timezoneMatch.group(1)!);
@@ -266,13 +397,12 @@ class HomePageCardWidget extends StatelessWidget {
           return app_date.DateUtils.formatDateTime(localTime);
         }
       }
-      
-      // Если нет часового пояса, используем как есть
       return app_date.DateUtils.formatDateTime(dt);
     } catch (_) {
       return raw;
     }
   }
+
 
   // Вспомогательная функция для форматирования чисел без .0
   String _formatNumber(dynamic value) {

@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/routes/app_route_names.dart';
-import '../../../../core/style/app_colors.dart';
-import '../../../../core/widgets/custom_app_bar_widget.dart';
-import '../../../../core/widgets/error_state_widget.dart';
-import '../../../../core/widgets/loading_widget.dart';
-import '../../../../data/model/farmer/farmer_statistics_model.dart';
+import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
+import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/loading_widget.dart';
+import 'package:agro_employee_public/src/data/model/farmer/farmer_statistics_model.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import '../../vm/farmers_statistics_vm.dart';
 
 final farmersStatisticsVM = ChangeNotifierProvider.autoDispose<FarmersStatisticsVm>((ref) {
@@ -27,16 +30,26 @@ class FarmersStatisticsPage extends ConsumerWidget {
         title: "Fermerlar kesimida statistika",
         canPop: true,
       ),
-      body: RefreshIndicator(
-        onRefresh: () => vm.refresh(),
-        color: AppColors.c28A745,
-        backgroundColor: AppColors.cF7F7F7,
-        child: _buildBody(vm),
+      body: Container(
+        color: DesignColors.AppColors.darkBackground,
+        child: RefreshIndicator(
+          onRefresh: () => vm.refresh(),
+          color: DesignColors.AppColors.accentGreen,
+          backgroundColor: DesignColors.AppColors.darkSurface,
+          child: _BodyContent(vm: vm),
+        ),
       ),
     );
   }
+}
 
-  Widget _buildBody(FarmersStatisticsVm vm) {
+class _BodyContent extends StatelessWidget {
+  final FarmersStatisticsVm vm;
+
+  const _BodyContent({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
     if (vm.isLoading) {
       return const LoadingWidget();
     }
@@ -44,324 +57,414 @@ class FarmersStatisticsPage extends ConsumerWidget {
     if (vm.errorMessage != null) {
       return ErrorStateWidget(
         errorMessage: vm.errorMessage!,
-        onTap: () => vm.refresh(),
+        onTap: vm.refresh,
       );
     }
 
-    if (vm.statistics == null || vm.statistics!.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.analytics_outlined,
-              size: 80.sp,
-              color: AppColors.c28A745,
-            ),
-            16.verticalSpace,
-            Text(
-              "Statistika ma'lumotlari topilmadi",
-              style: TextStyle(
-                fontSize: 18.sp,
-                color: AppColors.c1E1E1E,
-              ),
-            ),
-          ],
-        ),
-      );
+    final statistics = vm.statistics;
+    if (statistics == null || statistics.isEmpty) {
+      return _EmptyState();
     }
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: REdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.screenPadding,
+        vertical: AppSpacing.lg,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryCards(vm.statistics!),
-          24.verticalSpace,
-          _buildFarmersList(vm.statistics!),
+          _OverviewHeader(statistics: statistics),
+          SizedBox(height: AppSpacing.sectionSpacing),
+          _SummaryGrid(statistics: statistics),
+          SizedBox(height: AppSpacing.sectionSpacing),
+          _FarmersList(statistics: statistics),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSummaryCards(List<FarmerData> statistics) {
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: DesignColors.AppColors.darkSurface,
+              borderRadius: BorderRadius.circular(AppRadii.lg),
+              border: Border.all(color: DesignColors.AppColors.darkBorder),
+            ),
+            child: Icon(
+              Icons.analytics_outlined,
+              size: 42.sp,
+              color: DesignColors.AppColors.darkTextSecondary,
+            ),
+          ),
+          SizedBox(height: AppSpacing.md),
+          Text(
+            "Statistika ma'lumotlari topilmadi",
+            style: AppTypography.body(context).copyWith(
+              color: DesignColors.AppColors.darkTextSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: AppSpacing.sm),
+          Text(
+            "Ma'lumotlarni yangilash uchun pastga torting",
+            style: AppTypography.caption(context).copyWith(
+              color: DesignColors.AppColors.darkTextTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewHeader extends StatelessWidget {
+  final List<FarmerData> statistics;
+
+  const _OverviewHeader({required this.statistics});
+
+  @override
+  Widget build(BuildContext context) {
     final totalFarmers = statistics.length;
-    final totalPlantations = statistics.fold<int>(0, (sum, farmer) => sum + (farmer.totalPlantations ?? 0));
-    final totalApprovedPlantations = statistics.fold<int>(0, (sum, farmer) => sum + (farmer.approvedPlantations ?? 0));
-    final totalPendingPlantations = statistics.fold<int>(0, (sum, farmer) => sum + (farmer.pendingPlantations ?? 0));
-    final totalArea = statistics.fold<double>(0.0, (sum, farmer) => sum + (farmer.totalArea ?? 0));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Umumiy statistika",
-          style: TextStyle(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.c1E1E1E,
-          ),
-        ),
-        16.verticalSpace,
-                            GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.2, // Делаю карточки более квадратными, как нижние
-                      children: [
-            _buildSummaryCard(
-              "Fermerlar",
-              "$totalFarmers",
-              Icons.people,
-              AppColors.c28A745,
-            ),
-            _buildSummaryCard(
-              "Plantatsiyalar",
-              "$totalPlantations",
-              Icons.agriculture,
-              AppColors.cFF6B35,
-            ),
-            _buildSummaryCard(
-              "Tasdiqlangan",
-              "$totalApprovedPlantations",
-              Icons.check_circle,
-              AppColors.c4CAF50,
-            ),
-
-          ],
-        ),
-        16.verticalSpace,
-        Row(
-          children: [
-            Expanded(
-              child: _buildAreaCard(
-                "Umumiy maydon",
-                "${totalArea.toStringAsFixed(1)} ga",
-                Icons.landscape,
-                AppColors.c8BC34A,
-              ),
-            ),
-            12.horizontalSpace,
-            Expanded(
-              child: _buildSummaryCard(
-                "Ko'rib chiqilmoqda",
-                "$totalPendingPlantations",
-                Icons.pending,
-                AppColors.cFF9800,
-              ),
-            ),
-          ],
-        ),
-      ],
+    final totalArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.totalArea ?? 0),
     );
-  }
 
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [
+            DesignColors.AppColors.darkHighlight,
+            DesignColors.AppColors.darkSurfaceVariant,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 32,
+            offset: const Offset(0, 24),
+            spreadRadius: -24,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Fermerlar kesimida statistika",
+            style: AppTypography.headline3(context).copyWith(
+              color: DesignColors.AppColors.darkTextPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: AppSpacing.sm),
+          Text(
+            "Fermerlar soni: $totalFarmers • Umumiy maydon: ${totalArea.toStringAsFixed(1)} ga",
+            style: AppTypography.bodySmall(context).copyWith(
+              color: DesignColors.AppColors.darkTextSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryGrid extends StatelessWidget {
+  final List<FarmerData> statistics;
+
+  const _SummaryGrid({required this.statistics});
+
+  @override
+  Widget build(BuildContext context) {
+    final totalPlantations = statistics.fold<int>(
+      0,
+      (sum, farmer) => sum + (farmer.totalPlantations ?? 0),
+    );
+    final approvedPlantations = statistics.fold<int>(
+      0,
+      (sum, farmer) => sum + (farmer.approvedPlantations ?? 0),
+    );
+    final pendingPlantations = statistics.fold<int>(
+      0,
+      (sum, farmer) => sum + (farmer.pendingPlantations ?? 0),
+    );
+    final rejectedPlantations = statistics.fold<int>(
+      0,
+      (sum, farmer) => sum + (farmer.rejectedPlantations ?? 0),
+    );
+    final totalArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.totalArea ?? 0.0),
+    );
+
+    final items = [
+      _SummaryItem(
+        title: "Jami plantatsiyalar",
+        value: "$totalPlantations",
+        icon: Icons.eco_outlined,
+        accent: DesignColors.AppColors.accentGreen,
+      ),
+      _SummaryItem(
+        title: "Tasdiqlangan",
+        value: "$approvedPlantations",
+        icon: Icons.verified_outlined,
+        accent: const Color(0xFF38BDF8),
+      ),
+      _SummaryItem(
+        title: "Ko'rib chiqilmoqda",
+        value: "$pendingPlantations",
+        icon: Icons.pending_actions_outlined,
+        accent: const Color(0xFFFBBF24),
+      ),
+      _SummaryItem(
+        title: "Rad etilgan",
+        value: "$rejectedPlantations",
+        icon: Icons.highlight_off_outlined,
+        accent: const Color(0xFFF87171),
+      ),
+      _SummaryItem(
+        title: "Umumiy maydon",
+        value: "${totalArea.toStringAsFixed(1)} ga",
+        icon: Icons.landscape_outlined,
+        accent: const Color(0xFF38E3A8),
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      itemCount: items.length,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: AppSpacing.md,
+        crossAxisSpacing: AppSpacing.md,
+        childAspectRatio: 1.25,
+      ),
+      itemBuilder: (context, index) => _SummaryCard(item: items[index]),
+    );
+  }
+}
+
+class _SummaryItem {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color accent;
+
+  const _SummaryItem({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.accent,
+  });
+}
+
+class _SummaryCard extends StatelessWidget {
+  final _SummaryItem item;
+
+  const _SummaryCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 18,
+            offset: const Offset(0, 12),
+            spreadRadius: -12,
           ),
         ],
       ),
       child: Padding(
-        padding: REdgeInsets.all(12), // Точно такой же padding как в нижних карточках
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(
-              icon,
-              size: 28.sp, // Точно такой же размер как в нижних карточках
-              color: color,
-            ),
-            6.verticalSpace, // Точно такой же отступ как в нижних карточках
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18.sp, // Точно такой же размер как в нижних карточках
-                fontWeight: FontWeight.bold,
-                color: AppColors.c1E1E1E,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: item.accent.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                item.icon,
+                color: item.accent,
+                size: 22.sp,
               ),
             ),
-            2.verticalSpace, // Точно такой же отступ как в нижних карточках
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 11.sp, // Точно такой же размер как в нижних карточках
-                color: AppColors.c666666,
-              ),
-              textAlign: TextAlign.center,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.value,
+                  style: AppTypography.headline3(context).copyWith(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.xs),
+                Text(
+                  item.title,
+                  style: AppTypography.caption(context).copyWith(
+                    color: DesignColors.AppColors.darkTextTertiary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildAreaCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: REdgeInsets.all(12), // Уменьшаю с 16 до 12
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 28.sp, // Уменьшаю с 32 до 28
-              color: color,
-            ),
-            6.verticalSpace, // Уменьшаю с 8 до 6
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18.sp, // Уменьшаю с 20 до 18
-                fontWeight: FontWeight.bold,
-                color: AppColors.c1E1E1E,
-              ),
-            ),
-            2.verticalSpace, // Уменьшаю с 4 до 2
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: AppColors.c666666,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+class _FarmersList extends StatelessWidget {
+  final List<FarmerData> statistics;
 
-  Widget _buildFarmersList(List<FarmerData> statistics) {
+  const _FarmersList({required this.statistics});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Fermerlar ro'yxati",
-          style: TextStyle(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.c1E1E1E,
+          style: AppTypography.title(context).copyWith(
+            color: DesignColors.AppColors.darkTextPrimary,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        16.verticalSpace,
+        SizedBox(height: AppSpacing.md),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: statistics.length,
-          separatorBuilder: (_, __) => 12.verticalSpace,
-          itemBuilder: (context, index) {
-            final farmer = statistics[index];
-            return _buildFarmerCard(farmer, context);
-          },
+          separatorBuilder: (_, __) => SizedBox(height: AppSpacing.md),
+          itemBuilder: (context, index) => _FarmerCard(farmer: statistics[index]),
         ),
       ],
     );
   }
+}
 
-  Widget _buildFarmerCard(FarmerData farmer, BuildContext context) {
+class _FarmerCard extends StatelessWidget {
+  final FarmerData farmer;
+
+  const _FarmerCard({required this.farmer});
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigate to farmer plantations page
         final farmerInn = farmer.id ?? 0;
         final farmerName = farmer.name ?? 'Fermer';
-        final route = "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
-        
+        final route =
+            "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
+
         debugPrint('FarmersStatisticsPage: Navigating to farmer plantations: $route');
         context.push(route);
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: DesignColors.AppColors.darkSurfaceVariant,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: DesignColors.AppColors.darkBorder),
         ),
         child: Padding(
-          padding: REdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
-                      farmer.name ?? "N/A",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.c1E1E1E,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          farmer.name ?? "Noma'lum fermer",
+                          style: AppTypography.title(context).copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: AppSpacing.xs),
+                        Text(
+                          farmer.lastAddedPlantations?.isNotEmpty == true
+                              ? "Oxirgi qo'shilgan: ${farmer.lastAddedPlantations}"
+                              : "Yangilangan ma'lumot mavjud emas",
+                          style: AppTypography.caption(context).copyWith(
+                            color: DesignColors.AppColors.darkTextTertiary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  // Add navigation indicator
                   Icon(
-                    Icons.arrow_forward_ios,
+                    Icons.arrow_forward_ios_rounded,
                     size: 16.sp,
-                    color: AppColors.c28A745,
+                    color: DesignColors.AppColors.darkTextTertiary,
                   ),
                 ],
               ),
-              16.verticalSpace,
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildFarmerStat(
-                      "Plantatsiyalar",
-                      "${farmer.totalPlantations ?? 0}",
-                      Icons.agriculture,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildFarmerStat(
-                      "Tasdiqlangan",
-                      "${farmer.approvedPlantations ?? 0}",
-                      Icons.check_circle,
-                    ),
-                  ),
-                ],
+              SizedBox(height: AppSpacing.md),
+              Divider(
+                color: DesignColors.AppColors.darkDivider.withOpacity(0.6),
+                height: 1,
               ),
-              12.verticalSpace,
-              Row(
+              SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.lg,
+                runSpacing: AppSpacing.sm,
                 children: [
-                  Expanded(
-                    child: _buildFarmerStat(
-                      "Umumiy maydon",
-                      "${farmer.totalArea?.toStringAsFixed(1) ?? 0} ga",
-                      Icons.landscape,
-                    ),
+                  _MetricPill(
+                    label: "Plantatsiyalar",
+                    value: "${farmer.totalPlantations ?? 0}",
+                    icon: Icons.forest_outlined,
                   ),
-                  Expanded(
-                    child: _buildFarmerStat(
-                      "Ko'rib chiqilmoqda",
-                      "${farmer.pendingPlantations ?? 0}",
-                      Icons.pending,
-                    ),
+                  _MetricPill(
+                    label: "Tasdiqlangan",
+                    value: "${farmer.approvedPlantations ?? 0}",
+                    icon: Icons.check_circle_outlined,
+                  ),
+                  _MetricPill(
+                    label: "Ko'rib chiqilmoqda",
+                    value: "${farmer.pendingPlantations ?? 0}",
+                    icon: Icons.schedule_outlined,
+                  ),
+                  _MetricPill(
+                    label: "Rad etilgan",
+                    value: "${farmer.rejectedPlantations ?? 0}",
+                    icon: Icons.highlight_off_outlined,
+                  ),
+                  _MetricPill(
+                    label: "Umumiy maydon",
+                    value: "${(farmer.totalArea ?? 0).toStringAsFixed(1)} ga",
+                    icon: Icons.straighten_outlined,
                   ),
                 ],
               ),
@@ -371,41 +474,61 @@ class FarmersStatisticsPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildFarmerStat(String label, String value, IconData icon) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 16.sp,
-          color: AppColors.c28A745,
-        ),
-        8.horizontalSpace,
-        Expanded(
-          child: Column(
+class _MetricPill extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _MetricPill({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16.sp,
+            color: DesignColors.AppColors.accentGreen,
+          ),
+          SizedBox(width: AppSpacing.sm),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 value,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.c1E1E1E,
+                style: AppTypography.bodySmall(context).copyWith(
+                  color: DesignColors.AppColors.darkTextPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: AppColors.c666666,
+                style: AppTypography.caption(context).copyWith(
+                  color: DesignColors.AppColors.darkTextTertiary,
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
-
-
 }

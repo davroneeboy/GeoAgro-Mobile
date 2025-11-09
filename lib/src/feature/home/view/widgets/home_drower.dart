@@ -1,16 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/setting/setup.dart';
+import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/version/version_check_service.dart';
 import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class HomeDrawer extends ConsumerStatefulWidget {
   const HomeDrawer({super.key});
@@ -48,11 +52,11 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
           userInfo = UserInfoModel.fromJson(jsonData);
           isLoading = false;
         });
-        
+
         // Проверяем версию после загрузки user info
         if (userInfo?.flutterVersion != null && mounted) {
           await VersionCheckService.checkVersionAndShowUpdateDialog(
-            context, 
+            context,
             userInfo!.flutterVersion,
           );
         }
@@ -70,100 +74,77 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return FractionallySizedBox(
-      widthFactor: 0.75,
-      child: Drawer(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildDrawerHeader(),
-                        // Информация о пользователе
-                        if (userInfo != null) ...[
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
-                            child: _buildUserInfoCard(),
-                          ),
-                          8.verticalSpace,
-                        ],
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                          child: _buildDrawerButton(
-                            icon: Icons.refresh,
-                            label: "Qayta kurishga",
-                            onPressed: () {
-                              context.go("${AppRouteNames.home}${AppRouteNames.recheckPage}");
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                          child: _buildDrawerButton(
-                            icon: Icons.timelapse_outlined,
-                            label: "Ko'rib chiqilmoqda",
-                            onPressed: () {
-                              context.go("${AppRouteNames.home}${AppRouteNames.pendingPage}");
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                          child: _buildDrawerButton(
-                            icon: Icons.verified_outlined,
-                            label: "Tasdiqlangan",
-                            onPressed: () {
-                              context.go("${AppRouteNames.home}${AppRouteNames.approvedPage}");
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                          child: _buildDrawerButton(
-                            icon: Icons.analytics,
-                            label: "Fermerlar statistikasi",
-                            onPressed: () {
-                              context.go("${AppRouteNames.home}${AppRouteNames.farmers}/${AppRouteNames.farmersStatistics}");
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                          child: _buildDrawerButton(
-                            icon: Icons.support_agent,
-                            label: "Qo'llab-quvvatlash",
-                            onPressed: () {
-                              _openTelegramBot();
-                            },
-                          ),
-                        ),
-                        16.verticalSpace,
-                      ],
+    return Drawer(
+      backgroundColor: DesignColors.AppColors.darkBackground,
+      child: SafeArea(
+        child: Column(
+          children: [
+            _ModernDrawerHeader(userInfo: userInfo, isLoading: isLoading),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.lg,
+                ),
+                children: [
+                  _DrawerActionButton(
+                    icon: Icons.refresh,
+                    label: "Qayta ko'rishga",
+                    onTap: () => context.go(
+                      "${AppRouteNames.home}${AppRouteNames.recheckPage}",
                     ),
                   ),
-                ),
-                Divider(height: 1, thickness: 1, color: Colors.grey[300]),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 8.sp, top: 8.sp),
-                  child: Center(
-                    child: Text(
-                      'geoAgro v${currentAppVersion ?? "2.2.1"}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12.sp,
-                      ),
+                  _DrawerActionButton(
+                    icon: Icons.timelapse_outlined,
+                    label: "Ko'rib chiqilmoqda",
+                    onTap: () => context.go(
+                      "${AppRouteNames.home}${AppRouteNames.pendingPage}",
                     ),
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(16.sp),
-                  child: _buildDrawerButton(
+                  _DrawerActionButton(
+                    icon: Icons.verified_outlined,
+                    label: "Tasdiqlangan",
+                    onTap: () => context.go(
+                      "${AppRouteNames.home}${AppRouteNames.approvedPage}",
+                    ),
+                  ),
+                  _DrawerActionButton(
+                    icon: Icons.analytics_outlined,
+                    label: "Fermerlar statistikasi",
+                    onTap: () => context.go(
+                      "${AppRouteNames.home}${AppRouteNames.farmers}/${AppRouteNames.farmersStatistics}",
+                    ),
+                  ),
+                  _DrawerActionButton(
+                    icon: Icons.support_agent,
+                    label: "Qo'llab-quvvatlash",
+                    onTap: _openTelegramBot,
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'geoAgro v${currentAppVersion ?? "2.2.1"}',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.caption(context).copyWith(
+                      color: DesignColors.AppColors.darkTextTertiary,
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.sm),
+                  _DrawerActionButton(
                     icon: Icons.logout,
                     label: "Chiqish",
-                    onPressed: () async {
+                    isAccent: true,
+                    onTap: () async {
                       await AppStorage.clearAllData();
                       accessToken = null;
                       if (context.mounted) {
@@ -171,121 +152,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                       }
                     },
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawerHeader() {
-    return DrawerHeader(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: const AssetImage('assets/images/drower.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            Colors.black.withAlpha((0.5 * 255).toInt()),
-            BlendMode.darken,
-          ),
-        ),
-      ),
-      child: Center(
-        child: Text(
-          'GEO AGRO',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28.sp,
-            fontStyle: FontStyle.italic,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserInfoCard() {
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.sp),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.sp),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.person, size: 20.sp, color: Colors.grey[600]),
-                8.horizontalSpace,
-                Text(
-                  'Mening ma\'lumotlarim',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-            12.verticalSpace,
-            if (userInfo != null) ...[
-              _buildInfoRow('Ism', userInfo!.displayName),
-              8.verticalSpace,
-              _buildInfoRow('Hudud', userInfo!.districtName),
-              8.verticalSpace,
-              _buildInfoRow('Telefon', userInfo!.phoneNumber),
-            ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 60.sp,
-          child: Text(
-            '$label:',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        8.horizontalSpace,
-        Expanded(
-          child: Text(
-            value.isNotEmpty ? value : 'Kiritilmagan',
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDrawerButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return Padding(
-      padding: EdgeInsets.all(5.sp),
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20.sp),
-        label: Text(label, style: TextStyle(fontSize: 14.sp)),
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, 45.h),
         ),
       ),
     );
@@ -294,22 +164,22 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   Future<void> _openTelegramBot() async {
     // Различные способы открытия Telegram бота для Android
     final telegramUrls = [
-      'tg://resolve?domain=geoagro_bot',           // Прямое открытие в Telegram приложении
-      'https://t.me/geoagro_bot',                  // Веб-версия Telegram
+      'tg://resolve?domain=geoagro_bot', // Прямое открытие в Telegram приложении
+      'https://t.me/geoagro_bot', // Веб-версия Telegram
       'intent://t.me/geoagro_bot#Intent;scheme=tg;package=org.telegram.messenger;end', // Android Intent для Telegram
-      'intent://t.me/geoagro_bot#Intent;scheme=tg;package=org.telegram.plus;end',      // Android Intent для Telegram Plus
+      'intent://t.me/geoagro_bot#Intent;scheme=tg;package=org.telegram.plus;end', // Android Intent для Telegram Plus
     ];
-    
+
     bool success = false;
-    
+
     for (final url in telegramUrls) {
       try {
         final uri = Uri.parse(url);
-        
+
         // Проверяем, можем ли мы открыть этот URL
         if (await canLaunchUrl(uri)) {
           await launchUrl(
-            uri, 
+            uri,
             mode: LaunchMode.externalApplication,
             webViewConfiguration: const WebViewConfiguration(
               enableJavaScript: false,
@@ -324,13 +194,13 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
         continue;
       }
     }
-    
+
     // Если ни один способ не сработал, показываем ошибку
     if (!success) {
       _showTelegramError();
     }
   }
-  
+
   void _showTelegramError() {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -341,11 +211,11 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             children: [
               Text('Telegram botiga kirishda xatolik yuz berdi'),
               SizedBox(height: 4),
-              Text('Telegram ilovasini o\'rnating va qo\'lda kiriting:', 
-                   style: TextStyle(fontSize: 12)),
+              Text('Telegram ilovasini o\'rnating va qo\'lda kiriting:',
+                  style: TextStyle(fontSize: 12)),
               SizedBox(height: 2),
-              Text('@geoagro_bot', 
-                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('@geoagro_bot',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           backgroundColor: Colors.orange,
@@ -368,5 +238,251 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
         ),
       );
     }
+  }
+}
+
+class _ModernDrawerHeader extends StatelessWidget {
+  final UserInfoModel? userInfo;
+  final bool isLoading;
+
+  const _ModernDrawerHeader({
+    required this.userInfo,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = _userInitials(userInfo);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xl,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            DesignColors.AppColors.accentGreen,
+            DesignColors.AppColors.accentGreenDark.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(AppRadii.xl),
+          bottomRight: Radius.circular(AppRadii.xl),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor:
+                DesignColors.AppColors.darkBackground.withOpacity(0.2),
+            child: Text(
+              initials,
+              style: AppTypography.headline3(context).copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isLoading
+                      ? "Ma'lumotlar yuklanmoqda..."
+                      : (userInfo?.displayName?.isNotEmpty == true
+                          ? userInfo!.displayName!
+                          : "Foydalanuvchi"),
+                  style: AppTypography.title(context).copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.xs),
+                if ((userInfo?.districtName ?? "").isNotEmpty) ...[
+                  Text(
+                    userInfo!.districtName!,
+                    style: AppTypography.bodySmall(context).copyWith(
+                      color: Colors.white.withOpacity(0.85),
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.xs),
+                ],
+                if ((userInfo?.phoneNumber ?? "").isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.phone_outlined,
+                        size: 16,
+                        color: Colors.white.withOpacity(0.85),
+                      ),
+                      SizedBox(width: AppSpacing.xs),
+                      Flexible(
+                        child: Text(
+                          userInfo!.phoneNumber!,
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: Colors.white.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _userInitials(UserInfoModel? info) {
+    final source = info?.displayName?.trim();
+    if (source == null || source.isEmpty) return "GA";
+    final parts = source.split(" ").where((e) => e.isNotEmpty).toList();
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    final first = parts.first.substring(0, 1).toUpperCase();
+    final last = parts.last.substring(0, 1).toUpperCase();
+    return "$first$last";
+  }
+}
+
+class _UserInfoCard extends StatelessWidget {
+  final UserInfoModel userInfo;
+
+  const _UserInfoCard({required this.userInfo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _InfoRow(label: "Ism", value: userInfo.displayName),
+          SizedBox(height: AppSpacing.sm),
+          _InfoRow(label: "Hudud", value: userInfo.districtName),
+          SizedBox(height: AppSpacing.sm),
+          _InfoRow(label: "Telefon", value: userInfo.phoneNumber),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String? value;
+
+  const _InfoRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textValue = (value ?? "").trim().isEmpty ? "Kiritilmagan" : value!;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 90,
+          child: Text(
+            "$label:",
+            style: AppTypography.bodySmall(context).copyWith(
+              color: DesignColors.AppColors.darkTextTertiary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            textValue,
+            style: AppTypography.bodySmall(context).copyWith(
+              color: DesignColors.AppColors.darkTextSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DrawerActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isAccent;
+
+  const _DrawerActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isAccent = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = isAccent
+        ? DesignColors.AppColors.accentGreen
+        : DesignColors.AppColors.darkSurfaceVariant;
+    final foregroundColor =
+        isAccent ? Colors.white : DesignColors.AppColors.darkTextSecondary;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.button),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(AppRadii.button),
+            border: Border.all(
+              color: isAccent
+                  ? DesignColors.AppColors.accentGreenDark
+                  : DesignColors.AppColors.darkBorder,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: foregroundColor),
+              SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  label,
+                  style: AppTypography.body(context).copyWith(
+                    color: foregroundColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: foregroundColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

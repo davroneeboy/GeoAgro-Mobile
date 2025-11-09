@@ -3,7 +3,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class FermerCreatePageInputWidget extends StatelessWidget {
   final String hintText;
@@ -29,36 +32,46 @@ class FermerCreatePageInputWidget extends StatelessWidget {
         log(textEditingController.text);
         FocusScope.of(context).nextFocus();
       },
-      style: TextStyle(
-          color: AppColors.c1E1E1E90,
-          fontSize: 14.sp,
-          fontWeight: FontWeight.w500),
-      cursorColor: AppColors.c1E1E1E90,
+      style: AppTypography.body(context).copyWith(
+        color: DesignColors.AppColors.darkTextPrimary,
+        fontSize: 14.sp,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: DesignColors.AppColors.accentGreen,
       keyboardType: textInputType,
       maxLength: maxLength,
       decoration: InputDecoration(
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: DesignColors.AppColors.darkSurface,
         counterText: '',
-        contentPadding: REdgeInsets.only(top: 8, bottom: 8, left: 16),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.c1E1E1E16),
-          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(color: DesignColors.AppColors.darkBorder),
+          borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         disabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.c1E1E1E70),
-          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(color: DesignColors.AppColors.darkBorder),
+          borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.c1E1E1E70),
-          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(
+            color: DesignColors.AppColors.accentGreen,
+            width: 1.8,
+          ),
+          borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         border: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.c1E1E1E70),
-          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(color: DesignColors.AppColors.darkBorder),
+          borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         hintText: hintText,
-        hintStyle: TextStyle(color: AppColors.c1E1E1E20, fontSize: 14.sp),
+        hintStyle: AppTypography.bodySmall(context).copyWith(
+          color: DesignColors.AppColors.darkTextTertiary,
+          fontSize: 14.sp,
+        ),
       ),
     );
   }

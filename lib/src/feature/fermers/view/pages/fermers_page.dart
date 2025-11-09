@@ -5,14 +5,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../../../core/routes/app_route_names.dart';
-import '../../../../core/widgets/error_state_widget.dart';
-import '../../../../data/model/farmer/farmer_list_model.dart';
-import '../../vm/fermer_vm.dart';
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
+import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/main_button.dart';
+import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:agro_employee_public/src/feature/fermers/vm/fermer_vm.dart';
+
 import '../widgets/fermer_page_card_widget.dart';
-import '../../../../core/widgets/main_button.dart';
-import '../../../../core/widgets/custom_app_bar_widget.dart';
 
 final fermerPageVM = ChangeNotifierProvider<FermerVm>((ref) {
   return FermerVm();
@@ -64,7 +67,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     // loading state
     if (vm.isLoading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: DesignColors.AppColors.darkBackground,
         appBar: CustomAppBarWidget(title: "Fermerlar", canPop: true),
         body: Center(
           child: Lottie.asset(
@@ -80,6 +83,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     // error state
     if (vm.errorMessage != null) {
       return Scaffold(
+        backgroundColor: DesignColors.AppColors.darkBackground,
         appBar: const CustomAppBarWidget(title: "Fermerlar", canPop: true),
         body: ErrorStateWidget(
             errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdo",
@@ -89,6 +93,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
 
     // Loaded state
     return Scaffold(
+      backgroundColor: DesignColors.AppColors.darkBackground,
       appBar:
           CustomAppBarWidget(title: "Fermerni tanlang", canPop: true, actions: [
         IconButton(
@@ -98,7 +103,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
           },
           icon: Icon(
             CupertinoIcons.search,
-            color: AppColors.c1E1E1E,
+            color: DesignColors.AppColors.darkTextPrimary,
             size: 16.sp,
           ),
         )
@@ -107,7 +112,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
           ? Center(
               child: Text(
                 "Sizning hududingizga doir hech qanday fermer yoq",
-                style: TextStyle(fontSize: 18.sp, color: AppColors.c1E1E1E),
+                style: TextStyle(fontSize: 18.sp, color: DesignColors.AppColors.darkTextPrimary),
                 textAlign: TextAlign.center,
               ),
             )
@@ -117,8 +122,8 @@ class _FermersPageState extends ConsumerState<FermersPage> {
                 onRefresh: () async {
                   await vm.getFermers(isLoadMore: false);
                 },
-                color: AppColors.c28A745,
-                backgroundColor: AppColors.cF7F7F7,
+                color: DesignColors.AppColors.accentGreen,
+                backgroundColor: DesignColors.AppColors.darkSurface,
                 child: Column(
                   children: [
                     vm.fermersList.isNotEmpty
@@ -137,7 +142,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
                                     padding: REdgeInsets.all(16.0),
                                     child: Center(
                                       child: CircularProgressIndicator(
-                                          color: AppColors.c28A745),
+                                          color: DesignColors.AppColors.accentGreen),
                                     ),
                                   );
                                 }

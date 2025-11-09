@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import '../../../../core/utils/utils.dart';
-import '../../../../core/widgets/custom_input_label_widget.dart';
 import '../../../../core/widgets/main_button.dart';
 import '../../vm/fermer_create_vm.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
@@ -28,105 +29,125 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
   Widget build(BuildContext context) {
     final vm = ref.watch(fermerCreatePageVM);
     return Scaffold(
+      backgroundColor: DesignColors.AppColors.darkBackground,
       appBar: const CustomAppBarWidget(title: "Fermer Qo'shish", canPop: true),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
-          child: Padding(
-            padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.lg,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: DesignColors.AppColors.darkSurfaceVariant,
+              borderRadius: BorderRadius.circular(AppRadii.card),
+              border: Border.all(color: DesignColors.AppColors.darkBorder),
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomInputLabelWidget(text: "Tashkilot Nomi"),
-                6.verticalSpace,
+                _buildLabel(context, "Tashkilot nomi"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "Firma nomi", textEditingController: vm.name),
-                10.verticalSpace,
-                CustomInputLabelWidget(text: "Asoschi"),
-                6.verticalSpace,
+                  hintText: "Firma nomi",
+                  textEditingController: vm.name,
+                ),
+                SizedBox(height: AppSpacing.md),
+                _buildLabel(context, "Asoschi"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "Eshmatov Toshmat",
-                    textEditingController: vm.founderName),
-                10.verticalSpace,
-                CustomInputLabelWidget(text: "Rahbar"),
-                6.verticalSpace,
+                  hintText: "Eshmatov Toshmat",
+                  textEditingController: vm.founderName,
+                ),
+                SizedBox(height: AppSpacing.md),
+                _buildLabel(context, "Rahbar"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "Eshmatov Toshmet 2",
-                    textEditingController: vm.directorName),
-                10.verticalSpace,
-                CustomInputLabelWidget(text: "Telefon raqam"),
-                6.verticalSpace,
+                  hintText: "Eshmatov Toshmet 2",
+                  textEditingController: vm.directorName,
+                ),
+                SizedBox(height: AppSpacing.md),
+                _buildLabel(context, "Telefon raqam"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "947777777",
-                    textEditingController: vm.phoneNumber,
-                    textInputType: TextInputType.phone),
-                10.verticalSpace,
-                CustomInputLabelWidget(text: "Adress"),
-                6.verticalSpace,
+                  hintText: "+998 97 777 77 77",
+                  textEditingController: vm.phoneNumber,
+                  textInputType: TextInputType.phone,
+                ),
+                SizedBox(height: AppSpacing.md),
+                _buildLabel(context, "Manzil"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "Orinter, manzil",
-                    textEditingController: vm.address),
-                10.verticalSpace,
-                CustomInputLabelWidget(text: "Yaratilgan Yili"),
-                6.verticalSpace,
+                  hintText: "Orientir, manzil",
+                  textEditingController: vm.address,
+                ),
+                SizedBox(height: AppSpacing.md),
+                _buildLabel(context, "Yaratilgan yili"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "2023",
-                    textEditingController: vm.establishedYear,
-                    textInputType: TextInputType.number,
-                    maxLength: 4),
-                10.verticalSpace,
-                CustomInputLabelWidget(text: "Inn"),
-                6.verticalSpace,
+                  hintText: "2023",
+                  textEditingController: vm.establishedYear,
+                  textInputType: TextInputType.number,
+                  maxLength: 4,
+                ),
+                SizedBox(height: AppSpacing.md),
+                _buildLabel(context, "INN"),
+                SizedBox(height: AppSpacing.sm),
                 FermerCreatePageInputWidget(
-                    hintText: "12345678",
-                    textEditingController: vm.inn,
-                    textInputType: TextInputType.number),
-                26.verticalSpace,
+                  hintText: "302208505",
+                  textEditingController: vm.inn,
+                  textInputType: TextInputType.number,
+                ),
+                SizedBox(height: AppSpacing.xxl),
                 MainButton(
                   text: "Fermer Qo'shish",
                   isLoading: vm.isLoading,
                   onTap: () async {
                     FocusScope.of(context).unfocus();
-                    String? errorMessage = vm.checkValidate();
+                    final errorMessage = vm.checkValidate();
                     if (errorMessage != null) {
                       Utils.fireTopSnackBar(
-                          errorMessage, AppColors.cE60C0C, context);
+                        errorMessage,
+                        DesignColors.AppColors.error,
+                        context,
+                      );
                     } else {
                       final result = await vm.createFermer();
                       if (!result && context.mounted) {
                         Utils.fireTopSnackBar(
-                            vm.errorMessage ?? "Xatolik Yuz berdi",
-                            AppColors.cE60C0C,
-                            context);
+                          vm.errorMessage ?? "Xatolik yuz berdi",
+                          DesignColors.AppColors.error,
+                          context,
+                        );
                       } else if (result && context.mounted) {
-                        Utils.fireTopSnackBar("Yangi Fermer Qo'shildi",
-                            AppColors.c28A745, context);
+                        Utils.fireTopSnackBar(
+                          "Yangi Fermer Qo'shildi",
+                          DesignColors.AppColors.accentGreen,
+                          context,
+                        );
                         context.pop(true);
                       }
                     }
                   },
                 ),
-
-                // MainButton(
-                //   text: "Fermerni Qo'shish",
-                //   onTap: () async {
-                //     String? errorMessage = vm.checkValidate();
-                //     if (errorMessage != null) {
-                //       Utils.fireTopSnackBar(errorMessage, AppColors.cE60C0C, context);
-                //     } else {
-                //       final result = await vm.createFermer();
-                //       if (!result && context.mounted) {
-                //         Utils.fireTopSnackBar(vm.errorMessage ?? "Xatolik Yuz berdi", AppColors.cE60C0C, context);
-                //       } else if (result && context.mounted) {
-                //         Utils.fireTopSnackBar("Yangi Fermer Qo'shildi", AppColors.c28A745, context);
-                //         context.pop(true);
-                //       }
-                //     }
-                //   },
-                // ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(BuildContext context, String text) {
+    return Text(
+      text,
+      style: AppTypography.bodySmall(context).copyWith(
+        color: DesignColors.AppColors.darkTextSecondary,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.2,
       ),
     );
   }

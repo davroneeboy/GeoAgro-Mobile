@@ -1,37 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../design_system/tokens/radii.dart';
 
-import '../style/app_colors.dart';
-
+/// Modern card widget with dark theme
 class CustomCardWidget extends StatelessWidget {
   final Widget child;
   final double horizontal;
   final double vertical;
-  const CustomCardWidget({super.key, required this.horizontal, required this.vertical, required this.child});
+  final Color? backgroundColor;
+  final double? borderRadius;
+  
+  const CustomCardWidget({
+    super.key,
+    required this.horizontal,
+    required this.vertical,
+    required this.child,
+    this.backgroundColor,
+    this.borderRadius,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: MediaQuery.of(context).size.width,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(
-            color: AppColors.c1E1E1E06,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? DesignColors.AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(borderRadius ?? AppRadii.card),
+        border: Border.all(
+          color: DesignColors.AppColors.darkBorder,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontal,
+          vertical: vertical,
         ),
-        child: Padding(
-          padding: REdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
-          child: child,
-        ),
+        child: child,
       ),
     );
   }
