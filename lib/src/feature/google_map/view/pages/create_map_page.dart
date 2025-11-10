@@ -46,7 +46,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
   Widget build(BuildContext context) {
     final vm = ref.watch(mapPageVM);
     return Scaffold(
-      backgroundColor: AppColors.cF7F7F7,
+      backgroundColor: DesignColors.AppColors.darkBackground,
       appBar: CustomAppBarWidget(
         title: "Xarita",
         canPop: true,

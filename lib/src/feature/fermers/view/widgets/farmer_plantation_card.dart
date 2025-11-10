@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
-import '../../../../core/style/app_colors.dart';
 import '../../../../data/model/farmer/farmer_plantation_model.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/spacing.dart';
+import '../../../../../design_system/theme/radius.dart';
+import '../../../../../design_system/theme/typography.dart';
 
 class FarmerPlantationCard extends StatelessWidget {
   final FarmerPlantation plantation;
@@ -19,21 +23,14 @@ class FarmerPlantationCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          color: DesignColors.AppColors.darkSurface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
             color: plantation.isChecked 
-                ? AppColors.c28A745 
-                : Colors.grey.withValues(alpha: 0.2),
+                ? DesignColors.AppColors.primary 
+                : DesignColors.AppColors.darkOutline,
             width: plantation.isChecked ? 2 : 1,
           ),
         ),
@@ -45,34 +42,48 @@ class FarmerPlantationCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    plantation.name,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                    plantation.name ?? 'Plantatsiya',
+                    style: AppTypography.headlineLarge(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: DesignColors.AppColors.darkOnBackground,
                     ),
                   ),
                 ),
                 if (plantation.isChecked)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: AppColors.c28A745,
-                      borderRadius: BorderRadius.circular(12.r),
+                      color: DesignColors.AppColors.primary,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Text(
                       "Tasdiqlangan",
-                      style: TextStyle(
-                        fontSize: 12.sp,
+                      style: AppTypography.labelSmall(context).copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (plantation.isRejected == true)
+                  Container(
+                    margin: EdgeInsets.only(left: AppSpacing.xs),
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: DesignColors.AppColors.error,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      "Rad etilgan",
+                      style: AppTypography.labelSmall(context).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
               ],
             ),
             
-            SizedBox(height: 12.h),
+            SizedBox(height: AppSpacing.md),
             
             // Stats row
             Row(
@@ -80,86 +91,172 @@ class FarmerPlantationCard extends StatelessWidget {
                 // Fertility score
                 Expanded(
                   child: _buildStatItem(
+                    context: context,
                     icon: Icons.eco,
                     label: "Unumdorlik",
                     value: "${plantation.fertilityScore.toStringAsFixed(1)}%",
-                    color: AppColors.c28A745,
+                    color: DesignColors.AppColors.primary,
                   ),
                 ),
                 
-                SizedBox(width: 12.w),
+                SizedBox(width: AppSpacing.md),
                 
                 // Total area
                 Expanded(
                   child: _buildStatItem(
+                    context: context,
                     icon: Icons.landscape,
                     label: "Maydon",
                     value: "${plantation.totalArea.toStringAsFixed(1)} ga",
-                    color: Colors.blue,
+                    color: DesignColors.AppColors.info,
                   ),
                 ),
               ],
             ),
             
-            SizedBox(height: 12.h),
+            SizedBox(height: AppSpacing.md),
             
-            // Coordinates count
-            Row(
+            // Additional info row
+            Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.sm,
               children: [
-                Icon(
-                  Icons.location_on,
-                  size: 16.sp,
-                  color: Colors.grey[600],
-                ),
-                SizedBox(width: 4.w),
-                Text(
-                  "${plantation.coordinates.length} ta koordinata",
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Colors.grey[600],
+                // Coordinates count
+                if (plantation.coordinates.isNotEmpty)
+                  _buildInfoChip(
+                    context: context,
+                    icon: Icons.location_on,
+                    label: "${plantation.coordinates.length} ta koordinata",
+                    color: DesignColors.AppColors.darkOnSurfaceVariant,
                   ),
-                ),
+                
+                // District
+                if (plantation.districtName != null)
+                  _buildInfoChip(
+                    context: context,
+                    icon: Icons.map,
+                    label: plantation.districtName!,
+                    color: DesignColors.AppColors.darkOnSurfaceVariant,
+                  ),
+                
+                // Year established
+                if (plantation.gardenEstablishedYear != null)
+                  _buildInfoChip(
+                    context: context,
+                    icon: Icons.calendar_today,
+                    label: "Yil: ${plantation.gardenEstablishedYear}",
+                    color: DesignColors.AppColors.darkOnSurfaceVariant,
+                  ),
+                
+                // Is fertile
+                if (plantation.isFertile == true)
+                  _buildInfoChip(
+                    context: context,
+                    icon: Icons.agriculture,
+                    label: "Unumdor",
+                    color: DesignColors.AppColors.primary,
+                  ),
               ],
             ),
+            
+            // Created date
+            if (plantation.createdAt != null)
+              Padding(
+                padding: EdgeInsets.only(top: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 14.sp,
+                      color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    ),
+                    SizedBox(width: AppSpacing.xs),
+                    Text(
+                      _formatDate(plantation.createdAt!),
+                      style: AppTypography.labelSmall(context).copyWith(
+                        color: DesignColors.AppColors.darkOnSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+  
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      final formatter = DateFormat('dd.MM.yyyy HH:mm');
+      return formatter.format(date);
+    } catch (e) {
+      return dateString;
+    }
+  }
+  
+  Widget _buildInfoChip({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 14.sp,
+          color: color,
+        ),
+        SizedBox(width: AppSpacing.xs),
+        Text(
+          label,
+          style: AppTypography.labelSmall(context).copyWith(
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildStatItem({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
     required Color color,
   }) {
     return Container(
-      padding: EdgeInsets.all(8.w),
+      padding: EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8.r),
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
           Icon(
             icon,
-            size: 20.sp,
+            size: 24.sp,
             color: color,
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
+            style: AppTypography.bodyLarge(context).copyWith(
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 10.sp,
-              color: Colors.grey[600],
+            style: AppTypography.labelSmall(context).copyWith(
+              color: DesignColors.AppColors.darkOnSurfaceVariant,
             ),
           ),
         ],

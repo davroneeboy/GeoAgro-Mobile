@@ -11,6 +11,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../view/widget/edit_fruit_bottom_shit.dart';
 
 import '../../../core/setting/setup.dart';
+import '../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../../data/model/fruits/fruit_model.dart';
 import '../../../data/model/fruits/fruit_rootstocks_model.dart';
 import '../../../data/model/fruits/fruit_verity_modell.dart';
@@ -110,6 +111,7 @@ class EditVM extends ChangeNotifier {
   late EditPlantationModel plantationModel;
   bool isSaving = false;
   late EditPlantationModel originalPlantationModel;
+  double? polygonAreaFromMap; // Площадь полигона, рассчитанная на карте
   FruitModel? selectedFruit;
   FruitVarietyModel? selectedFruitVariety;
   FruitRootstocksModel? selectedFruitRoot;
@@ -341,6 +343,12 @@ class EditVM extends ChangeNotifier {
         plantationModel = EditPlantationModel.fromJson(jsonData);
         originalPlantationModel = EditPlantationModel.fromJson(jsonData);
         unumdorlikValue = plantationModel.fertilityScore?.toDouble() ?? 0;
+        
+        // Устанавливаем площадь полигона из API для валидации
+        polygonAreaFromMap = plantationModel.totalArea;
+        
+        // Логируем площадь полигона для отладки
+        debugPrint('[edit] getPlantationDetail: totalArea=${plantationModel.totalArea}, polygonAreaFromMap=$polygonAreaFromMap');
         // Prefill core fields (format 2.0 -> 2, keep decimals like 2.02)
         notUsableArea.text = DecimalInputFormatter.formatBackendNumber(
           plantationModel.notUsableArea,
@@ -522,6 +530,31 @@ class EditVM extends ChangeNotifier {
     if (selectedDetails.isEmpty) {
       return "Kamida bitta meva maydoni qo'shing";
     }
+    
+    // 10) Проверяем расхождение между площадью полигона и общей площадью
+    // Используем polygonAreaFromMap, если установлен, иначе plantationModel.totalArea
+    final polygonArea = polygonAreaFromMap ?? plantationModel.totalArea;
+    debugPrint('[edit] validateFields: polygonArea=$polygonArea, polygonAreaFromMap=$polygonAreaFromMap, plantationModel.totalArea=${plantationModel.totalArea}');
+    
+    if (polygonArea != null && polygonArea > 0) {
+      final totalArea = getTotalArea(ref);
+      debugPrint('[edit] validateFields: totalArea=$totalArea');
+      
+      if (totalArea > 0) {
+        final difference = (polygonArea - totalArea).abs();
+        final percentageDifference = (difference / polygonArea) * 100;
+        debugPrint('[edit] validateFields: difference=$difference, percentageDifference=$percentageDifference%');
+        
+        if (percentageDifference > 15) {
+          return 'Xaritada chizilgan gektar (${polygonArea.toStringAsFixed(2)} ga) va umumiy maydon hisobida (${totalArea.toStringAsFixed(2)} ga) juda farq qiladi. Maksimal ruxsat etilgan xatolik 15%, joriy: ${percentageDifference.toStringAsFixed(1)}%';
+        }
+      } else {
+        debugPrint('[edit] validateFields: totalArea is 0 or negative, skipping validation');
+      }
+    } else {
+      debugPrint('[edit] validateFields: polygonArea is null or 0, skipping validation');
+    }
+    
     return null;
   }
 
@@ -1114,7 +1147,7 @@ class EditVM extends ChangeNotifier {
               top: Radius.circular(16.r),
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: DesignColors.AppColors.darkSurface,
           context: context,
           isScrollControlled: true,
           builder: (context) {

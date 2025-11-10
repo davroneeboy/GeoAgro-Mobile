@@ -54,13 +54,13 @@ class AppRepositoryImpl implements AppRepo {
     return null;
   }
 
-  /// Delete Plantation method
+  /// Delete Plantation method (for unconfirmed plantations - direct DELETE)
   @override
   Future<String?> deletePlantationModel(
       {required int id, required Map<String, dynamic> model}) async {
     try {
-      final data =
-          await ApiService.patch(ApiConst.apiUpdatePlantation(id), model);
+      // Для неподтвержденных плантаций используем прямой DELETE запрос
+      final data = await ApiService.delete(ApiConst.apiDeletePlantation(id));
       if (data != null) {
         return data.toString();
       }
@@ -232,15 +232,24 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getFarmerPlantations({required int farmerInn}) async {
     try {
+      final url = ApiConst.apiFarmerPlantations(farmerInn: farmerInn);
+      final fullUrl = "${ApiConst.baseUrl}$url";
+      debugPrint("getFarmerPlantations: Full URL: $fullUrl");
+      debugPrint("getFarmerPlantations: farmerInn=$farmerInn");
+      
       final data = await ApiService.get(
-        ApiConst.apiFarmerPlantations(farmerInn),
+        url,
         ApiParams.emptyParams(),
       );
+      
+      debugPrint("getFarmerPlantations: Response received: ${data?.substring(0, data.length > 200 ? 200 : data.length)}");
       return data;
     } on DioException catch (e) {
-      debugPrint("Server error: ${e.response?.data ?? e.message}");
+      debugPrint("getFarmerPlantations: Server error: ${e.response?.statusCode}");
+      debugPrint("getFarmerPlantations: Error data: ${e.response?.data ?? e.message}");
+      debugPrint("getFarmerPlantations: Request URL: ${e.requestOptions.uri}");
     } catch (e) {
-      debugPrint("Unexpected error: $e");
+      debugPrint("getFarmerPlantations: Unexpected error: $e");
     }
     return null;
   }

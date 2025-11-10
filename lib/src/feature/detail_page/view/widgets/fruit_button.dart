@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../vm/detail_vm.dart';
 import 'fruit_bottom_shit_widget.dart.dart';
 
@@ -38,7 +39,7 @@ class FruitButton extends ConsumerWidget {
               top: Radius.circular(16.r),
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: DesignColors.AppColors.darkSurface,
           context: context,
           isScrollControlled: true,
           builder: (context) {

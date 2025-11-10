@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 
 class TestPlantationsPage extends StatelessWidget {
@@ -15,7 +16,7 @@ class TestPlantationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: DesignColors.AppColors.darkBackground,
       appBar: CustomAppBarWidget(
         title: "Test Plantations",
         canPop: true,

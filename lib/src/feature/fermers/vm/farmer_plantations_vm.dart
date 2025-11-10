@@ -16,7 +16,7 @@ class FarmerPlantationsVm extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get farmerInn => _farmerInn;
 
-  Future<void> getFarmerPlantations(int farmerInn) async {
+  Future<void> getFarmerPlantations({required int farmerInn}) async {
     _farmerInn = farmerInn;
     _isLoading = true;
     _errorMessage = null;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/style/app_colors.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
 
 class HomePageFloatactionButtonWidget extends StatelessWidget {
   final VoidCallback onPressed;
@@ -10,10 +10,11 @@ class HomePageFloatactionButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       heroTag: 'homeFab',
-      backgroundColor: AppColors.white,
-      foregroundColor: AppColors.c1E1E1E,
+      backgroundColor: DesignColors.AppColors.primary,
+      foregroundColor: Colors.white,
+      elevation: 6,
       onPressed: onPressed,
-      child: const Icon(Icons.add),
+      child: const Icon(Icons.add, size: 28),
     );
   }
 }

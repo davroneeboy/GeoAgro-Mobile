@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/theme/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/theme/typography.dart';
 
 class CreatedTime extends StatelessWidget {
   final DateTime? selectedDate;
@@ -14,6 +16,21 @@ class CreatedTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? DesignColors.AppColors.darkSurface
+        : Colors.white;
+    final borderColor = isDark
+        ? DesignColors.AppColors.darkOutline
+        : const Color(0x1E1E1E16);
+    final textColor = isDark
+        ? DesignColors.AppColors.darkOnSurface
+        : Colors.black;
+    final hintColor = isDark
+        ? DesignColors.AppColors.darkOnSurfaceVariant
+        : Colors.grey;
+    
     return GestureDetector(
       onTap: () async {
         final today = DateTime.now();
@@ -34,8 +51,8 @@ class CreatedTime extends StatelessWidget {
       child: Container(
         padding: REdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0x1E1E1E16)),
+          color: backgroundColor,
+          border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Row(
@@ -45,9 +62,16 @@ class CreatedTime extends StatelessWidget {
               selectedDate != null
                   ? DateFormat('yyyy-MM-dd').format(selectedDate!)
                   : "vaqtni kiriting...",
-              style: TextStyle(fontSize: 16.sp),
+              style: AppTypography.bodyLarge(context).copyWith(
+                fontSize: 16.sp,
+                color: selectedDate != null ? textColor : hintColor,
+              ),
             ),
-            Icon(Icons.calendar_today, color: Colors.grey, size: 24.sp),
+            Icon(
+              Icons.calendar_today,
+              color: hintColor,
+              size: 24.sp,
+            ),
           ],
         ),
       ),

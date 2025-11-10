@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/style/app_colors.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../vm/create_map_page_vm.dart';
 
 class CreateMapPageButtonWidgets extends StatelessWidget {
@@ -16,8 +17,9 @@ class CreateMapPageButtonWidgets extends StatelessWidget {
         // Кнопка "Мое местоположение" - приближать на локацию пользователя
         FloatingActionButton(
           heroTag: 'mapFab_location',
-          backgroundColor: AppColors.white,
-          foregroundColor: AppColors.c1E1E1E,
+          backgroundColor: DesignColors.AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 6,
           onPressed: () async {
             await vm.getCurrentLocation();
           },
@@ -26,12 +28,12 @@ class CreateMapPageButtonWidgets extends StatelessWidget {
                   child: Padding(
                     padding: REdgeInsets.all(4),
                     child: const CircularProgressIndicator(
-                      color: AppColors.black,
-                      strokeWidth: 1.9,
+                      color: Colors.white,
+                      strokeWidth: 2.5,
                     ),
                   ),
                 )
-              : const Icon(Icons.my_location),
+              : const Icon(Icons.my_location, size: 24),
         ),
         const SizedBox(height: 10),
         // Кнопка "Добавить точку" - всегда доступна для добавления точек
@@ -49,7 +51,7 @@ class CreateMapPageButtonWidgets extends StatelessWidget {
         if (vm.drawingPoints.isNotEmpty)
           FloatingActionButton(
             heroTag: 'mapFab_undo',
-            backgroundColor: AppColors.white,
+            backgroundColor: DesignColors.AppColors.darkSurface,
             foregroundColor: AppColors.c1E1E1E,
             onPressed: () {
               vm.removeLastPoint();

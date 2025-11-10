@@ -164,12 +164,14 @@ final class RouterConfigService {
               GoRoute(
                 path: AppRouteNames.farmerPlantations,
                 pageBuilder: (context, state) {
+                  final farmerId = int.tryParse(state.uri.queryParameters['id'] ?? '0') ?? 0;
                   final farmerInn = int.tryParse(state.uri.queryParameters['inn'] ?? '0') ?? 0;
                   final farmerName = state.uri.queryParameters['name'] ?? 'Fermer';
                   return customEachTransitionAnimation(
                     context, 
                     state, 
                     FarmerPlantationsPage(
+                      farmerId: farmerId, // Сохраняем для отображения, но не используем в API
                       farmerInn: farmerInn,
                       farmerName: farmerName,
                     ),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:agro_employee_public/design_system/components/cards.dart';
 import 'package:agro_employee_public/design_system/templates/screen_shells.dart';
 import 'package:agro_employee_public/design_system/theme/colors.dart'
@@ -10,9 +12,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/setting/setup.dart';
+import '../../../../core/routes/app_route_names.dart';
 import '../../../../data/model/plantation/edit_plantation.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_view_vm.dart';
+import 'package:go_router/go_router.dart';
 
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
@@ -74,8 +78,41 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Загружаем координаты для карты
       ref.read(plantationMapMiniVM(widget.id)).loadRelatedPlantations();
     });
+  }
+
+  /// Пытается инициализировать карту с координатами из детальной информации
+  Future<void> _tryInitializeMapFromDetail(int? plantationId) async {
+    if (plantationId == null) {
+      debugPrint("[PlantationViewPage] Plantation ID is null");
+      return;
+    }
+    
+    try {
+      debugPrint("[PlantationViewPage] Trying to initialize map from detail for ID: $plantationId");
+      final repo = AppRepositoryImpl();
+      final data = await repo.getPlantationDetail(id: plantationId);
+      if (data != null) {
+        debugPrint("[PlantationViewPage] Got detail data, length: ${data.length}");
+        final jsonData = jsonDecode(data);
+        debugPrint("[PlantationViewPage] Parsed JSON, keys: ${jsonData.keys}");
+        
+        if (jsonData['coordinates'] != null) {
+          debugPrint("[PlantationViewPage] Coordinates found in response");
+          final mapVm = ref.read(plantationMapMiniVM(widget.id));
+          mapVm.initializeFromDetailData(jsonData);
+        } else {
+          debugPrint("[PlantationViewPage] No coordinates in detail response");
+        }
+      } else {
+        debugPrint("[PlantationViewPage] Detail data is null");
+      }
+    } catch (e, stackTrace) {
+      debugPrint("[PlantationViewPage] Error initializing map from detail: $e");
+      debugPrint("[PlantationViewPage] Stack trace: $stackTrace");
+    }
   }
 
   Widget _buildSummaryHighlights(
@@ -163,6 +200,21 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     List<DetailSection> sections = const [];
 
     if (!isLoading && !hasError && plantation != null) {
+      // Пытаемся использовать координаты из детальной информации для немедленного отображения
+      if (mapVm.currentPlantation == null && !mapVm.isLoading) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Пытаемся получить координаты из ответа API детальной информации
+          _tryInitializeMapFromDetail(plantation.id);
+          
+          // Также загружаем координаты через стандартный endpoint, если инициализация не удалась
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mapVm.currentPlantation == null && !mapVm.isLoading) {
+              mapVm.loadRelatedPlantations();
+            }
+          });
+        });
+      }
+      
       baseEntries = _buildBaseEntries(context, plantation, mapVm);
       summaryCard = _buildSummaryCard(
         context: context,
@@ -557,56 +609,76 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     }
 
     if (plantation.fruitAreas?.isNotEmpty == true) {
+      // Проверяем, есть ли экономически неэффективные зоны
+      final inefficientFruits = plantation.fruitAreas!
+          .where((fruit) => fruit.iqtisodiysamarasiz == true)
+          .toList();
+      final hasInefficientAreas = inefficientFruits.isNotEmpty;
+      final totalInefficientArea = inefficientFruits
+          .fold<double>(
+            0.0,
+            (sum, fruit) => sum + (fruit.economicInefficientArea ?? 0.0),
+          );
+
       sections.add(
         DetailSection(
           title: "Mevali hududlar",
           icon: Icons.eco_outlined,
-          content: _buildGroupedCard(
-            context,
-            plantation.fruitAreas!
-                .map((fruit) => [
-                      _InfoEntry(
-                        "Meva",
-                        fruit.fruitName ?? "Noma'lum",
-                        Icons.eco_outlined,
-                      ),
-                      if (fruit.varietyName != null)
-                        _InfoEntry(
-                          "Nav",
-                          fruit.varietyName!,
-                          Icons.local_florist_outlined,
-                        ),
-                      if (fruit.rootstockName != null)
-                        _InfoEntry(
-                          "Podvoy",
-                          fruit.rootstockName!,
-                          Icons.grass_outlined,
-                        ),
-                      _InfoEntry(
-                        "Maydon",
-                        "${_formatNumber(fruit.area)} GA",
-                        Icons.square_foot_outlined,
-                      ),
-                      if (fruit.plantedYear != null)
-                        _InfoEntry(
-                          "Ekilgan yil",
-                          fruit.plantedYear.toString(),
-                          Icons.date_range_outlined,
-                        ),
-                      if (fruit.schema != null && fruit.schema!.isNotEmpty)
-                        _InfoEntry(
-                          "Ekilish sxemasi",
-                          fruit.schema!,
-                          Icons.grid_view_outlined,
-                        ),
-                      if (fruit.kochatSoni != null)
-                        _InfoEntry(
-                          "Ko'chat soni",
-                          fruit.kochatSoni.toString(),
-                          Icons.spa_outlined,
-                        ),
-                    ])
-                .toList(),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGroupedCard(
+                context,
+                plantation.fruitAreas!
+                    .map((fruit) => [
+                          _InfoEntry(
+                            "Meva",
+                            fruit.fruitName ?? "Noma'lum",
+                            Icons.eco_outlined,
+                          ),
+                          if (fruit.varietyName != null)
+                            _InfoEntry(
+                              "Nav",
+                              fruit.varietyName!,
+                              Icons.local_florist_outlined,
+                            ),
+                          if (fruit.rootstockName != null)
+                            _InfoEntry(
+                              "Podvoy",
+                              fruit.rootstockName!,
+                              Icons.grass_outlined,
+                            ),
+                          _InfoEntry(
+                            "Maydon",
+                            "${_formatNumber(fruit.area)} GA",
+                            Icons.square_foot_outlined,
+                          ),
+                          if (fruit.plantedYear != null)
+                            _InfoEntry(
+                              "Ekilgan yil",
+                              fruit.plantedYear.toString(),
+                              Icons.date_range_outlined,
+                            ),
+                          if (fruit.schema != null && fruit.schema!.isNotEmpty)
+                            _InfoEntry(
+                              "Ekilish sxemasi",
+                              fruit.schema!,
+                              Icons.grid_view_outlined,
+                            ),
+                          if (fruit.kochatSoni != null)
+                            _InfoEntry(
+                              "Ko'chat soni",
+                              fruit.kochatSoni.toString(),
+                              Icons.spa_outlined,
+                            ),
+                        ])
+                    .toList(),
+              ),
+              if (hasInefficientAreas) ...[
+                const SizedBox(height: AppSpacing.lg),
+                _buildInefficientAreaCard(context, totalInefficientArea),
+              ],
+            ],
           ),
         ),
       );
@@ -637,7 +709,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       DetailSection(
         title: "Harakatlar",
         icon: Icons.settings_outlined,
-        content: _buildActionButtons(context, plantation),
+        content: _buildActionButtons(context, plantation, mapVm),
       ),
     );
 
@@ -699,9 +771,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ),
     ];
 
-    final hasCoordinates =
-        mapVm.currentPlantation?.coordinates.isNotEmpty ?? false;
-
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       child: Column(
@@ -710,10 +779,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           _buildMiniMap(context, mapVm, statusData),
           const SizedBox(height: AppSpacing.lg),
           _buildInfoGrid(context, metrics),
-          if (hasCoordinates) ...[
-            const SizedBox(height: AppSpacing.lg),
-            _buildCoordinateSection(context, mapVm),
-          ],
+          // Блок координат убран по запросу пользователя
         ],
       ),
     );
@@ -802,6 +868,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 target: mapVm.initialPosition,
                 zoom: 15,
               ),
+              mapType: MapType.satellite,
               polygons: mapVm.polygons,
               polylines: mapVm.polylines,
               markers: mapVm.markers,
@@ -812,9 +879,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               mapToolbarEnabled: false,
               rotateGesturesEnabled: false,
               tiltGesturesEnabled: false,
-              scrollGesturesEnabled: false,
-              zoomGesturesEnabled: false,
-              liteModeEnabled: true,
+              scrollGesturesEnabled: true,
+              zoomGesturesEnabled: true,
+              liteModeEnabled: false,
               buildingsEnabled: false,
               trafficEnabled: false,
             ),
@@ -899,56 +966,30 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     );
   }
 
-  Widget _buildCoordinateSection(
-    BuildContext context,
-    PlantationMapViewVm mapVm,
-  ) {
-    final coords = mapVm.currentPlantation?.coordinates ?? [];
-    if (coords.isEmpty) return const SizedBox.shrink();
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Koordinatalar",
-          style: AppTypography.headlineSmall(context),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: coords.asMap().entries.map((entry) {
-            final index = entry.key + 1;
-            final coordinate = entry.value;
-            return _buildCoordinateChip(
-              context,
-              index: index,
-              latitude: coordinate.latitude,
-              longitude: coordinate.longitude,
-              accentColor: colorScheme.primary,
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
+  // Метод _buildCoordinateSection удален по запросу пользователя
 
   Widget _buildActionButtons(
     BuildContext context,
     EditPlantationModel plantation,
+    PlantationMapViewVm mapVm,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isChecked = mapVm.currentPlantation?.isChecked ?? false;
 
     return Row(
       children: [
         Expanded(
           child: FilledButton.icon(
-            onPressed: () {
-              // TODO: Navigate to edit page
-              // context.push('/plantation/edit/${plantation.id}');
-            },
+            onPressed: isChecked
+                ? null
+                : () {
+                    if (plantation.id != null) {
+                      context.go(
+                        "${AppRouteNames.home}${AppRouteNames.editPage}",
+                        extra: plantation.id,
+                      );
+                    }
+                  },
             icon: const Icon(Icons.edit_outlined, size: 20),
             label: const Text("Tahrirlash"),
             style: FilledButton.styleFrom(
@@ -961,7 +1002,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: FilledButton.tonalIcon(
-            onPressed: () => _showDeleteConfirmation(context, plantation),
+            onPressed: () => _handleDelete(context, plantation, mapVm),
             icon: const Icon(Icons.delete_outline, size: 20),
             label: const Text("O'chirish"),
             style: FilledButton.styleFrom(
@@ -974,6 +1015,56 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           ),
         ),
       ],
+    );
+  }
+
+  void _handleDelete(
+    BuildContext context,
+    EditPlantationModel plantation,
+    PlantationMapViewVm mapVm,
+  ) {
+    final isChecked = mapVm.currentPlantation?.isChecked ?? false;
+    
+    // Показываем диалог подтверждения для всех плантаций
+    if (!isChecked) {
+      // Для неподтвержденных плантаций - простой диалог подтверждения
+      _showSimpleDeleteConfirmation(context, plantation);
+    } else {
+      // Если плантация подтверждена, показываем диалог с запросом на удаление
+      _showDeleteConfirmation(context, plantation);
+    }
+  }
+
+  void _showSimpleDeleteConfirmation(
+    BuildContext context,
+    EditPlantationModel plantation,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded, size: 48),
+        iconColor: Theme.of(context).colorScheme.error,
+        title: const Text("Plantatsiyani o'chirish"),
+        content: const Text(
+          "Haqiqatan ham bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Bekor qilish"),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deletePlantation(context, plantation.id);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text("O'chirish"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1015,8 +1106,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     if (plantationId == null) return;
 
     try {
-      final repo = AppRepositoryImpl();
       // TODO: Implement actual delete API call
+      // final repo = AppRepositoryImpl();
       // await repo.deletePlantation(id: plantationId);
       
       if (context.mounted) {
@@ -1040,50 +1131,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     }
   }
 
-  Widget _buildCoordinateChip(
-    BuildContext context, {
-    required int index,
-    required double latitude,
-    required double longitude,
-    required Color accentColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            accentColor.withOpacity(0.22),
-            accentColor.withOpacity(0.12),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.chip),
-        border: Border.all(color: accentColor.withOpacity(0.32)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.location_on,
-            size: 16,
-            color: accentColor,
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            "#$index  ${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}",
-            style: AppTypography.bodySmall(context).copyWith(
-              color: accentColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Метод _buildCoordinateChip удален по запросу пользователя
 
   Widget _buildMetricsCard(
     BuildContext context,
@@ -1178,6 +1226,58 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildInefficientAreaCard(
+    BuildContext context,
+    double totalInefficientArea,
+  ) {
+    return AppCardFilled(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: DesignColors.AppColors.warning.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(
+            color: DesignColors.AppColors.warning.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: DesignColors.AppColors.warning,
+              size: 24,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Iqtisodiy samarasiz maydon",
+                    style: AppTypography.bodyMedium(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: DesignColors.AppColors.warning,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    "${_formatNumber(totalInefficientArea)} GA",
+                    style: AppTypography.headlineSmall(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: DesignColors.AppColors.warning,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

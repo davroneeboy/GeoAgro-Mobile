@@ -10,6 +10,7 @@ String farmerStatisticsModelToJson(List<FarmerData> data) =>
 
 class FarmerData {
   final int? id;
+  final int? inn;
   final String? name;
   final int? totalPlantations;
   final int? approvedPlantations;
@@ -20,6 +21,7 @@ class FarmerData {
 
   FarmerData({
     this.id,
+    this.inn,
     this.name,
     this.totalPlantations,
     this.approvedPlantations,
@@ -31,6 +33,7 @@ class FarmerData {
 
   factory FarmerData.fromJson(Map<String, dynamic> json) => FarmerData(
     id: json["farmer_id"] ?? json["id"],
+    inn: json["farmer_inn"] ?? json["inn"] ?? json["farmer_id"] ?? json["id"],
     name: json["farmer_name"] ?? json["name"],
     totalPlantations: json["total_plantations"],
     approvedPlantations: json["approved_plantations"],
@@ -42,6 +45,7 @@ class FarmerData {
 
   Map<String, dynamic> toJson() => {
     "farmer_id": id,
+    "farmer_inn": inn,
     "farmer_name": name,
     "total_plantations": totalPlantations,
     "approved_plantations": approvedPlantations,

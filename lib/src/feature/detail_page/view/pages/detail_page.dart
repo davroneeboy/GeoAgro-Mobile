@@ -24,7 +24,6 @@ import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 
-import '../../../../core/widgets/main_button.dart';
 import '../../../../data/model/plantation/new_plantation_model.dart';
 import '../../vm/detail_vm.dart';
 import '../widgets/detail_dropdown_widget.dart';
@@ -208,9 +207,39 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           FilteringTextInputFormatter.allow(
                               RegExp(r'[0-9a-zA-Z]'))
                         ],
-                        decoration: const InputDecoration(
+                        style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+                        decoration: InputDecoration(
                           hintText: "kontur raqamini kiriting",
-                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: isDark
+                              ? DesignColors.AppColors.darkSurfaceVariant
+                              : sectionColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.inputPaddingHorizontal,
+                            vertical: AppSpacing.inputPaddingVertical,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.input),
+                            borderSide: BorderSide(
+                              color: outlineColor,
+                              width: 1.2,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.input),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? DesignColors.AppColors.primary
+                                  : theme.colorScheme.primary,
+                              width: 1.6,
+                            ),
+                          ),
+                          hintStyle: AppTypography.bodyMedium(context).copyWith(
+                            fontSize: 14.sp,
+                            color: isDark
+                                ? DesignColors.AppColors.darkOnSurfaceVariant
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
                           isDense: true,
                         ),
                         onSubmitted: (_) => detailVm.addKonturNumber(),

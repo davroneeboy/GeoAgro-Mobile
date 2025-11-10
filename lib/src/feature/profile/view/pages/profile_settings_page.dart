@@ -275,24 +275,12 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     SizedBox(height: AppSpacing.sm.h),
                     AppCardFilled(
                       padding: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          AppListTile(
-                            title: "Telegram bot",
-                            subtitle: "@geoagro_bot",
-                            leading: const Icon(Icons.support_agent_outlined),
-                            trailing: const Icon(Icons.north_east),
-                            onTap: _openTelegramBot,
-                          ),
-                          const Divider(height: 1),
-                          AppListTile(
-                            title: "Fikr bildirish",
-                            subtitle: "Taklif va shikoyatlar",
-                            leading: const Icon(Icons.chat_bubble_outline),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {},
-                          ),
-                        ],
+                      child: AppListTile(
+                        title: "Telegram bot",
+                        subtitle: "Taklif va shikoyatlar uchun @geoagro_bot",
+                        leading: const Icon(Icons.support_agent_outlined),
+                        trailing: const Icon(Icons.north_east),
+                        onTap: _openTelegramBot,
                       ),
                     ),
                   ],

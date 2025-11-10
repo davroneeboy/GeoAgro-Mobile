@@ -3,6 +3,7 @@ import 'package:agro_employee_public/src/feature/edit/vm/edit_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/theme/colors.dart' as DesignColors;
 
 class EditFruitButton extends ConsumerWidget {
   const EditFruitButton({super.key});
@@ -37,7 +38,7 @@ class EditFruitButton extends ConsumerWidget {
               top: Radius.circular(16.r),
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: DesignColors.AppColors.darkSurface,
           context: context,
           isScrollControlled: true,
           builder: (context) {

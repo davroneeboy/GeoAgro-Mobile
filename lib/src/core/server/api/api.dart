@@ -310,13 +310,21 @@ class ApiService {
   /// [Delete Method]
   static Future<String?> delete(String api, [Map<String, dynamic>? params]) async {
     try {
-      final _ = await (await initDio()).delete<dynamic>(api, queryParameters: params);
-      return "success";
+      final response = await (await initDio()).delete<dynamic>(api, queryParameters: params);
+      // DELETE может вернуть 204 (No Content) или 200 с телом ответа
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        return "success";
+      }
+      return response.data?.toString() ?? "success";
     } on TimeoutException catch (_) {
       l.e("The connection has timed out, Please try again!");
       rethrow;
     } on DioException catch (e) {
       l.e(e.response.toString());
+      // Если статус 204, считаем успехом
+      if (e.response?.statusCode == 204) {
+        return "success";
+      }
       rethrow;
     } on Object catch (_) {
       rethrow;

@@ -162,27 +162,56 @@ class HomePageVm extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      final data = await _appRepositoryImpl.deletePlantationModel(id: id, model: {"is_deleting": true});
+      final data = await _appRepositoryImpl.deletePlantationModel(id: id, model: {});
       if (data == null) {
         deletMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
         return false;
       } else {
-        final jsonData = jsonDecode(data) as Map<String, dynamic>;
-
-        if (jsonData.containsKey("id")) {
-          deletMessage = "Malumotlar o'chirish uchun yuborildi";
+        // DELETE запрос возвращает "success" как строку или 204 статус
+        if (data == "success" || data.toString().toLowerCase().contains("success")) {
+          deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
+          // Удаляем плантацию из всех списков
+          plantationsList.removeWhere((plantation) => plantation.id == id);
+          approvedList.removeWhere((plantation) => plantation.id == id);
+          pendingList.removeWhere((plantation) => plantation.id == id);
+          recheckList.removeWhere((plantation) => plantation.id == id);
+          rejectedList.removeWhere((plantation) => plantation.id == id);
+          _safeNotifyListeners();
           return true;
-        } else if (jsonData.containsKey("detail")) {
-          deletMessage = "Iltimos qayta urinib koring";
-          return false;
         } else {
-          // Если не распознали формат ответа
+          // Пытаемся распарсить как JSON, если это не строка "success"
+          try {
+            final jsonData = jsonDecode(data) as Map<String, dynamic>;
+            if (jsonData.containsKey("id") || jsonData.containsKey("detail")) {
+              deletMessage = jsonData["detail"]?.toString() ?? "Plantatsiya muvaffaqiyatli o'chirildi";
+              // Удаляем плантацию из всех списков
+              plantationsList.removeWhere((plantation) => plantation.id == id);
+              approvedList.removeWhere((plantation) => plantation.id == id);
+              pendingList.removeWhere((plantation) => plantation.id == id);
+              recheckList.removeWhere((plantation) => plantation.id == id);
+              rejectedList.removeWhere((plantation) => plantation.id == id);
+              _safeNotifyListeners();
+              return true;
+            }
+          } catch (_) {
+            // Если не JSON, считаем успехом если есть данные
+            deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
+            // Удаляем плантацию из всех списков
+            plantationsList.removeWhere((plantation) => plantation.id == id);
+            approvedList.removeWhere((plantation) => plantation.id == id);
+            pendingList.removeWhere((plantation) => plantation.id == id);
+            recheckList.removeWhere((plantation) => plantation.id == id);
+            rejectedList.removeWhere((plantation) => plantation.id == id);
+            _safeNotifyListeners();
+            return true;
+          }
           deletMessage = "Kutilmagan javob qaytdi";
           return false;
         }
       }
     } catch (e) {
       deletMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      debugPrint("Delete plantation error: $e");
       return false;
     } finally {
       _safeNotifyListeners();

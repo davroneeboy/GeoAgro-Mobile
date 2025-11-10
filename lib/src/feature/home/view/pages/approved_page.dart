@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/style/app_colors.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
@@ -167,7 +168,7 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
       body: RefreshIndicator(
         onRefresh: () async => vm.fetch(isLoadMore: false),
         color: AppColors.c28A745,
-        backgroundColor: AppColors.cF7F7F7,
+        backgroundColor: DesignColors.AppColors.darkBackground,
         child: ListView.separated(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: _controller,

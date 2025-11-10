@@ -9,8 +9,6 @@ import 'package:agro_employee_public/src/core/style/app_colors.dart';
 import 'package:agro_employee_public/src/core/utils/date_utils.dart'
     as app_date;
 import 'package:agro_employee_public/src/core/widgets/custom_card_widget.dart';
-import 'package:agro_employee_public/src/core/widgets/custom_driver.dart';
-import 'package:agro_employee_public/src/core/widgets/custom_list_tile_widget.dart';
 import 'package:agro_employee_public/src/data/model/plantation/plantations_list_model.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
@@ -239,9 +237,10 @@ class HomePageCardWidget extends StatelessWidget {
                   child: FilledButton(
                     onPressed: plantation.id == null
                         ? null
-                        : () => _showDeleteConfirmation(
+                        : () => _handleDelete(
                               context,
                               plantation.id!,
+                              plantation.isChecked ?? false,
                             ),
                     style: FilledButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 14.h),
@@ -427,6 +426,110 @@ class HomePageCardWidget extends StatelessWidget {
       return value.toString();
     }
     return value.toString();
+  }
+
+  void _handleDelete(BuildContext context, int plantationId, bool isChecked) {
+    // Показываем диалог подтверждения для всех плантаций
+    if (!isChecked) {
+      // Для неподтвержденных плантаций - простой диалог подтверждения
+      _showSimpleDeleteConfirmation(context, plantationId);
+    } else {
+      // Если плантация подтверждена, показываем диалог с запросом на удаление и причиной
+      _showDeleteConfirmation(context, plantationId);
+    }
+  }
+
+  void _showSimpleDeleteConfirmation(BuildContext context, int plantationId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          icon: const Icon(Icons.warning_amber_rounded, size: 48),
+          iconColor: Theme.of(context).colorScheme.error,
+          title: const Text("Plantatsiyani o'chirish"),
+          content: const Text(
+            "Haqiqatan ham bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Bekor qilish"),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deletePlantationDirectly(context, plantationId);
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text("O'chirish"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deletePlantationDirectly(BuildContext context, int plantationId) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final provider = customProvider ?? homePageVM;
+            final vm = ref.watch(provider.notifier);
+            
+            // Удаляем плантацию
+            Future.microtask(() async {
+              try {
+                final result = await vm.deletePlantation(id: plantationId);
+                
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+                
+                if (result && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(vm.deletMessage ?? "Plantatsiya muvaffaqiyatli o'chirildi"),
+                      backgroundColor: AppColors.c28A745,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                  // Вызываем callback для обновления списка
+                  onDeleteSuccess?.call();
+                } else if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
+                      backgroundColor: AppColors.cE60C0C,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Kutilmagan xatolik: ${e.toString()}"),
+                      backgroundColor: AppColors.cE60C0C,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              }
+            });
+            
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showDeleteConfirmation(BuildContext context, int plantationId) {

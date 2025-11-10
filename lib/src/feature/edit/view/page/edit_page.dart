@@ -18,6 +18,10 @@ import '../../../../core/setting/setup.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/style/app_colors.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/spacing.dart';
+import '../../../../../design_system/theme/radius.dart';
+import '../../../../../design_system/theme/typography.dart';
 import '../../../detail_page/view/widgets/border_widget.dart';
 import '../../../detail_page/view/widgets/detail_text_fild_widget.dart';
 import '../../../detail_page/view/widgets/productivity_indicator_widget.dart';
@@ -62,9 +66,13 @@ class _EditPageState extends ConsumerState<EditPage> {
     final isInvestmentXorijiy = ref.watch(switchInvestmentXorjiy);
     final isInvestmentMahhalliy = ref.watch(switchInvestmentMahhalliy);
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     if (edit.isLoading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: DesignColors.AppColors.darkBackground,
         appBar: CustomAppBarWidget(
             title: "Malumotlar yuklanmoqda...", canPop: true),
         body: Center(
@@ -79,6 +87,7 @@ class _EditPageState extends ConsumerState<EditPage> {
     }
     if (edit.errorMessage != null) {
       return Scaffold(
+        backgroundColor: DesignColors.AppColors.darkBackground,
         appBar: CustomAppBarWidget(title: "Xatolik !!!", canPop: true),
         body: ErrorStateWidget(
           errorMessage: edit.errorMessage ?? "Kutilmagan Javob qaytdi",
@@ -88,6 +97,7 @@ class _EditPageState extends ConsumerState<EditPage> {
     }
 
     return Scaffold(
+      backgroundColor: DesignColors.AppColors.darkBackground,
       resizeToAvoidBottomInset: false,
       appBar: CustomAppBarWidget(title: "Tahrirlash", canPop: true),
       body: SingleChildScrollView(
@@ -193,9 +203,41 @@ class _EditPageState extends ConsumerState<EditPage> {
                   Expanded(
                     child: TextField(
                       controller: edit.konturInputController,
-                      decoration: const InputDecoration(
+                      style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+                      decoration: InputDecoration(
                         hintText: "kontur raqamini kiriting",
-                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: isDark
+                            ? DesignColors.AppColors.darkSurfaceVariant
+                            : colorScheme.surfaceVariant,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.inputPaddingHorizontal,
+                          vertical: AppSpacing.inputPaddingVertical,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.input),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? DesignColors.AppColors.darkOutline
+                                : colorScheme.outline,
+                            width: 1.2,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.input),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? DesignColors.AppColors.primary
+                                : colorScheme.primary,
+                            width: 1.6,
+                          ),
+                        ),
+                        hintStyle: AppTypography.bodyMedium(context).copyWith(
+                          fontSize: 14.sp,
+                            color: isDark
+                              ? DesignColors.AppColors.darkOnSurfaceVariant
+                              : colorScheme.onSurfaceVariant,
+                        ),
                         isDense: true,
                       ),
                       onSubmitted: (_) => edit.addKonturNumber(),

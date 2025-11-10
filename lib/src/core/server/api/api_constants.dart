@@ -11,6 +11,7 @@ final class ApiConst {
   static String apiUpdateImage(int id) => '/api/plantations/$id/images/';
   static String apiLegacyImagesUpdate(int id) => '/api/plantations/$id/images/update/';
   static String apiDeleteImage(int plantationId, int imageId) => '/api/plantations/$plantationId/images/$imageId/';
+  static String apiDeletePlantation(int id) => '/api/plantations/$id/';
 
   static const String apiLogin = "/api/login/";
   static const String apiPlantations = "/api/plantations/";
@@ -24,7 +25,7 @@ final class ApiConst {
   static const String apiGetUserInfo = "/api/user_info/";
   static const String apiGetDistrcts = "/api/districts/";
   static const String apiFermers = "/api/farmers/";
-  static String apiFarmerPlantations(int farmerInn) => "/api/mymap/plantations/?farmer_inn=$farmerInn";
+  static String apiFarmerPlantations({required int farmerInn}) => "/api/mymap/plantations/?farmer_inn=$farmerInn";
   static const String apiFruits = "/api/fruits";
   static const String apiFruitsVerity = "/api/variety";
   static const String apiFruitsRootstocks = "/api/rootstocks";

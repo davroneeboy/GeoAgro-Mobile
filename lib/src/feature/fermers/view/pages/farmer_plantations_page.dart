@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
-import '../../../../core/style/app_colors.dart';
+import '../../../../core/routes/app_route_names.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/spacing.dart';
+import '../../../../../design_system/theme/radius.dart';
+import '../../../../../design_system/theme/typography.dart';
 import '../widgets/farmer_plantation_card.dart';
 import '../../vm/farmer_plantations_vm.dart';
 
@@ -14,11 +19,13 @@ final farmerPlantationsVm = ChangeNotifierProvider.autoDispose<FarmerPlantations
 });
 
 class FarmerPlantationsPage extends ConsumerStatefulWidget {
+  final int farmerId;
   final int farmerInn;
   final String farmerName;
 
   const FarmerPlantationsPage({
     super.key,
+    required this.farmerId,
     required this.farmerInn,
     required this.farmerName,
   });
@@ -33,7 +40,9 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     super.initState();
     // Load farmer plantations when page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(widget.farmerInn);
+      ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(
+        farmerInn: widget.farmerInn,
+      );
     });
   }
 
@@ -42,7 +51,7 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     final vm = ref.watch(farmerPlantationsVm);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: DesignColors.AppColors.darkBackground,
       appBar: CustomAppBarWidget(
         title: "Fermer plantatsiyalari",
         canPop: true,
@@ -66,7 +75,9 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     if (vm.errorMessage != null) {
       return ErrorStateWidget(
         errorMessage: vm.errorMessage ?? "Kutilmagan xatolik",
-        onTap: () => ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(widget.farmerInn),
+        onTap: () => ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(
+          farmerInn: widget.farmerInn,
+        ),
       );
     }
 
@@ -84,9 +95,8 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
             SizedBox(height: 16.h),
             Text(
               "Bu fermerda plantatsiya yo'q",
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: Colors.grey[600],
+              style: AppTypography.bodyLarge(context).copyWith(
+                color: DesignColors.AppColors.darkOnSurfaceVariant,
               ),
             ),
           ],
@@ -99,30 +109,31 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
         // Header with farmer info
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(16.w),
-          margin: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(AppSpacing.lg),
+          margin: EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.c28A745.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: AppColors.c28A745.withValues(alpha: 0.3)),
+            color: DesignColors.AppColors.primaryContainerDark,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(
+              color: DesignColors.AppColors.primary.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 widget.farmerName,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.c28A745,
+                style: AppTypography.headlineLarge(context).copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: DesignColors.AppColors.primaryLight,
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: AppSpacing.xs),
               Text(
                 "Jami ${vm.plantations.length} ta plantatsiya",
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.grey[600],
+                style: AppTypography.bodyLarge(context).copyWith(
+                  color: DesignColors.AppColors.darkOnSurfaceVariant,
                 ),
               ),
             ],
@@ -132,17 +143,22 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
         // Plantations list
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             itemCount: vm.plantations.length,
             itemBuilder: (context, index) {
               final plantation = vm.plantations[index];
               return Padding(
-                padding: EdgeInsets.only(bottom: 12.h),
+                padding: EdgeInsets.only(bottom: AppSpacing.md),
                 child: FarmerPlantationCard(
                   plantation: plantation,
                   onTap: () {
-                    // Navigate to plantation detail
-                    // context.go("/plantation/${plantation.id}");
+                    // Navigate to plantation detail page
+                    if (plantation.id > 0) {
+                      context.go(
+                        "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                        extra: plantation.id,
+                      );
+                    }
                   },
                 ),
               );

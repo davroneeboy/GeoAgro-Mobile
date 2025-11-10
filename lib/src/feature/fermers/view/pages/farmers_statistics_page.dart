@@ -380,12 +380,14 @@ class _FarmerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        final farmerInn = farmer.id ?? 0;
+        final farmerId = farmer.id ?? 0;
+        final farmerInn = farmer.inn ?? farmer.id ?? 0; // Используем inn, если есть, иначе id
         final farmerName = farmer.name ?? 'Fermer';
         final route =
-            "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
+            "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
 
         debugPrint('FarmersStatisticsPage: Navigating to farmer plantations: $route');
+        debugPrint('FarmersStatisticsPage: farmerId=$farmerId, farmerInn=$farmerInn');
         context.push(route);
       },
       child: Container(

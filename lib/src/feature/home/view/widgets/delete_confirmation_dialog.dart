@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/style/app_colors.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/typography.dart';
+import '../../../../../design_system/theme/spacing.dart';
+import '../../../../../design_system/theme/radius.dart';
 
 class DeleteConfirmationDialog extends StatefulWidget {
   final Function(String reason) onConfirm; // Changed to accept reason
@@ -38,16 +42,37 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? DesignColors.AppColors.darkSurface
+        : Colors.white;
+    final textColor = isDark
+        ? DesignColors.AppColors.darkOnSurface
+        : AppColors.c1E1E1E;
+    final hintColor = isDark
+        ? DesignColors.AppColors.darkOnSurfaceVariant
+        : AppColors.c1E1E1E70;
+    final borderColor = isDark
+        ? DesignColors.AppColors.darkOutline
+        : AppColors.c1E1E1E20;
+    final focusedBorderColor = isDark
+        ? DesignColors.AppColors.primary
+        : AppColors.c28A745;
+    final inputFillColor = isDark
+        ? DesignColors.AppColors.darkSurfaceVariant
+        : Colors.white;
+
     return AlertDialog(
+      backgroundColor: backgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.r),
       ),
       title: Text(
         "O'chirishni tasdiqlash",
-        style: TextStyle(
-          fontSize: 18.sp,
+        style: AppTypography.headlineSmall(context).copyWith(
           fontWeight: FontWeight.w600,
-          color: AppColors.c1E1E1E,
+          color: textColor,
         ),
         textAlign: TextAlign.center,
       ),
@@ -57,44 +82,46 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
         children: [
           Text(
             "Bog'ni o'chirishni tasdiqlaysizmi?",
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: AppColors.c1E1E1E,
+            style: AppTypography.bodyLarge(context).copyWith(
+              color: textColor,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: AppSpacing.md),
           Text(
             "O'chirish sababi:",
-            style: TextStyle(
-              fontSize: 14.sp,
+            style: AppTypography.bodyMedium(context).copyWith(
               fontWeight: FontWeight.w500,
-              color: AppColors.c1E1E1E,
+              color: textColor,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _reasonController,
             maxLines: 3,
+            style: AppTypography.bodyMedium(context).copyWith(
+              color: textColor,
+            ),
             decoration: InputDecoration(
               hintText: "Sababni kiriting...",
-              hintStyle: TextStyle(
-                fontSize: 14.sp,
-                color: AppColors.c1E1E1E70,
+              hintStyle: AppTypography.bodyMedium(context).copyWith(
+                color: hintColor,
               ),
+              filled: true,
+              fillColor: inputFillColor,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide(color: AppColors.c1E1E1E20),
+                borderRadius: BorderRadius.circular(AppRadius.input),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.input),
+                borderSide: BorderSide(color: borderColor),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide(color: AppColors.c28A745, width: 2),
+                borderRadius: BorderRadius.circular(AppRadius.input),
+                borderSide: BorderSide(color: focusedBorderColor, width: 2),
               ),
-              contentPadding: EdgeInsets.all(12.h),
-            ),
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: AppColors.c1E1E1E,
+              contentPadding: EdgeInsets.all(AppSpacing.md),
             ),
           ),
         ],
@@ -103,37 +130,38 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
         Row(
           children: [
             Expanded(
-              child: MaterialButton(
-                height: 48.h,
-                onPressed: widget.isDeleting ? null : widget.onCancel, // Disable during deletion
-                elevation: 0,
-                highlightElevation: 0,
-                color: AppColors.cE60C0C, // Red color for Yo'q
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+              child: FilledButton(
+                onPressed: widget.isDeleting ? null : widget.onCancel,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.cE60C0C,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                  ),
                 ),
                 child: Text(
                   "Yo'q",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white, // White text for red button
+                  style: AppTypography.labelLarge(context).copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: AppSpacing.md),
             Expanded(
-              child: MaterialButton(
-                height: 48.h,
+              child: FilledButton(
                 onPressed: widget.isDeleting || _reasonController.text.trim().isEmpty 
                     ? null 
-                    : () => widget.onConfirm(_reasonController.text.trim()), // Pass reason
-                elevation: 0,
-                highlightElevation: 0,
-                color: AppColors.c28A745, // Green color for Ha
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                    : () => widget.onConfirm(_reasonController.text.trim()),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.c28A745,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                  ),
                 ),
                 child: widget.isDeleting
                     ? SizedBox(
@@ -146,9 +174,8 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
                       )
                     : Text(
                         "Ha",
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w500,
+                        style: AppTypography.labelLarge(context).copyWith(
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
