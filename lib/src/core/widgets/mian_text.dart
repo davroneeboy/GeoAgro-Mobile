@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:agro_employee_public/design_system/theme/typography.dart';
+
 class MainText extends StatelessWidget {
   final String text;
 
@@ -16,7 +18,9 @@ class MainText extends StatelessWidget {
       children: [
         Text(
           text,
-          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
+          style: AppTypography.headlineSmall(context).copyWith(
+            fontSize: 16.sp,
+          ),
         ),
         SizedBox(height: 10.h),
       ],

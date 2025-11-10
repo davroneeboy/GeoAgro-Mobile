@@ -1,25 +1,35 @@
+import 'package:agro_employee_public/design_system/components/cards.dart';
+import 'package:agro_employee_public/design_system/templates/screen_shells.dart';
+import 'package:agro_employee_public/design_system/theme/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/theme/radius.dart';
+import 'package:agro_employee_public/design_system/theme/spacing.dart';
+import 'package:agro_employee_public/design_system/theme/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lottie/lottie.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../../core/widgets/custom_app_bar_widget.dart';
-import '../../../../core/widgets/error_state_widget.dart';
-import '../../../../core/widgets/custom_card_widget.dart';
-import '../../../../core/widgets/custom_list_tile_widget.dart';
-import '../../../../core/widgets/custom_driver.dart';
 import '../../../../core/setting/setup.dart';
-import '../../../../data/repository/app_repository_impl.dart';
 import '../../../../data/model/plantation/edit_plantation.dart';
+import '../../../../data/repository/app_repository_impl.dart';
+import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_view_vm.dart';
 
-final plantationViewVM = ChangeNotifierProvider.autoDispose.family<_PlantationViewVm, int>((ref, id) {
+final plantationViewVM = ChangeNotifierProvider.autoDispose
+    .family<_PlantationViewVm, int>((ref, id) {
   return _PlantationViewVm(id);
+});
+
+final plantationMapMiniVM = ChangeNotifierProvider.autoDispose
+    .family<PlantationMapViewVm, int>((ref, id) {
+  final vm = PlantationMapViewVm(id);
+  ref.onDispose(vm.dispose);
+  return vm;
 });
 
 class _PlantationViewVm extends ChangeNotifier {
   final AppRepositoryImpl _repo = AppRepositoryImpl();
   final int plantationId;
-  
+
   bool isLoading = true;
   String? errorMessage;
   EditPlantationModel? plantation;
@@ -51,15 +61,83 @@ class _PlantationViewVm extends ChangeNotifier {
   void retry() => _loadPlantation();
 }
 
-class PlantationViewPage extends ConsumerWidget {
+class PlantationViewPage extends ConsumerStatefulWidget {
   final int id;
   const PlantationViewPage({super.key, required this.id});
 
-  // Вспомогательная функция для форматирования чисел без .0
+  @override
+  ConsumerState<PlantationViewPage> createState() => _PlantationViewPageState();
+}
+
+class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(plantationMapMiniVM(widget.id)).loadRelatedPlantations();
+    });
+  }
+
+  Widget _buildSummaryHighlights(
+    BuildContext context,
+    List<_InfoEntry> entries,
+  ) {
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        for (int i = 0; i < entries.length; i++) ...[
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.only(
+                right: i == entries.length - 1 ? 0 : AppSpacing.md,
+              ),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (entries[i].icon != null) ...[
+                    Icon(
+                      entries[i].icon,
+                      size: 18,
+                      color: Colors.white.withOpacity(0.85),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                  ],
+                  Text(
+                    entries[i].label,
+                    style: AppTypography.bodySmall(context).copyWith(
+                      color: Colors.white.withOpacity(0.72),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    entries[i].value,
+                    style: AppTypography.bodyLarge(context).copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   String _formatNumber(dynamic value) {
     if (value == null) return "0";
     if (value is double) {
-      return value == value.toInt().toDouble() ? value.toInt().toString() : value.toString();
+      return value == value.toInt().toDouble()
+          ? value.toInt().toString()
+          : value.toStringAsFixed(2);
     }
     if (value is int) {
       return value.toString();
@@ -68,302 +146,1114 @@ class PlantationViewPage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(plantationViewVM(id));
+  Widget build(BuildContext context) {
+    final detailVm = ref.watch(plantationViewVM(widget.id));
+    final mapVm = ref.watch(plantationMapMiniVM(widget.id));
 
-    if (vm.isLoading) {
-      return Scaffold(
-        appBar: const CustomAppBarWidget(title: "Ko'rish", canPop: true),
-        body: Center(
-          child: Lottie.asset('assets/lotties/search.json', width: 300.w, height: 300.h),
-        ),
+    final isLoading = detailVm.isLoading;
+    final hasError = detailVm.errorMessage != null;
+    final plantation = detailVm.plantation;
+    final statusData = _resolveStatus(
+      mapVm.currentPlantation,
+      Theme.of(context).colorScheme,
+    );
+
+    Widget? summaryCard;
+    List<_InfoEntry> baseEntries = const [];
+    List<DetailSection> sections = const [];
+
+    if (!isLoading && !hasError && plantation != null) {
+      baseEntries = _buildBaseEntries(context, plantation, mapVm);
+      summaryCard = _buildSummaryCard(
+        context: context,
+        plantation: plantation,
+        mapVm: mapVm,
+        statusData: statusData,
+      );
+      sections = _buildDetailSections(
+        context: context,
+        plantation: plantation,
+        mapVm: mapVm,
+        baseEntries: baseEntries,
+        statusData: statusData,
       );
     }
 
-    if (vm.errorMessage != null) {
-      return Scaffold(
-        appBar: const CustomAppBarWidget(title: "Ko'rish", canPop: true),
-        body: ErrorStateWidget(
-          errorMessage: vm.errorMessage!,
-          onTap: vm.retry,
+    return DetailScreenShell(
+      title: "Plantatsiya ma'lumotlari",
+      isLoading: isLoading,
+      hasError: hasError,
+      errorMessage: detailVm.errorMessage,
+      onRetry: detailVm.retry,
+      summaryCard: summaryCard,
+      sections: sections.isEmpty ? null : sections,
+    );
+  }
+
+  List<_InfoEntry> _buildBaseEntries(
+    BuildContext context,
+    EditPlantationModel plantation,
+    PlantationMapViewVm mapVm,
+  ) {
+    final entries = <_InfoEntry>[
+      if (plantation.id != null)
+        _InfoEntry(
+          "Plantatsiya ID",
+          plantation.id.toString(),
+          Icons.badge_outlined,
         ),
-      );
+      if (plantation.gardenEstablishedYear != null)
+        _InfoEntry(
+          "Bog' tashkil topgan yil",
+          plantation.gardenEstablishedYear.toString(),
+          Icons.calendar_month_outlined,
+        ),
+      if (plantation.plantationType != null)
+        _InfoEntry(
+          "Plantatsiya turi",
+          plantatiopnType[plantation.plantationType] ?? "Noma'lum",
+          Icons.category_outlined,
+        ),
+      if (_resolveTypeChoiceLabel(plantation) != null)
+        _InfoEntry(
+          "Yo'nalish",
+          _resolveTypeChoiceLabel(plantation)!,
+          Icons.style_outlined,
+        ),
+      if (_resolveSubtypeLabel(plantation) != null)
+        _InfoEntry(
+          "Subtype",
+          _resolveSubtypeLabel(plantation)!,
+          Icons.bubble_chart_outlined,
+        ),
+      _InfoEntry(
+        "Umumiy maydon",
+        "${_formatNumber(plantation.totalArea)} GA",
+        Icons.square_foot_outlined,
+      ),
+      _InfoEntry(
+        "Sug'oriladigan maydon",
+        "${_formatNumber(plantation.irrigationArea)} GA",
+        Icons.water_drop_outlined,
+      ),
+      _InfoEntry(
+        "Bo'sh maydon",
+        "${_formatNumber(plantation.emptyArea)} GA",
+        Icons.crop_square_outlined,
+      ),
+      _InfoEntry(
+        "Yaroqsiz maydon",
+        "${_formatNumber(plantation.notUsableArea)} GA",
+        Icons.block_outlined,
+      ),
+      if (plantation.landType != null)
+        _InfoEntry(
+          "Yer turi",
+          yerTuri[plantation.landType] ?? "Noma'lum",
+          Icons.terrain_outlined,
+        ),
+      if (plantation.fertilityScore != null)
+        _InfoEntry(
+          "Banitet bali",
+          plantation.fertilityScore!.toStringAsFixed(1),
+          Icons.leaderboard_outlined,
+        ),
+      _InfoEntry(
+        "Unumdormi",
+        plantation.isFertile == true ? "Ha" : "Yo'q",
+        plantation.isFertile == true
+            ? Icons.check_circle
+            : Icons.cancel_outlined,
+      ),
+      if (plantation.irrigationSystemsCount != null)
+        _InfoEntry(
+          "Sug'orish tizimlari",
+          plantation.irrigationSystemsCount.toString(),
+          Icons.precision_manufacturing_outlined,
+        ),
+      if (mapVm.currentPlantation?.coordinates.isNotEmpty ?? false)
+        _InfoEntry(
+          "Koordinatalar soni",
+          mapVm.currentPlantation!.coordinates.length.toString(),
+          Icons.map_outlined,
+        ),
+    ];
+
+    return entries;
+  }
+
+  Widget _buildSummaryCard({
+    required BuildContext context,
+    required EditPlantationModel plantation,
+    required PlantationMapViewVm mapVm,
+    required MapEntry<String, Color> statusData,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final name = mapVm.currentPlantation?.name?.trim();
+    final title = (name != null && name.isNotEmpty)
+        ? name
+        : "Plantatsiya #${plantation.id ?? widget.id}";
+
+    final descriptionParts = <String>[];
+    final typeLabel = plantatiopnType[plantation.plantationType];
+    if (typeLabel != null) descriptionParts.add(typeLabel);
+    final direction = _resolveTypeChoiceLabel(plantation);
+    if (direction != null) descriptionParts.add(direction);
+    if (plantation.gardenEstablishedYear != null) {
+      descriptionParts.add("${plantation.gardenEstablishedYear} yil");
     }
 
-    final plantation = vm.plantation!;
-    return Scaffold(
-      appBar: const CustomAppBarWidget(title: "Plantatsiya ma'lumotlari", canPop: true),
-      body: SingleChildScrollView(
-        padding: REdgeInsets.all(16),
+    final highlightEntries = <_InfoEntry>[
+      _InfoEntry(
+        "Umumiy maydon",
+        "${_formatNumber(plantation.totalArea)} GA",
+        Icons.square_foot_outlined,
+      ),
+      _InfoEntry(
+        "Sug'oriladigan maydon",
+        "${_formatNumber(plantation.irrigationArea)} GA",
+        Icons.water_drop_outlined,
+      ),
+      if (mapVm.currentPlantation?.coordinates.isNotEmpty ?? false)
+        _InfoEntry(
+          "Koordinatalar",
+          mapVm.currentPlantation!.coordinates.length.toString(),
+          Icons.straighten_outlined,
+        ),
+    ];
+
+    final gradientColors = isDark
+        ? [
+            DesignColors.AppColors.primaryDark.withOpacity(0.9),
+            DesignColors.AppColors.primary.withOpacity(0.75),
+          ]
+        : [
+            DesignColors.AppColors.primary,
+            DesignColors.AppColors.primaryDark,
+          ];
+
+    return AppCardElevated(
+      padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.card),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Basic Info
-            CustomCardWidget(
-              horizontal: 16,
-              vertical: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Asosiy ma'lumotlar", 
-                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600)),
-                  16.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Bog' tashkil topgan yil",
-                    contextText: "${plantation.gardenEstablishedYear ?? 'Noma\'lum'}",
-                  ),
-                  12.verticalSpace,
-                  const CustomDriver(),
-                  12.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Plantatsiya turi",
-                    contextText: plantatiopnType[plantation.plantationType] ?? "Noma'lum",
-                  ),
-                  12.verticalSpace,
-                  const CustomDriver(),
-                  12.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Umumiy maydon",
-                    contextText: "${_formatNumber(plantation.totalArea)} ga",
-                  ),
-                  12.verticalSpace,
-                  const CustomDriver(),
-                  12.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Sug'oriladigan maydon",
-                    contextText: "${_formatNumber(plantation.irrigationArea)} ga",
-                  ),
-                  12.verticalSpace,
-                  const CustomDriver(),
-                  12.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Yer turi",
-                    contextText: yerTuri[plantation.landType] ?? "Noma'lum",
-                  ),
-                  12.verticalSpace,
-                  const CustomDriver(),
-                  12.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Unumdorlik",
-                    contextText: "${plantation.fertilityScore?.toStringAsFixed(1) ?? 0}%",
-                  ),
-                  12.verticalSpace,
-                  const CustomDriver(),
-                  12.verticalSpace,
-                  CustomListTileWidget(
-                    title: "Unumdormi",
-                    contextText: plantation.isFertile == true ? "Ha" : "Yo'q",
-                  ),
-                ],
-              ),
-            ),
-            16.verticalSpace,
-            
-            // Fruit Areas
-            if (plantation.fruitAreas?.isNotEmpty == true) ...[
-              CustomCardWidget(
-                horizontal: 16,
-                vertical: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Meva maydonlari", 
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600)),
-                    16.verticalSpace,
-                    ...plantation.fruitAreas!.asMap().entries.map((entry) {
-                      final fruit = entry.value;
-                      return Column(
-                        children: [
-                          if (entry.key > 0) ...[
-                            12.verticalSpace,
-                            const CustomDriver(),
-                            12.verticalSpace,
-                          ],
-                          CustomListTileWidget(
-                            title: "Meva",
-                            contextText: fruit.fruitName ?? fruit.fruit?.toString() ?? "Noma'lum",
-                          ),
-                          8.verticalSpace,
-                          CustomListTileWidget(
-                            title: "Nav",
-                            contextText: fruit.varietyName ?? fruit.variety?.toString() ?? "Noma'lum",
-                          ),
-                          8.verticalSpace,
-                          CustomListTileWidget(
-                            title: "Maydon",
-                            contextText: "${_formatNumber(fruit.area)} ga",
-                          ),
-                          if (fruit.plantedYear != null) ...[
-                            8.verticalSpace,
-                            CustomListTileWidget(
-                              title: "Ekilgan yil",
-                              contextText: fruit.plantedYear.toString(),
-                            ),
-                          ],
-                        ],
-                      );
-                    }),
-                  ],
-                ),
-              ),
-              16.verticalSpace,
-            ],
-
-            // Investments
-            if (plantation.investments?.isNotEmpty == true) ...[
-              CustomCardWidget(
-                horizontal: 16,
-                vertical: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Investitsiyalar", 
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600)),
-                    16.verticalSpace,
-                    ...plantation.investments!.asMap().entries.map((entry) {
-                      final investment = entry.value;
-                      return Column(
-                        children: [
-                          if (entry.key > 0) ...[
-                            12.verticalSpace,
-                            const CustomDriver(),
-                            12.verticalSpace,
-                          ],
-                          CustomListTileWidget(
-                            title: investment.investType == 1 ? "Mahalliy" : "Xorijiy",
-                            contextText: _formatNumber(investment.investmentAmount),
-                          ),
-                        ],
-                      );
-                    }),
-                  ],
-                ),
-              ),
-              16.verticalSpace,
-            ],
-
-            // Subsidies
-            if (plantation.subsidies?.isNotEmpty == true) ...[
-              CustomCardWidget(
-                horizontal: 16,
-                vertical: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Subsidiyalar", 
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600)),
-                    16.verticalSpace,
-                    ...plantation.subsidies!.asMap().entries.map((entry) {
-                      final subsidy = entry.value;
-                      return Column(
-                        children: [
-                          if (entry.key > 0) ...[
-                            12.verticalSpace,
-                            const CustomDriver(),
-                            12.verticalSpace,
-                          ],
-                          CustomListTileWidget(
-                            title: "Yil",
-                            contextText: subsidy.year?.toString() ?? "Noma'lum",
-                          ),
-                          8.verticalSpace,
-                          CustomListTileWidget(
-                            title: "Shartnoma raqami",
-                            contextText: subsidy.contractNumber ?? "Noma'lum",
-                          ),
-                          8.verticalSpace,
-                          CustomListTileWidget(
-                            title: "Miqdor",
-                            contextText: "${subsidy.amount ?? 0}",
-                          ),
-                        ],
-                      );
-                    }),
-                  ],
-                ),
-              ),
-              16.verticalSpace,
-            ],
-
-            // Images
-            if (plantation.images?.isNotEmpty == true) ...[
-              CustomCardWidget(
-                horizontal: 16,
-                vertical: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Bog'ning rasmlari", 
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600)),
-                    16.verticalSpace,
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12.w,
-                        mainAxisSpacing: 12.h,
-                        childAspectRatio: 1.0,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTypography.displaySmall(context).copyWith(
+                          color: Colors.white,
+                        ),
                       ),
-                      itemCount: plantation.images!.length,
-                      itemBuilder: (context, index) {
-                        final imageUrl = plantation.images![index];
-                        return GestureDetector(
-                          onTap: () => _showImageDialog(context, imageUrl),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.r),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.r),
-                              child: Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Container(
-                                    color: Colors.grey.shade100,
-                                    child: Center(
-                                      child: CircularProgressIndicator(
-                                        value: loadingProgress.expectedTotalBytes != null
-                                            ? loadingProgress.cumulativeBytesLoaded / 
-                                              loadingProgress.expectedTotalBytes!
-                                            : null,
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey.shade100,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.broken_image, 
-                                          size: 32.sp, color: Colors.grey),
-                                        4.verticalSpace,
-                                        Text("Rasm yuklanmadi", 
-                                          style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
+                      if (descriptionParts.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          descriptionParts.join(" • "),
+                          style: AppTypography.bodyMedium(context).copyWith(
+                            color: Colors.white.withOpacity(0.72),
                           ),
-                        );
-                      },
-                    ),
-                  ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              16.verticalSpace,
-            ],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.verified, size: 18, color: Colors.white),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        statusData.key,
+                        style: AppTypography.bodyMedium(context).copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _buildSummaryHighlights(context, highlightEntries),
           ],
         ),
       ),
     );
+  }
+
+  List<DetailSection> _buildDetailSections({
+    required BuildContext context,
+    required EditPlantationModel plantation,
+    required PlantationMapViewVm mapVm,
+    required List<_InfoEntry> baseEntries,
+    required MapEntry<String, Color> statusData,
+  }) {
+    final sections = <DetailSection>[
+      DetailSection(
+        title: "Xarita va holat",
+        icon: Icons.map_outlined,
+        content: _buildMapCard(
+          context: context,
+          plantation: plantation,
+          mapVm: mapVm,
+          statusData: statusData,
+        ),
+      ),
+      DetailSection(
+        title: "Asosiy ma'lumotlar",
+        icon: Icons.info_outline,
+        content: _buildMetricsCard(context, baseEntries),
+      ),
+    ];
+
+    if (plantation.trellises?.isNotEmpty == true) {
+      sections.add(
+        DetailSection(
+          title: "Shpaller",
+          icon: Icons.account_tree_outlined,
+          content: _buildGroupedCard(
+            context,
+            plantation.trellises!
+                .map((trellis) => [
+                      _InfoEntry(
+                        "Shpaller turi",
+                        _resolveTrellisType(trellis.trellisType),
+                        Icons.account_tree_outlined,
+                      ),
+                      _InfoEntry(
+                        "Maydon",
+                        "${_formatNumber(trellis.trellisInstalledArea)} GA",
+                        Icons.square_foot_outlined,
+                      ),
+                      if (trellis.trellisCount != null)
+                        _InfoEntry(
+                          "Soni",
+                          trellis.trellisCount.toString(),
+                          Icons.countertops_outlined,
+                        ),
+                    ])
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    if (plantation.reservoirs?.isNotEmpty == true) {
+      sections.add(
+        DetailSection(
+          title: "Suv havzalari",
+          icon: Icons.water_outlined,
+          content: _buildGroupedCard(
+            context,
+            plantation.reservoirs!
+                .map((reservoir) => [
+                      _InfoEntry(
+                        "Hovuz turi",
+                        _resolveReservoirType(reservoir.reservoirType),
+                        Icons.pool_outlined,
+                      ),
+                      _InfoEntry(
+                        "Hajm",
+                        "${reservoir.reservoirVolume ?? 0} m³",
+                        Icons.opacity_outlined,
+                      ),
+                    ])
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    if (plantation.investments?.isNotEmpty == true) {
+      sections.add(
+        DetailSection(
+          title: "Investitsiyalar",
+          icon: Icons.account_balance_wallet_outlined,
+          content: _buildGroupedCard(
+            context,
+            plantation.investments!
+                .map((investment) => [
+                      _InfoEntry(
+                        "Turi",
+                        investment.investType == 1 ? "Mahalliy" : "Xorijiy",
+                        Icons.flag_outlined,
+                      ),
+                      _InfoEntry(
+                        "Miqdor",
+                        "${_formatNumber(investment.investmentAmount)} UZS",
+                        Icons.attach_money_outlined,
+                      ),
+                    ])
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    if (plantation.subsidies?.isNotEmpty == true) {
+      sections.add(
+        DetailSection(
+          title: "Subsidiyalar",
+          icon: Icons.card_giftcard_outlined,
+          content: _buildGroupedCard(
+            context,
+            plantation.subsidies!
+                .map((subsidy) => [
+                      if (subsidy.year != null)
+                        _InfoEntry(
+                          "Yil",
+                          subsidy.year.toString(),
+                          Icons.event_outlined,
+                        ),
+                      if (subsidy.contractNumber != null)
+                        _InfoEntry(
+                          "Shartnoma raqami",
+                          subsidy.contractNumber!,
+                          Icons.description_outlined,
+                        ),
+                      _InfoEntry(
+                        "Miqdor",
+                        "${_formatNumber(subsidy.amount)} UZS",
+                        Icons.payments_outlined,
+                      ),
+                      _InfoEntry(
+                        "Samaradorlik",
+                        subsidy.efficiency == true ? "Ha" : "Yo'q",
+                        subsidy.efficiency == true
+                            ? Icons.check_circle_outline
+                            : Icons.cancel_outlined,
+                      ),
+                    ])
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    if (plantation.fruitAreas?.isNotEmpty == true) {
+      sections.add(
+        DetailSection(
+          title: "Mevali hududlar",
+          icon: Icons.eco_outlined,
+          content: _buildGroupedCard(
+            context,
+            plantation.fruitAreas!
+                .map((fruit) => [
+                      _InfoEntry(
+                        "Meva",
+                        fruit.fruitName ?? "Noma'lum",
+                        Icons.eco_outlined,
+                      ),
+                      if (fruit.varietyName != null)
+                        _InfoEntry(
+                          "Nav",
+                          fruit.varietyName!,
+                          Icons.local_florist_outlined,
+                        ),
+                      if (fruit.rootstockName != null)
+                        _InfoEntry(
+                          "Podvoy",
+                          fruit.rootstockName!,
+                          Icons.grass_outlined,
+                        ),
+                      _InfoEntry(
+                        "Maydon",
+                        "${_formatNumber(fruit.area)} GA",
+                        Icons.square_foot_outlined,
+                      ),
+                      if (fruit.plantedYear != null)
+                        _InfoEntry(
+                          "Ekilgan yil",
+                          fruit.plantedYear.toString(),
+                          Icons.date_range_outlined,
+                        ),
+                      if (fruit.schema != null && fruit.schema!.isNotEmpty)
+                        _InfoEntry(
+                          "Ekilish sxemasi",
+                          fruit.schema!,
+                          Icons.grid_view_outlined,
+                        ),
+                      if (fruit.kochatSoni != null)
+                        _InfoEntry(
+                          "Ko'chat soni",
+                          fruit.kochatSoni.toString(),
+                          Icons.spa_outlined,
+                        ),
+                    ])
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    if (plantation.images?.isNotEmpty == true) {
+      sections.add(
+        DetailSection(
+          title: "Fotogalereya",
+          icon: Icons.photo_library_outlined,
+          content: _buildImagesCard(context, plantation.images!),
+        ),
+      );
+    }
+
+    if (sections.isEmpty) {
+      sections.add(
+        DetailSection(
+          title: "Ma'lumotlar",
+          icon: Icons.info_outline,
+          content: _buildMetricsCard(context, baseEntries),
+        ),
+      );
+    }
+
+    // Add action buttons section
+    sections.add(
+      DetailSection(
+        title: "Harakatlar",
+        icon: Icons.settings_outlined,
+        content: _buildActionButtons(context, plantation),
+      ),
+    );
+
+    return sections;
+  }
+
+  MapEntry<String, Color> _resolveStatus(
+    RelatedPlantation? plantation,
+    ColorScheme scheme,
+  ) {
+    if (plantation == null) {
+      return MapEntry("Ma'lumot yo'q", scheme.onSurfaceVariant);
+    }
+    if (plantation.isRejected == true) {
+      return MapEntry("Rad etilgan", DesignColors.AppColors.error);
+    }
+    if (plantation.isChecked == true) {
+      return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
+    }
+    return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
+  }
+
+  Widget _buildMapCard({
+    required BuildContext context,
+    required EditPlantationModel plantation,
+    required PlantationMapViewVm mapVm,
+    required MapEntry<String, Color> statusData,
+  }) {
+    final areaFromMap = mapVm.currentPlantation?.totalArea;
+    final perimeter = mapVm.currentPlantation == null
+        ? null
+        : mapVm.calculatePerimeter(mapVm.currentPlantation!.coordinates);
+
+    final metrics = <_InfoEntry>[
+      _InfoEntry(
+        "Holat",
+        statusData.key,
+        Icons.verified_outlined,
+        statusData.value,
+      ),
+      _InfoEntry(
+        "Maydon (GIS)",
+        areaFromMap != null
+            ? "${areaFromMap.toStringAsFixed(2)} GA"
+            : "${_formatNumber(plantation.totalArea)} GA",
+        Icons.landscape_outlined,
+      ),
+      if (perimeter != null && perimeter > 0)
+        _InfoEntry(
+          "Perimetr",
+          "${perimeter.toStringAsFixed(2)} m",
+          Icons.timeline_outlined,
+        ),
+      if (mapVm.currentPlantation?.coordinates.isNotEmpty ?? false)
+        _InfoEntry(
+          "Nuqtalar",
+          mapVm.currentPlantation!.coordinates.length.toString(),
+          Icons.straighten_outlined,
+        ),
+    ];
+
+    final hasCoordinates =
+        mapVm.currentPlantation?.coordinates.isNotEmpty ?? false;
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildMiniMap(context, mapVm, statusData),
+          const SizedBox(height: AppSpacing.lg),
+          _buildInfoGrid(context, metrics),
+          if (hasCoordinates) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _buildCoordinateSection(context, mapVm),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniMap(
+    BuildContext context,
+    PlantationMapViewVm mapVm,
+    MapEntry<String, Color> statusData,
+  ) {
+    final borderRadius = BorderRadius.circular(AppRadius.card);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (mapVm.isLoading) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: Container(
+          height: 220,
+          color: colorScheme.surfaceVariant,
+          alignment: Alignment.center,
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+          ),
+        ),
+      );
+    }
+
+    if (mapVm.errorMessage != null) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: Container(
+          height: 220,
+          color: colorScheme.surfaceVariant,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.map_outlined,
+                  size: 36, color: colorScheme.onSurfaceVariant),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                mapVm.errorMessage!,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall(context),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              FilledButton.tonal(
+                onPressed: mapVm.loadRelatedPlantations,
+                child: const Text("Qayta urinish"),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final hasGeometry = mapVm.polygons.isNotEmpty ||
+        mapVm.polylines.isNotEmpty ||
+        mapVm.markers.isNotEmpty ||
+        mapVm.circles.isNotEmpty;
+
+    if (!hasGeometry) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: Container(
+          height: 220,
+          color: colorScheme.surfaceVariant,
+          alignment: Alignment.center,
+          child: Text(
+            "Koordinatalar topilmadi",
+            style: AppTypography.bodyMedium(context),
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: SizedBox(
+        height: 220,
+        child: Stack(
+          children: [
+            GoogleMap(
+              onMapCreated: mapVm.onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: mapVm.initialPosition,
+                zoom: 15,
+              ),
+              polygons: mapVm.polygons,
+              polylines: mapVm.polylines,
+              markers: mapVm.markers,
+              circles: mapVm.circles,
+              zoomControlsEnabled: false,
+              myLocationButtonEnabled: false,
+              myLocationEnabled: false,
+              mapToolbarEnabled: false,
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              scrollGesturesEnabled: false,
+              zoomGesturesEnabled: false,
+              liteModeEnabled: true,
+              buildingsEnabled: false,
+              trafficEnabled: false,
+            ),
+            Positioned(
+              top: 16,
+              left: 16,
+              child: _buildStatusChip(context, statusData),
+            ),
+            if (mapVm.currentPlantation != null)
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: _buildMapInfoBadge(
+                  context,
+                  icon: Icons.straighten,
+                  label:
+                      "Nuqtalar: ${mapVm.currentPlantation!.coordinates.length}",
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(
+      BuildContext context, MapEntry<String, Color> statusData) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: statusData.value.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(AppRadius.button),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.verified, size: 18, color: statusData.value),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            statusData.key,
+            style: AppTypography.bodyMedium(context).copyWith(
+              color: statusData.value,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapInfoBadge(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.45),
+        borderRadius: BorderRadius.circular(AppRadius.button),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: AppTypography.bodySmall(context).copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoordinateSection(
+    BuildContext context,
+    PlantationMapViewVm mapVm,
+  ) {
+    final coords = mapVm.currentPlantation?.coordinates ?? [];
+    if (coords.isEmpty) return const SizedBox.shrink();
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Koordinatalar",
+          style: AppTypography.headlineSmall(context),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: coords.asMap().entries.map((entry) {
+            final index = entry.key + 1;
+            final coordinate = entry.value;
+            return _buildCoordinateChip(
+              context,
+              index: index,
+              latitude: coordinate.latitude,
+              longitude: coordinate.longitude,
+              accentColor: colorScheme.primary,
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(
+    BuildContext context,
+    EditPlantationModel plantation,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: () {
+              // TODO: Navigate to edit page
+              // context.push('/plantation/edit/${plantation.id}');
+            },
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            label: const Text("Tahrirlash"),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.lg,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: FilledButton.tonalIcon(
+            onPressed: () => _showDeleteConfirmation(context, plantation),
+            icon: const Icon(Icons.delete_outline, size: 20),
+            label: const Text("O'chirish"),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.lg,
+              ),
+              backgroundColor: colorScheme.errorContainer,
+              foregroundColor: colorScheme.onErrorContainer,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    EditPlantationModel plantation,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded, size: 48),
+        iconColor: Theme.of(context).colorScheme.error,
+        title: const Text("Plantatsiyani o'chirish"),
+        content: Text(
+          "Haqiqatan ham bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+          style: AppTypography.bodyMedium(context),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Bekor qilish"),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deletePlantation(context, plantation.id);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text("O'chirish"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deletePlantation(BuildContext context, int? plantationId) async {
+    if (plantationId == null) return;
+
+    try {
+      final repo = AppRepositoryImpl();
+      // TODO: Implement actual delete API call
+      // await repo.deletePlantation(id: plantationId);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Plantatsiya muvaffaqiyatli o'chirildi"),
+            backgroundColor: DesignColors.AppColors.success,
+          ),
+        );
+        Navigator.of(context).pop(); // Go back to previous screen
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Xatolik: $e"),
+            backgroundColor: DesignColors.AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildCoordinateChip(
+    BuildContext context, {
+    required int index,
+    required double latitude,
+    required double longitude,
+    required Color accentColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accentColor.withOpacity(0.22),
+            accentColor.withOpacity(0.12),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+        border: Border.all(color: accentColor.withOpacity(0.32)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.location_on,
+            size: 16,
+            color: accentColor,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            "#$index  ${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}",
+            style: AppTypography.bodySmall(context).copyWith(
+              color: accentColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricsCard(
+    BuildContext context,
+    List<_InfoEntry> entries,
+  ) {
+    if (entries.isEmpty) {
+      return AppCardFilled(
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+        child: Text(
+          "Ma'lumot yo'q",
+          style: AppTypography.bodyMedium(context),
+        ),
+      );
+    }
+
+    return AppCardFilled(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      child: _buildInfoGrid(context, entries),
+    );
+  }
+
+  Widget _buildGroupedCard(
+    BuildContext context,
+    List<List<_InfoEntry>> groups,
+  ) {
+    if (groups.isEmpty) {
+      return AppCardFilled(
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+        child: Text(
+          "Ma'lumot yo'q",
+          style: AppTypography.bodyMedium(context),
+        ),
+      );
+    }
+
+    return AppCardFilled(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...groups.asMap().entries.map((entry) {
+            final index = entry.key;
+            final items = entry.value;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (index > 0) const Divider(height: 32),
+                _buildInfoGrid(context, items),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagesCard(BuildContext context, List<String> images) {
+    if (images.isEmpty) {
+      return AppCard(
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+        child: Text(
+          "Rasmlar mavjud emas",
+          style: AppTypography.bodyMedium(context),
+        ),
+      );
+    }
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: images.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.md,
+        ),
+        itemBuilder: (context, index) {
+          final imageUrl = images[index];
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: GestureDetector(
+              onTap: () => _showImageDialog(context, imageUrl),
+              child: Ink.image(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+                child: Container(
+                  color: Colors.black.withOpacity(0.04),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildInfoGrid(BuildContext context, List<_InfoEntry> entries) {
+    final effectiveEntries =
+        entries.where((entry) => entry.value.trim().isNotEmpty).toList();
+
+    if (effectiveEntries.isEmpty) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTwoColumn = constraints.maxWidth > 360;
+        final tileWidth = isTwoColumn
+            ? (constraints.maxWidth - AppSpacing.md) / 2
+            : constraints.maxWidth;
+
+        return Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: effectiveEntries.map((entry) {
+            return SizedBox(
+              width: tileWidth,
+              child: _InfoTile(entry: entry),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  String? _resolveTypeChoiceLabel(EditPlantationModel plantation) {
+    final typeChoice = plantation.types?.typeChoice;
+    if (typeChoice == null) return null;
+
+    switch (plantation.plantationType ?? plantation.types?.plantationType) {
+      case 1:
+        return bogType[typeChoice];
+      case 2:
+        return uzumType[typeChoice];
+      case 3:
+        return issiqxonaType[typeChoice];
+      default:
+        return null;
+    }
+  }
+
+  String? _resolveSubtypeLabel(EditPlantationModel plantation) {
+    final subtype = plantation.types?.subtype;
+    if (subtype == null) return null;
+    if ((plantation.plantationType ?? plantation.types?.plantationType) == 1) {
+      return bogSubtype[subtype];
+    }
+    return null;
+  }
+
+  String _resolveTrellisType(int? trellisType) {
+    switch (trellisType) {
+      case 1:
+        return "Temir shpaller";
+      case 2:
+        return "Beton shpaller";
+      default:
+        return "Noma'lum";
+    }
+  }
+
+  String _resolveReservoirType(int? type) {
+    switch (type) {
+      case 1:
+        return "Beton suv havzasi";
+      case 2:
+        return "Qoplamali suv havzasi";
+      default:
+        return "Noma'lum";
+    }
   }
 
   void _showImageDialog(BuildContext context, String imageUrl) {
@@ -372,61 +1262,61 @@ class PlantationViewPage extends ConsumerWidget {
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Stack(
+          alignment: Alignment.center,
           children: [
-            Center(
-              child: InteractiveViewer(
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: 200.w,
-                      height: 200.h,
+            InteractiveViewer(
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: 240,
+                    height: 240,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
                       color: Colors.black54,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded / 
-                                loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: Colors.white,
+                      borderRadius: BorderRadius.circular(AppRadius.modal),
+                    ),
+                    child: const CircularProgressIndicator(color: Colors.white),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 240,
+                    height: 240,
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(AppRadius.modal),
+                    ),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.broken_image,
+                            size: 48, color: Colors.white),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          "Rasm yuklanmadi",
+                          style: AppTypography.bodyMedium(context).copyWith(
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 200.w,
-                      height: 200.h,
-                      color: Colors.black54,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.broken_image, size: 48.sp, color: Colors.white),
-                          8.verticalSpace,
-                          Text("Rasm yuklanmadi", 
-                            style: TextStyle(color: Colors.white, fontSize: 16.sp)),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
             Positioned(
-              top: 40.h,
-              right: 20.w,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Icon(Icons.close, color: Colors.white, size: 24.sp),
+              top: 16,
+              right: 16,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black54,
                 ),
+                icon: const Icon(Icons.close, color: Colors.white),
               ),
             ),
           ],
@@ -436,4 +1326,89 @@ class PlantationViewPage extends ConsumerWidget {
   }
 }
 
+class _InfoEntry {
+  final String label;
+  final String value;
+  final IconData? icon;
+  final Color? statusColor;
 
+  const _InfoEntry(
+    this.label,
+    this.value, [
+    this.icon,
+    this.statusColor,
+  ]);
+}
+
+class _InfoTile extends StatelessWidget {
+  final _InfoEntry entry;
+
+  const _InfoTile({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = entry.statusColor ?? colorScheme.primary;
+    final backgroundColor = Color.lerp(
+          colorScheme.surfaceVariant,
+          colorScheme.surface,
+          isDark ? 0.15 : 0.55,
+        ) ??
+        colorScheme.surfaceVariant;
+    final labelStyle = AppTypography.bodySmall(context).copyWith(
+      fontWeight: FontWeight.w500,
+      color: colorScheme.onSurfaceVariant,
+    );
+    final valueStyle = AppTypography.bodyLarge(context).copyWith(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: entry.statusColor ?? colorScheme.onSurface,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(isDark ? 0.4 : 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (entry.icon != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.chip),
+                  ),
+                  child: Icon(entry.icon, size: 16, color: accentColor),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
+              Expanded(
+                child: Text(
+                  entry.label,
+                  style: labelStyle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            entry.value,
+            style: valueStyle,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}

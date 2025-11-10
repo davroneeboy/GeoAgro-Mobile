@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/style/app_colors.dart';
+
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/theme/radius.dart';
+import 'package:agro_employee_public/design_system/theme/spacing.dart';
+import 'package:agro_employee_public/design_system/theme/typography.dart';
 
 class CustomTextFieldWithLabel extends StatelessWidget {
   final String? label;
@@ -23,6 +28,18 @@ class CustomTextFieldWithLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final fillColor = isDark
+        ? DesignColors.AppColors.darkSurfaceVariant
+        : colorScheme.surfaceVariant;
+    final outlineColor = isDark
+        ? DesignColors.AppColors.darkBorder
+        : colorScheme.outlineVariant ?? colorScheme.outline;
+    final hintColor = isDark
+        ? DesignColors.AppColors.darkTextTertiary
+        : colorScheme.onSurfaceVariant;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,47 +48,48 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             padding: REdgeInsets.only(bottom: 8.h),
             child: Text(
               label!,
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
+              style: AppTypography.headlineSmall(context).copyWith(
+                fontSize: 16.sp,
+              ),
             ),
           ),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
-          style: TextStyle(
-            fontSize: 14.sp, // Matnning ichki o‘lchamini belgilash
-            color: Colors.black,
-            fontWeight: FontWeight.w400,
-          ),
+          style: AppTypography.input(context).copyWith(fontSize: 14.sp),
           decoration: InputDecoration(
-            fillColor: Colors.white,
+            hintText: hintText,
             filled: true,
-            labelText: hintText,
-            labelStyle: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey,
-              fontWeight: FontWeight.w400,
-            ),
-            hintStyle: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.black,
-              fontWeight: FontWeight.w400,
+            fillColor: fillColor,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.inputPaddingHorizontal,
+              vertical: AppSpacing.inputPaddingVertical,
             ),
             enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.c1E1E1E16),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderSide: BorderSide(
+                color: outlineColor,
+                width: 1.2,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.c1E1E1E70),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderSide: BorderSide(
+                color: isDark
+                    ? DesignColors.AppColors.accentGreen
+                    : colorScheme.primary,
+                width: 1.6,
+              ),
             ),
-            border: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.c1E1E1E70),
-              borderRadius: BorderRadius.circular(8.r),
+            hintStyle: AppTypography.bodyMedium(context).copyWith(
+              fontSize: 14.sp,
+              color: hintColor,
             ),
           ),
           onChanged: onTextChanged,
         ),
+        SizedBox(height: AppSpacing.formFieldGap.h),
       ],
     );
   }

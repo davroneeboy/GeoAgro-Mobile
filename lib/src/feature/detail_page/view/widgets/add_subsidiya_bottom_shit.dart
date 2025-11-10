@@ -4,6 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/setting/setup.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/theme/spacing.dart';
+import 'package:agro_employee_public/design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/theme/radius.dart';
 
 import '../../vm/detail_vm.dart';
 import 'detail_dropdown_widget.dart';
@@ -19,37 +24,52 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detailVm = ref.watch(detailVM);
     final isEfficiency = ref.watch(detailVm.switchEfficiency);
-    var textStyle = TextStyle(
-        fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textStyle = AppTypography.headlineMedium(context).copyWith(
+      fontSize: 16.sp,
+      fontWeight: FontWeight.w600,
+    );
 
-    return Padding(
-      padding: REdgeInsets.all(16.0),
+    return Container(
+      padding: EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.lg,
+        bottom: (MediaQuery.of(context).padding.bottom > 0
+                ? MediaQuery.of(context).padding.bottom
+                : AppSpacing.lg) +
+            AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurface,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppRadius.modal),
+          topRight: Radius.circular(AppRadius.modal),
+        ),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text("Subsidiya qo`shish va to`ldirish", style: textStyle),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.lg.h),
           CreatedTime(
             selectedDate: detailVm.selectedDate3,
             setSelectedDate: detailVm.setSelectedDate3,
           ),
-          Padding(
-            padding: REdgeInsets.only(top: 10),
-            child: CustomTextFieldWithLabel(
-              controller: detailVm.subsidiyaContract,
-              onTextChanged: detailVm.setSubsidiyaConract,
-              hintText: "subsidiya shartnoma raqami kiriting",
-              label: "Subsidiya shartnoma raqami",
-            ),
+          CustomTextFieldWithLabel(
+            controller: detailVm.subsidiyaContract,
+            onTextChanged: detailVm.setSubsidiyaConract,
+            hintText: "subsidiya shartnoma raqami kiriting",
+            label: "Subsidiya shartnoma raqami",
           ),
-          Padding(
-            padding: REdgeInsets.only(top: 10),
-            child: CustomTextFieldWithLabel(
-              controller: detailVm.subsidiyaAmount,
-              onTextChanged: detailVm.setSubsidiyaAmount,
-              hintText: "ajratilgan subsidiya miqdori: so`m",
-              keyboardType: TextInputType.number,
-              label: "Ajratilgan subsidiya miqdori",
-            ),
+          CustomTextFieldWithLabel(
+            controller: detailVm.subsidiyaAmount,
+            onTextChanged: detailVm.setSubsidiyaAmount,
+            hintText: "ajratilgan subsidiya miqdori: so`m",
+            keyboardType: TextInputType.number,
+            label: "Ajratilgan subsidiya miqdori",
           ),
           DropdownWithLabel(
             items: subsidyType,
@@ -60,7 +80,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
               detailVm.setSubsidyType(value);
             },
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.lg.h),
           CustomSwitchCard(
             label: "Subsidiya samaradormi",
             switchValue: isEfficiency,
@@ -68,72 +88,83 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
               ref.read(detailVm.switchEfficiency.notifier).state = value;
             },
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.lg.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom > 0 ? MediaQuery.of(context).padding.bottom : 16),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      detailVm.resetSubsudy();
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                child: FilledButton.tonal(
+                  onPressed: () {
+                    detailVm.resetSubsudy();
+                    Navigator.pop(context);
+                  },
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
                     ),
-                    child: Text("Bekor qilish",
-                        style:
-                            TextStyle(fontSize: 14.sp, color: Colors.white)),
+                    backgroundColor: colorScheme.errorContainer,
+                    foregroundColor: colorScheme.onErrorContainer,
+                  ),
+                  child: Text(
+                    "Bekor qilish",
+                    style: AppTypography.labelLarge(context),
                   ),
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom > 0 ? MediaQuery.of(context).padding.bottom : 16),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      String? errorMessage;
-                      if (detailVm.selectedDate3 == null) {
-                        errorMessage = "Subsidiya ajratilgan yilni kiriting";
-                      } else if (detailVm.subsidiyaContract.text.isEmpty) {
-                        errorMessage = "Subsidiya shartnoma raqamini kiriting";
-                      } else if (detailVm.subsidiyaAmount.text.isEmpty) {
-                        errorMessage = "Ajratilgan subsidiya miqdorini kiriting";
-                      } else if (detailVm.selectedSubsidyType == null) {
-                        detailVm.direction == detailVm.selectedSubsidyType;
-                        errorMessage = "Subsidiya turi tanalanmagan";
-                      }
-                      if (errorMessage != null) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text("Xatolik",
-                                style: TextStyle(fontSize: 14.sp)),
-                            content: Text(errorMessage!,
-                                style: TextStyle(fontSize: 12.sp)),
-                            actions: [
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text("OK",
-                                      style: TextStyle(fontSize: 12.sp))),
-                            ],
+                child: FilledButton(
+                  onPressed: () {
+                    String? errorMessage;
+                    if (detailVm.selectedDate3 == null) {
+                      errorMessage = "Subsidiya ajratilgan yilni kiriting";
+                    } else if (detailVm.subsidiyaContract.text.isEmpty) {
+                      errorMessage = "Subsidiya shartnoma raqamini kiriting";
+                    } else if (detailVm.subsidiyaAmount.text.isEmpty) {
+                      errorMessage = "Ajratilgan subsidiya miqdorini kiriting";
+                    } else if (detailVm.selectedSubsidyType == null) {
+                      detailVm.direction == detailVm.selectedSubsidyType;
+                      errorMessage = "Subsidiya turi tanalanmagan";
+                    }
+                    if (errorMessage != null) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor:
+                              DesignColors.AppColors.darkSurfaceVariant,
+                          title: Text(
+                            "Xatolik",
+                            style: AppTypography.headlineMedium(context),
                           ),
-                        );
-                        return;
-                      }
-                      detailVm.addSubsidiyaList(ref);
-                      Navigator.pop(context);
-                    },
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    child: Text("   Qo‘shish   ",
-                        style:
-                            TextStyle(fontSize: 14.sp, color: Colors.white)),
+                          content: Text(
+                            errorMessage!,
+                            style: AppTypography.bodyMedium(context),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("OK"),
+                            ),
+                          ],
+                        ),
+                      );
+                      return;
+                    }
+                    detailVm.addSubsidiyaList(ref);
+                    Navigator.pop(context);
+                  },
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
+                    backgroundColor: DesignColors.AppColors.accentGreen,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    "Qo‘shish",
+                    style: AppTypography.labelLarge(context),
                   ),
                 ),
               ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/style/app_colors.dart';
+import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 
 class PlantationMapViewVm extends ChangeNotifier {
@@ -20,6 +21,7 @@ class PlantationMapViewVm extends ChangeNotifier {
   final Set<Polygon> polygons = {};
   final Set<Polyline> polylines = {};
   final Set<Marker> markers = {};
+  final Set<Circle> circles = {};
 
   LatLng initialPosition = const LatLng(41.311081, 69.240562);
 
@@ -36,37 +38,13 @@ class PlantationMapViewVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _repo.getRelatedPlantationsMap(plantationId);
-      
-      if (response == null) {
-        errorMessage = "Ma'lumotlar topilmadi";
-        isLoading = false;
-        notifyListeners();
-        return;
+      final loaded = await _loadFromRelatedEndpoint();
+      if (!loaded) {
+        final fallbackLoaded = await _loadFromUserMap();
+        if (!fallbackLoaded) {
+          errorMessage = "Ma'lumotlar topilmadi";
+        }
       }
-
-      final data = jsonDecode(response) as Map<String, dynamic>;
-      final results = data['results'] as List<dynamic>?;
-
-      if (results == null || results.isEmpty) {
-        errorMessage = "Hech qanday plantatsiya topilmadi";
-        isLoading = false;
-        notifyListeners();
-        return;
-      }
-
-      relatedPlantations = results
-          .map((e) => RelatedPlantation.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      // Find current plantation
-      currentPlantation = relatedPlantations.firstWhere(
-        (p) => p.id == plantationId,
-        orElse: () => relatedPlantations.first,
-      );
-
-      _drawPlantationsOnMap();
-      _centerMapOnCurrentPlantation();
 
       isLoading = false;
       notifyListeners();
@@ -77,64 +55,152 @@ class PlantationMapViewVm extends ChangeNotifier {
     }
   }
 
+  Future<bool> _loadFromRelatedEndpoint() async {
+    debugPrint("[PlantationMapViewVm] Loading related map for $plantationId");
+    final response = await _repo.getRelatedPlantationsMap(plantationId);
+    if (response == null) return false;
+    debugPrint(
+        "[PlantationMapViewVm] related-map raw: ${response.substring(0, response.length > 200 ? 200 : response.length)}...");
+
+    final data = jsonDecode(response) as Map<String, dynamic>;
+    final results = data['results'] as List<dynamic>? ?? [];
+    debugPrint(
+        "[PlantationMapViewVm] related-map results length: ${results.length}");
+    if (results.isEmpty) return false;
+
+    relatedPlantations = results
+        .map((e) => RelatedPlantation.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    currentPlantation = relatedPlantations.firstWhere(
+      (p) => p.id == plantationId,
+      orElse: () => relatedPlantations.first,
+    );
+
+    debugPrint(
+        "[PlantationMapViewVm] Related map loaded. Total: ${relatedPlantations.length}. Current: ${currentPlantation?.id}");
+
+    _drawPlantationsOnMap();
+    _centerMapOnCurrentPlantation();
+    return true;
+  }
+
+  Future<bool> _loadFromUserMap() async {
+    debugPrint(
+        "[PlantationMapViewVm] Fallback to user plantations map for $plantationId");
+    final response = await _repo.getUserPlantationsForMap();
+    if (response == null) return false;
+
+    final plantations = formeMapModelFromJson(response);
+    if (plantations.isEmpty) return false;
+
+    FormeMapPlantation? current;
+    for (final plantation in plantations) {
+      if (plantation.id == plantationId) {
+        current = plantation;
+        break;
+      }
+    }
+
+    if (current == null) return false;
+
+    relatedPlantations =
+        plantations.map((p) => RelatedPlantation.fromFormeMap(p)).toList();
+    currentPlantation = RelatedPlantation.fromFormeMap(current);
+
+    debugPrint(
+        "[PlantationMapViewVm] Fallback map loaded. Current plantation id: ${currentPlantation?.id}");
+
+    _drawPlantationsOnMap();
+    _centerMapOnCurrentPlantation();
+    return true;
+  }
+
   void _drawPlantationsOnMap() {
     polygons.clear();
     polylines.clear();
     markers.clear();
+    circles.clear();
 
     for (final plantation in relatedPlantations) {
       if (plantation.coordinates.isEmpty) continue;
 
-      final points = plantation.coordinates
-          .map((c) => LatLng(c.latitude, c.longitude))
-          .toList();
-
-      // Close polygon if not already closed
-      if (points.isNotEmpty && 
-          (points.first.latitude != points.last.latitude ||
-           points.first.longitude != points.last.longitude)) {
-        points.add(points.first);
+      final seen = <String>{};
+      final points = <LatLng>[];
+      for (final coord in plantation.coordinates) {
+        final point = LatLng(coord.latitude, coord.longitude);
+        final key =
+            '${coord.latitude.toStringAsFixed(6)}_${coord.longitude.toStringAsFixed(6)}';
+        if (seen.add(key)) {
+          points.add(point);
+        }
       }
+      if (points.isEmpty) continue;
 
       final color = _getPlantationColor(plantation);
       final isCurrent = plantation.id == plantationId;
 
-      // Draw filled polygon
-      polygons.add(
-        Polygon(
-          polygonId: PolygonId('polygon_${plantation.id}'),
-          points: points,
-          fillColor: isCurrent 
-              ? color.withValues(alpha: 0.35)
-              : color.withValues(alpha: 0.2),
-          strokeColor: color,
-          strokeWidth: isCurrent ? 3 : 2,
-        ),
-      );
+      if (points.length >= 3) {
+        final polygonPoints = [...points];
+        if (polygonPoints.first != polygonPoints.last) {
+          polygonPoints.add(polygonPoints.first);
+        }
 
-      // Draw polyline (border)
-      polylines.add(
-        Polyline(
-          polylineId: PolylineId('polyline_${plantation.id}'),
-          points: points,
-          color: color,
-          width: isCurrent ? 3 : 2,
-        ),
-      );
+        polygons.add(
+          Polygon(
+            polygonId: PolygonId('polygon_${plantation.id}'),
+            points: polygonPoints,
+            fillColor: isCurrent
+                ? color.withValues(alpha: 0.35)
+                : color.withValues(alpha: 0.2),
+            strokeColor: color,
+            strokeWidth: isCurrent ? 3 : 2,
+          ),
+        );
 
-      // Add markers for polygon vertices (only for current plantation)
+        polylines.add(
+          Polyline(
+            polylineId: PolylineId('polyline_${plantation.id}'),
+            points: polygonPoints,
+            color: color,
+            width: isCurrent ? 3 : 2,
+          ),
+        );
+      } else if (points.length == 2) {
+        polylines.add(
+          Polyline(
+            polylineId: PolylineId('polyline_${plantation.id}'),
+            points: points,
+            color: color,
+            width: isCurrent ? 3 : 2,
+          ),
+        );
+      } else if (isCurrent) {
+        circles.add(
+          Circle(
+            circleId: CircleId('circle_${plantation.id}'),
+            center: points.first,
+            fillColor: color.withValues(alpha: 0.25),
+            strokeColor: color,
+            strokeWidth: 2,
+            radius: 25,
+          ),
+        );
+      }
+
       if (isCurrent) {
-        for (int i = 0; i < points.length - 1; i++) {
+        for (int i = 0; i < points.length; i++) {
           markers.add(
             Marker(
               markerId: MarkerId('marker_${plantation.id}_$i'),
               position: points[i],
               icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueBlue,
+                BitmapDescriptor.hueAzure,
               ),
               infoWindow: InfoWindow(
                 title: plantation.name ?? 'ID: ${plantation.id}',
-                snippet: 'Площадь: ${plantation.totalArea?.toStringAsFixed(2) ?? 0} га',
+                snippet:
+                    "Maydon: ${plantation.totalArea?.toStringAsFixed(2) ?? '0'} ga",
               ),
             ),
           );
@@ -156,7 +222,7 @@ class PlantationMapViewVm extends ChangeNotifier {
   }
 
   void _centerMapOnCurrentPlantation() {
-    if (currentPlantation == null || 
+    if (currentPlantation == null ||
         currentPlantation!.coordinates.isEmpty ||
         mapController == null) {
       return;
@@ -188,9 +254,16 @@ class PlantationMapViewVm extends ChangeNotifier {
     );
 
     Future.delayed(const Duration(milliseconds: 300), () {
-      mapController?.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 50),
-      );
+      if ((maxLat - minLat).abs() < 0.0001 &&
+          (maxLng - minLng).abs() < 0.0001) {
+        mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(center, 17),
+        );
+      } else {
+        mapController?.animateCamera(
+          CameraUpdate.newLatLngBounds(bounds, 50),
+        );
+      }
     });
   }
 
@@ -273,6 +346,28 @@ class RelatedPlantation {
       totalArea: (json['total_area'] as num?)?.toDouble(),
     );
   }
+
+  factory RelatedPlantation.fromFormeMap(FormeMapPlantation plantation) {
+    return RelatedPlantation(
+      id: plantation.id,
+      name: plantation.farmerName,
+      isChecked: plantation.isChecked,
+      isRejected: false,
+      coordinates: plantation.coordinates
+          .asMap()
+          .entries
+          .map(
+            (entry) => PlantationCoordinate(
+              id: entry.key,
+              latitude: entry.value.latitude,
+              longitude: entry.value.longitude,
+            ),
+          )
+          .toList(),
+      fertilityScore: null,
+      totalArea: plantation.totalArea,
+    );
+  }
 }
 
 class PlantationCoordinate {
@@ -294,4 +389,3 @@ class PlantationCoordinate {
     );
   }
 }
-

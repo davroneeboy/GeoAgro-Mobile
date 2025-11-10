@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/theme/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/theme/spacing.dart';
+import 'package:agro_employee_public/design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/theme/radius.dart';
 
 class DropdownWithLabel extends StatelessWidget {
   final String? label;
@@ -21,6 +25,8 @@ class DropdownWithLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -28,43 +34,61 @@ class DropdownWithLabel extends StatelessWidget {
           SizedBox(height: 16.h),
           Text(
             label!,
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
+            style: AppTypography.headlineSmall(context).copyWith(
+              fontSize: 16.sp,
+            ),
           ),
           SizedBox(height: 10.h),
         ],
-        Container(
-          padding: REdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: AppColors.c1E1E1E16),
+        DropdownButtonFormField<int>(
+          value: selectedValue,
+          style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 24.sp,
+            color: colorScheme.onSurfaceVariant,
           ),
-          child: DropdownButton<int>(
-            dropdownColor: AppColors.cF7F7F7,
-            value: selectedValue,
-            hint: Text(
-              selectedValue != null
-                  ? items[selectedValue!]!
-                  : (hint ?? "Turni tanlang"),
-              style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+          decoration: InputDecoration(
+            hintText: hint ?? "Turni tanlang",
+            filled: true,
+            fillColor: colorScheme.surfaceVariant,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.inputPaddingHorizontal,
+              vertical: AppSpacing.inputPaddingVertical,
             ),
-            isExpanded: true,
-            underline: const SizedBox(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded,
-                size: 24.sp, color: Colors.grey),
-            onChanged: onChanged,
-            items: items.entries.map((entry) {
-              return DropdownMenuItem<int>(
-                value: entry.key,
-                child: Text(
-                  entry.value,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.black),
-                ),
-              );
-            }).toList(),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderSide: BorderSide(
+                color: colorScheme.outlineVariant ?? colorScheme.outline,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderSide: const BorderSide(
+                color: DesignColors.AppColors.primary,
+                width: 1.6,
+              ),
+            ),
           ),
+          dropdownColor: colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          onChanged: onChanged,
+          items: items.entries
+              .map(
+                (entry) => DropdownMenuItem<int>(
+                  value: entry.key,
+                  child: Text(
+                    entry.value,
+                    style: AppTypography.bodyLarge(context).copyWith(
+                      fontSize: 14.sp,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
         ),
-        SizedBox(height: 16.h),
+        SizedBox(height: AppSpacing.formFieldGap.h),
       ],
     );
   }

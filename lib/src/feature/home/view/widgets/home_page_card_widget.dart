@@ -6,12 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/setting/setup.dart';
 import 'package:agro_employee_public/src/core/style/app_colors.dart';
-import 'package:agro_employee_public/src/core/utils/date_utils.dart' as app_date;
+import 'package:agro_employee_public/src/core/utils/date_utils.dart'
+    as app_date;
 import 'package:agro_employee_public/src/core/widgets/custom_card_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_driver.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_list_tile_widget.dart';
 import 'package:agro_employee_public/src/data/model/plantation/plantations_list_model.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -23,9 +25,10 @@ import '../widgets/delete_confirmation_dialog.dart';
 class HomePageCardWidget extends StatelessWidget {
   final Result plantation;
   final bool showEditButton;
-  final AutoDisposeChangeNotifierProvider<HomePageVm>? customProvider; // Fix type
+  final AutoDisposeChangeNotifierProvider<HomePageVm>?
+      customProvider; // Fix type
   final VoidCallback? onDeleteSuccess; // Callback for successful deletion
-  
+
   const HomePageCardWidget({
     super.key,
     required this.plantation,
@@ -105,8 +108,11 @@ class HomePageCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Determine if current user is creator
-    final matchesById = plantation.createdById != null && userId == plantation.createdById;
-    final matchesByUsername = plantation.createdByUsername != null && username != null && plantation.createdByUsername == username;
+    final matchesById =
+        plantation.createdById != null && userId == plantation.createdById;
+    final matchesByUsername = plantation.createdByUsername != null &&
+        username != null &&
+        plantation.createdByUsername == username;
     final canEdit = showEditButton && (matchesById || matchesByUsername);
     // return InkWell(
     //   onTap: onPressed,
@@ -115,9 +121,12 @@ class HomePageCardWidget extends StatelessWidget {
     final plantationId = plantation.id?.toString() ?? "N/A";
     final landType = yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
-    final establishedYear =
-        plantation.gardenEstablishedYear != null ? "${plantation.gardenEstablishedYear} yil" : null;
-    final createdAt = plantation.createdAt != null ? _formatCreatedAt(plantation.createdAt!) : null;
+    final establishedYear = plantation.gardenEstablishedYear != null
+        ? "${plantation.gardenEstablishedYear} yil"
+        : null;
+    final createdAt = plantation.createdAt != null
+        ? _formatCreatedAt(plantation.createdAt!)
+        : null;
 
     return CustomCardWidget(
       horizontal: AppSpacing.lg,
@@ -189,64 +198,67 @@ class HomePageCardWidget extends StatelessWidget {
             ),
           ],
           SizedBox(height: AppSpacing.lg),
-          if (canEdit)
-            Row(
-              children: [
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.tonal(
+                  onPressed: plantation.id == null
+                      ? null
+                      : () => context.go(
+                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                            extra: plantation.id,
+                          ),
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                  ),
+                  child: const Text("Ko'rish"),
+                ),
+              ),
+              if (canEdit) ...[
+                SizedBox(width: 12.w),
                 Expanded(
-                  child: MaterialButton(
-                    height: 48.h,
+                  child: FilledButton(
                     onPressed: () {
                       if (plantation.id != null) {
-                        context.go("${AppRouteNames.home}${AppRouteNames.editPage}", extra: plantation.id);
+                        context.go(
+                          "${AppRouteNames.home}${AppRouteNames.editPage}",
+                          extra: plantation.id,
+                        );
                       }
                     },
-                    elevation: 0,
-                    highlightElevation: 0,
-                    color: AppColors.c28A745,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      backgroundColor: AppColors.c28A745,
+                      foregroundColor: Colors.white,
                     ),
-                    child: Text(
-                      "Tahrirlash",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: const Text("Tahrirlash"),
                   ),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
-                  child: MaterialButton(
-                    height: 48.h,
-                    onPressed: () {
-                      _showDeleteConfirmation(context, plantation.id!);
-                    },
-                    elevation: 0,
-                    highlightElevation: 0,
-                    color: AppColors.cE60C0C,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
+                  child: FilledButton(
+                    onPressed: plantation.id == null
+                        ? null
+                        : () => _showDeleteConfirmation(
+                              context,
+                              plantation.id!,
+                            ),
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      backgroundColor: AppColors.cE60C0C,
+                      foregroundColor: Colors.white,
                     ),
-                    child: Text(
-                      "O'chirish",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: const Text("O'chirish"),
                   ),
                 ),
               ],
-            ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  
   Widget _IdBadge({required BuildContext context, required String id}) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -403,12 +415,13 @@ class HomePageCardWidget extends StatelessWidget {
     }
   }
 
-
   // Вспомогательная функция для форматирования чисел без .0
   String _formatNumber(dynamic value) {
     if (value == null) return "0";
     if (value is double) {
-      return value == value.toInt().toDouble() ? value.toInt().toString() : value.toString();
+      return value == value.toInt().toDouble()
+          ? value.toInt().toString()
+          : value.toString();
     }
     if (value is int) {
       return value.toString();
@@ -427,22 +440,24 @@ class HomePageCardWidget extends StatelessWidget {
             final provider = customProvider ?? homePageVM;
             final vm = ref.watch(provider.notifier);
             final isDeleting = ref.watch(provider).isDeleting;
-            
+
             return DeleteConfirmationDialog(
               onConfirm: (String reason) async {
                 // НЕ закрываем диалог сразу - ждем завершения операции
                 try {
-                  final result = await vm.deletePlantationPermanently(id: plantationId, reason: reason);
-                  
+                  final result = await vm.deletePlantationPermanently(
+                      id: plantationId, reason: reason);
+
                   // Закрываем диалог только после завершения операции
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }
-                  
+
                   if (result && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
+                        content: Text(vm.deletMessage ??
+                            "O'chirish so'rovi moderatsiyaga yuborildi"),
                         backgroundColor: AppColors.c28A745,
                         duration: const Duration(seconds: 3),
                       ),
@@ -451,7 +466,8 @@ class HomePageCardWidget extends StatelessWidget {
                   } else if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
+                        content: Text(
+                            vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
                         backgroundColor: AppColors.cE60C0C,
                         duration: const Duration(seconds: 3),
                       ),
@@ -462,7 +478,7 @@ class HomePageCardWidget extends StatelessWidget {
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }
-                  
+
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -485,4 +501,3 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 }
-

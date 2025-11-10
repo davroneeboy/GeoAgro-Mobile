@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,6 +9,9 @@ import 'package:agro_employee_public/design_system/components/list_tiles.dart';
 import 'package:agro_employee_public/design_system/components/empty_state.dart';
 import 'package:agro_employee_public/design_system/theme/spacing.dart';
 import 'package:agro_employee_public/design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignTokens;
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
@@ -28,6 +30,23 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   bool _isLoading = true;
 
   static const _telegramBotUri = 'https://t.me/geoagro_bot';
+
+  static const Map<int, String> _regionNames = {
+    1: 'Toshkent',
+    2: 'Andijon',
+    3: 'Buxoro',
+    4: 'Fargʻona',
+    5: 'Jizzax',
+    6: 'Qashqadaryo',
+    7: 'Navoiy',
+    8: 'Namangan',
+    9: 'Samarqand',
+    10: 'Sirdaryo',
+    11: 'Surxondaryo',
+    12: 'Qoraqalpogʻiston',
+    13: 'Xorazm',
+  };
+
   final _repository = AppRepositoryImpl();
 
   @override
@@ -105,6 +124,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     );
 
     return Scaffold(
+      backgroundColor: DesignTokens.AppColors.darkBackground,
       appBar: CustomAppBarWidget(
         title: "Profil",
         canPop: false,
@@ -144,7 +164,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                       padding: EdgeInsets.zero,
                     ),
                     SizedBox(height: AppSpacing.sm.h),
-                    AppCard(
+                    AppCardFilled(
                       padding: EdgeInsets.zero,
                       child: Column(
                         children: [
@@ -159,8 +179,11 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                           ),
                           const Divider(height: 1),
                           AppKeyValueTile(
-                            label: "Hudud",
-                            value: _userInfo?.districtName ?? "Ko'rsatilmagan",
+                            label: "Viloyat",
+                            value: _userInfo != null
+                                ? (_regionNames[_userInfo!.regionId] ??
+                                    "Ko'rsatilmagan")
+                                : "Ko'rsatilmagan",
                             icon: Icons.place_outlined,
                             padding: EdgeInsets.symmetric(
                               horizontal: AppSpacing.lg,
@@ -170,9 +193,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                           const Divider(height: 1),
                           AppKeyValueTile(
                             label: "Tuman",
-                            value: _userInfo != null
-                                ? "${_userInfo!.districtId}"
-                                : "Ko'rsatilmagan",
+                            value: _userInfo?.districtName ?? "Ko'rsatilmagan",
                             icon: Icons.map_outlined,
                             padding: EdgeInsets.symmetric(
                               horizontal: AppSpacing.lg,
@@ -198,37 +219,50 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                       padding: EdgeInsets.zero,
                     ),
                     SizedBox(height: AppSpacing.sm.h),
-                    AppCard(
-                      padding: EdgeInsets.zero,
-                      child: Column(
+                    AppCardFilled(
+                      padding: EdgeInsets.all(AppSpacing.lg),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          AppListTile(
-                            title: "Til",
-                            subtitle: "O'zbek tili (lotin)",
-                            leading: const Icon(Icons.language_outlined),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {},
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.watch_later_outlined,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
+                            ),
                           ),
-                          const Divider(height: 1),
-                          AppListTile(
-                            title: "Interfeys rejimi",
-                            subtitle: "Tungi (avto)",
-                            leading: const Icon(Icons.dark_mode_outlined),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {},
-                          ),
-                          const Divider(height: 1),
-                          AppListTile(
-                            title: "Bildirishnomalar",
-                            subtitle: "Faol",
-                            leading:
-                                const Icon(Icons.notifications_active_outlined),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              context.go(
-                                "${AppRouteNames.home}${AppRouteNames.natificationPage}",
-                              );
-                            },
+                          SizedBox(width: AppSpacing.lg),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Tez kunda",
+                                  style: AppTypography.headlineMedium(context)
+                                      .copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  "Ilova sozlamalari bo‘limi tez orada ishga tushiriladi.",
+                                  style: AppTypography.bodyMedium(context)
+                                      .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -239,7 +273,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                       padding: EdgeInsets.zero,
                     ),
                     SizedBox(height: AppSpacing.sm.h),
-                    AppCard(
+                    AppCardFilled(
                       padding: EdgeInsets.zero,
                       child: Column(
                         children: [
@@ -298,8 +332,8 @@ class _ProfileHeader extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  DesignTokens.AppColors.accentGreen,
+                  DesignTokens.AppColors.accentGreenDark,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

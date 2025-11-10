@@ -7,11 +7,13 @@ class UserInfoModel {
   final int district;
   final int districtId;
   final String districtName;
+  final int regionId;
   final String phoneNumber;
   final bool isHeadofRegion;
   final bool isSuperuser;
   final String? flutterVersion; // Версия приложения с сервера
-  final bool isSpecialUser; // Специальный пользователь (может загружать фото с галереи)
+  final bool
+      isSpecialUser; // Специальный пользователь (может загружать фото с галереи)
   final double? limitKm; // Лимит координат в км (null = дефолт 1 км)
 
   UserInfoModel({
@@ -23,6 +25,7 @@ class UserInfoModel {
     required this.district,
     required this.districtId,
     required this.districtName,
+    required this.regionId,
     required this.phoneNumber,
     required this.isHeadofRegion,
     required this.isSuperuser,
@@ -41,6 +44,7 @@ class UserInfoModel {
       district: json['district'] ?? 0,
       districtId: json['district_id'] ?? 0,
       districtName: json['district_name'] ?? '',
+      regionId: json['region_id'] ?? 0,
       phoneNumber: json['phone_number'] ?? '',
       isHeadofRegion: json['is_headof_region'] ?? false,
       isSuperuser: json['is_superuser'] ?? false,

@@ -14,7 +14,7 @@ class LoginVm extends ChangeNotifier {
 
   final formKey = GlobalKey<FormState>();
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
-  late final TokenModel _tokenModel;
+  late TokenModel _tokenModel;
 
   String? errorMessage;
   bool isLoading = false;
@@ -28,10 +28,13 @@ class LoginVm extends ChangeNotifier {
     _setLoading(true);
     try {
       // API so‘rovi yuborish
+      debugPrint("🔐 Login attempt for: ${userNameC.text.trim()}");
       final response = await _appRepositoryImpl.login(
         username: userNameC.text.trim(),
         password: passwordC.text.trim(),
       );
+      debugPrint("🔐 Login response status: ${response.statusCode}");
+      debugPrint("🔐 Login response data: ${response.data}");
 
       // Agar status code 200 yoki 201 bo‘lsa
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -65,6 +68,7 @@ class LoginVm extends ChangeNotifier {
       }
     } catch (e) {
       // Kutilmagan xatoliklar uchun
+      debugPrint("❌ Login unexpected error: $e");
       errorMessage = "Internet yoki server bilan muammo yuz berdi.";
       return false;
     } finally {

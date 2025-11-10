@@ -14,10 +14,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
+import 'package:agro_employee_public/design_system/theme/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/theme/radius.dart';
+import 'package:agro_employee_public/design_system/theme/spacing.dart';
+import 'package:agro_employee_public/design_system/theme/typography.dart';
+
 import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
- 
+
 import '../../../../core/widgets/main_button.dart';
 import '../../../../data/model/plantation/new_plantation_model.dart';
 import '../../vm/detail_vm.dart';
@@ -61,290 +67,413 @@ class DetailPageState extends ConsumerState<DetailPage> {
     final isInvestmentXorijiy = ref.watch(detailVm.switchInvestmentXorjiy);
     final isInvestmentMahalliy = ref.watch(detailVm.switchInvestmentMahhalliy);
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = theme.colorScheme.background;
+    final sectionColor = isDark
+        ? DesignColors.AppColors.darkSurface
+        : DesignColors.AppColors.lightSurface;
+    final outlineColor = isDark
+        ? DesignColors.AppColors.darkOutline
+        : DesignColors.AppColors.lightOutline;
+    final shadowColor = isDark
+        ? Colors.black.withOpacity(0.25)
+        : Colors.black.withOpacity(0.08);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: AppColors.cF7F7F7,
+      backgroundColor: backgroundColor,
       appBar: const CustomAppBarWidget(
           title: "Ma`lumotlarni kiriting", canPop: true),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: REdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MainText(text: "Bog`ning barpo etilgan vaqti"),
-              CreatedTime(
-                selectedDate: detailVm.selectedDate,
-                setSelectedDate: (date) => detailVm.setSelectedDate(date),
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
+        child: Container(
+          decoration: BoxDecoration(
+            color: sectionColor,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(color: outlineColor),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: 32,
+                spreadRadius: -12,
+                offset: const Offset(0, 24),
               ),
-              
-              DropdownWithLabel( 
-                  label: "Plantatsiya turi",
-                  items: plantatiopnType,
-                  hint: "plantatsiya turi tanlanmagan",
-                  selectedValue: detailVm.selectedPlantationType,
-                  onChanged: (value) {
-                    detailVm.setPlantationType(value);
-                  }),
-              if (detailVm.selectedPlantationType == 1)
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.cardPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MainText(text: "Bog`ning barpo etilgan vaqti"),
+                CreatedTime(
+                  selectedDate: detailVm.selectedDate,
+                  setSelectedDate: (date) => detailVm.setSelectedDate(date),
+                ),
+
                 DropdownWithLabel(
-                  items: bogType,
-                  hint: "bog' turi tanlanmagan",
-                  selectedValue: detailVm.selectedBogType,
+                    label: "Plantatsiya turi",
+                    items: plantatiopnType,
+                    hint: "plantatsiya turi tanlanmagan",
+                    selectedValue: detailVm.selectedPlantationType,
+                    onChanged: (value) {
+                      detailVm.setPlantationType(value);
+                    }),
+                if (detailVm.selectedPlantationType == 1)
+                  DropdownWithLabel(
+                    items: bogType,
+                    hint: "bog' turi tanlanmagan",
+                    selectedValue: detailVm.selectedBogType,
+                    onChanged: (value) {
+                      detailVm.setBogType(value);
+                    },
+                  ),
+                if (detailVm.selectedPlantationType == 1 &&
+                    detailVm.selectedBogType == 1)
+                  DropdownWithLabel(
+                    items: bogSubtype,
+                    hint: "intensiv bog` turi tanlanmagan",
+                    selectedValue: detailVm.selectedBogSubtype,
+                    onChanged: (value) {
+                      detailVm.setBogSubtype(value);
+                    },
+                  ),
+                // 2 = Uzumzor, 3 = Issiqxona (per setup.dart)
+                if (detailVm.selectedPlantationType == 3)
+                  DropdownWithLabel(
+                    hint: "issiqxona turi tanlanmagan",
+                    items: issiqxonaType,
+                    selectedValue: detailVm.selectedIssiqxonaType,
+                    onChanged: (value) {
+                      detailVm.setIssiqxonaType(value);
+                    },
+                  ),
+                if (detailVm.selectedPlantationType == 2)
+                  DropdownWithLabel(
+                    hint: "uzumzor turi tanlanmagan",
+                    items: uzumType,
+                    selectedValue: detailVm.selectedUzumType,
+                    onChanged: (value) {
+                      detailVm.setUzumType(value);
+                    },
+                  ),
+                DropdownWithLabel(
+                  label: "Yer turi",
+                  items: yerTuri,
+                  hint: "yer turini tanlanmagan",
+                  selectedValue: detailVm.selectedYerType,
                   onChanged: (value) {
-                    detailVm.setBogType(value);
+                    detailVm.setYerType(value);
                   },
                 ),
-              if (detailVm.selectedPlantationType == 1 &&
-                  detailVm.selectedBogType == 1)
-                DropdownWithLabel(
-                  items: bogSubtype,
-                  hint: "intensiv bog` turi tanlanmagan",
-                  selectedValue: detailVm.selectedBogSubtype,
-                  onChanged: (value) {
-                    detailVm.setBogSubtype(value);
-                  },
+                SizedBox(height: 10.h),
+                ProductivityIndicator(
+                  value: detailVm.unumdorlikValue,
+                  onChanged: detailVm.setUnumdorlikValue,
                 ),
-              // 2 = Uzumzor, 3 = Issiqxona (per setup.dart)
-              if (detailVm.selectedPlantationType == 3)
-                DropdownWithLabel(
-                  hint: "issiqxona turi tanlanmagan",
-                  items: issiqxonaType,
-                  selectedValue: detailVm.selectedIssiqxonaType,
-                  onChanged: (value) {
-                    detailVm.setIssiqxonaType(value);
-                  },
-                ),
-              if (detailVm.selectedPlantationType == 2)
-                DropdownWithLabel(
-                  hint: "uzumzor turi tanlanmagan",
-                  items: uzumType,
-                  selectedValue: detailVm.selectedUzumType,
-                  onChanged: (value) {
-                    detailVm.setUzumType(value);
-                  },
-                ),
-              DropdownWithLabel(
-                label: "Yer turi",
-                items: yerTuri,
-                hint: "yer turini tanlanmagan",
-                selectedValue: detailVm.selectedYerType,
-                onChanged: (value) {
-                  detailVm.setYerType(value);
-                },
-              ),
-              SizedBox(height: 10.h),
-              ProductivityIndicator(
-                value: detailVm.unumdorlikValue,
-                onChanged: detailVm.setUnumdorlikValue,
-              ),
-              CustomTextFieldWithLabel(
-                controller: detailVm.notUsableArea,
-                onTextChanged: (v) => detailVm.setNotUsableArea(
-                  v.replaceAll('-', ''),
-                ),
-                hintText: "yaroqsiz maydon kiritilmagan",
-                label: "Foydalanishga yaroqsiz maydon: GA",
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-              ),
-              CustomTextFieldWithLabel(
-                controller: detailVm.emptyArea,
-                onTextChanged: (v) => detailVm.setEmptyArea(
-                  v.replaceAll('-', ''),
-                ),
-                hintText: "ochiq maydon kiritilmagan",
-                label: "Ochiq maydon: GA",
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-              ),
-              SizedBox(height: 16.h),
-              MainText(text: "Kontur raqamlari"),
-              SizedBox(height: 10.h),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: detailVm.konturInputController,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9a-zA-Z]'))],
-                      decoration: const InputDecoration(
-                        hintText: "kontur raqamini kiriting",
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      onSubmitted: (_) => detailVm.addKonturNumber(),
-                    ),
+                CustomTextFieldWithLabel(
+                  controller: detailVm.notUsableArea,
+                  onTextChanged: (v) => detailVm.setNotUsableArea(
+                    v.replaceAll('-', ''),
                   ),
-                  SizedBox(width: 8.w),
-                  SizedBox(
-                    height: 40.h,
-                    child: ElevatedButton(
-                      onPressed: detailVm.addKonturNumber,
-                      child: const Text("Qo'shish"),
-                    ),
+                  hintText: "yaroqsiz maydon kiritilmagan",
+                  label: "Foydalanishga yaroqsiz maydon: GA",
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))
+                  ],
+                ),
+                CustomTextFieldWithLabel(
+                  controller: detailVm.emptyArea,
+                  onTextChanged: (v) => detailVm.setEmptyArea(
+                    v.replaceAll('-', ''),
                   ),
-                ],
-              ),
-              SizedBox(height: 8.h),
-              Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
-                children: [
-                  for (int i = 0; i < detailVm.konturNumbers.length; i++)
-                    Chip(
-                      label: Text(detailVm.konturNumbers[i]),
-                      onDeleted: () => detailVm.removeKonturAt(i),
-                    ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-              CustomSwitchCard(
-                label: "Xorijiy invitsitsiya",
-                switchValue: isInvestmentXorijiy,
-                onChanged: (value) {
-                  ref.read(detailVm.switchInvestmentXorjiy.notifier).state =
-                      value;
-                  if (!value) {
-                    detailVm.investmentXorijiyAmount.clear();
-                    detailVm.setInvestmentXorijiyAmount("");
-                  }
-                },
-                childWidgets: [
-                  SizedBox(height: 10.h),
-                  CustomTextFieldWithLabel(
-                    controller: detailVm.investmentXorijiyAmount,
-                    onTextChanged: detailVm.setInvestmentXorijiyAmount,
-                    hintText: "Xorijiy invitsitsiya miqdori: \$",
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [ThousandsSeparatorInputFormatter()],
-                  ),
-                ],
-              ),
-              SizedBox(height: 10.h),
-              CustomSwitchCard(
-                label: "Mahalliy invitsitsiya",
-                switchValue: isInvestmentMahalliy,
-                onChanged: (value) {
-                  ref.read(detailVm.switchInvestmentMahhalliy.notifier).state =
-                      value;
-                  if (!value) {
-                    detailVm.investmentMahhalliyAmount.clear();
-                    detailVm.setInvestmentMahhalliyAmount("");
-                  }
-                },
-                childWidgets: [
-                  SizedBox(height: 10.h),
-                  CustomTextFieldWithLabel(
-                    controller: detailVm.investmentMahhalliyAmount,
-                    onTextChanged: detailVm.setInvestmentMahhalliyAmount,
-                    hintText: "Mahalliy invitsitsiya miqdori: so`m",
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [ThousandsSeparatorInputFormatter()],
-                  ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-              CustomSwitchCard(
-                label: "Tomchilab sug`oriladimi ?",
-                switchValue: isTomchi,
-                onChanged: (value) {
-                  ref.read(detailVm.switchTomchi.notifier).state = value;
-                  if (!value) {
-                    detailVm.tomchiSystemsArea.clear();
-                    detailVm.setTomchiSystemsArea("");
-                    detailVm.tomchiSystemsCount.clear();
-                    detailVm.setTomchiSystemsCount("");
-                  }
-                },
-                childWidgets: [
-                  BorderWidget(
-                    children: [
-                      Padding(
-                        padding: REdgeInsets.only(top: 10),
-                        child: CustomTextFieldWithLabel(
-                          controller: detailVm.tomchiSystemsArea,
-                          onTextChanged: detailVm.setTomchiSystemsArea,
-                          hintText: "Tomchilab sug‘oruladigan yer maydoni: GA",
-                          keyboardType: TextInputType.number,
+                  hintText: "ochiq maydon kiritilmagan",
+                  label: "Ochiq maydon: GA",
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                MainText(text: "Kontur raqamlari"),
+                SizedBox(height: 10.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: detailVm.konturInputController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9a-zA-Z]'))
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: "kontur raqamini kiriting",
+                          border: OutlineInputBorder(),
+                          isDense: true,
                         ),
+                        onSubmitted: (_) => detailVm.addKonturNumber(),
                       ),
-                      Padding(
-                        padding: REdgeInsets.only(top: 10),
-                        child: CustomTextFieldWithLabel(
-                          controller: detailVm.tomchiSystemsCount,
-                          onTextChanged: detailVm.setTomchiSystemsCount,
-                          hintText: "Tomchilab sug‘orish tizimlari soni",
-                          keyboardType: TextInputType.number,
+                    ),
+                    SizedBox(width: 8.w),
+                    SizedBox(
+                      height: 40.h,
+                      child: ElevatedButton(
+                        onPressed: detailVm.addKonturNumber,
+                        child: const Text("Qo'shish"),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [
+                    for (int i = 0; i < detailVm.konturNumbers.length; i++)
+                      Chip(
+                        label: Text(detailVm.konturNumbers[i]),
+                        onDeleted: () => detailVm.removeKonturAt(i),
+                        backgroundColor: DesignColors.AppColors.primaryContainer,
+                        side: BorderSide(
+                          color: DesignColors.AppColors.primary.withOpacity(0.3),
                         ),
-                      )
-                    ],
-                  )
-                ],
-              ),
-              SizedBox(height: 16.h),
-              CustomSwitchCard(
-                label: "Subsidiya ajratilganmi ?",
-                switchValue: isSubsidiya,
-                onChanged: (value) {
-                  ref.read(detailVm.switchSubsidiya.notifier).state = value;
-                },
-                childWidgets: [
-                  SubsidiyaButton(
-                      viewModel: detailVm,
-                      widget: AddSubsidiyaBottomShit(detailVm: detailVm)),
-                  SizedBox(height: 10.h),
-                  AddSubsidyList(
-                    selectedList: detailVm.selectedSubsidy,
-                    removeAt: (index) => detailVm.removeSubsidy(index),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-              CustomSwitchCard(
-                label: "Shpaller o`rnatilganmi ?",
-                switchValue: isTrellis,
-                onChanged: (value) {
-                  ref.read(detailVm.switchTrellis.notifier).state = value;
-                  if (!value) {
-                    ref.read(detailVm.switchTrellisTemir.notifier).state = false;
-                    ref.read(detailVm.switchTrellisBeton.notifier).state = false;
-                    detailVm.trellisTemirInstalledArea.clear();
-                    detailVm.setTrellisTemirInstalledArea("");
-                    detailVm.trellisTemirCount.clear();
-                    detailVm.setTrellisTemirCount("");
-                    detailVm.trellisBetonInstalledArea.clear();
-                    detailVm.setTrellisBetonInstalledArea("");
-                    detailVm.trellisBetonCount.clear();
-                    detailVm.setTrellisBetonCount("");
-                  }
-                },
-                childWidgets: [
-                  BorderWidget(
-                    children: [
+                        deleteIcon: const Icon(Icons.close, size: 18),
+                      ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                CustomSwitchCard(
+                  label: "Xorijiy invitsitsiya",
+                  switchValue: isInvestmentXorijiy,
+                  onChanged: (value) {
+                    ref.read(detailVm.switchInvestmentXorjiy.notifier).state =
+                        value;
+                    if (!value) {
+                      detailVm.investmentXorijiyAmount.clear();
+                      detailVm.setInvestmentXorijiyAmount("");
+                    }
+                  },
+                  childWidgets: [
+                    SizedBox(height: 10.h),
+                    CustomTextFieldWithLabel(
+                      controller: detailVm.investmentXorijiyAmount,
+                      onTextChanged: detailVm.setInvestmentXorijiyAmount,
+                      hintText: "Xorijiy invitsitsiya miqdori: \$",
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [ThousandsSeparatorInputFormatter()],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10.h),
+                CustomSwitchCard(
+                  label: "Mahalliy invitsitsiya",
+                  switchValue: isInvestmentMahalliy,
+                  onChanged: (value) {
+                    ref
+                        .read(detailVm.switchInvestmentMahhalliy.notifier)
+                        .state = value;
+                    if (!value) {
+                      detailVm.investmentMahhalliyAmount.clear();
+                      detailVm.setInvestmentMahhalliyAmount("");
+                    }
+                  },
+                  childWidgets: [
+                    SizedBox(height: 10.h),
+                    CustomTextFieldWithLabel(
+                      controller: detailVm.investmentMahhalliyAmount,
+                      onTextChanged: detailVm.setInvestmentMahhalliyAmount,
+                      hintText: "Mahalliy invitsitsiya miqdori: so`m",
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [ThousandsSeparatorInputFormatter()],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                CustomSwitchCard(
+                  label: "Tomchilab sug`oriladimi ?",
+                  switchValue: isTomchi,
+                  onChanged: (value) {
+                    ref.read(detailVm.switchTomchi.notifier).state = value;
+                    if (!value) {
+                      detailVm.tomchiSystemsArea.clear();
+                      detailVm.setTomchiSystemsArea("");
+                      detailVm.tomchiSystemsCount.clear();
+                      detailVm.setTomchiSystemsCount("");
+                    }
+                  },
+                  childWidgets: [
+                    BorderWidget(
+                      children: [
+                        Padding(
+                          padding: REdgeInsets.only(top: 10),
+                          child: CustomTextFieldWithLabel(
+                            controller: detailVm.tomchiSystemsArea,
+                            onTextChanged: detailVm.setTomchiSystemsArea,
+                            hintText:
+                                "Tomchilab sug‘oruladigan yer maydoni: GA",
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        Padding(
+                          padding: REdgeInsets.only(top: 10),
+                          child: CustomTextFieldWithLabel(
+                            controller: detailVm.tomchiSystemsCount,
+                            onTextChanged: detailVm.setTomchiSystemsCount,
+                            hintText: "Tomchilab sug‘orish tizimlari soni",
+                            keyboardType: TextInputType.number,
+                          ),
+                        )
+                      ],
+                    )
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                CustomSwitchCard(
+                  label: "Subsidiya ajratilganmi ?",
+                  switchValue: isSubsidiya,
+                  onChanged: (value) {
+                    ref.read(detailVm.switchSubsidiya.notifier).state = value;
+                  },
+                  childWidgets: [
+                    SubsidiyaButton(
+                        viewModel: detailVm,
+                        widget: AddSubsidiyaBottomShit(detailVm: detailVm)),
+                    SizedBox(height: 10.h),
+                    AddSubsidyList(
+                      selectedList: detailVm.selectedSubsidy,
+                      removeAt: (index) => detailVm.removeSubsidy(index),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                CustomSwitchCard(
+                  label: "Shpaller o`rnatilganmi ?",
+                  switchValue: isTrellis,
+                  onChanged: (value) {
+                    ref.read(detailVm.switchTrellis.notifier).state = value;
+                    if (!value) {
+                      ref.read(detailVm.switchTrellisTemir.notifier).state =
+                          false;
+                      ref.read(detailVm.switchTrellisBeton.notifier).state =
+                          false;
+                      detailVm.trellisTemirInstalledArea.clear();
+                      detailVm.setTrellisTemirInstalledArea("");
+                      detailVm.trellisTemirCount.clear();
+                      detailVm.setTrellisTemirCount("");
+                      detailVm.trellisBetonInstalledArea.clear();
+                      detailVm.setTrellisBetonInstalledArea("");
+                      detailVm.trellisBetonCount.clear();
+                      detailVm.setTrellisBetonCount("");
+                    }
+                  },
+                  childWidgets: [
+                    BorderWidget(
+                      children: [
+                        CustomSwitchCard(
+                          label: "Temir shpaller",
+                          switchValue: isTrellisTemir,
+                          onChanged: (value) {
+                            ref
+                                .read(detailVm.switchTrellisTemir.notifier)
+                                .state = value;
+                          },
+                          childWidgets: [
+                            Padding(
+                              padding: REdgeInsets.only(top: 10),
+                              child: CustomTextFieldWithLabel(
+                                controller: detailVm.trellisTemirInstalledArea,
+                                onTextChanged:
+                                    detailVm.setTrellisTemirInstalledArea,
+                                hintText:
+                                    "temir shpaller o'rnatilgan maydon: GA",
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            Padding(
+                              padding: REdgeInsets.only(top: 10),
+                              child: CustomTextFieldWithLabel(
+                                controller: detailVm.trellisTemirCount,
+                                onTextChanged: detailVm.setTrellisTemirCount,
+                                hintText: "o'rnatilgan temir shpaller soni",
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10.h),
+                        CustomSwitchCard(
+                          label: "Beton shpaller",
+                          switchValue: isTrellisBeton,
+                          onChanged: (value) {
+                            ref
+                                .read(detailVm.switchTrellisBeton.notifier)
+                                .state = value;
+                          },
+                          childWidgets: [
+                            Padding(
+                              padding: REdgeInsets.only(top: 10),
+                              child: CustomTextFieldWithLabel(
+                                controller: detailVm.trellisBetonInstalledArea,
+                                onTextChanged:
+                                    detailVm.setTrellisBetonInstalledArea,
+                                hintText:
+                                    "beton shpaller o'rnatilgan maydon: GA ",
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            Padding(
+                              padding: REdgeInsets.only(top: 10),
+                              child: CustomTextFieldWithLabel(
+                                controller: detailVm.trellisBetonCount,
+                                onTextChanged: detailVm.setTrellisBetonCount,
+                                hintText: "o'rnatilgan beton shpaller soni",
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                CustomSwitchCard(
+                  label: "Suv havzasi turi",
+                  switchValue: isReservoirs,
+                  onChanged: (value) {
+                    ref.read(detailVm.switchReservoir.notifier).state = value;
+                    if (!value) {
+                      ref.read(detailVm.switchReservoirsBeton.notifier).state =
+                          false;
+                      ref
+                          .read(detailVm.switchReservoirsQoplamali.notifier)
+                          .state = false;
+                      detailVm.reservoirsBetonliVolume.clear();
+                      detailVm.setReservoirsBetonliVolume("");
+                      detailVm.reservoirsQoplamaliVolume.clear();
+                      detailVm.setReservoirQoplamaliVolume("");
+                    }
+                  },
+                  childWidgets: [
+                    BorderWidget(children: [
                       CustomSwitchCard(
-                        label: "Temir shpaller",
-                        switchValue: isTrellisTemir,
+                        label: "Betonli suv havzasi",
+                        switchValue: isReservoirsBeton,
                         onChanged: (value) {
-                          ref.read(detailVm.switchTrellisTemir.notifier).state =
-                              value;
+                          ref
+                              .read(detailVm.switchReservoirsBeton.notifier)
+                              .state = value;
                         },
                         childWidgets: [
                           Padding(
                             padding: REdgeInsets.only(top: 10),
                             child: CustomTextFieldWithLabel(
-                              controller: detailVm.trellisTemirInstalledArea,
+                              controller: detailVm.reservoirsBetonliVolume,
                               onTextChanged:
-                                  detailVm.setTrellisTemirInstalledArea,
-                              hintText: "temir shpaller o'rnatilgan maydon: GA",
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          Padding(
-                            padding: REdgeInsets.only(top: 10),
-                            child: CustomTextFieldWithLabel(
-                              controller: detailVm.trellisTemirCount,
-                              onTextChanged: detailVm.setTrellisTemirCount,
-                              hintText: "o'rnatilgan temir shpaller soni",
+                                  detailVm.setReservoirsBetonliVolume,
+                              hintText: "suv havzasi hajmi m³",
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -352,196 +481,149 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       ),
                       SizedBox(height: 10.h),
                       CustomSwitchCard(
-                        label: "Beton shpaller",
-                        switchValue: isTrellisBeton,
+                        label: "Qoplamali suv havzasi",
+                        switchValue: isReservoirsQoplamali,
                         onChanged: (value) {
-                          ref.read(detailVm.switchTrellisBeton.notifier).state =
-                              value;
+                          ref
+                              .read(detailVm.switchReservoirsQoplamali.notifier)
+                              .state = value;
                         },
                         childWidgets: [
                           Padding(
                             padding: REdgeInsets.only(top: 10),
                             child: CustomTextFieldWithLabel(
-                              controller: detailVm.trellisBetonInstalledArea,
+                              controller: detailVm.reservoirsQoplamaliVolume,
                               onTextChanged:
-                                  detailVm.setTrellisBetonInstalledArea,
-                              hintText:
-                                  "beton shpaller o'rnatilgan maydon: GA ",
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          Padding(
-                            padding: REdgeInsets.only(top: 10),
-                            child: CustomTextFieldWithLabel(
-                              controller: detailVm.trellisBetonCount,
-                              onTextChanged: detailVm.setTrellisBetonCount,
-                              hintText: "o'rnatilgan beton shpaller soni",
+                                  detailVm.setReservoirQoplamaliVolume,
+                              hintText: "suv havzasi hajmi m³",
                               keyboardType: TextInputType.number,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  )
-                ],
-              ),
-              SizedBox(height: 16.h),
-              CustomSwitchCard(
-                label: "Suv havzasi turi",
-                switchValue: isReservoirs,
-                onChanged: (value) {
-                  ref.read(detailVm.switchReservoir.notifier).state = value;
-                  if (!value) {
-                    ref.read(detailVm.switchReservoirsBeton.notifier).state = false;
-                    ref.read(detailVm.switchReservoirsQoplamali.notifier).state = false;
-                    detailVm.reservoirsBetonliVolume.clear();
-                    detailVm.setReservoirsBetonliVolume("");
-                    detailVm.reservoirsQoplamaliVolume.clear();
-                    detailVm.setReservoirQoplamaliVolume("");
-                  }
-                },
-                childWidgets: [
-                  BorderWidget(children: [
-                    CustomSwitchCard(
-                      label: "Betonli suv havzasi",
-                      switchValue: isReservoirsBeton,
-                      onChanged: (value) {
-                        ref
-                            .read(detailVm.switchReservoirsBeton.notifier)
-                            .state = value;
-                      },
-                      childWidgets: [
-                        Padding(
-                          padding: REdgeInsets.only(top: 10),
-                          child: CustomTextFieldWithLabel(
-                            controller: detailVm.reservoirsBetonliVolume,
-                            onTextChanged: detailVm.setReservoirsBetonliVolume,
-                            hintText: "suv havzasi hajmi m³",
-                            keyboardType: TextInputType.number,
+                    ])
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                CustomSwitchCard(
+                  label: "Unumdormi ?",
+                  switchValue: isFertile,
+                  onChanged: (value) {
+                    ref.read(detailVm.switchIsFertile.notifier).state = value;
+                  },
+                ),
+                SizedBox(height: 16.h),
+                FruitButton(),
+                AddFruitArea(
+                  selectedDetails: detailVm.selectedDetails,
+                  removeDetailAt: (index) => detailVm.removeDetailAt(index),
+                  selectedDetails2: detailVm.selectedFruitVerityRoot,
+                ),
+                MainText(text: "Bog`ning rasmlarini yuklang"),
+                ImageUploadListWidget(
+                  showImagePicker: detailVm.showImagePicker,
+                  getImageFile: detailVm.getImageFile,
+                ),
+                SizedBox(height: 16.h),
+                // Отображение общей площади после загрузки изображений
+                Consumer(
+                  builder: (context, ref, child) {
+                    return Container(
+                      padding: EdgeInsets.all(12.h),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(
+                            color: Colors.blue.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Umumiy maydon:",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[800],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10.h),
-                    CustomSwitchCard(
-                      label: "Qoplamali suv havzasi",
-                      switchValue: isReservoirsQoplamali,
-                      onChanged: (value) {
-                        ref
-                            .read(detailVm.switchReservoirsQoplamali.notifier)
-                            .state = value;
-                      },
-                      childWidgets: [
-                        Padding(
-                          padding: REdgeInsets.only(top: 10),
-                          child: CustomTextFieldWithLabel(
-                            controller: detailVm.reservoirsQoplamaliVolume,
-                            onTextChanged: detailVm.setReservoirQoplamaliVolume,
-                            hintText: "suv havzasi hajmi m³",
-                            keyboardType: TextInputType.number,
+                          Text(
+                            "${detailVm.getTotalArea(ref).toStringAsFixed(1)} GA",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[800],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: detailVm.postLoading
+                        ? null
+                        : () async {
+                            String? validationMessage =
+                                detailVm.validateFields(ref);
+                            if (validationMessage == null) {
+                              final responseServer = await detailVm.createPt(ref);
+                              if (responseServer && context.mounted) {
+                                Utils.fireTopSnackBar(detailVm.errorMessage ?? "",
+                                    AppColors.c28A745, context);
+
+                                // Обновляем список плантаций на главной странице перед переходом
+                                try {
+                                  // Получаем доступ к HomePageVm через provider
+                                  final homeVM = ref.read(homePageVM);
+                                  homeVM.getPlantationsModel(isLoadMore: false);
+                                } catch (e) {
+                                  // Если не удалось обновить, продолжаем без обновления
+                                }
+
+                                context.go('/');
+                              } else {
+                                if (context.mounted) {
+                                  Utils.fireTopSnackBar(
+                                      detailVm.errorMessage ?? "Xatolik yuz berdi",
+                                      AppColors.cE60C0C,
+                                      context);
+                                }
+                              }
+                            } else {
+                              Utils.fireTopSnackBar(
+                                  validationMessage, AppColors.cE60C0C, context);
+                            }
+                          },
+                    icon: detailVm.postLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.upload_outlined, size: 20),
+                    label: Text(
+                      detailVm.postLoading
+                          ? "Yuklanyapti..."
+                          : "Ma'lumotlarni yuklash",
                     ),
-                  ])
-                ],
-              ),
-              SizedBox(height: 16.h),
-              CustomSwitchCard(
-                label: "Unumdormi ?",
-                switchValue: isFertile,
-                onChanged: (value) {
-                  ref.read(detailVm.switchIsFertile.notifier).state = value;
-                },
-              ),
-              SizedBox(height: 16.h),
-              FruitButton(),
-              AddFruitArea(
-                selectedDetails: detailVm.selectedDetails,
-                removeDetailAt: (index) => detailVm.removeDetailAt(index),
-                selectedDetails2: detailVm.selectedFruitVerityRoot,
-              ),
-              MainText(text: "Bog`ning rasmlarini yuklang"),
-              ImageUploadListWidget(
-                showImagePicker: detailVm.showImagePicker,
-                getImageFile: detailVm.getImageFile,
-              ),
-              SizedBox(height: 16.h),
-              // Отображение общей площади после загрузки изображений
-              Consumer(
-                builder: (context, ref, child) {
-                  return Container(
-                    padding: EdgeInsets.all(12.h),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.lg,
+                      ),
+                      backgroundColor: DesignColors.AppColors.primary,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Umumiy maydon:",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
-                          ),
-                        ),
-                        Text(
-                          "${detailVm.getTotalArea(ref).toStringAsFixed(1)} GA",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: 28.h),
-              MainButton(
-                  text: "Malumotlarni yuklash",
-                  isLoading: detailVm.postLoading,
-                  onTap: () async {
-                    // Защита от множественных нажатий
-                    if (detailVm.postLoading) {
-                      return;
-                    }
-                    
-                    String? validationMessage = detailVm.validateFields(ref);
-                    if (validationMessage == null) {
-                      final responseServer = await detailVm.createPt(ref);
-                      if (responseServer && context.mounted) {
-                        Utils.fireTopSnackBar(detailVm.errorMessage ?? "",
-                            AppColors.c28A745, context);
-                        
-                        // Обновляем список плантаций на главной странице перед переходом
-                        try {
-                          // Получаем доступ к HomePageVm через provider
-                          final homeVM = ref.read(homePageVM);
-                          homeVM.getPlantationsModel(isLoadMore: false);
-                        } catch (e) {
-                          // Если не удалось обновить, продолжаем без обновления
-                        }
-                        
-                        context.go('/');
-                      } else {
-                        if (context.mounted) {
-                          Utils.fireTopSnackBar(
-                              detailVm.errorMessage ?? "Xatolik yuz berdi",
-                              AppColors.cE60C0C,
-                              context);
-                        }
-                      }
-                    } else {
-                      Utils.fireTopSnackBar(
-                          validationMessage, AppColors.cE60C0C, context);
-                    }
-                  }),
-            ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

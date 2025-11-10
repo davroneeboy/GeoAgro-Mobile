@@ -13,6 +13,11 @@ import '../../vm/create_map_page_vm.dart';
 import '../../../../core/style/app_colors.dart';
 import '../widgets/create_map_page_button_widgets.dart';
 import '../widgets/center_ruler_widget.dart';
+import 'package:agro_employee_public/design_system/theme/colors.dart'
+    as DesignColors;
+import 'package:agro_employee_public/design_system/theme/radius.dart';
+import 'package:agro_employee_public/design_system/theme/spacing.dart';
+import 'package:agro_employee_public/design_system/theme/typography.dart';
 
 final mapPageVM = ChangeNotifierProvider.autoDispose<CreateMapPageVm>((ref) {
   return CreateMapPageVm();
@@ -46,42 +51,51 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
         title: "Xarita",
         canPop: true,
         actions: [
-          IconButton(
-            onPressed: () {
-              if (vm.polylineCoordinates.length < 3) {
-                Utils.fireTopSnackBar(
-                    "Madyon to'gri kiritilmadi", AppColors.cE60C0C, context);
-              } else {
-                // Валидация координат с учетом limit_km (включает проверку currentLocation)
-                final validationError = vm.validateCoordinatesWithLimit(
-                    vm.polylineCoordinates, vm.currentLocation);
-                if (validationError != null) {
-                  Utils.fireTopSnackBar(validationError, AppColors.cE60C0C, context);
-                } else if (vm.checkPolygonOverlap()) {
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton.icon(
+              onPressed: () {
+                if (vm.polylineCoordinates.length < 3) {
                   Utils.fireTopSnackBar(
-                      "Plantatsiya boshqa plantatsiyalar ustiga chizilgan. Iltimos, boshqa joy tanlang",
-                      AppColors.cE60C0C,
-                      context);
+                      "Madyon to'gri kiritilmadi", AppColors.cE60C0C, context);
                 } else {
-                final value = vm.cordinatesConverter();
+                  // Валидация координат с учетом limit_km (включает проверку currentLocation)
+                  final validationError = vm.validateCoordinatesWithLimit(
+                      vm.polylineCoordinates, vm.currentLocation);
+                  if (validationError != null) {
+                    Utils.fireTopSnackBar(
+                        validationError, AppColors.cE60C0C, context);
+                  } else if (vm.checkPolygonOverlap()) {
+                    Utils.fireTopSnackBar(
+                        "Plantatsiya boshqa plantatsiyalar ustiga chizilgan. Iltimos, boshqa joy tanlang",
+                        AppColors.cE60C0C,
+                        context);
+                  } else {
+                    final value = vm.cordinatesConverter();
 
-                final model = {
-                  "farmerId": widget.farmerId,
-                  "coordinates": value,
-                  "latLon": vm.polylineCoordinates,
-                  "polygonArea": vm.polygonAreaHectares,
-                };
-                context.push(
-                  "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}/${AppRouteNames.detailPage}",
-                  extra: model,
-                );
+                    final model = {
+                      "farmerId": widget.farmerId,
+                      "coordinates": value,
+                      "latLon": vm.polylineCoordinates,
+                      "polygonArea": vm.polygonAreaHectares,
+                    };
+                    context.push(
+                      "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}/${AppRouteNames.detailPage}",
+                      extra: model,
+                    );
+                  }
                 }
-              }
-            },
-            icon: Icon(
-              Icons.done_rounded,
-              color: AppColors.c1E1E1E,
-              size: 16.sp,
+              },
+              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+              label: const Text("Keyingi"),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                backgroundColor: DesignColors.AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           )
         ],
@@ -97,11 +111,14 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             mapType: MapType.satellite,
             zoomControlsEnabled: false,
             polylines: vm.polylines,
-            polygons: {...vm.polygons, ...vm.nearbyPolygons}, // Объединяем полигоны пользователя и соседних плантаций
+            polygons: {
+              ...vm.polygons,
+              ...vm.nearbyPolygons
+            }, // Объединяем полигоны пользователя и соседних плантаций
             markers: vm.markers,
             onTap: vm.onTap,
           ),
-          
+
           // Legend for plantation statuses - moved to bottom left
           Positioned(
             bottom: 100,
@@ -138,7 +155,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               ),
             ),
           ),
-          
+
           // Простое отображение площади в левом верхнем углу
           if (vm.drawingPoints.isNotEmpty && vm.drawingPoints.length >= 3)
             Positioned(
@@ -167,7 +184,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                 ),
               ),
             ),
-          
+
           // Отладочная информация о плантациях
           if (vm.userPlantations.isNotEmpty)
             Positioned(
@@ -189,7 +206,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                 ),
               ),
             ),
-          
+
           // Индикатор загрузки плантаций
           if (vm.isLoadingNearby)
             Positioned(
@@ -231,63 +248,130 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                 ),
               ),
             ),
-          
+
           // Белая круглая линейка в центре экрана (всегда видна)
           CenterRulerWidget(isDrawingMode: vm.isDrawingMode),
 
           // Диалог с информацией о плантации
           if (vm.showPlantationDialog && vm.selectedPlantation != null)
-            Container(
-              color: Colors.black54,
-              child: Center(
+            Positioned(
+              top: 24,
+              left: 16,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
                 child: Container(
-                  margin: EdgeInsets.all(20),
-                  padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.25),
+                        blurRadius: 20,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
                   ),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Информация о плантации',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.sm),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  DesignColors.AppColors.primary,
+                                  DesignColors.AppColors.primaryDark,
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.map_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Text(
+                              vm.selectedPlantation!
+                                      .getDisplayFarmerName()
+                                      .trim()
+                                      .isNotEmpty
+                                  ? vm.selectedPlantation!
+                                      .getDisplayFarmerName()
+                                  : 'Plantatsiya #${vm.selectedPlantation!.id}',
+                              style: AppTypography.headlineMedium(context)
+                                  .copyWith(fontWeight: FontWeight.w700),
                             ),
                           ),
                           IconButton(
                             onPressed: vm.closePlantationDialog,
-                            icon: Icon(Icons.close),
+                            icon: const Icon(Icons.close),
+                            splashRadius: 20,
                           ),
                         ],
                       ),
-                      SizedBox(height: 16),
-                      _buildInfoRow('ID:', '${vm.selectedPlantation!.id}'),
-                      _buildInfoRow('Фермер:', vm.selectedPlantation!.getDisplayFarmerName()),
-                      _buildInfoRow('Площадь:', vm.selectedPlantation!.getDisplayArea()),
-                      _buildInfoRow('Статус:', vm.selectedPlantation!.isChecked ? 'Проверена' : 'Не проверена'),
-                      _buildInfoRow('Контуры:', vm.selectedPlantation!.getDisplayKonturNumbers()),
-                      _buildInfoRow('Координат:', '${vm.selectedPlantation!.coordinates.length}'),
-                      SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: vm.closePlantationDialog,
-                          child: Text('Закрыть'),
-                        ),
+                      const SizedBox(height: AppSpacing.md),
+                      Wrap(
+                        spacing: AppSpacing.md,
+                        runSpacing: AppSpacing.sm,
+                        children: [
+                          _buildChip(
+                            context,
+                            label: 'ID',
+                            value: '${vm.selectedPlantation!.id}',
+                            icon: Icons.numbers,
+                          ),
+                          _buildChip(
+                            context,
+                            label: 'Maydon',
+                            value: vm.selectedPlantation!.getDisplayArea(),
+                            icon: Icons.landscape_outlined,
+                          ),
+                          _buildChip(
+                            context,
+                            label: 'Status',
+                            value: vm.selectedPlantation!.isChecked
+                                ? 'Tekshirilgan'
+                                : 'Tekshirilmagan',
+                            icon: vm.selectedPlantation!.isChecked
+                                ? Icons.verified_outlined
+                                : Icons.hourglass_bottom_outlined,
+                            color: vm.selectedPlantation!.isChecked
+                                ? DesignColors.AppColors.success
+                                : DesignColors.AppColors.warning,
+                          ),
+                          if (vm.selectedPlantation!
+                              .getDisplayKonturNumbers()
+                              .trim()
+                              .isNotEmpty)
+                            _buildChip(
+                              context,
+                              label: 'Kontur',
+                              value: vm.selectedPlantation!
+                                  .getDisplayKonturNumbers(),
+                              icon: Icons.schema_outlined,
+                            ),
+                          _buildChip(
+                            context,
+                            label: 'Nuqtalar',
+                            value:
+                                '${vm.selectedPlantation!.coordinates.length} ta',
+                            icon: Icons.straighten_outlined,
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-
         ],
       ),
       floatingActionButton: CreateMapPageButtonWidgets(vm: vm),
@@ -342,6 +426,108 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             child: Text(
               value,
               style: TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required IconData icon,
+    Color? color,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = color ?? scheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+        border: Border.all(color: accent.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: accent),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            '$label: ',
+            style: AppTypography.bodySmall(context).copyWith(
+              color: accent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              style: AppTypography.bodySmall(context).copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRowNew(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon, {
+    Color? statusColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final accentColor = statusColor ?? DesignColors.AppColors.primary;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: accentColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: accentColor.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: accentColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(AppRadius.chip),
+            ),
+            child: Icon(icon, size: 18, color: accentColor),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: AppTypography.bodyMedium(context).copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -17,7 +17,7 @@ List<LatLng> polygoneCoordinates = [];
 
 class CreateMapPageVm extends ChangeNotifier {
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
-  
+
   GoogleMapController? mapController;
   final List<LatLng> polylineCoordinates = [];
   final LatLng uzbLatLng =
@@ -35,26 +35,26 @@ class CreateMapPageVm extends ChangeNotifier {
   BitmapDescriptor? userArrowIcon;
   double userHeading = 0.0;
   StreamSubscription<Position>? _positionStreamSub;
-  
+
   List<NearbyPlantation> nearbyPlantations = [];
   List<FormeMapPlantation> userPlantations = [];
   bool isLoadingNearby = false;
-  
+
   // Лимит координат в метрах (дефолт 1000м = 1км)
   double _limitKm = 1.0;
   double get limitKm => _limitKm;
-  
+
   // Состояние для диалога с информацией о плантации
   FormeMapPlantation? selectedPlantation;
   bool showPlantationDialog = false;
-  
+
   // Состояние точечного рисования
   bool isDrawingMode = false;
   bool isPolygonComplete = false;
   List<LatLng> drawingPoints = [];
   List<double> segmentDistances = []; // Расстояния между точками
   LatLng? centerPoint; // Центральная точка для рисования
-  
+
   // Состояние линейки для рисования
   BitmapDescriptor? rulerIcon; // Иконка линейки
 
@@ -118,32 +118,34 @@ class CreateMapPageVm extends ChangeNotifier {
   // Функция для расчёта площади полигона в квадратных метрах
   double calculatePolygonArea(List<LatLng> points) {
     if (points.length < 3) return 0.0;
-    
+
     // Используем формулу площади Гаусса для сферических координат
     double area = 0.0;
     int n = points.length;
-    
+
     // Если полигон замкнут (последняя точка = первой), убираем дублирующую точку
     List<LatLng> cleanPoints = List<LatLng>.from(points);
-    if (cleanPoints.length > 3 && 
+    if (cleanPoints.length > 3 &&
         cleanPoints.first.latitude == cleanPoints.last.latitude &&
         cleanPoints.first.longitude == cleanPoints.last.longitude) {
       cleanPoints.removeLast();
       n = cleanPoints.length;
     }
-    
+
     for (int i = 0; i < n; i++) {
       int j = (i + 1) % n;
       area += cleanPoints[i].longitude * cleanPoints[j].latitude;
       area -= cleanPoints[j].longitude * cleanPoints[i].latitude;
     }
     area = area.abs() / 2.0;
-    
+
     // Переводим квадратные градусы в квадратные метры
-    double avgLat = cleanPoints.map((p) => p.latitude).reduce((a, b) => a + b) / n;
+    double avgLat =
+        cleanPoints.map((p) => p.latitude).reduce((a, b) => a + b) / n;
     double meterPerDegreeLat = 111320.0; // метры на градус широты
-    double meterPerDegreeLng = 111320.0 * cos(avgLat * pi / 180); // метры на градус долготы
-    
+    double meterPerDegreeLng =
+        111320.0 * cos(avgLat * pi / 180); // метры на градус долготы
+
     area = area * meterPerDegreeLat * meterPerDegreeLng;
     return area;
   }
@@ -162,7 +164,7 @@ class CreateMapPageVm extends ChangeNotifier {
     if (userArrowIcon != null) {
       return;
     }
-    
+
     try {
       // ignore: deprecated_member_use
       userArrowIcon = await BitmapDescriptor.fromAssetImage(
@@ -172,31 +174,34 @@ class CreateMapPageVm extends ChangeNotifier {
     } catch (e) {
       debugPrint('Failed to load custom user arrow icon: $e');
       // Если не удалось загрузить кастомную иконку, используем стандартную
-      userArrowIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
+      userArrowIcon =
+          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
     }
   }
-  
+
   Future<void> loadRulerIcon() async {
     if (rulerIcon != null) {
       return;
     }
-    
+
     try {
       rulerIcon = await MarkerIconUtils.createRulerIcon();
     } catch (e) {
       debugPrint('Error loading ruler icon: $e');
       // Используем дефолтную иконку если не удалось создать кастомную
-      rulerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+      rulerIcon =
+          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
     }
   }
 
   Future<void> startUserHeadingUpdates() async {
     try {
       await loadUserArrowIcon();
-      
+
       _positionStreamSub?.cancel();
       _positionStreamSub = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.best),
       ).listen((position) {
         if (position.heading >= 0) {
           userHeading = position.heading;
@@ -215,8 +220,9 @@ class CreateMapPageVm extends ChangeNotifier {
     if (currentLocation == null || userArrowIcon == null) {
       return;
     }
-    
-    markers.removeWhere((marker) => marker.markerId.value == 'current_location');
+
+    markers
+        .removeWhere((marker) => marker.markerId.value == 'current_location');
     markers.add(
       Marker(
         markerId: const MarkerId('current_location'),
@@ -237,31 +243,30 @@ class CreateMapPageVm extends ChangeNotifier {
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    
+
     // Очищаем список плантаций
     nearbyPolygons.clear();
     nearbyPlantations.clear();
     userPlantations.clear();
-    
+
     // Устанавливаем центральную точку на текущее местоположение или дефолтное
     if (currentLocation != null) {
       centerPoint = currentLocation;
     } else {
       centerPoint = uzbLatLng;
     }
-    
+
     // Инициализируем маркеры
     _updatePolygonMarkers();
-    
+
     // Запускаем обновление местоположения пользователя
     startUserHeadingUpdates();
-    
+
     // Загружаем плантации пользователя
     loadNearbyPlantations();
-    
+
     notifyListeners();
   }
-
 
   Future<void> loadNearbyPlantations() async {
     debugPrint('Loading user plantations for map display');
@@ -272,31 +277,33 @@ class CreateMapPageVm extends ChangeNotifier {
       final data = await _appRepositoryImpl.getUserPlantationsForMap();
 
       debugPrint('User plantations API response: $data');
-      
+
       if (data != null && data.isNotEmpty) {
         try {
           userPlantations = formeMapModelFromJson(data);
           debugPrint('Loaded ${userPlantations.length} plantations');
-          
+
           // Логируем информацию о каждой плантации
           for (final plantation in userPlantations) {
-            debugPrint('Plantation ${plantation.id}: ${plantation.getDisplayFarmerName()}, coordinates: ${plantation.coordinates.length}, checked: ${plantation.isChecked}, area: ${plantation.getDisplayArea()}, kontur: ${plantation.getDisplayKonturNumbers()}');
+            debugPrint(
+                'Plantation ${plantation.id}: ${plantation.getDisplayFarmerName()}, coordinates: ${plantation.coordinates.length}, checked: ${plantation.isChecked}, area: ${plantation.getDisplayArea()}, kontur: ${plantation.getDisplayKonturNumbers()}');
           }
-          
+
           _updateUserPlantationsPolygons();
         } catch (jsonError) {
           debugPrint('JSON parsing error: $jsonError');
           debugPrint('Raw data: $data');
           userPlantations = [];
-          
+
           // Попробуем альтернативный способ загрузки через обычный список плантаций
           debugPrint('Trying alternative loading method...');
           await _loadPlantationsAlternative();
         }
       } else {
-        debugPrint('No data received from user plantations API or empty response');
+        debugPrint(
+            'No data received from user plantations API or empty response');
         userPlantations = [];
-        
+
         // Попробуем альтернативный способ загрузки
         debugPrint('Trying alternative loading method...');
         await _loadPlantationsAlternative();
@@ -304,7 +311,7 @@ class CreateMapPageVm extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error loading user plantations: $e');
       userPlantations = [];
-      
+
       // Попробуем альтернативный способ загрузки
       debugPrint('Trying alternative loading method...');
       await _loadPlantationsAlternative();
@@ -318,9 +325,10 @@ class CreateMapPageVm extends ChangeNotifier {
     try {
       debugPrint('Loading plantations using alternative method...');
       final data = await _appRepositoryImpl.getPlantationsList();
-      
+
       if (data != null) {
-        debugPrint('Alternative API returned data, but may not have coordinates for map display');
+        debugPrint(
+            'Alternative API returned data, but may not have coordinates for map display');
         // Обычный список плантаций не содержит координат для карты
         userPlantations = [];
       }
@@ -332,33 +340,43 @@ class CreateMapPageVm extends ChangeNotifier {
 
   void _updateUserPlantationsPolygons() {
     nearbyPolygons.clear();
-    debugPrint('Updating user plantations polygons for ${userPlantations.length} plantations');
-    
+    // Remove existing tooltip markers for plantations
+    markers.removeWhere(
+      (marker) => marker.markerId.value.startsWith('plantation_info_'),
+    );
+    debugPrint(
+        'Updating user plantations polygons for ${userPlantations.length} plantations');
+
     for (final plantation in userPlantations) {
-      debugPrint('Processing plantation ${plantation.id}: ${plantation.farmerName}');
-      debugPrint('Plantation coordinates count: ${plantation.coordinates.length}');
-      
+      debugPrint(
+          'Processing plantation ${plantation.id}: ${plantation.farmerName}');
+      debugPrint(
+          'Plantation coordinates count: ${plantation.coordinates.length}');
+
       if (plantation.coordinates.isNotEmpty) {
         final coordinates = plantation.coordinates
             .map((coord) => LatLng(coord.latitude, coord.longitude))
             .toList();
-        
-        debugPrint('Adding polygon for plantation ${plantation.id} with ${coordinates.length} coordinates');
-        debugPrint('First coordinate: ${coordinates.first.latitude}, ${coordinates.first.longitude}');
-        debugPrint('Last coordinate: ${coordinates.last.latitude}, ${coordinates.last.longitude}');
-        
+
+        debugPrint(
+            'Adding polygon for plantation ${plantation.id} with ${coordinates.length} coordinates');
+        debugPrint(
+            'First coordinate: ${coordinates.first.latitude}, ${coordinates.first.longitude}');
+        debugPrint(
+            'Last coordinate: ${coordinates.last.latitude}, ${coordinates.last.longitude}');
+
         // Проверяем, что полигон замкнут
         if (coordinates.length >= 3) {
           // Если полигон не замкнут, замыкаем его
-          if (coordinates.first.latitude != coordinates.last.latitude || 
+          if (coordinates.first.latitude != coordinates.last.latitude ||
               coordinates.first.longitude != coordinates.last.longitude) {
             coordinates.add(coordinates.first);
             debugPrint('Closed polygon for plantation ${plantation.id}');
           }
-          
+
           // Определяем цвет в зависимости от статуса проверки
           final color = plantation.isChecked ? Colors.green : Colors.orange;
-          
+
           // Добавляем полигон
           nearbyPolygons.add(
             Polygon(
@@ -368,62 +386,144 @@ class CreateMapPageVm extends ChangeNotifier {
               strokeColor: color,
               strokeWidth: 3,
               consumeTapEvents: true,
+              onTap: () =>
+                  onPolygonTap(PolygonId('user_plantation_${plantation.id}')),
             ),
           );
-          
-          debugPrint('Successfully added polygon for plantation ${plantation.id}');
-          debugPrint('Polygon color: ${plantation.isChecked ? 'Green (Checked)' : 'Orange (Not Checked)'}');
+
+          _addPlantationTooltipMarker(
+            plantation: plantation,
+            coordinates: coordinates,
+          );
+
+          debugPrint(
+              'Successfully added polygon for plantation ${plantation.id}');
+          debugPrint(
+              'Polygon color: ${plantation.isChecked ? 'Green (Checked)' : 'Orange (Not Checked)'}');
         } else {
-          debugPrint('Plantation ${plantation.id} has insufficient coordinates (${coordinates.length})');
+          debugPrint(
+              'Plantation ${plantation.id} has insufficient coordinates (${coordinates.length})');
         }
       } else {
         debugPrint('Plantation ${plantation.id} has no coordinates');
       }
     }
-    
+
     debugPrint('Created ${nearbyPolygons.length} user plantation polygons');
-    debugPrint('Total polygons on map: ${polygons.length + nearbyPolygons.length}');
-    
+    debugPrint(
+        'Total polygons on map: ${polygons.length + nearbyPolygons.length}');
+
     // Уведомляем UI об обновлении
+    notifyListeners();
+  }
+
+  void _addPlantationTooltipMarker({
+    required FormeMapPlantation plantation,
+    required List<LatLng> coordinates,
+  }) {
+    if (coordinates.isEmpty) return;
+
+    final centroid = _calculatePolygonCentroid(coordinates);
+    final markerId = MarkerId('plantation_info_${plantation.id}');
+    final statusLabel =
+        plantation.isChecked ? 'Tasdiqlangan' : "Ko'rib chiqilmagan";
+    final markerColor = plantation.isChecked
+        ? BitmapDescriptor.hueGreen
+        : BitmapDescriptor.hueOrange;
+
+    markers.add(
+      Marker(
+        markerId: markerId,
+        position: centroid,
+        icon: BitmapDescriptor.defaultMarkerWithHue(markerColor),
+        infoWindow: InfoWindow(
+          title: plantation.getDisplayFarmerName(),
+          snippet:
+              'ID: ${plantation.id} • ${plantation.getDisplayArea()} • $statusLabel',
+          onTap: () => _handlePlantationInfoTap(plantation),
+        ),
+        onTap: () {
+          // Также показываем всплывающее окно при прямом тапе по маркеру
+          selectedPlantation = plantation;
+          showPlantationDialog = true;
+          notifyListeners();
+        },
+      ),
+    );
+  }
+
+  LatLng _calculatePolygonCentroid(List<LatLng> points) {
+    if (points.isEmpty) {
+      return centerPoint ?? uzbLatLng;
+    }
+
+    double latitudeSum = 0;
+    double longitudeSum = 0;
+
+    final uniquePoints = List<LatLng>.from(points);
+    if (uniquePoints.length > 1 &&
+        uniquePoints.first.latitude == uniquePoints.last.latitude &&
+        uniquePoints.first.longitude == uniquePoints.last.longitude) {
+      uniquePoints.removeLast();
+    }
+
+    for (final point in uniquePoints) {
+      latitudeSum += point.latitude;
+      longitudeSum += point.longitude;
+    }
+
+    return LatLng(
+      latitudeSum / uniquePoints.length,
+      longitudeSum / uniquePoints.length,
+    );
+  }
+
+  void _handlePlantationInfoTap(FormeMapPlantation plantation) {
+    selectedPlantation = plantation;
+    showPlantationDialog = true;
     notifyListeners();
   }
 
   void onPolygonTap(PolygonId polygonId) {
     debugPrint('Polygon tapped: ${polygonId.value}');
-    
+
     // Найти плантацию по ID полигона
     final plantationId = polygonId.value.replaceFirst('user_plantation_', '');
     final plantation = userPlantations.firstWhere(
       (p) => p.id.toString() == plantationId,
       orElse: () => throw StateError('Plantation not found'),
     );
-    
+
     debugPrint('Selected plantation: ${plantation.id}');
     debugPrint('Farmer: ${plantation.getDisplayFarmerName()}');
     debugPrint('Area: ${plantation.getDisplayArea()}');
     debugPrint('Status: ${plantation.isChecked ? 'Checked' : 'Not Checked'}');
     debugPrint('Kontur numbers: ${plantation.getDisplayKonturNumbers()}');
-    
+
     // Устанавливаем выбранную плантацию и показываем диалог
     selectedPlantation = plantation;
     showPlantationDialog = true;
+    final markerId = MarkerId('plantation_info_${plantation.id}');
+    if (mapController != null) {
+      mapController!.showMarkerInfoWindow(markerId);
+    }
     notifyListeners();
   }
 
   void closePlantationDialog() {
+    if (selectedPlantation != null && mapController != null) {
+      mapController!.hideMarkerInfoWindow(
+        MarkerId('plantation_info_${selectedPlantation!.id}'),
+      );
+    }
     selectedPlantation = null;
     showPlantationDialog = false;
     notifyListeners();
   }
 
-
-
-
-
-
   void onTap(LatLng position) {
     debugPrint('Map tapped at: ${position.latitude}, ${position.longitude}');
-    
+
     // Проверяем, был ли клик по полигону
     bool tappedOnPolygon = false;
     for (final polygon in nearbyPolygons) {
@@ -434,13 +534,13 @@ class CreateMapPageVm extends ChangeNotifier {
         break;
       }
     }
-    
+
     // Если клик не по полигону, обрабатываем как обычный клик по карте
     if (!tappedOnPolygon) {
       // При тапе обновляем элементы рисования для обновления предварительной линии
       _updateDrawingElements();
     }
-    
+
     notifyListeners();
   }
 
@@ -449,44 +549,47 @@ class CreateMapPageVm extends ChangeNotifier {
     int i = 0;
     int j = polygon.length - 1;
     bool c = false;
-    
+
     for (; i < polygon.length; j = i++) {
-      if (((polygon[i].latitude > point.latitude) != (polygon[j].latitude > point.latitude)) &&
-          (point.longitude < (polygon[j].longitude - polygon[i].longitude) * 
-           (point.latitude - polygon[i].latitude) / 
-           (polygon[j].latitude - polygon[i].latitude) + polygon[i].longitude)) {
+      if (((polygon[i].latitude > point.latitude) !=
+              (polygon[j].latitude > point.latitude)) &&
+          (point.longitude <
+              (polygon[j].longitude - polygon[i].longitude) *
+                      (point.latitude - polygon[i].latitude) /
+                      (polygon[j].latitude - polygon[i].latitude) +
+                  polygon[i].longitude)) {
         c = !c;
       }
     }
     return c;
   }
-  
-  
+
   // Метод для добавления точки в центре карты
   void addPointAtRulerPosition() async {
     if (mapController == null) return;
-    
+
     // Получаем центр карты
     final center = await mapController!.getVisibleRegion();
-    final centerLat = (center.northeast.latitude + center.southwest.latitude) / 2;
-    final centerLng = (center.northeast.longitude + center.southwest.longitude) / 2;
+    final centerLat =
+        (center.northeast.latitude + center.southwest.latitude) / 2;
+    final centerLng =
+        (center.northeast.longitude + center.southwest.longitude) / 2;
     final centerPosition = LatLng(centerLat, centerLng);
-    
+
     // Добавляем точку в центре карты
     drawingPoints.add(centerPosition);
-    
+
     // Также обновляем polylineCoordinates для совместимости с существующей логикой
     polylineCoordinates.add(centerPosition);
-    
+
     // Рассчитываем расстояние до предыдущей точки
     if (drawingPoints.length > 1) {
       final distance = calculateDistance(
-        drawingPoints[drawingPoints.length - 2], 
-        drawingPoints[drawingPoints.length - 1]
-      );
+          drawingPoints[drawingPoints.length - 2],
+          drawingPoints[drawingPoints.length - 1]);
       segmentDistances.add(distance);
     }
-    
+
     _updateDrawingElements();
     notifyListeners();
   }
@@ -495,10 +598,10 @@ class CreateMapPageVm extends ChangeNotifier {
     // Очищаем все элементы рисования
     polylines.clear();
     polygons.clear();
-    
+
     // Всегда обновляем маркеры, даже если точек нет
     _updatePolygonMarkers();
-    
+
     // Если есть точки, рисуем линии и полигон
     if (drawingPoints.isNotEmpty) {
       // Если есть минимум 2 точки, рисуем линии между ними
@@ -511,7 +614,7 @@ class CreateMapPageVm extends ChangeNotifier {
           patterns: [], // Сплошная линия
         ));
       }
-      
+
       // Если есть минимум 3 точки, создаем полигон
       if (drawingPoints.length >= 3) {
         polygons.add(
@@ -525,27 +628,32 @@ class CreateMapPageVm extends ChangeNotifier {
         );
       }
     }
-    
+
     // Если есть точки, добавляем линию от последней точки до центра карты
     if (drawingPoints.isNotEmpty && mapController != null) {
       try {
         // Получаем центр карты
         final center = await mapController!.getVisibleRegion();
-        final centerLat = (center.northeast.latitude + center.southwest.latitude) / 2;
-        final centerLng = (center.northeast.longitude + center.southwest.longitude) / 2;
+        final centerLat =
+            (center.northeast.latitude + center.southwest.latitude) / 2;
+        final centerLng =
+            (center.northeast.longitude + center.southwest.longitude) / 2;
         final centerPosition = LatLng(centerLat, centerLng);
-        
+
         List<LatLng> previewLine = [
           drawingPoints.last,
           centerPosition,
         ];
-        
+
         polylines.add(Polyline(
           polylineId: const PolylineId("ruler_preview_line"),
           points: previewLine,
           color: Colors.white,
           width: 2,
-          patterns: [PatternItem.dash(5), PatternItem.gap(5)], // Пунктирная линия
+          patterns: [
+            PatternItem.dash(5),
+            PatternItem.gap(5)
+          ], // Пунктирная линия
         ));
       } catch (e) {
         debugPrint('Error getting map center: $e');
@@ -555,14 +663,15 @@ class CreateMapPageVm extends ChangeNotifier {
 
   // Новый метод для обновления маркеров точек полигона с поддержкой drag
   void _updatePolygonMarkers() {
-    debugPrint('_updatePolygonMarkers called: drawingPoints.length = ${drawingPoints.length}, isDrawingMode = $isDrawingMode');
-    
+    debugPrint(
+        '_updatePolygonMarkers called: drawingPoints.length = ${drawingPoints.length}, isDrawingMode = $isDrawingMode');
+
     // Удаляем только маркеры точек рисования пользователя, оставляем маркер локации
-    markers.removeWhere((marker) => 
-        marker.markerId.value.startsWith('drawing_point_') || 
+    markers.removeWhere((marker) =>
+        marker.markerId.value.startsWith('drawing_point_') ||
         marker.markerId.value == 'current_location' ||
         marker.markerId.value == 'ruler_marker');
-    
+
     // Восстанавливаем маркер текущей локации если есть
     if (userArrowIcon != null && currentLocation != null) {
       markers.add(
@@ -577,36 +686,40 @@ class CreateMapPageVm extends ChangeNotifier {
       );
       debugPrint('Added current location marker');
     }
-    
+
     // Центральная точка больше не нужна, так как есть линейка в центре экрана
-    
+
     // Добавляем маркеры для каждой точки рисования
     for (int i = 0; i < drawingPoints.length; i++) {
       final point = drawingPoints[i];
-      
+
       markers.add(
         Marker(
           markerId: MarkerId('drawing_point_$i'),
           position: point,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
           anchor: const Offset(0.5, 0.5),
           draggable: true,
           onDragEnd: (newPosition) => _onDrawingPointDragged(i, newPosition),
           infoWindow: InfoWindow(
             title: 'Точка ${i + 1}',
-            snippet: i > 0 ? '${segmentDistances[i - 1].toStringAsFixed(2)} м' : null,
+            snippet: i > 0
+                ? '${segmentDistances[i - 1].toStringAsFixed(2)} м'
+                : null,
           ),
         ),
       );
-      debugPrint('Added drawing point marker $i at ${point.latitude}, ${point.longitude}');
+      debugPrint(
+          'Added drawing point marker $i at ${point.latitude}, ${point.longitude}');
     }
-    
+
     // Добавляем белую круглую линейку в центре карты если в режиме рисования
     if (isDrawingMode && rulerIcon != null) {
       // Линейка будет отображаться через виджет, а не через маркер
       // Это обеспечит её фиксацию в центре экрана
     }
-    
+
     debugPrint('Total markers: ${markers.length}');
   }
 
@@ -614,26 +727,22 @@ class CreateMapPageVm extends ChangeNotifier {
   void _onDrawingPointDragged(int index, LatLng newPosition) {
     if (index < 0 || index >= drawingPoints.length) return;
     drawingPoints[index] = newPosition;
-    
+
     // Также обновляем polylineCoordinates для совместимости
     if (index < polylineCoordinates.length) {
       polylineCoordinates[index] = newPosition;
     }
-    
+
     // Пересчитываем расстояния
     if (index > 0) {
-      segmentDistances[index - 1] = calculateDistance(
-        drawingPoints[index - 1], 
-        drawingPoints[index]
-      );
+      segmentDistances[index - 1] =
+          calculateDistance(drawingPoints[index - 1], drawingPoints[index]);
     }
     if (index < drawingPoints.length - 1) {
-      segmentDistances[index] = calculateDistance(
-        drawingPoints[index], 
-        drawingPoints[index + 1]
-      );
+      segmentDistances[index] =
+          calculateDistance(drawingPoints[index], drawingPoints[index + 1]);
     }
-    
+
     _updateDrawingElements();
     notifyListeners();
   }
@@ -666,7 +775,6 @@ class CreateMapPageVm extends ChangeNotifier {
     notifyListeners();
   }
 
-
   double getPolygonArea() {
     if (drawingPoints.length < 3) return 0.0;
     // Конвертируем из квадратных метров в гектары (1 га = 10,000 м²)
@@ -675,14 +783,14 @@ class CreateMapPageVm extends ChangeNotifier {
 
   Future<void> requestLocationPermission() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    
+
     if (!serviceEnabled) {
       await Geolocator.openLocationSettings();
       return;
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
-    
+
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       permission = await Geolocator.requestPermission();
@@ -690,7 +798,7 @@ class CreateMapPageVm extends ChangeNotifier {
 
     isLocationPermissionGranted = permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
-    
+
     notifyListeners();
   }
 
@@ -713,14 +821,12 @@ class CreateMapPageVm extends ChangeNotifier {
       for (int j = 0; j < polygon2.length; j++) {
         int next2 = (j + 1) % polygon2.length;
         if (_doSegmentsIntersect(
-          polygon1[i], polygon1[next1],
-          polygon2[j], polygon2[next2]
-        )) {
+            polygon1[i], polygon1[next1], polygon2[j], polygon2[next2])) {
           return true;
         }
       }
     }
-    
+
     // Проверяем, находится ли один полигон внутри другого
     if (polygon1.isNotEmpty && polygon2.isNotEmpty) {
       if (_isPointInPolygon(polygon1[0], polygon2)) {
@@ -730,68 +836,68 @@ class CreateMapPageVm extends ChangeNotifier {
         return true;
       }
     }
-    
+
     return false;
   }
-  
+
   // Проверка пересечения двух отрезков
   bool _doSegmentsIntersect(LatLng p1, LatLng p2, LatLng p3, LatLng p4) {
     double d1 = _direction(p3, p4, p1);
     double d2 = _direction(p3, p4, p2);
     double d3 = _direction(p1, p2, p3);
     double d4 = _direction(p1, p2, p4);
-    
+
     if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
         ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
       return true;
     }
-    
+
     if (d1 == 0 && _onSegment(p3, p4, p1)) return true;
     if (d2 == 0 && _onSegment(p3, p4, p2)) return true;
     if (d3 == 0 && _onSegment(p1, p2, p3)) return true;
     if (d4 == 0 && _onSegment(p1, p2, p4)) return true;
-    
+
     return false;
   }
-  
+
   // Вычисление направления для проверки пересечения
   double _direction(LatLng p1, LatLng p2, LatLng p3) {
     return (p3.longitude - p1.longitude) * (p2.latitude - p1.latitude) -
-           (p2.longitude - p1.longitude) * (p3.latitude - p1.latitude);
+        (p2.longitude - p1.longitude) * (p3.latitude - p1.latitude);
   }
-  
+
   // Проверка, находится ли точка на отрезке
   bool _onSegment(LatLng p1, LatLng p2, LatLng p) {
     return p.latitude <= max(p1.latitude, p2.latitude) &&
-           p.latitude >= min(p1.latitude, p2.latitude) &&
-           p.longitude <= max(p1.longitude, p2.longitude) &&
-           p.longitude >= min(p1.longitude, p2.longitude);
+        p.latitude >= min(p1.latitude, p2.latitude) &&
+        p.longitude <= max(p1.longitude, p2.longitude) &&
+        p.longitude >= min(p1.longitude, p2.longitude);
   }
-  
+
   // Проверка пересечения нового полигона с существующими плантациями
   bool checkPolygonOverlap() {
     if (drawingPoints.length < 3) {
       return false;
     }
-    
+
     // Проверяем пересечение с каждой существующей плантацией
     for (final plantation in userPlantations) {
       if (plantation.coordinates.isEmpty || plantation.coordinates.length < 3) {
         continue;
       }
-      
+
       // Конвертируем координаты плантации в LatLng
       List<LatLng> plantationCoords = plantation.coordinates
           .map((coord) => LatLng(coord.latitude, coord.longitude))
           .toList();
-      
+
       // Проверяем пересечение
       if (doPolygonsIntersect(drawingPoints, plantationCoords)) {
         debugPrint('Overlap detected with plantation ${plantation.id}');
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -804,28 +910,29 @@ class CreateMapPageVm extends ChangeNotifier {
 
   /// Валидировать координаты с учетом лимита
   /// Возвращает null если валидно, иначе сообщение об ошибке
-  String? validateCoordinatesWithLimit(List<LatLng> coordinates, LatLng? currentLocation) {
+  String? validateCoordinatesWithLimit(
+      List<LatLng> coordinates, LatLng? currentLocation) {
     if (currentLocation == null) {
       return "Foydalanuvchi joylashuvi aniqlanmadi";
     }
-    
+
     if (coordinates.length < 3) {
       return "Madyon to'gri kiritilmadi";
     }
-    
+
     // Проверяем, находится ли пользователь внутри полигона
     final isInside = isPointInPolygon(currentLocation, coordinates);
-    
+
     // Если не внутри, проверяем минимальное расстояние
     if (!isInside) {
       final minDistance = findMinimumDistance(coordinates, currentLocation);
       final limitMeters = _limitKm * 1000; // Конвертируем км в метры
-      
+
       if (minDistance > limitMeters) {
         return "Foydalanuvchi kiritilgan maydonning ${_limitKm.toStringAsFixed(_limitKm.truncateToDouble() == _limitKm ? 0 : 1)} km radiusida emas";
       }
     }
-    
+
     return null; // Валидно
   }
 
@@ -844,12 +951,14 @@ class CreateMapPageVm extends ChangeNotifier {
             desiredAccuracy: LocationAccuracy.high);
         currentLocation = LatLng(position.latitude, position.longitude);
         centerPoint = currentLocation; // Обновляем центральную точку
-        debugPrint('Got real location: ${currentLocation!.latitude}, ${currentLocation!.longitude}');
+        debugPrint(
+            'Got real location: ${currentLocation!.latitude}, ${currentLocation!.longitude}');
       } else {
         // Используем дефолтное местоположение если нет разрешения
         currentLocation = uzbLatLng;
         centerPoint = currentLocation; // Обновляем центральную точку
-        debugPrint('Using default location: ${currentLocation!.latitude}, ${currentLocation!.longitude}');
+        debugPrint(
+            'Using default location: ${currentLocation!.latitude}, ${currentLocation!.longitude}');
       }
 
       // Загружаем иконку пользователя
@@ -857,7 +966,8 @@ class CreateMapPageVm extends ChangeNotifier {
 
       // Добавляем маркер текущего местоположения только если иконка загружена
       if (userArrowIcon != null) {
-        markers.removeWhere((marker) => marker.markerId.value == 'current_location');
+        markers.removeWhere(
+            (marker) => marker.markerId.value == 'current_location');
         markers.add(
           Marker(
             markerId: const MarkerId('current_location'),
@@ -882,11 +992,12 @@ class CreateMapPageVm extends ChangeNotifier {
       debugPrint('Error getting location: $e');
       // В случае ошибки используем дефолтное местоположение
       currentLocation = uzbLatLng;
-      debugPrint('Using default location due to error: ${currentLocation!.latitude}, ${currentLocation!.longitude}');
-      
+      debugPrint(
+          'Using default location due to error: ${currentLocation!.latitude}, ${currentLocation!.longitude}');
+
       // Загружаем иконку пользователя
       await loadUserArrowIcon();
-      
+
       // Загружаем соседние плантации
       loadNearbyPlantations();
     } finally {

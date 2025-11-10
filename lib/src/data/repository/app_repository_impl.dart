@@ -54,7 +54,6 @@ class AppRepositoryImpl implements AppRepo {
     return null;
   }
 
-
   /// Delete Plantation method
   @override
   Future<String?> deletePlantationModel(
@@ -80,14 +79,12 @@ class AppRepositoryImpl implements AppRepo {
     try {
       final body = {
         "moderation_comment": [
-          {
-            "text": reason ?? "O'chirish so'rovi",
-            "image": null
-          }
+          {"text": reason ?? "O'chirish so'rovi", "image": null}
         ]
       };
-      
-      final response = await ApiService.patch("${ApiConst.apiPlantations}$id/delete/", body);
+
+      final response =
+          await ApiService.patch("${ApiConst.apiPlantations}$id/delete/", body);
       if (response != null) {
         // Проверяем статус код
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -130,8 +127,15 @@ class AppRepositoryImpl implements AppRepo {
   Future<String?> getRelatedPlantationsMap(int plantationId) async {
     try {
       final data = await ApiService.get(
-          "${ApiConst.apiPlantations}$plantationId/related-map/", 
+          "${ApiConst.apiPlantations}$plantationId/related-map/",
           ApiParams.emptyParams());
+      if (data == null) {
+        debugPrint(
+            "Related plantations map response is null for id=$plantationId");
+      } else {
+        debugPrint(
+            "Related plantations map fetched for id=$plantationId (length=${data.length})");
+      }
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -143,17 +147,19 @@ class AppRepositoryImpl implements AppRepo {
 
   /// Get nearby plantations for creating new plantation
   @override
-  Future<String?> getNearbyPlantations({required double latitude, required double longitude, double radius = 1000}) async {
+  Future<String?> getNearbyPlantations(
+      {required double latitude,
+      required double longitude,
+      double radius = 1000}) async {
     try {
       final params = {
         'latitude': latitude.toString(),
         'longitude': longitude.toString(),
         'radius': radius.toString(),
       };
-      
+
       final data = await ApiService.get(
-          "${ApiConst.apiPlantations}nearby/", 
-          ApiParams.queryParams(params));
+          "${ApiConst.apiPlantations}nearby/", ApiParams.queryParams(params));
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -167,18 +173,20 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getUserPlantationsForMap() async {
     try {
-      debugPrint("Fetching user plantations for map from: ${ApiConst.apiPlantationsFormeMap}");
-      
+      debugPrint(
+          "Fetching user plantations for map from: ${ApiConst.apiPlantationsFormeMap}");
+
       // Используем endpoint для получения плантаций пользователя с координатами
       final data = await ApiService.get(
-          ApiConst.apiPlantationsFormeMap, 
-          ApiParams.emptyParams());
-      
-      debugPrint("User plantations API response: ${data?.substring(0, data.length > 500 ? 500 : data.length)}...");
-      
+          ApiConst.apiPlantationsFormeMap, ApiParams.emptyParams());
+
+      debugPrint(
+          "User plantations API response: ${data?.substring(0, data.length > 500 ? 500 : data.length)}...");
+
       return data;
     } on DioException catch (e) {
-      debugPrint("Server error in getUserPlantationsForMap: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
+      debugPrint(
+          "Server error in getUserPlantationsForMap: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
       if (e.response?.statusCode == 401) {
         debugPrint("Authentication error - token may be expired");
       }
@@ -240,7 +248,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<ApiResponse> postNewFermer({required CreateFermerModel fermer}) async {
     try {
-      final response = await ApiService.post(ApiConst.apiFermers, fermer.toJson());
+      final response =
+          await ApiService.post(ApiConst.apiFermers, fermer.toJson());
       return response;
     } catch (e) {
       return ApiResponse(
@@ -343,7 +352,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getPlantationImages({required int id}) async {
     try {
-      final data = await ApiService.get(ApiConst.apiUpdateImage(id), ApiParams.emptyParams());
+      final data = await ApiService.get(
+          ApiConst.apiUpdateImage(id), ApiParams.emptyParams());
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -354,9 +364,11 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<ApiResponse> postPlantationImage({required int id, required String filePath}) async {
+  Future<ApiResponse> postPlantationImage(
+      {required int id, required String filePath}) async {
     try {
-      final response = await ApiService.postFile(ApiConst.apiUpdateImage(id), filePath);
+      final response =
+          await ApiService.postFile(ApiConst.apiUpdateImage(id), filePath);
       return response;
     } catch (e) {
       return ApiResponse(statusCode: 500, data: {"message": e.toString()});
@@ -364,9 +376,11 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<String?> deletePlantationImage({required int plantationId, required int imageId}) async {
+  Future<String?> deletePlantationImage(
+      {required int plantationId, required int imageId}) async {
     try {
-      final data = await ApiService.delete(ApiConst.apiDeleteImage(plantationId, imageId));
+      final data = await ApiService.delete(
+          ApiConst.apiDeleteImage(plantationId, imageId));
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -377,9 +391,11 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<String?> editImage({required int id, required List<String> images}) async {
+  Future<String?> editImage(
+      {required int id, required List<String> images}) async {
     try {
-      final data = await ApiService.uploadImages(ApiConst.apiLegacyImagesUpdate(id), images);
+      final data = await ApiService.uploadImages(
+          ApiConst.apiLegacyImagesUpdate(id), images);
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -394,7 +410,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getUserInfo() async {
     try {
-      final data = await ApiService.get(ApiConst.apiGetUserInfo, ApiParams.emptyParams());
+      final data = await ApiService.get(
+          ApiConst.apiGetUserInfo, ApiParams.emptyParams());
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -407,7 +424,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getFarmerById(int farmerId) async {
     try {
-      final data = await ApiService.get("${ApiConst.apiFermers}$farmerId/", ApiParams.emptyParams());
+      final data = await ApiService.get(
+          "${ApiConst.apiFermers}$farmerId/", ApiParams.emptyParams());
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -433,9 +451,11 @@ class AppRepositoryImpl implements AppRepo {
 
   // ===== Notifications API =====
   @override
-  Future<String?> getNotifications({int limit = 20, int offset = 0, bool? unreadOnly, String? type}) async {
+  Future<String?> getNotifications(
+      {int limit = 20, int offset = 0, bool? unreadOnly, String? type}) async {
     try {
-      final params = ApiParams.notificationsListParams(limit: limit, offset: offset, unreadOnly: unreadOnly, type: type);
+      final params = ApiParams.notificationsListParams(
+          limit: limit, offset: offset, unreadOnly: unreadOnly, type: type);
       final data = await ApiService.get(ApiConst.apiNotifications, params);
       return data;
     } on DioException catch (e) {
@@ -449,7 +469,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getUnreadNotificationsCount() async {
     try {
-      final data = await ApiService.get(ApiConst.apiNotificationsUnreadCount, ApiParams.emptyParams());
+      final data = await ApiService.get(
+          ApiConst.apiNotificationsUnreadCount, ApiParams.emptyParams());
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -460,7 +481,8 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<String?> markNotificationsAsRead({bool markAll = false, List<int>? ids}) async {
+  Future<String?> markNotificationsAsRead(
+      {bool markAll = false, List<int>? ids}) async {
     try {
       final body = <String, dynamic>{};
       if (markAll) body['mark_all_as_read'] = true;
@@ -478,7 +500,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> markNotificationAsRead({required int id}) async {
     try {
-      final response = await ApiService.patch("${ApiConst.apiNotifications}$id/", {});
+      final response =
+          await ApiService.patch("${ApiConst.apiNotifications}$id/", {});
       return response?.toString();
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
