@@ -11,8 +11,6 @@ import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/main_button.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
-import 'package:agro_employee_public/design_system/tokens/spacing.dart';
-import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/feature/fermers/vm/fermer_vm.dart';
 
 import '../widgets/fermer_page_card_widget.dart';

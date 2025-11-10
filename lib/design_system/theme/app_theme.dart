@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 import 'spacing.dart';
 import 'radius.dart';
-import 'shadows.dart';
 
 /// Design System Theme Configuration
 /// 
@@ -980,8 +979,6 @@ class AppTheme {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   static TextTheme _textTheme(ColorScheme colorScheme) {
-    final isDark = colorScheme.brightness == Brightness.dark;
-    
     return TextTheme(
       // Display
       displayLarge: GoogleFonts.inter(

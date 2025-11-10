@@ -298,7 +298,7 @@ class _ModernDrawerHeader extends StatelessWidget {
                   isLoading
                       ? "Ma'lumotlar yuklanmoqda..."
                       : (userInfo?.displayName?.isNotEmpty == true
-                          ? userInfo!.displayName!
+                          ? userInfo!.displayName
                           : "Foydalanuvchi"),
                   style: AppTypography.title(context).copyWith(
                     color: Colors.white,
@@ -308,7 +308,7 @@ class _ModernDrawerHeader extends StatelessWidget {
                 SizedBox(height: AppSpacing.xs),
                 if ((userInfo?.districtName ?? "").isNotEmpty) ...[
                   Text(
-                    userInfo!.districtName!,
+                    userInfo!.districtName,
                     style: AppTypography.bodySmall(context).copyWith(
                       color: Colors.white.withOpacity(0.85),
                     ),
@@ -326,7 +326,7 @@ class _ModernDrawerHeader extends StatelessWidget {
                       SizedBox(width: AppSpacing.xs),
                       Flexible(
                         child: Text(
-                          userInfo!.phoneNumber!,
+                          userInfo!.phoneNumber,
                           style: AppTypography.bodySmall(context).copyWith(
                             color: Colors.white.withOpacity(0.85),
                           ),
@@ -352,73 +352,6 @@ class _ModernDrawerHeader extends StatelessWidget {
     final first = parts.first.substring(0, 1).toUpperCase();
     final last = parts.last.substring(0, 1).toUpperCase();
     return "$first$last";
-  }
-}
-
-class _UserInfoCard extends StatelessWidget {
-  final UserInfoModel userInfo;
-
-  const _UserInfoCard({required this.userInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _InfoRow(label: "Ism", value: userInfo.displayName),
-          SizedBox(height: AppSpacing.sm),
-          _InfoRow(label: "Hudud", value: userInfo.districtName),
-          SizedBox(height: AppSpacing.sm),
-          _InfoRow(label: "Telefon", value: userInfo.phoneNumber),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String? value;
-
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textValue = (value ?? "").trim().isEmpty ? "Kiritilmagan" : value!;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 90,
-          child: Text(
-            "$label:",
-            style: AppTypography.bodySmall(context).copyWith(
-              color: DesignColors.AppColors.darkTextTertiary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            textValue,
-            style: AppTypography.bodySmall(context).copyWith(
-              color: DesignColors.AppColors.darkTextSecondary,
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
 

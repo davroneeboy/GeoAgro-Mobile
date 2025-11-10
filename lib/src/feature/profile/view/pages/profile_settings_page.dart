@@ -350,17 +350,17 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: AppSpacing.xs.h),
-                if ((userInfo!.districtName ?? '').isNotEmpty)
+                if (userInfo!.districtName.isNotEmpty)
                   Text(
-                    userInfo!.districtName!,
+                    userInfo!.districtName,
                     style: AppTypography.bodyMedium(context).copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                if ((userInfo!.phoneNumber ?? '').isNotEmpty) ...[
+                if (userInfo!.phoneNumber.isNotEmpty) ...[
                   SizedBox(height: AppSpacing.xs.h),
                   Text(
-                    userInfo!.phoneNumber!,
+                    userInfo!.phoneNumber,
                     style: AppTypography.bodyMedium(context),
                   ),
                 ],

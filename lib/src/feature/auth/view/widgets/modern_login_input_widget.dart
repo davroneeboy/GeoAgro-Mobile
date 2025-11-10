@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import '../../../../../design_system/tokens/colors.dart' as DesignColors;
-import '../../../../../design_system/tokens/spacing.dart';
-import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/typography.dart';
 
 /// Современный input widget с анимациями в стиле Apple

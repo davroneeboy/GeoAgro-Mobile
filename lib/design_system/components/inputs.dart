@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
-import '../theme/radius.dart';
 import '../theme/typography.dart';
 
 /// Design System Input Components
@@ -80,7 +79,6 @@ class AppTextField extends StatefulWidget {
 class _AppTextFieldState extends State<AppTextField> {
   late bool _obscureText;
   late FocusNode _focusNode;
-  bool _isFocused = false;
 
   @override
   void initState() {
@@ -99,9 +97,7 @@ class _AppTextFieldState extends State<AppTextField> {
   }
 
   void _onFocusChange() {
-    setState(() {
-      _isFocused = _focusNode.hasFocus;
-    });
+    setState(() {});
   }
 
   void _toggleObscureText() {
@@ -112,8 +108,6 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     Widget? effectiveSuffixIcon = widget.suffixIcon;
     
     if (widget.showPasswordToggle && widget.obscureText) {

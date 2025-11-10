@@ -59,7 +59,7 @@ class DropdownWithLabel extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.input),
               borderSide: BorderSide(
-                color: colorScheme.outlineVariant ?? colorScheme.outline,
+                color: colorScheme.outlineVariant,
               ),
             ),
             focusedBorder: OutlineInputBorder(

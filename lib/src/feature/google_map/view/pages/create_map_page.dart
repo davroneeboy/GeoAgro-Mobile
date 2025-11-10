@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -406,33 +405,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildChip(
     BuildContext context, {
     required String label,
@@ -473,61 +445,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                 fontWeight: FontWeight.w600,
               ),
               overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRowNew(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon, {
-    Color? statusColor,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final accentColor = statusColor ?? DesignColors.AppColors.primary;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: accentColor.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: accentColor.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xs),
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppRadius.chip),
-            ),
-            child: Icon(icon, size: 18, color: accentColor),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: AppTypography.bodyMedium(context).copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
             ),
           ),
         ],

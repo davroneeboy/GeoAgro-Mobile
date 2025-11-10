@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
@@ -417,7 +418,7 @@ class _FarmerCard extends StatelessWidget {
                         SizedBox(height: AppSpacing.xs),
                         Text(
                           farmer.lastAddedPlantations?.isNotEmpty == true
-                              ? "Oxirgi qo'shilgan: ${farmer.lastAddedPlantations}"
+                              ? "Oxirgi qo'shilgan: ${_formatDate(farmer.lastAddedPlantations!)}"
                               : "Yangilangan ma'lumot mavjud emas",
                           style: AppTypography.caption(context).copyWith(
                             color: DesignColors.AppColors.darkTextTertiary,
@@ -475,6 +476,18 @@ class _FarmerCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      // Парсим ISO 8601 формат (например: 2025-10-18T07:24:03.910158Z)
+      final date = DateTime.parse(dateString);
+      // Форматируем в читаемый формат: dd.MM.yyyy HH:mm
+      return DateFormat('dd.MM.yyyy HH:mm').format(date);
+    } catch (e) {
+      // Если не удалось распарсить, возвращаем исходную строку
+      return dateString;
+    }
   }
 }
 

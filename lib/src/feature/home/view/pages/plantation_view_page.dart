@@ -860,108 +860,31 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       borderRadius: borderRadius,
       child: SizedBox(
         height: 220,
-        child: Stack(
-          children: [
-            GoogleMap(
-              onMapCreated: mapVm.onMapCreated,
-              initialCameraPosition: CameraPosition(
-                target: mapVm.initialPosition,
-                zoom: 15,
-              ),
-              mapType: MapType.satellite,
-              polygons: mapVm.polygons,
-              polylines: mapVm.polylines,
-              markers: mapVm.markers,
-              circles: mapVm.circles,
-              zoomControlsEnabled: false,
-              myLocationButtonEnabled: false,
-              myLocationEnabled: false,
-              mapToolbarEnabled: false,
-              rotateGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              scrollGesturesEnabled: true,
-              zoomGesturesEnabled: true,
-              liteModeEnabled: false,
-              buildingsEnabled: false,
-              trafficEnabled: false,
+        child: _MapGestureHandler(
+          child: GoogleMap(
+            onMapCreated: mapVm.onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: mapVm.initialPosition,
+              zoom: 15,
             ),
-            Positioned(
-              top: 16,
-              left: 16,
-              child: _buildStatusChip(context, statusData),
-            ),
-            if (mapVm.currentPlantation != null)
-              Positioned(
-                bottom: 16,
-                left: 16,
-                child: _buildMapInfoBadge(
-                  context,
-                  icon: Icons.straighten,
-                  label:
-                      "Nuqtalar: ${mapVm.currentPlantation!.coordinates.length}",
-                ),
-              ),
-          ],
+            mapType: MapType.satellite,
+            polygons: mapVm.polygons,
+            polylines: mapVm.polylines,
+            markers: mapVm.markers,
+            circles: mapVm.circles,
+            zoomControlsEnabled: true,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: false,
+            mapToolbarEnabled: false,
+            rotateGesturesEnabled: true,
+            tiltGesturesEnabled: true,
+            scrollGesturesEnabled: true,
+            zoomGesturesEnabled: true,
+            liteModeEnabled: false,
+            buildingsEnabled: false,
+            trafficEnabled: false,
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(
-      BuildContext context, MapEntry<String, Color> statusData) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: statusData.value.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(AppRadius.button),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.verified, size: 18, color: statusData.value),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            statusData.key,
-            style: AppTypography.bodyMedium(context).copyWith(
-              color: statusData.value,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMapInfoBadge(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.45),
-        borderRadius: BorderRadius.circular(AppRadius.button),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.white),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            label,
-            style: AppTypography.bodySmall(context).copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1509,6 +1432,34 @@ class _InfoTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MapGestureHandler extends StatefulWidget {
+  final Widget child;
+
+  const _MapGestureHandler({required this.child});
+
+  @override
+  State<_MapGestureHandler> createState() => _MapGestureHandlerState();
+}
+
+class _MapGestureHandlerState extends State<_MapGestureHandler> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onVerticalDragStart: (_) {
+        // Блокируем вертикальные жесты, чтобы они не передавались родительскому ScrollView
+      },
+      onVerticalDragUpdate: (_) {
+        // Блокируем вертикальные жесты
+      },
+      onVerticalDragEnd: (_) {
+        // Блокируем вертикальные жесты
+      },
+      behavior: HitTestBehavior.translucent,
+      child: widget.child,
     );
   }
 }

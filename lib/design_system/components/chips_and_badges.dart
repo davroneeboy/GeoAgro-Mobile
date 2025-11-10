@@ -307,7 +307,6 @@ class AppTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveColor = color ?? AppColors.primary;
 
     final container = Container(

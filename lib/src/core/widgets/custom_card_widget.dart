@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../../design_system/tokens/radii.dart';
 

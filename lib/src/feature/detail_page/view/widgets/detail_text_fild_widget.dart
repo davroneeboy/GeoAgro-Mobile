@@ -36,7 +36,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
         : colorScheme.surfaceVariant;
     final outlineColor = isDark
         ? DesignColors.AppColors.darkBorder
-        : colorScheme.outlineVariant ?? colorScheme.outline;
+        : colorScheme.outlineVariant;
     final hintColor = isDark
         ? DesignColors.AppColors.darkTextTertiary
         : colorScheme.onSurfaceVariant;

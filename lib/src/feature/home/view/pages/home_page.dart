@@ -6,7 +6,6 @@ import 'package:lottie/lottie.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/routes/app_route_names.dart';
-import '../../../../core/style/app_colors.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
@@ -15,7 +14,6 @@ import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../fermers/view/pages/fermers_page.dart';
 import '../../../fermers/view/pages/farmers_statistics_page.dart';
 import '../../../profile/view/pages/profile_settings_page.dart';
-import 'natification_page.dart';
 import '../widgets/home_page_floataction_button_widget.dart';
 import '../widgets/home_drower.dart';
 import '../widgets/home_page_card_widget.dart';

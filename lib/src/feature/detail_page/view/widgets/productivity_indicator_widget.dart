@@ -33,8 +33,7 @@ class ProductivityIndicator extends StatelessWidget {
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: DesignColors.AppColors.primary,
-                  inactiveTrackColor: theme.colorScheme.outlineVariant ??
-                      theme.colorScheme.outline,
+                  inactiveTrackColor: theme.colorScheme.outlineVariant,
                   thumbColor: DesignColors.AppColors.primary,
                   overlayColor:
                       DesignColors.AppColors.primary.withOpacity(0.12),
