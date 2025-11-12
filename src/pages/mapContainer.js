@@ -51,9 +51,9 @@ export default function MapContainer() {
       localStorage.setItem('mapSelectedRegion', JSON.stringify(region));
       localStorage.removeItem('mapSelectedDistrict');
     } catch (e) {}
-    setSelectedDistrict(null);
-    setPlantations([]);
-    setSelectedPlantation(null);
+    setSelectedDistrict(null); // Сбрасываем выбранный район
+    setPlantations([]); // Очищаем список плантаций
+    setSelectedPlantation(null); // Очищаем выбранную плантацию
     // Сбрасываем фильтры при смене региона
     setFilters(prev => ({
       ...prev,
@@ -220,14 +220,17 @@ export default function MapContainer() {
       clearTimeout(searchDebounceRef.current);
     }
     
+    // Загружаем плантации ТОЛЬКО если выбран район (туман), не загружаем для региона
+    if (!selectedDistrict) {
+      return;
+    }
+    
     // Для поисковых полей используем debounce, для остальных фильтров - сразу
     const isSearchField = filters.name || filters.inn;
     const delay = isSearchField ? 500 : 0;
     
     searchDebounceRef.current = setTimeout(() => {
-      if (selectedDistrict || selectedRegion) {
-        loadPlantationsRef.current(1, filters, selectedDistrict, selectedRegion);
-      }
+      loadPlantationsRef.current(1, filters, selectedDistrict, selectedRegion);
     }, delay);
     
     return () => {
