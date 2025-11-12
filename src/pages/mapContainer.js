@@ -180,6 +180,11 @@ export default function MapContainer() {
               plantation.total_area || 0
             } га`
           );
+          
+          // Добавляем обработчик клика для загрузки детальной информации
+          polygon.on('click', () => {
+            handlePlantationClick(plantation, mapInstance);
+          });
         });
       }
     } catch (error) {
