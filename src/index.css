@@ -35,6 +35,33 @@ code {
 .leaflet-container {
   width: 100%;
   height: 100%;
+  /* Убираем темный квадрат при нажатии */
+  -webkit-tap-highlight-color: transparent;
+  outline: none !important;
+}
+
+/* Убираем outline и tap highlight для всех элементов карты */
+.leaflet-container *,
+.leaflet-pane *,
+.leaflet-layer *,
+svg path,
+svg g {
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Убираем focus стили для интерактивных элементов карты */
+.leaflet-interactive:focus {
+  outline: none !important;
+}
+
+.leaflet-marker-icon:focus {
+  outline: none !important;
 }
 .map-continer{
 

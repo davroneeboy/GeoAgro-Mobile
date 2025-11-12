@@ -59,21 +59,37 @@ export const useMapsHook = ({
             ""
           );
 
-          layer.bindPopup(
+          // Используем tooltip вместо popup для избежания лагов
+          layer.bindTooltip(
             `<div style="display: flex; align-items: center;">
               <span>${regionName || "Noma'lum"}</span>
             </div>`,
-            { className: "customPopupLeaflet", closeButton: false }
+            { 
+              permanent: false,
+              direction: 'center',
+              className: 'region-tooltip',
+              opacity: 0.9,
+              interactive: false, // Важно: tooltip не реагирует на события мыши
+              sticky: true // Tooltip следует за курсором
+            }
           );
 
           layer.on({
             mouseover() {
-              this.openPopup();
-              this.setStyle({ fillColor: "#278BE3" });
+              this.openTooltip();
+              this.setStyle({ 
+                fillColor: "#1E6BA8", // Более темный синий при наведении
+                fillOpacity: 0.7,
+                weight: 3
+              });
             },
             mouseout() {
-              this.closePopup();
-              this.setStyle({ fillColor: "#52ADEC" });
+              this.closeTooltip();
+              this.setStyle({ 
+                fillColor: "#52ADEC",
+                fillOpacity: 0.5,
+                weight: 2
+              });
             },
             click: async () => {
               const regionId = feature.properties?.id;
@@ -169,14 +185,32 @@ export const useMapsHook = ({
            const tumanName = feature.properties?.name || "Noma'lum";
            const tumanId = feature.properties?.id;
 
-           layer.on({
+           // Добавляем tooltip вместо popup для избежания лагов
+          layer.bindTooltip(`<div><strong>${tumanName}</strong></div>`, {
+            permanent: false,
+            direction: 'center',
+            className: 'district-tooltip',
+            opacity: 0.9,
+            interactive: false, // Важно: tooltip не реагирует на события мыши
+            sticky: true // Tooltip следует за курсором
+          });
+          
+          layer.on({
             mouseover() {
-              layer
-                .bindPopup(`<div><strong>${tumanName}</strong></div>`)
-                .openPopup();
+              layer.openTooltip();
+              layer.setStyle({ 
+                fillColor: "#1E6BA8", // Более темный синий при наведении
+                fillOpacity: 0.7,
+                weight: 3
+              });
             },
             mouseout() {
-              layer.closePopup();
+              layer.closeTooltip();
+              layer.setStyle({ 
+                fillColor: "#52ADEC",
+                fillOpacity: 0.5,
+                weight: 2
+              });
             },
             click: async () => {
               // Удаляем все слои кроме базовой карты
