@@ -23,7 +23,3 @@ export const translateAction = (action) => {
 
 export default translateAction;
 
-
-
-
-qwe
