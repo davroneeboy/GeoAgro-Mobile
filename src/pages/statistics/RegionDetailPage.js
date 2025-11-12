@@ -161,6 +161,7 @@ const RegionDetailPage = () => {
                   plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
                   not_used_area: Number(item.not_used_area || 0),
+                  farmers_count: Number(item.farmers_count || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -211,6 +212,7 @@ const RegionDetailPage = () => {
                   plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
                   not_used_area: Number(item.not_used_area || 0),
+                  farmers_count: Number(item.farmers_count || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -309,6 +311,7 @@ const RegionDetailPage = () => {
                   plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
                   not_used_area: Number(item.not_used_area || 0),
+                  farmers_count: Number(item.farmers_count || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -359,6 +362,7 @@ const RegionDetailPage = () => {
                   plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
                   not_used_area: Number(item.not_used_area || 0),
+                  farmers_count: Number(item.farmers_count || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -454,6 +458,7 @@ const RegionDetailPage = () => {
                   plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
                   not_used_area: Number(item.not_used_area || 0),
+                  farmers_count: Number(item.farmers_count || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -504,6 +509,7 @@ const RegionDetailPage = () => {
                   plantation_count: Number(item.total_plantations || 0),
                   planted_area: Number(item.planted_area || 0),
                   not_used_area: Number(item.not_used_area || 0),
+                  farmers_count: Number(item.farmers_count || 0),
                   investment: {
                     local: Number(item.investment?.local || 0),
                     foreign: Number(item.investment?.foreign || 0),
@@ -796,6 +802,7 @@ const RegionDetailPage = () => {
           approved_plantations: item.approved_plantations || 0,
           pending_plantations: item.pending_plantations || 0,
           rejected_plantations: item.rejected_plantations || 0,
+          farmers_count: item.farmers_count || 0,
           // Плодородие
           low_fertility_area: item.low_fertility?.area || 0,
           high_fertility_area: item.high_fertility?.area || 0,
@@ -851,6 +858,7 @@ const RegionDetailPage = () => {
           approved_plantations: districtData.approved_plantations || 0,
           pending_plantations: districtData.pending_plantations || 0,
           rejected_plantations: districtData.rejected_plantations || 0,
+          farmers_count: districtData.farmers_count || 0,
         };
         
         return row;
@@ -887,6 +895,7 @@ const RegionDetailPage = () => {
           approved_plantations: data.approved_plantations || 0,
           pending_plantations: data.pending_plantations || 0,
           rejected_plantations: data.rejected_plantations || 0,
+          farmers_count: data.farmers_count || 0,
           // Плодородие
           low_fertility_area: data.low_fertility?.area || 0,
           high_fertility_area: data.high_fertility?.area || 0,
@@ -911,6 +920,8 @@ const RegionDetailPage = () => {
           return Number(row.total_area || 0);
         case 'total_plantations':
           return Number(row.total_plantations || 0);
+        case 'farmers_count':
+          return Number(row.farmers_count || 0);
         case 'planted_area':
           return Number(row.planted_area || 0);
         case 'not_used_area':
@@ -984,6 +995,7 @@ const RegionDetailPage = () => {
           planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
           total_investment: 0, // Будет рассчитано отдельно
           total_subsidy: 0, // Будет рассчитано отдельно
+          farmers_count: (acc.farmers_count || 0) + (curr.farmers_count || 0),
           // Добавляем поля для совместимости с экспортом
           investment_local: 0,
           investment_foreign: 0,
@@ -1014,6 +1026,7 @@ const RegionDetailPage = () => {
           planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
           total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
           total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),
+          farmers_count: (acc.farmers_count || 0) + (curr.farmers_count || 0),
           // Добавляем поля для совместимости с экспортом
           investment_local: (acc.investment_local || 0) + (curr.investment?.local || 0),
           investment_foreign: (acc.investment_foreign || 0) + (curr.investment?.foreign || 0),
@@ -1029,6 +1042,7 @@ const RegionDetailPage = () => {
         planted_area: 0,
         total_investment: 0,
         total_subsidy: 0,
+        farmers_count: 0,
         investment_local: 0,
         investment_foreign: 0,
         investment_total: 0,
@@ -1044,6 +1058,7 @@ const RegionDetailPage = () => {
       planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
       total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
       total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),
+      farmers_count: (acc.farmers_count || 0) + (curr.farmers_count || 0),
       // Добавляем поля для совместимости с экспортом
       investment_local: (acc.investment_local || 0) + (curr.investment?.local || 0),
       investment_foreign: (acc.investment_foreign || 0) + (curr.investment?.foreign || 0),
@@ -1070,6 +1085,7 @@ const RegionDetailPage = () => {
     district: "Jami",
         total_area: statistics.totalData.total_area,
         total_plantations: statistics.totalData.plantation_count,
+        farmers_count: statistics.totalData.farmers_count || 0,
         planted_area: statistics.totalData.planted_area,
         not_used_area: (statistics.totalData.not_used_area ?? statistics.totalData.not_usable_area ?? 0),
         investment_local: statistics.totalData.investment?.local || 0,
@@ -1163,6 +1179,19 @@ const RegionDetailPage = () => {
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{value}</span>,
+        },
+        {
+          title: <span style={textLight}>Fermerlar soni</span>,
+          dataIndex: "farmers_count",
+          key: "farmers_count",
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'farmers_count' ? sortConfig.order : null,
+          render: (value, record) => (
+            <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
+              {value || 0}
+            </span>
+          ),
         },
         {
           title: <span style={textLight}>Ekilgan maydoni (GA)</span>,
@@ -1588,6 +1617,16 @@ const RegionDetailPage = () => {
                 value={totals.total_subsidy}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}
+                valueStyle={{ color: '#e5e7eb' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
+              <Statistic
+                title={<span style={{ color: '#9ca3af' }}>Fermerlar soni</span>}
+                value={totals.farmers_count || 0}
+                precision={0}
                 valueStyle={{ color: '#e5e7eb' }}
               />
             </Card>
