@@ -1,8 +1,8 @@
-import React, { useState, useContext, useEffect, useRef, useCallback } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { useMapsHook } from "./mapsHook";
 import L from "leaflet"; // Для работы с координатами на карте
 import { useNavigate, Link } from "react-router-dom";
-import { fetchPlantationsMap, fetchPlantationsMapAll } from "../api/api.js";
+import { fetchPlantationsMapAll } from "../api/api.js";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { landTypeMapping } from "../context/constants";
 import AuthContext from "../context/AuthContext";
