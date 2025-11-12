@@ -101,6 +101,106 @@ export async function fetchPlantationsMap(districtId, accessToken, userRole) {
   }
 }
 
+// Новый эндпоинт для получения всех плантаций с расширенной фильтрацией
+export async function fetchPlantationsMapAll(params = {}, accessToken) {
+  if (!API_BASE_URL2) {
+    throw new Error('API_BASE_URL2 is not defined in fetchPlantationsMapAll');
+  }
+
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    const queryParams = new URLSearchParams();
+    
+    // Параметр status (all, approved, rejected, pending/moderation, deleting)
+    if (params.status && params.status !== 'all') {
+      queryParams.append('status', params.status);
+    }
+    
+    // Дополнительные фильтры
+    if (params.is_checked !== undefined && params.is_checked !== null) {
+      queryParams.append('is_checked', String(params.is_checked));
+    }
+    
+    if (params.is_deleting !== undefined && params.is_deleting !== null) {
+      queryParams.append('is_deleting', String(params.is_deleting));
+    }
+    
+    if (params.region) {
+      queryParams.append('region', params.region);
+    }
+    
+    if (params.district_id !== undefined && params.district_id !== null) {
+      queryParams.append('district_id', String(params.district_id));
+    }
+    
+    if (params.plantation_type) {
+      queryParams.append('plantation_type', String(params.plantation_type));
+    }
+    
+    if (params.name) {
+      queryParams.append('name', params.name);
+    }
+    
+    if (params.inn) {
+      queryParams.append('inn', params.inn);
+    }
+    
+    // Пагинация
+    if (params.page) {
+      queryParams.append('page', String(params.page));
+    }
+    
+    if (params.page_size) {
+      queryParams.append('page_size', String(params.page_size));
+    } else {
+      // По умолчанию 100 записей на страницу
+      queryParams.append('page_size', '100');
+    }
+
+    const queryString = queryParams.toString();
+    const url = queryString
+      ? `${API_BASE_URL2}api/plantations/map/all/?${queryString}`
+      : `${API_BASE_URL2}api/plantations/map/all/`;
+
+    const data = await dedupeFetchJson(url, { headers });
+
+    // Возвращаем полный объект с пагинацией или только results для обратной совместимости
+    if (params.returnFullResponse) {
+      return {
+        count: data.count || 0,
+        next: data.next || null,
+        previous: data.previous || null,
+        results: Array.isArray(data.results) ? data.results : [],
+      };
+    }
+
+    return Array.isArray(data?.results) ? data.results : [];
+  } catch (error) {
+    console.error("Ошибка при загрузке данных плантаций через map/all:", error);
+    
+    // Обработка специфичных ошибок
+    const errorMessage = String(error?.message || '');
+    if (errorMessage.includes('400')) {
+      throw new Error('Неверные параметры запроса. Проверьте значения фильтров.');
+    }
+    if (errorMessage.includes('403')) {
+      throw new Error('Недостаточно прав для доступа к этой информации');
+    }
+    if (errorMessage.includes('401')) {
+      throw new Error('Требуется авторизация');
+    }
+    
+    throw error;
+  }
+}
+
 // Статистические API функции
 export async function fetchRegionsStatistics(params = {}, accessToken) {
   try {

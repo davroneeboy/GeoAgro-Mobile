@@ -1,8 +1,8 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext, useEffect, useRef, useCallback } from "react";
 import { useMapsHook } from "./mapsHook";
 import L from "leaflet"; // Для работы с координатами на карте
 import { useNavigate, Link } from "react-router-dom";
-import { fetchPlantationsMap } from "../api/api.js";
+import { fetchPlantationsMap, fetchPlantationsMapAll } from "../api/api.js";
 import uzbekistanEmblem from "../assets/images/uzb-gerb.png";
 import { landTypeMapping } from "../context/constants";
 import AuthContext from "../context/AuthContext";
@@ -20,6 +20,23 @@ export default function MapContainer() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isLarge =
     typeof window !== "undefined" ? window.innerWidth >= 1024 : true;
+  
+  // Фильтры для нового эндпоинта
+  const [filters, setFilters] = useState({
+    status: 'approved', // approved, rejected, pending, moderation, deleting
+    region: '',
+    district_id: null,
+    plantation_type: '',
+    name: '',
+    inn: '',
+  });
+  const [loadingPlantations, setLoadingPlantations] = useState(false);
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    currentPage: 1,
+  });
 
 
   // Инициализация карты
@@ -37,29 +54,73 @@ export default function MapContainer() {
     setSelectedDistrict(null);
     setPlantations([]);
     setSelectedPlantation(null);
+    // Сбрасываем фильтры при смене региона
+    setFilters(prev => ({
+      ...prev,
+      district_id: null,
+      region: regionName,
+    }));
   };
 
-  const handleDistrictClick = async (districtId, districtName = "Tumani") => {
-    const district = { id: districtId, name: districtName };
-    setSelectedDistrict(district);
-    try {
-      localStorage.setItem('mapSelectedDistrict', JSON.stringify(district));
-    } catch (e) {}
-    setSelectedPlantation(null);
+  // Функция загрузки плантаций через новый эндпоинт
+  const loadPlantationsRef = useRef(null);
+  loadPlantationsRef.current = async (page = 1, currentFilters = filters, currentDistrict = selectedDistrict, currentRegion = selectedRegion) => {
+    if (!currentDistrict && !currentRegion) {
+      setPlantations([]);
+      return;
+    }
 
+    // Предотвращаем множественные одновременные запросы
+    if (loadingPlantations) {
+      return;
+    }
+
+    setLoadingPlantations(true);
     try {
-      // RBAC: для обычного пользователя загружаем все плантации региона, а не только тумана
-      let plantations;
-      if (authState.userRole === "user" && authState.regionId) {
-        // Загружаем все плантации региона для обычного пользователя
-        plantations = await fetchPlantationsMap(authState.regionId, authState.accessToken, authState.userRole);
-        // Фильтруем только подтверждённые плантации
-        plantations = plantations.filter(plantation => plantation.is_checked === true);
-      } else {
-        // Для superuser и headof_region загружаем плантации конкретного тумана
-        plantations = await fetchPlantationsMap(districtId, authState.accessToken, authState.userRole);
+      const params = {
+        page,
+        page_size: 100,
+        returnFullResponse: true,
+      };
+
+      // Применяем фильтры согласно документации
+      // status: all, approved, rejected, pending/moderation, deleting
+      if (currentFilters.status && currentFilters.status !== 'all') {
+        params.status = currentFilters.status;
       }
-      setPlantations(plantations);
+      
+      // Если выбран район - передаем только district_id (не передаем region)
+      // Если выбран только регион - передаем только region
+      if (currentDistrict) {
+        params.district_id = currentDistrict.id;
+        // Не передаем region когда есть district_id, так как район уже определяет регион
+      } else if (currentRegion) {
+        // Если выбран только регион (без района), передаем его название
+        params.region = currentRegion.name;
+      }
+      
+      // Дополнительные фильтры
+      if (currentFilters.plantation_type) {
+        params.plantation_type = currentFilters.plantation_type;
+      }
+      
+      if (currentFilters.name) {
+        params.name = currentFilters.name;
+      }
+      
+      if (currentFilters.inn) {
+        params.inn = currentFilters.inn;
+      }
+
+      const response = await fetchPlantationsMapAll(params, authState.accessToken);
+      
+      setPlantations(response.results || []);
+      setPagination({
+        count: response.count || 0,
+        next: response.next,
+        previous: response.previous,
+        currentPage: page,
+      });
 
       // Отображение координат на карте
       if (mapInstance) {
@@ -70,22 +131,53 @@ export default function MapContainer() {
           }
         });
 
-        plantations.forEach((plantation) => {
+        const plantationsToShow = response.results || [];
+        
+        plantationsToShow.forEach((plantation) => {
+          if (!plantation.coordinates || !Array.isArray(plantation.coordinates) || plantation.coordinates.length === 0) {
+            return;
+          }
+
           const coordinates = plantation.coordinates.map((coord) => [
             coord.latitude,
             coord.longitude,
           ]);
 
+          // Определяем цвет в зависимости от статуса плантации
+          let color = "yellow"; // По умолчанию желтый (на модерации)
+          
+          // Если выбран конкретный фильтр - используем соответствующий цвет
+          if (currentFilters.status === 'approved') {
+            color = "green";
+          } else if (currentFilters.status === 'rejected') {
+            color = "red";
+          } else if (currentFilters.status === 'deleting') {
+            color = "orange";
+          } else if (currentFilters.status === 'pending' || currentFilters.status === 'moderation') {
+            color = "yellow";
+          } else if (currentFilters.status === 'all') {
+            // Для "Barchasi" определяем по полям плантации (если они есть)
+            if (plantation.is_checked === true && plantation.is_rejected !== true && plantation.is_deleting !== true) {
+              color = "green"; // Проверено и одобрено (зеленый)
+            } else if (plantation.is_rejected === true) {
+              color = "red"; // Отклонено (красный)
+            } else if (plantation.is_deleting === true) {
+              color = "orange"; // В процессе удаления (оранжевый)
+            } else {
+              color = "yellow"; // На модерации - не проверено и не отклонено (желтый)
+            }
+          }
+
           // Добавляем полигон или маркер на карту
           const polygon = L.polygon(coordinates, {
-            color: "red",
+            color: color,
             weight: 3,
             isPlantation: true, // Флаг для идентификации полигонов плантаций
           }).addTo(mapInstance);
 
           polygon.bindPopup(
             `<strong>${plantation.name || "Sarlavhasiz"}</strong><br>Площадь: ${
-              plantation.total_area
+              plantation.total_area || 0
             } га`
           );
         });
@@ -93,18 +185,62 @@ export default function MapContainer() {
     } catch (error) {
       console.error("Error fetching plantations:", error);
       
-      // Показываем пользователю понятное сообщение об ошибке
-      if (error.message && error.message.includes('404')) {
-        alert('❌ Bu tumanga kirish huquqi yo\'q!\n\nSiz faqat o\'z viloyatingizdagi tumanlarni ko\'rishingiz mumkin.');
-      } else if (error.message && error.message.includes('403')) {
+      // Показываем пользователю понятное сообщение об ошибке только если это не пустой результат
+      const errorMessage = String(error?.message || '');
+      if (errorMessage.includes('404')) {
+        // Не показываем ошибку для 404, это может быть нормально (нет данных)
+        console.log('No plantations found for selected filters');
+      } else if (errorMessage.includes('403')) {
         alert('❌ Ruxsat yo\'q!\n\nBu tumanni ko\'rish uchun ruxsatingiz yo\'q.');
+      } else if (errorMessage.includes('400')) {
+        alert('❌ Noto\'g\'ri filtrlarni tekshiring.');
       } else {
-        alert('❌ Xatolik!\n\nTuman bog\'larini yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+        // Показываем ошибку только для реальных проблем
+        console.error('Plantation loading error:', error);
       }
       
       // Очищаем плантации при ошибке
       setPlantations([]);
+    } finally {
+      setLoadingPlantations(false);
     }
+  };
+
+  // Debounce для поисковых полей
+  const searchDebounceRef = useRef(null);
+  
+  useEffect(() => {
+    // Очищаем предыдущий таймер
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    
+    // Для поисковых полей используем debounce, для остальных фильтров - сразу
+    const isSearchField = filters.name || filters.inn;
+    const delay = isSearchField ? 500 : 0;
+    
+    searchDebounceRef.current = setTimeout(() => {
+      if (selectedDistrict || selectedRegion) {
+        loadPlantationsRef.current(1, filters, selectedDistrict, selectedRegion);
+      }
+    }, delay);
+    
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, [selectedDistrict?.id, selectedRegion?.id, filters.status, filters.plantation_type, filters.region, filters.name, filters.inn]);
+
+  const handleDistrictClick = async (districtId, districtName = "Tumani") => {
+    const district = { id: districtId, name: districtName };
+    setSelectedDistrict(district);
+    try {
+      localStorage.setItem('mapSelectedDistrict', JSON.stringify(district));
+    } catch (e) {}
+    setSelectedPlantation(null);
+    // Обновляем фильтр district_id
+    setFilters(prev => ({ ...prev, district_id: districtId }));
   };
 
   const handlePlantationClick = async (plantation, map) => {
@@ -326,31 +462,121 @@ export default function MapContainer() {
                 >
                   Tumanlarga qaytish
                 </button>
-                <h4 className="text-gray-300 font-bold text-center">
+                <h4 className="text-gray-300 font-bold text-center mb-3">
                   Bog'lar ({authState.userRole === "user" ? selectedRegion?.name || "Viloyat" : selectedDistrict.name}):
                 </h4>
-                <div className="space-y-2 mt-4">
-                  {plantations.length > 0 ? (
-                    plantations.map((plantation) => (
-                      <div
-                        key={plantation.id}
-                        className="p-3 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
-                        onClick={() => handlePlantationClick(plantation)}
-                      >
-                        <h5 className="text-white font-medium">
-                          {plantation.name || "Sarlavhasiz"}
-                        </h5>
-                        <p className="text-gray-400 text-sm">
-                          Maydoni: {plantation.total_area} GA
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-center">
-                      Hozircha bog'lar mavjud emas
-                    </p>
-                  )}
+                
+                {/* Фильтры */}
+                <div className="space-y-2 mb-4 p-2 bg-gray-700 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Status:
+                  </label>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
+                  >
+                    <option value="all">Barchasi</option>
+                    <option value="approved">Tasdiqlangan (Yashil)</option>
+                    <option value="pending">Moderatsiyada (Sariq)</option>
+                    <option value="rejected">Rad etilgan (Qizil)</option>
+                    <option value="deleting">O'chirilmoqda (To'q sariq)</option>
+                  </select>
+                  
+                  <label className="block text-sm font-medium text-gray-300 mb-1 mt-2">
+                    Nomi:
+                  </label>
+                  <input
+                    type="text"
+                    value={filters.name}
+                    onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Qidirish..."
+                    className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
+                  />
+                  
+                  <label className="block text-sm font-medium text-gray-300 mb-1 mt-2">
+                    STIR:
+                  </label>
+                  <input
+                    type="text"
+                    value={filters.inn}
+                    onChange={(e) => setFilters(prev => ({ ...prev, inn: e.target.value }))}
+                    placeholder="STIR..."
+                    className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
+                  />
+                  
+                  <button
+                    onClick={() => setFilters({
+                      status: 'approved',
+                      region: '',
+                      district_id: null,
+                      plantation_type: '',
+                      name: '',
+                      inn: '',
+                    })}
+                    className="w-full mt-2 px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500 text-sm"
+                  >
+                    Filtrlarni tozalash
+                  </button>
                 </div>
+
+                {loadingPlantations ? (
+                  <p className="text-gray-400 text-center">Yuklanmoqda...</p>
+                ) : (
+                  <>
+                    <div className="space-y-2 mt-4">
+                      {plantations.length > 0 ? (
+                        <>
+                          {plantations.map((plantation) => (
+                            <div
+                              key={plantation.id}
+                              className="p-3 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
+                              onClick={() => handlePlantationClick(plantation)}
+                            >
+                              <h5 className="text-white font-medium">
+                                {plantation.name || "Sarlavhasiz"}
+                              </h5>
+                              <p className="text-gray-400 text-sm">
+                                Maydoni: {plantation.total_area || 0} GA
+                              </p>
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        <p className="text-gray-400 text-center">
+                          Hozircha bog'lar mavjud emas
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Пагинация */}
+                    {pagination.count > 0 && (
+                      <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+                        <span>
+                          {((pagination.currentPage - 1) * 100) + 1} - {Math.min(pagination.currentPage * 100, pagination.count)} / {pagination.count}
+                        </span>
+                        <div className="flex gap-2">
+                          {pagination.previous && (
+                            <button
+                              onClick={() => loadPlantationsRef.current(pagination.currentPage - 1)}
+                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                            >
+                              ←
+                            </button>
+                          )}
+                          {pagination.next && (
+                            <button
+                              onClick={() => loadPlantationsRef.current(pagination.currentPage + 1)}
+                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                            >
+                              →
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -576,31 +802,119 @@ export default function MapContainer() {
                 >
                   Tumanlarga qaytish
                 </button>
-                <h4 className="text-gray-300 font-bold text-center">
+                <h4 className="text-gray-300 font-bold text-center mb-3">
                   Bog'lar ({authState.userRole === "user" ? selectedRegion?.name || "Viloyat" : selectedDistrict.name}):
                 </h4>
-                <div className="space-y-2 mt-4">
-                  {plantations.length > 0 ? (
-                    plantations.map((plantation) => (
-                      <div
-                        key={plantation.id}
-                        className="p-3 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
-                        onClick={() => handlePlantationClick(plantation)}
-                      >
-                        <h5 className="text-white font-medium">
-                          {plantation.name || "Sarlavhasiz"}
-                        </h5>
-                        <p className="text-gray-400 text-sm">
-                          Maydoni: {plantation.total_area} GA
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-center">
-                      Hozircha bog'lar mavjud emas
-                    </p>
-                  )}
+                
+                {/* Фильтры для мобильной версии */}
+                <div className="space-y-2 mb-4 p-2 bg-gray-700 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Status:
+                  </label>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
+                  >
+                    <option value="all">Barchasi</option>
+                    <option value="approved">Tasdiqlangan (Yashil)</option>
+                    <option value="pending">Moderatsiyada (Sariq)</option>
+                    <option value="rejected">Rad etilgan (Qizil)</option>
+                    <option value="deleting">O'chirilmoqda (To'q sariq)</option>
+                  </select>
+                  
+                  <label className="block text-sm font-medium text-gray-300 mb-1 mt-2">
+                    Nomi:
+                  </label>
+                  <input
+                    type="text"
+                    value={filters.name}
+                    onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Qidirish..."
+                    className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
+                  />
+                  
+                  <label className="block text-sm font-medium text-gray-300 mb-1 mt-2">
+                    STIR:
+                  </label>
+                  <input
+                    type="text"
+                    value={filters.inn}
+                    onChange={(e) => setFilters(prev => ({ ...prev, inn: e.target.value }))}
+                    placeholder="STIR..."
+                    className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
+                  />
+                  
+                  <button
+                    onClick={() => setFilters({
+                      status: 'approved',
+                      region: '',
+                      district_id: null,
+                      plantation_type: '',
+                      name: '',
+                      inn: '',
+                    })}
+                    className="w-full mt-2 px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500 text-sm"
+                  >
+                    Filtrlarni tozalash
+                  </button>
                 </div>
+
+                {loadingPlantations ? (
+                  <p className="text-gray-400 text-center">Yuklanmoqda...</p>
+                ) : (
+                  <>
+                    <div className="space-y-2 mt-4">
+                      {plantations.length > 0 ? (
+                        plantations.map((plantation) => (
+                          <div
+                            key={plantation.id}
+                            className="p-3 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer"
+                            onClick={() => handlePlantationClick(plantation)}
+                          >
+                            <h5 className="text-white font-medium">
+                              {plantation.name || "Sarlavhasiz"}
+                            </h5>
+                            <p className="text-gray-400 text-sm">
+                              Maydoni: {plantation.total_area || 0} GA
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-center">
+                          Hozircha bog'lar mavjud emas
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Пагинация для мобильной версии */}
+                    {pagination.count > 0 && (
+                      <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+                        <span>
+                          {((pagination.currentPage - 1) * 100) + 1} - {Math.min(pagination.currentPage * 100, pagination.count)} / {pagination.count}
+                        </span>
+                        <div className="flex gap-2">
+                          {pagination.previous && (
+                            <button
+                              onClick={() => loadPlantationsRef.current(pagination.currentPage - 1)}
+                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                            >
+                              ←
+                            </button>
+                          )}
+                          {pagination.next && (
+                            <button
+                              onClick={() => loadPlantationsRef.current(pagination.currentPage + 1)}
+                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                            >
+                              →
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </div>
