@@ -23,7 +23,7 @@ export default function MapContainer() {
   
   // Фильтры для нового эндпоинта
   const [filters, setFilters] = useState({
-    status: 'approved', // approved, rejected, pending, moderation, deleting
+    status: 'all', // all, approved, rejected, pending, moderation, deleting
     region: '',
     district_id: null,
     plantation_type: '',
@@ -85,7 +85,8 @@ export default function MapContainer() {
 
       // Применяем фильтры согласно документации
       // status: all, approved, rejected, pending/moderation, deleting
-      if (currentFilters.status && currentFilters.status !== 'all') {
+      // Явно передаем status, даже если это 'all', чтобы получить все плантации
+      if (currentFilters.status) {
         params.status = currentFilters.status;
       }
       
@@ -112,14 +113,39 @@ export default function MapContainer() {
         params.inn = currentFilters.inn;
       }
 
-      const response = await fetchPlantationsMapAll(params, authState.accessToken);
+      // Для "Barchasi" используем большой page_size и загружаем все страницы за минимальное количество запросов
+      let allResults = [];
+      let totalCount = 0;
       
-      setPlantations(response.results || []);
+      if (currentFilters.status === 'all') {
+        // Используем максимальный page_size для минимизации количества запросов
+        params.page_size = 10000;
+        params.page = 1;
+        
+        // Загружаем первую страницу
+        const firstResponse = await fetchPlantationsMapAll(params, authState.accessToken);
+        allResults = [...(firstResponse.results || [])];
+        totalCount = firstResponse.count || 0;
+        
+        // Если есть еще данные, загружаем следующую страницу
+        if (firstResponse.next) {
+          params.page = 2;
+          const secondResponse = await fetchPlantationsMapAll(params, authState.accessToken);
+          allResults = [...allResults, ...(secondResponse.results || [])];
+        }
+      } else {
+        // Для других фильтров используем стандартную пагинацию
+        const response = await fetchPlantationsMapAll(params, authState.accessToken);
+        allResults = response.results || [];
+        totalCount = response.count || 0;
+      }
+
+      setPlantations(allResults);
       setPagination({
-        count: response.count || 0,
-        next: response.next,
-        previous: response.previous,
-        currentPage: page,
+        count: totalCount,
+        next: currentFilters.status === 'all' ? null : (totalCount > allResults.length ? 'next' : null),
+        previous: null,
+        currentPage: 1,
       });
 
       // Отображение координат на карте
@@ -131,7 +157,7 @@ export default function MapContainer() {
           }
         });
 
-        const plantationsToShow = response.results || [];
+        const plantationsToShow = allResults;
         
         plantationsToShow.forEach((plantation) => {
           if (!plantation.coordinates || !Array.isArray(plantation.coordinates) || plantation.coordinates.length === 0) {
@@ -146,7 +172,7 @@ export default function MapContainer() {
           // Определяем цвет в зависимости от статуса плантации
           let color = "yellow"; // По умолчанию желтый (на модерации)
           
-          // Если выбран конкретный фильтр - используем соответствующий цвет
+          // Если выбран конкретный фильтр - используем соответствующий цвет для всех
           if (currentFilters.status === 'approved') {
             color = "green";
           } else if (currentFilters.status === 'rejected') {
@@ -156,14 +182,14 @@ export default function MapContainer() {
           } else if (currentFilters.status === 'pending' || currentFilters.status === 'moderation') {
             color = "yellow";
           } else if (currentFilters.status === 'all') {
-            // Для "Barchasi" определяем по полям плантации (если они есть)
-            if (plantation.is_checked === true && plantation.is_rejected !== true && plantation.is_deleting !== true) {
+            // Для "Barchasi" определяем цвет по реальным полям плантации из API
+            if (plantation.is_checked === true && plantation.is_rejected === false && plantation.is_deleting === false) {
               color = "green"; // Проверено и одобрено (зеленый)
             } else if (plantation.is_rejected === true) {
               color = "red"; // Отклонено (красный)
             } else if (plantation.is_deleting === true) {
               color = "orange"; // В процессе удаления (оранжевый)
-            } else {
+            } else if (plantation.is_checked === false && plantation.is_rejected === false && plantation.is_deleting === false) {
               color = "yellow"; // На модерации - не проверено и не отклонено (желтый)
             }
           }
@@ -484,7 +510,7 @@ export default function MapContainer() {
                     onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
                     className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
                   >
-                    <option value="all">Barchasi</option>
+                    <option value="all">Barchasi (Rangli)</option>
                     <option value="approved">Tasdiqlangan (Yashil)</option>
                     <option value="pending">Moderatsiyada (Sariq)</option>
                     <option value="rejected">Rad etilgan (Qizil)</option>
@@ -515,7 +541,7 @@ export default function MapContainer() {
                   
                   <button
                     onClick={() => setFilters({
-                      status: 'approved',
+                      status: 'all',
                       region: '',
                       district_id: null,
                       plantation_type: '',
@@ -560,27 +586,35 @@ export default function MapContainer() {
                     {/* Пагинация */}
                     {pagination.count > 0 && (
                       <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
-                        <span>
-                          {((pagination.currentPage - 1) * 100) + 1} - {Math.min(pagination.currentPage * 100, pagination.count)} / {pagination.count}
-                        </span>
-                        <div className="flex gap-2">
-                          {pagination.previous && (
-                            <button
-                              onClick={() => loadPlantationsRef.current(pagination.currentPage - 1)}
-                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
-                            >
-                              ←
-                            </button>
-                          )}
-                          {pagination.next && (
-                            <button
-                              onClick={() => loadPlantationsRef.current(pagination.currentPage + 1)}
-                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
-                            >
-                              →
-                            </button>
-                          )}
-                        </div>
+                        {filters.status === 'all' ? (
+                          <span>
+                            Jami: {plantations.length} / {pagination.count}
+                          </span>
+                        ) : (
+                          <>
+                            <span>
+                              {((pagination.currentPage - 1) * 100) + 1} - {Math.min(pagination.currentPage * 100, pagination.count)} / {pagination.count}
+                            </span>
+                            <div className="flex gap-2">
+                              {pagination.previous && (
+                                <button
+                                  onClick={() => loadPlantationsRef.current(pagination.currentPage - 1)}
+                                  className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                                >
+                                  ←
+                                </button>
+                              )}
+                              {pagination.next && (
+                                <button
+                                  onClick={() => loadPlantationsRef.current(pagination.currentPage + 1)}
+                                  className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                                >
+                                  →
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </>
@@ -824,7 +858,7 @@ export default function MapContainer() {
                     onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
                     className="w-full px-2 py-1 bg-gray-600 text-white rounded border border-gray-500 text-sm"
                   >
-                    <option value="all">Barchasi</option>
+                    <option value="all">Barchasi (Rangli)</option>
                     <option value="approved">Tasdiqlangan (Yashil)</option>
                     <option value="pending">Moderatsiyada (Sariq)</option>
                     <option value="rejected">Rad etilgan (Qizil)</option>
@@ -855,7 +889,7 @@ export default function MapContainer() {
                   
                   <button
                     onClick={() => setFilters({
-                      status: 'approved',
+                      status: 'all',
                       region: '',
                       district_id: null,
                       plantation_type: '',
@@ -898,27 +932,35 @@ export default function MapContainer() {
                     {/* Пагинация для мобильной версии */}
                     {pagination.count > 0 && (
                       <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
-                        <span>
-                          {((pagination.currentPage - 1) * 100) + 1} - {Math.min(pagination.currentPage * 100, pagination.count)} / {pagination.count}
-                        </span>
-                        <div className="flex gap-2">
-                          {pagination.previous && (
-                            <button
-                              onClick={() => loadPlantationsRef.current(pagination.currentPage - 1)}
-                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
-                            >
-                              ←
-                            </button>
-                          )}
-                          {pagination.next && (
-                            <button
-                              onClick={() => loadPlantationsRef.current(pagination.currentPage + 1)}
-                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
-                            >
-                              →
-                            </button>
-                          )}
-                        </div>
+                        {filters.status === 'all' ? (
+                          <span>
+                            Jami: {plantations.length} / {pagination.count}
+                          </span>
+                        ) : (
+                          <>
+                            <span>
+                              {((pagination.currentPage - 1) * 100) + 1} - {Math.min(pagination.currentPage * 100, pagination.count)} / {pagination.count}
+                            </span>
+                            <div className="flex gap-2">
+                              {pagination.previous && (
+                                <button
+                                  onClick={() => loadPlantationsRef.current(pagination.currentPage - 1)}
+                                  className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                                >
+                                  ←
+                                </button>
+                              )}
+                              {pagination.next && (
+                                <button
+                                  onClick={() => loadPlantationsRef.current(pagination.currentPage + 1)}
+                                  className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+                                >
+                                  →
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </>

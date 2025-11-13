@@ -119,7 +119,8 @@ export async function fetchPlantationsMapAll(params = {}, accessToken) {
     const queryParams = new URLSearchParams();
     
     // Параметр status (all, approved, rejected, pending/moderation, deleting)
-    if (params.status && params.status !== 'all') {
+    // Передаем status всегда, включая 'all', чтобы API вернул все плантации
+    if (params.status) {
       queryParams.append('status', params.status);
     }
     

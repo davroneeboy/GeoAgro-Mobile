@@ -909,17 +909,17 @@ const EditPlantation = () => {
           // Наблюдателю этот эндпоинт недоступен (403), пропускаем тихо
           if (String(authState.userRole) === 'observer') return;
 
-          const tryFetch = async (suffix) => apiRequest(
-            `api/plantations/${id}/${suffix}/`,
-            {},
-            refreshAccessToken,
-            authState.accessToken
-          );
+          const tryFetch = async (suffix, queryParams = '') => {
+            const url = queryParams 
+              ? `api/plantations/${id}/${suffix}/?${queryParams}`
+              : `api/plantations/${id}/${suffix}/`;
+            return apiRequest(url, {}, refreshAccessToken, authState.accessToken);
+          };
 
           let related = null;
           try {
-            // корректный путь по бэку
-            related = await tryFetch('related-map');
+            // корректный путь по бэку, передаем status=all чтобы получить все плантации
+            related = await tryFetch('related-map', 'status=all');
           } catch (e1) {
             const msg1 = String(e1?.message || '');
             if (msg1.includes('404') || msg1.includes('Not Found')) {

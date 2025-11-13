@@ -194,8 +194,8 @@ export const useMapsHook = ({
             interactive: false, // Важно: tooltip не реагирует на события мыши
             sticky: true // Tooltip следует за курсором
           });
-          
-          layer.on({
+
+           layer.on({
             mouseover() {
               layer.openTooltip();
               layer.setStyle({ 
