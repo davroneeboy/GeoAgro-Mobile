@@ -24,9 +24,6 @@ export default function MapContainer() {
   // Фильтры для нового эндпоинта
   const [filters, setFilters] = useState({
     status: 'all', // all, approved, rejected, pending, moderation, deleting
-    region: '',
-    district_id: null,
-    plantation_type: '',
     name: '',
     inn: '',
   });
@@ -54,12 +51,6 @@ export default function MapContainer() {
     setSelectedDistrict(null); // Сбрасываем выбранный район
     setPlantations([]); // Очищаем список плантаций
     setSelectedPlantation(null); // Очищаем выбранную плантацию
-    // Сбрасываем фильтры при смене региона
-    setFilters(prev => ({
-      ...prev,
-      district_id: null,
-      region: regionName,
-    }));
   };
 
   // Функция загрузки плантаций через новый эндпоинт
@@ -101,10 +92,6 @@ export default function MapContainer() {
       }
       
       // Дополнительные фильтры
-      if (currentFilters.plantation_type) {
-        params.plantation_type = currentFilters.plantation_type;
-      }
-      
       if (currentFilters.name) {
         params.name = currentFilters.name;
       }
@@ -264,7 +251,7 @@ export default function MapContainer() {
         clearTimeout(searchDebounceRef.current);
       }
     };
-  }, [selectedDistrict?.id, selectedRegion?.id, filters.status, filters.plantation_type, filters.region, filters.name, filters.inn]);
+  }, [selectedDistrict?.id, selectedRegion?.id, filters.status, filters.name, filters.inn]);
 
   const handleDistrictClick = async (districtId, districtName = "Tumani") => {
     const district = { id: districtId, name: districtName };
@@ -273,8 +260,6 @@ export default function MapContainer() {
       localStorage.setItem('mapSelectedDistrict', JSON.stringify(district));
     } catch (e) {}
     setSelectedPlantation(null);
-    // Обновляем фильтр district_id
-    setFilters(prev => ({ ...prev, district_id: districtId }));
   };
 
   const handlePlantationClick = async (plantation, map) => {
@@ -542,9 +527,6 @@ export default function MapContainer() {
                   <button
                     onClick={() => setFilters({
                       status: 'all',
-                      region: '',
-                      district_id: null,
-                      plantation_type: '',
                       name: '',
                       inn: '',
                     })}
@@ -890,9 +872,6 @@ export default function MapContainer() {
                   <button
                     onClick={() => setFilters({
                       status: 'all',
-                      region: '',
-                      district_id: null,
-                      plantation_type: '',
                       name: '',
                       inn: '',
                     })}

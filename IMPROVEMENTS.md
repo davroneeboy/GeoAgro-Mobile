@@ -384,14 +384,19 @@ useDebounce(
 1. **Неиспользуемые параметры в фильтрах:**
    ```javascript
    const [filters, setFilters] = useState({
-     status: 'approved',
-     region: '',           // Не используется
-     district_id: null,    // Устанавливается автоматически
-     plantation_type: '',  // Не используется
+     status: 'all',
+     region: '',           // ❌ Не используется - вместо этого используется selectedRegion.name
+     district_id: null,    // ❌ Не используется - вместо этого используется selectedDistrict.id
+     plantation_type: '',  // ❌ Не используется - нет UI для этого фильтра, всегда пустой
      name: '',
      inn: '',
    });
    ```
+   
+   **Проблемы:**
+   - `region` и `district_id` используются только в зависимостях `useEffect`, но для API запросов используются `selectedRegion.name` и `selectedDistrict.id` напрямую
+   - `plantation_type` используется в API запросе (строка 104-105), но нет UI для его установки, поэтому он всегда пустой
+   - Все три параметра можно безопасно удалить
 
 2. **Неиспользуемые импорты:**
    - `useCallback` был удален (хорошо)
@@ -404,7 +409,36 @@ useDebounce(
 ```javascript
 // Упрощенная версия:
 const [filters, setFilters] = useState({
-  status: 'approved',
+  status: 'all',
+  name: '',
+  inn: '',
+});
+```
+
+**Также нужно обновить зависимости useEffect:**
+```javascript
+// Было:
+}, [selectedDistrict?.id, selectedRegion?.id, filters.status, filters.plantation_type, filters.region, filters.name, filters.inn]);
+
+// Станет:
+}, [selectedDistrict?.id, selectedRegion?.id, filters.status, filters.name, filters.inn]);
+```
+
+**И обновить функцию сброса фильтров:**
+```javascript
+// Было:
+setFilters({
+  status: 'all',
+  region: '',
+  district_id: null,
+  plantation_type: '',
+  name: '',
+  inn: '',
+});
+
+// Станет:
+setFilters({
+  status: 'all',
   name: '',
   inn: '',
 });
