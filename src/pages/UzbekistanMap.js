@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { GOOGLE_API_KEY } from "../config";
 
 const UzbekistanMap = () => {
-  const [map, setMap] = useState(null);
   const [regionPolygons, setRegionPolygons] = useState([]);
   const [labels, setLabels] = useState([]);
   const [districtId, setDistrictId] = useState(null);
@@ -27,7 +26,6 @@ const UzbekistanMap = () => {
         mapTypeId: "satellite",
         disableDefaultUI: true,
       });
-      setMap(mapInstance);
 
       const geojson = await fetch("/uzb-geojson/navoiy.geojson").then((res) =>
         res.json()
