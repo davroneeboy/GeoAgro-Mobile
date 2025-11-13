@@ -918,8 +918,8 @@ const EditPlantation = () => {
 
           let related = null;
           try {
-            // корректный путь по бэку, передаем status=all чтобы получить все плантации
-            related = await tryFetch('related-map', 'status=all');
+            // корректный путь по бэку
+            related = await tryFetch('related-map');
           } catch (e1) {
             const msg1 = String(e1?.message || '');
             if (msg1.includes('404') || msg1.includes('Not Found')) {

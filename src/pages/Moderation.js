@@ -371,6 +371,7 @@ const Moderation = () => {
   })();
   const [page, setPage] = useState(initialPageFromUrl);
   const isFetchingRef = useRef(false);
+  const regionFilterSetRef = useRef(false); // Флаг для отслеживания установки фильтра региона
   const [count, setCount] = useState(0); // добавляем состояние для общего количества записей
   const [loading, setLoading] = useState(false); // добавляем состояние загрузки
   const [error, setError] = useState(null); // добавляем состояние ошибки
@@ -389,11 +390,23 @@ const Moderation = () => {
     const newFilters = getFiltersFromUrl();
     
     // RBAC: Для главы региона автоматически устанавливаем фильтр по региону только при первой загрузке
-    if (authState.userRole === 'headof_region' && authState.regionId && newFilters.region === "All" && !location.search.includes('region=')) {
+    if (authState.userRole === 'headof_region' && authState.regionId && newFilters.region === "All" && !location.search.includes('region=') && !regionFilterSetRef.current) {
       newFilters.region = authState.regionId.toString();
+      regionFilterSetRef.current = true; // Устанавливаем флаг, чтобы избежать повторных вызовов
+      // Сохраняем в URL, чтобы избежать повторных проверок
+      const urlParams = new URLSearchParams(location.search);
+      const currentPage = parseInt(urlParams.get("page") || "1", 10);
+      saveFiltersToUrl(newFilters, currentPage);
+      return;
+    }
+    
+    // Сбрасываем флаг, если регион уже установлен в URL
+    if (location.search.includes('region=')) {
+      regionFilterSetRef.current = true;
     }
     
     setFilters(newFilters);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search, authState.userRole, authState.regionId]);
 
   const handleLogout = () => {
@@ -436,12 +449,17 @@ const Moderation = () => {
     const urlParams = new URLSearchParams(location.search);
     const urlPage = parseInt(urlParams.get("page") || "1", 10);
     
+    // Обновляем URL только если страница действительно изменилась и отличается от URL
     if (urlPage !== page && page > 0) {
-      window.history.replaceState(null, '', `/moderation?page=${page}`);
+      // Используем navigate вместо window.history для согласованности
+      const searchParams = new URLSearchParams(location.search);
+      searchParams.set('page', page.toString());
+      navigate(`/moderation?${searchParams.toString()}`, { replace: true });
     }
     
     // Синхронизируем поле ввода с текущей страницей
     setPageInput(page.toString());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   // Читаем номер страницы из URL параметров при загрузке
@@ -454,9 +472,13 @@ const Moderation = () => {
     if (!pageFromUrl) {
       const savedPage = parseInt(localStorage.getItem('moderationPage') || "1", 10);
       const validSavedPage = savedPage > 0 ? savedPage : 1;
-      setPage(validSavedPage);
-      // Обновляем URL без перезагрузки
-      window.history.replaceState(null, '', `/moderation?page=${validSavedPage}`);
+      if (page !== validSavedPage) {
+        setPage(validSavedPage);
+        // Обновляем URL без перезагрузки
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.set('page', validSavedPage.toString());
+        navigate(`/moderation?${searchParams.toString()}`, { replace: true });
+      }
       return;
     }
     
@@ -464,18 +486,17 @@ const Moderation = () => {
     const pageNumber = parseInt(pageFromUrl);
     
     // Проверяем, что номер страницы валидный
-    if (pageNumber > 0) {
+    if (pageNumber > 0 && pageNumber !== page) {
       setPage(pageNumber);
       localStorage.setItem('moderationPage', pageNumber.toString());
-    } else {
+    } else if (pageNumber <= 0) {
       // Если номер страницы невалидный, сбрасываем на первую страницу
-      
       setPage(1);
       localStorage.setItem('moderationPage', '1');
       navigate('/moderation?page=1', { replace: true });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate, page, location.search]);
+  }, [location.search]);
 
 
 
