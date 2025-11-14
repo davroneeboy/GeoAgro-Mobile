@@ -244,10 +244,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   Widget _buildTitleSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           "Tizimga Kirish",
+          textAlign: TextAlign.center,
           style: AppTypography.headline2(context).copyWith(
             fontSize: 32.sp,
             fontWeight: FontWeight.w800,
@@ -259,6 +260,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         SizedBox(height: 8.h),
         Text(
           "Davom etish uchun ma'lumotlaringizni kiriting",
+          textAlign: TextAlign.center,
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 15.sp,
             color: DesignColors.AppColors.darkTextSecondary,
