@@ -165,6 +165,15 @@ class ApiService {
               if (v == null) continue;
               formData.fields.add(MapEntry('$key[$i]', v.toString()));
             }
+          } else if (value is Map && key == 'user_location') {
+            // Handle user_location as nested object: user_location[latitude], user_location[longitude]
+            value.forEach((nestedKey, nestedValue) {
+              if (nestedValue != null) {
+                formData.fields.add(
+                  MapEntry('$key[$nestedKey]', nestedValue.toString()),
+                );
+              }
+            });
           } else {
             formData.fields.add(MapEntry(key, value.toString()));
           }

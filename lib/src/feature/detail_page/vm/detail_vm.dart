@@ -99,6 +99,7 @@ class DetailVM extends ChangeNotifier {
   int direction = 0;
   List<Coordinate> coordinates = [];
   double? polygonAreaFromMap; // Площадь полигона, рассчитанная на карте
+  Map<String, double>? userLocation; // Текущее местоположение пользователя для user_location
   TextEditingController tonnaController = TextEditingController();
 
   String? errorMessage;
@@ -263,6 +264,31 @@ class DetailVM extends ChangeNotifier {
       final jsonData = mockGarden.toJson();
       // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
       jsonData['kontur_number'] = konturNumbers;
+      // Добавляем user_location только если он валиден
+      p.log("userLocation value: $userLocation");
+      if (userLocation != null && 
+          userLocation!['latitude'] != null && 
+          userLocation!['longitude'] != null) {
+        try {
+          final lat = (userLocation!['latitude'] as num).toDouble();
+          final lng = (userLocation!['longitude'] as num).toDouble();
+          
+          // Валидация координат
+          if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            jsonData['user_location'] = {
+              'latitude': lat,
+              'longitude': lng,
+            };
+            p.log("user_location added to JSON: ${jsonData['user_location']}");
+          } else {
+            p.log("Invalid coordinates: lat=$lat, lng=$lng, not adding user_location");
+          }
+        } catch (e) {
+          p.log("Error parsing user_location: $e, not adding to JSON");
+        }
+      } else {
+        p.log("userLocation is null or invalid, not adding to JSON");
+      }
       List<String> images = [];
       for (var mapEntry in _imageFiles.entries) {
         images.add(mapEntry.value!.path);
@@ -274,15 +300,89 @@ class DetailVM extends ChangeNotifier {
         errorMessage = 'Muvaffaqiyatli yaratildi';
         return true;
       } else if (response.statusCode == 400) {
-        final responseData = response.data;
-        // Subsidies validation
-        if (responseData != null && responseData['subsidies'] != null) {
-          errorMessage =
-              "Subsidiya raqamlari notog`ri yoki oldin ro'yxatdan o'tgan";
-        } else {
-          errorMessage = "Yaratishda xatolik yuz berdi";
+        dynamic responseData = response.data;
+        p.log("Response Data type: ${responseData.runtimeType}");
+        p.log("Response Data: $responseData");
+        
+        // Если responseData - строка, пытаемся распарсить её как JSON
+        if (responseData is String) {
+          try {
+            final decoded = jsonDecode(responseData);
+            responseData = decoded;
+            p.log("Parsed responseData type: ${responseData.runtimeType}");
+            p.log("Parsed responseData: $responseData");
+          } catch (e) {
+            p.log("Failed to parse responseData as JSON: $e");
+            // Если не удалось распарсить, используем строку как сообщение об ошибке
+            errorMessage = responseData;
+            return false;
+          }
         }
-        p.log("Response Data: ${jsonEncode(responseData)}");
+        
+        // Пытаемся извлечь детальное сообщение об ошибке
+        String? detailedError;
+        
+        // Безопасная проверка и приведение к Map
+        Map<String, dynamic>? errorMap;
+        if (responseData is Map) {
+          try {
+            errorMap = Map<String, dynamic>.from(responseData);
+          } catch (e) {
+            p.log("Failed to convert responseData to Map: $e");
+            errorMap = null;
+          }
+        }
+        
+        if (errorMap != null) {
+          // Проверяем различные форматы ошибок от сервера
+          if (errorMap['subsidies'] != null) {
+            errorMessage = "Subsidiya raqamlari notog`ri yoki oldin ro'yxatdan o'tgan";
+            return false;
+          } else if (errorMap['message'] != null) {
+            detailedError = errorMap['message'].toString();
+          } else if (errorMap['error'] != null) {
+            final errorValue = errorMap['error'];
+            if (errorValue is String) {
+              detailedError = errorValue;
+            } else if (errorValue is Map) {
+              try {
+                final nestedErrorMap = Map<String, dynamic>.from(errorValue);
+                if (nestedErrorMap['non_field_errors'] != null) {
+                  final errors = nestedErrorMap['non_field_errors'];
+                  if (errors is List && errors.isNotEmpty) {
+                    detailedError = errors[0].toString();
+                  }
+                } else if (nestedErrorMap['message'] != null) {
+                  detailedError = nestedErrorMap['message'].toString();
+                }
+              } catch (e) {
+                p.log("Failed to process nested error map: $e");
+              }
+            }
+          } else if (errorMap['non_field_errors'] != null) {
+            final errors = errorMap['non_field_errors'];
+            if (errors is List && errors.isNotEmpty) {
+              detailedError = errors[0].toString();
+            }
+          } else {
+            // Ищем первое текстовое сообщение об ошибке в любом поле
+            for (var entry in errorMap.entries) {
+              if (entry.value is String && entry.value.toString().isNotEmpty) {
+                detailedError = entry.value.toString();
+                break;
+              } else if (entry.value is List && (entry.value as List).isNotEmpty) {
+                detailedError = (entry.value as List)[0].toString();
+                break;
+              }
+            }
+          }
+        } else if (responseData is String) {
+          // Если это просто строка, используем её как сообщение об ошибке
+          detailedError = responseData;
+        }
+        
+        errorMessage = detailedError ?? "Yaratishda xatolik yuz berdi";
+        p.log("Error message: $errorMessage");
         return false;
       } else {
         errorMessage = "Server bilan bog'liq muammo yuz berdi";
@@ -757,10 +857,17 @@ class DetailVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setValue({required int id, required List<Coordinate> coordinate, double? polygonArea}) {
+  void setValue({
+    required int id,
+    required List<Coordinate> coordinate,
+    double? polygonArea,
+    Map<String, double>? userLocation,
+  }) {
     farmerId = id;
     coordinates = coordinate;
     polygonAreaFromMap = polygonArea;
+    this.userLocation = userLocation;
+    p.log("setValue called with userLocation: $userLocation");
   }
 
   

@@ -604,13 +604,34 @@ class CreateMapPageVm extends ChangeNotifier {
 
     // Если есть точки, рисуем линии и полигон
     if (drawingPoints.isNotEmpty) {
-      // Если есть минимум 2 точки, рисуем линии между ними
-      if (drawingPoints.length >= 2) {
+      // Получаем центр карты для непрерывной линии
+      LatLng? centerPosition;
+      if (mapController != null) {
+        try {
+          final center = await mapController!.getVisibleRegion();
+          final centerLat =
+              (center.northeast.latitude + center.southwest.latitude) / 2;
+          final centerLng =
+              (center.northeast.longitude + center.southwest.longitude) / 2;
+          centerPosition = LatLng(centerLat, centerLng);
+        } catch (e) {
+          debugPrint('Error getting map center: $e');
+        }
+      }
+
+      // Создаем непрерывную жёлтую линию от всех точек до центра карты
+      List<LatLng> continuousLine = List<LatLng>.from(drawingPoints);
+      if (centerPosition != null) {
+        continuousLine.add(centerPosition);
+      }
+
+      // Рисуем непрерывную жёлтую линию (даже если только одна точка)
+      if (continuousLine.length >= 2) {
         polylines.add(Polyline(
           polylineId: const PolylineId("drawing_polyline"),
-          points: drawingPoints,
+          points: continuousLine,
           color: Colors.yellow,
-          width: 3,
+          width: 4,
           patterns: [], // Сплошная линия
         ));
       }
@@ -626,37 +647,6 @@ class CreateMapPageVm extends ChangeNotifier {
             strokeWidth: 2,
           ),
         );
-      }
-    }
-
-    // Если есть точки, добавляем линию от последней точки до центра карты
-    if (drawingPoints.isNotEmpty && mapController != null) {
-      try {
-        // Получаем центр карты
-        final center = await mapController!.getVisibleRegion();
-        final centerLat =
-            (center.northeast.latitude + center.southwest.latitude) / 2;
-        final centerLng =
-            (center.northeast.longitude + center.southwest.longitude) / 2;
-        final centerPosition = LatLng(centerLat, centerLng);
-
-        List<LatLng> previewLine = [
-          drawingPoints.last,
-          centerPosition,
-        ];
-
-        polylines.add(Polyline(
-          polylineId: const PolylineId("ruler_preview_line"),
-          points: previewLine,
-          color: Colors.white,
-          width: 2,
-          patterns: [
-            PatternItem.dash(5),
-            PatternItem.gap(5)
-          ], // Пунктирная линия
-        ));
-      } catch (e) {
-        debugPrint('Error getting map center: $e');
       }
     }
   }
@@ -904,7 +894,7 @@ class CreateMapPageVm extends ChangeNotifier {
   /// Загрузить лимит координат из storage
   Future<void> loadLimitKm() async {
     final storedLimitKm = await AppStorage.$readDouble(key: StorageKey.limitKm);
-    _limitKm = storedLimitKm ?? 10.0// Дефолт 1 км если не установлен
+    _limitKm = storedLimitKm ?? 10.0; // Дефолт 10 км если не установлен
     debugPrint('📍 Loaded coordinate limit: ${_limitKm} km');
   }
 

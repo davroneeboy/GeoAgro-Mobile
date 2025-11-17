@@ -39,20 +39,23 @@ class CreateMapPageButtonWidgets extends StatelessWidget {
         // Кнопка "Добавить точку" - всегда доступна для добавления точек
         FloatingActionButton(
           heroTag: 'mapFab_add_point',
-          backgroundColor: Colors.blue,
+          backgroundColor: DesignColors.AppColors.primary,
           foregroundColor: Colors.white,
+          elevation: 8,
+          mini: false,
           onPressed: () {
             vm.addPointAtRulerPosition();
           },
-          child: const Icon(Icons.add),
+          child: const Icon(Icons.add, size: 28),
         ),
         const SizedBox(height: 10),
         // Кнопка "Отменить последнюю точку" - возвращать чертеж на шаг назад
         if (vm.drawingPoints.isNotEmpty)
           FloatingActionButton(
             heroTag: 'mapFab_undo',
-            backgroundColor: DesignColors.AppColors.darkSurface,
-            foregroundColor: AppColors.c1E1E1E,
+            backgroundColor: DesignColors.AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 6,
             onPressed: () {
               vm.removeLastPoint();
             },

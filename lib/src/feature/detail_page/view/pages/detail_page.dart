@@ -34,7 +34,7 @@ import '../../../../core/utils/thousands_separator_input_formatter.dart';
 import '../../../home/view/pages/home_page.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
-  final Map<String, Object> model;
+  final Map<String, dynamic> model;
   const DetailPage({super.key, required this.model});
 
   @override
@@ -44,10 +44,30 @@ class DetailPage extends ConsumerStatefulWidget {
 class DetailPageState extends ConsumerState<DetailPage> {
   @override
   void didChangeDependencies() {
+    // Преобразуем userLocation из dynamic в Map<String, double>?
+    Map<String, double>? userLocation;
+    if (widget.model["userLocation"] != null) {
+      try {
+        final location = widget.model["userLocation"] as Map<String, dynamic>;
+        if (location['latitude'] != null && location['longitude'] != null) {
+          userLocation = {
+            'latitude': (location['latitude'] as num).toDouble(),
+            'longitude': (location['longitude'] as num).toDouble(),
+          };
+          debugPrint("DetailPage: Received userLocation: $userLocation");
+        }
+      } catch (e) {
+        debugPrint("DetailPage: Error parsing userLocation: $e");
+      }
+    } else {
+      debugPrint("DetailPage: userLocation is null in model");
+    }
+    
     ref.read(detailVM).setValue(
         id: widget.model["farmerId"] as int,
         coordinate: widget.model["coordinates"] as List<Coordinate>,
-        polygonArea: widget.model["polygonArea"] as double?);
+        polygonArea: widget.model["polygonArea"] as double?,
+        userLocation: userLocation);
     super.didChangeDependencies();
   }
 
@@ -207,7 +227,12 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           FilteringTextInputFormatter.allow(
                               RegExp(r'[0-9a-zA-Z]'))
                         ],
-                        style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+                        style: AppTypography.input(context).copyWith(
+                          fontSize: 14.sp,
+                          color: isDark
+                              ? DesignColors.AppColors.darkOnBackground
+                              : DesignColors.AppColors.lightOnBackground,
+                        ),
                         decoration: InputDecoration(
                           hintText: "kontur raqamini kiriting",
                           filled: true,
@@ -250,6 +275,14 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       height: 40.h,
                       child: ElevatedButton(
                         onPressed: detailVm.addKonturNumber,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: DesignColors.AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.input),
+                          ),
+                        ),
                         child: const Text("Qo'shish"),
                       ),
                     ),
@@ -262,13 +295,30 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   children: [
                     for (int i = 0; i < detailVm.konturNumbers.length; i++)
                       Chip(
-                        label: Text(detailVm.konturNumbers[i]),
-                        onDeleted: () => detailVm.removeKonturAt(i),
-                        backgroundColor: DesignColors.AppColors.primaryContainer,
-                        side: BorderSide(
-                          color: DesignColors.AppColors.primary.withOpacity(0.3),
+                        label: Text(
+                          detailVm.konturNumbers[i],
+                          style: TextStyle(
+                            color: isDark
+                                ? DesignColors.AppColors.darkOnBackground
+                                : DesignColors.AppColors.lightOnBackground,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        deleteIcon: const Icon(Icons.close, size: 18),
+                        onDeleted: () => detailVm.removeKonturAt(i),
+                        backgroundColor: isDark
+                            ? DesignColors.AppColors.primaryContainerDark
+                            : DesignColors.AppColors.primaryContainer,
+                        side: BorderSide(
+                          color: DesignColors.AppColors.primary.withOpacity(0.5),
+                          width: 1.5,
+                        ),
+                        deleteIcon: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: isDark
+                              ? DesignColors.AppColors.darkOnBackground
+                              : DesignColors.AppColors.lightOnBackground,
+                        ),
                       ),
                   ],
                 ),
@@ -558,12 +608,22 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 Consumer(
                   builder: (context, ref, child) {
                     return Container(
-                      padding: EdgeInsets.all(12.h),
+                      padding: EdgeInsets.all(16.h),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8.r),
+                        color: DesignColors.AppColors.primary,
+                        borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
-                            color: Colors.blue.withValues(alpha: 0.3)),
+                          color: DesignColors.AppColors.primaryLight.withOpacity(0.5),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: DesignColors.AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -571,17 +631,17 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           Text(
                             "Umumiy maydon:",
                             style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[800],
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
                           ),
                           Text(
                             "${detailVm.getTotalArea(ref).toStringAsFixed(1)} GA",
                             style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[800],
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
                           ),
                         ],
