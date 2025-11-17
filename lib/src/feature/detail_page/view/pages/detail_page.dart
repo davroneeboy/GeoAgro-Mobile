@@ -47,6 +47,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
     // Преобразуем userLocation из dynamic в Map<String, double>?
     Map<String, double>? userLocation;
     if (widget.model["userLocation"] != null) {
+<<<<<<< HEAD
       try {
         final location = widget.model["userLocation"] as Map<String, dynamic>;
         if (location['latitude'] != null && location['longitude'] != null) {
@@ -61,6 +62,13 @@ class DetailPageState extends ConsumerState<DetailPage> {
       }
     } else {
       debugPrint("DetailPage: userLocation is null in model");
+=======
+      final location = widget.model["userLocation"] as Map;
+      userLocation = {
+        'latitude': (location['latitude'] as num).toDouble(),
+        'longitude': (location['longitude'] as num).toDouble(),
+      };
+>>>>>>> d7afe1300e8403d9410167883cd7958493ca84b4
     }
     
     ref.read(detailVM).setValue(

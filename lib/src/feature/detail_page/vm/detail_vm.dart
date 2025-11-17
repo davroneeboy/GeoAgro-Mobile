@@ -264,6 +264,7 @@ class DetailVM extends ChangeNotifier {
       final jsonData = mockGarden.toJson();
       // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
       jsonData['kontur_number'] = konturNumbers;
+<<<<<<< HEAD
       // Добавляем user_location только если он валиден
       p.log("userLocation value: $userLocation");
       if (userLocation != null && 
@@ -288,6 +289,14 @@ class DetailVM extends ChangeNotifier {
         }
       } else {
         p.log("userLocation is null or invalid, not adding to JSON");
+=======
+      // Добавляем user_location 
+      if (userLocation != null && userLocation!['latitude'] != null && userLocation!['longitude'] != null) {
+        jsonData['user_location'] = {
+          'latitude': userLocation!['latitude'],
+          'longitude': userLocation!['longitude'],
+        };
+>>>>>>> d7afe1300e8403d9410167883cd7958493ca84b4
       }
       List<String> images = [];
       for (var mapEntry in _imageFiles.entries) {
@@ -867,7 +876,10 @@ class DetailVM extends ChangeNotifier {
     coordinates = coordinate;
     polygonAreaFromMap = polygonArea;
     this.userLocation = userLocation;
+<<<<<<< HEAD
     p.log("setValue called with userLocation: $userLocation");
+=======
+>>>>>>> d7afe1300e8403d9410167883cd7958493ca84b4
   }
 
   
