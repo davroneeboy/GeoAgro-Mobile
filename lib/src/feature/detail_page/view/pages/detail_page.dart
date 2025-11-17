@@ -44,10 +44,21 @@ class DetailPage extends ConsumerStatefulWidget {
 class DetailPageState extends ConsumerState<DetailPage> {
   @override
   void didChangeDependencies() {
+    // Преобразуем userLocation из dynamic в Map<String, double>?
+    Map<String, double>? userLocation;
+    if (widget.model["userLocation"] != null) {
+      final location = widget.model["userLocation"] as Map;
+      userLocation = {
+        'latitude': (location['latitude'] as num).toDouble(),
+        'longitude': (location['longitude'] as num).toDouble(),
+      };
+    }
+    
     ref.read(detailVM).setValue(
         id: widget.model["farmerId"] as int,
         coordinate: widget.model["coordinates"] as List<Coordinate>,
-        polygonArea: widget.model["polygonArea"] as double?);
+        polygonArea: widget.model["polygonArea"] as double?,
+        userLocation: userLocation);
     super.didChangeDependencies();
   }
 

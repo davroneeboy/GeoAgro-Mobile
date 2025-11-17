@@ -99,6 +99,7 @@ class DetailVM extends ChangeNotifier {
   int direction = 0;
   List<Coordinate> coordinates = [];
   double? polygonAreaFromMap; // Площадь полигона, рассчитанная на карте
+  Map<String, double>? userLocation; // Текущее местоположение пользователя для user_location
   TextEditingController tonnaController = TextEditingController();
 
   String? errorMessage;
@@ -263,6 +264,13 @@ class DetailVM extends ChangeNotifier {
       final jsonData = mockGarden.toJson();
       // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
       jsonData['kontur_number'] = konturNumbers;
+      // Добавляем user_location 
+      if (userLocation != null && userLocation!['latitude'] != null && userLocation!['longitude'] != null) {
+        jsonData['user_location'] = {
+          'latitude': userLocation!['latitude'],
+          'longitude': userLocation!['longitude'],
+        };
+      }
       List<String> images = [];
       for (var mapEntry in _imageFiles.entries) {
         images.add(mapEntry.value!.path);
@@ -757,10 +765,16 @@ class DetailVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setValue({required int id, required List<Coordinate> coordinate, double? polygonArea}) {
+  void setValue({
+    required int id,
+    required List<Coordinate> coordinate,
+    double? polygonArea,
+    Map<String, double>? userLocation,
+  }) {
     farmerId = id;
     coordinates = coordinate;
     polygonAreaFromMap = polygonArea;
+    this.userLocation = userLocation;
   }
 
   

@@ -77,6 +77,13 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                       "coordinates": value,
                       "latLon": vm.polylineCoordinates,
                       "polygonArea": vm.polygonAreaHectares,
+                      // Передаем текущее местоположение пользователя для user_location
+                      "userLocation": vm.currentLocation != null
+                          ? {
+                              "latitude": vm.currentLocation!.latitude,
+                              "longitude": vm.currentLocation!.longitude,
+                            }
+                          : null,
                     };
                     context.push(
                       "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}/${AppRouteNames.detailPage}",
