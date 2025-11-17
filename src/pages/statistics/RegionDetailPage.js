@@ -1312,7 +1312,7 @@ const RegionDetailPage = () => {
       title: <span style={textLight}>Investitsiyalar</span>,
       children: [
         {
-          title: <span style={textLight}>Mahalliy</span>,
+          title: <span style={textLight}>Mahalliy (UZS)</span>,
           dataIndex: "investment_local",
           key: "investment_local",
           sorter: true,
@@ -1325,7 +1325,7 @@ const RegionDetailPage = () => {
           ),
         },
         {
-          title: <span style={textLight}>Xorijiy</span>,
+          title: <span style={textLight}>Xorijiy (USD)</span>,
           dataIndex: "investment_foreign",
           key: "investment_foreign",
           sorter: true,

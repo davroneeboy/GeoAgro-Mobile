@@ -275,8 +275,12 @@ function formatArrayValue(value, fieldName) {
   if (fieldName === 'investments') {
     return value.map((inv, idx) => {
       const type = inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`;
-      const amount = inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : '—';
-      return `  ${idx + 1}. ${type}: ${amount} UZS`;
+      const isForeign = inv.invest_type === 2;
+      const formattedAmount = inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : null;
+      const amount = formattedAmount 
+        ? (isForeign ? `${formattedAmount}$ (USD)` : `${formattedAmount} UZS`)
+        : '—';
+      return `  ${idx + 1}. ${type}: ${amount}`;
     }).join('\n') || `[${value.length} элемент]`;
   }
   
@@ -545,18 +549,38 @@ export default function PlantationHistory({
                                   <div className="text-xs text-red-400 mb-1">Eski:</div>
                                   {hasOldData && log.old_data?.investments && Array.isArray(log.old_data.investments) && log.old_data.investments.length > 0 ? (
                                     <div className="space-y-2 text-xs">
-                                      {log.old_data.investments.map((inv, idx) => (
-                                        <div key={idx} className="bg-gray-800/50 p-2 rounded border border-gray-600">
-                                          <div className="text-gray-300">
-                                            {inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`}:{' '}
-                                            <span className="font-bold">
-                                              {inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : '—'} UZS
-                                            </span>
+                                      {log.old_data.investments.map((inv, idx) => {
+                                        const isForeign = inv.invest_type === 2;
+                                        const formattedAmount = inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : null;
+                                        const displayAmount = formattedAmount
+                                          ? (isForeign ? `${formattedAmount}$ (USD)` : `${formattedAmount} UZS`)
+                                          : '—';
+                                        return (
+                                          <div key={idx} className="bg-gray-800/50 p-2 rounded border border-gray-600">
+                                            <div className="text-gray-300">
+                                              {inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`}:{' '}
+                                              <span className="font-bold">
+                                                {displayAmount}
+                                              </span>
+                                            </div>
                                           </div>
-                                        </div>
-                                      ))}
+                                        );
+                                      })}
                                       <div className="mt-2 pt-2 border-t border-gray-600">
-                                        <div className="text-gray-400 text-xs">Jami: {new Intl.NumberFormat('uz-UZ').format(log.old_data.investments.reduce((sum, inv) => sum + (inv.investment_amount || 0), 0))} UZS</div>
+                                        {(() => {
+                                          const localTotal = log.old_data.investments
+                                            .filter(inv => inv.invest_type === 1)
+                                            .reduce((sum, inv) => sum + (inv.investment_amount || 0), 0);
+                                          const foreignTotal = log.old_data.investments
+                                            .filter(inv => inv.invest_type === 2)
+                                            .reduce((sum, inv) => sum + (inv.investment_amount || 0), 0);
+                                          return (
+                                            <div className="text-gray-400 text-xs space-y-0.5">
+                                              {localTotal > 0 && <div>Mahalliy jami: {new Intl.NumberFormat('uz-UZ').format(localTotal)} UZS</div>}
+                                              {foreignTotal > 0 && <div>Xorijiy jami: {new Intl.NumberFormat('uz-UZ').format(foreignTotal)}$ (USD)</div>}
+                                            </div>
+                                          );
+                                        })()}
                                       </div>
                                     </div>
                                   ) : (
@@ -567,18 +591,38 @@ export default function PlantationHistory({
                                   <div className="text-xs text-green-400 mb-1">Yangi:</div>
                                   {hasNewData && log.new_data?.investments && Array.isArray(log.new_data.investments) && log.new_data.investments.length > 0 ? (
                                     <div className="space-y-2 text-xs">
-                                      {log.new_data.investments.map((inv, idx) => (
-                                        <div key={idx} className="bg-gray-800/50 p-2 rounded border border-gray-600">
-                                          <div className="text-gray-300">
-                                            {inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`}:{' '}
-                                            <span className="font-bold">
-                                              {inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : '—'} UZS
-                                            </span>
+                                      {log.new_data.investments.map((inv, idx) => {
+                                        const isForeign = inv.invest_type === 2;
+                                        const formattedAmount = inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : null;
+                                        const displayAmount = formattedAmount
+                                          ? (isForeign ? `${formattedAmount}$ (USD)` : `${formattedAmount} UZS`)
+                                          : '—';
+                                        return (
+                                          <div key={idx} className="bg-gray-800/50 p-2 rounded border border-gray-600">
+                                            <div className="text-gray-300">
+                                              {inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`}:{' '}
+                                              <span className="font-bold">
+                                                {displayAmount}
+                                              </span>
+                                            </div>
                                           </div>
-                                        </div>
-                                      ))}
+                                        );
+                                      })}
                                       <div className="mt-2 pt-2 border-t border-gray-600">
-                                        <div className="text-green-400 text-xs font-bold">Jami: {new Intl.NumberFormat('uz-UZ').format(log.new_data.investments.reduce((sum, inv) => sum + (inv.investment_amount || 0), 0))} UZS</div>
+                                        {(() => {
+                                          const localTotal = log.new_data.investments
+                                            .filter(inv => inv.invest_type === 1)
+                                            .reduce((sum, inv) => sum + (inv.investment_amount || 0), 0);
+                                          const foreignTotal = log.new_data.investments
+                                            .filter(inv => inv.invest_type === 2)
+                                            .reduce((sum, inv) => sum + (inv.investment_amount || 0), 0);
+                                          return (
+                                            <div className="text-green-400 text-xs font-bold space-y-0.5">
+                                              {localTotal > 0 && <div>Mahalliy jami: {new Intl.NumberFormat('uz-UZ').format(localTotal)} UZS</div>}
+                                              {foreignTotal > 0 && <div>Xorijiy jami: {new Intl.NumberFormat('uz-UZ').format(foreignTotal)}$ (USD)</div>}
+                                            </div>
+                                          );
+                                        })()}
                                       </div>
                                     </div>
                                   ) : (
@@ -779,33 +823,60 @@ export default function PlantationHistory({
                       <div className="bg-gray-900/50 p-3 rounded border border-gray-700">
                         <div className="text-xs font-semibold text-yellow-400 mb-2">Investitsiyalar</div>
                         <div className="space-y-2 text-xs">
-                          {log.new_data.investments.map((inv, idx) => (
-                            <div key={idx} className="bg-gray-800/50 p-2 rounded border border-gray-600">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <span className="text-gray-400">Turi:</span>{' '}
-                                  <span className="text-gray-300">
-                                    {inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Summa:</span>{' '}
-                                  <span className="text-gray-300 font-bold">
-                                    {inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : '—'} UZS
-                                  </span>
+                          {log.new_data.investments.map((inv, idx) => {
+                            const isForeign = inv.invest_type === 2;
+                            const formattedAmount = inv.investment_amount ? new Intl.NumberFormat('uz-UZ').format(inv.investment_amount) : null;
+                            const displayAmount = formattedAmount
+                              ? (isForeign ? `${formattedAmount}$ (USD)` : `${formattedAmount} UZS`)
+                              : '—';
+                            return (
+                              <div key={idx} className="bg-gray-800/50 p-2 rounded border border-gray-600">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="text-gray-400">Turi:</span>{' '}
+                                    <span className="text-gray-300">
+                                      {inv.invest_type === 1 ? 'Mahalliy' : inv.invest_type === 2 ? 'Xorijiy' : `Turi ${inv.invest_type}`}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Summa:</span>{' '}
+                                    <span className="text-gray-300 font-bold">
+                                      {displayAmount}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                           <div className="mt-2 pt-2 border-t border-gray-600">
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-400 font-semibold">Jami:</span>
-                              <span className="text-green-400 font-bold">
-                                {new Intl.NumberFormat('uz-UZ').format(
-                                  log.new_data.investments.reduce((sum, inv) => sum + (inv.investment_amount || 0), 0)
-                                )} UZS
-                              </span>
-                            </div>
+                            {(() => {
+                              const localTotal = log.new_data.investments
+                                .filter(inv => inv.invest_type === 1)
+                                .reduce((sum, inv) => sum + (inv.investment_amount || 0), 0);
+                              const foreignTotal = log.new_data.investments
+                                .filter(inv => inv.invest_type === 2)
+                                .reduce((sum, inv) => sum + (inv.investment_amount || 0), 0);
+                              return (
+                                <div className="space-y-1">
+                                  {localTotal > 0 && (
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-gray-400 font-semibold">Mahalliy jami:</span>
+                                      <span className="text-green-400 font-bold">
+                                        {new Intl.NumberFormat('uz-UZ').format(localTotal)} UZS
+                                      </span>
+                                    </div>
+                                  )}
+                                  {foreignTotal > 0 && (
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-gray-400 font-semibold">Xorijiy jami:</span>
+                                      <span className="text-green-400 font-bold">
+                                        {new Intl.NumberFormat('uz-UZ').format(foreignTotal)}$ (USD)
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>

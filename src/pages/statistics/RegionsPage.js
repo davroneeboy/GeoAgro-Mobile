@@ -1208,7 +1208,7 @@ const RegionsPage = () => {
       title: "Investitsiyalar",
       children: [
         {
-          title: "Mahalliy",
+          title: "Mahalliy (UZS)",
           dataIndex: "investment_local",
           key: "investment_local",
           sorter: true,
@@ -1217,7 +1217,7 @@ const RegionsPage = () => {
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toLocaleString()}</span>,
         },
         {
-          title: "Xorijiy",
+          title: "Xorijiy (USD)",
           dataIndex: "investment_foreign",
           key: "investment_foreign",
           sorter: true,

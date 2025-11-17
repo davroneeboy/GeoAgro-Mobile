@@ -89,24 +89,50 @@ export default function PlantationMetaCards({ plantation }) {
         <div className="bg-gray-700 p-3 rounded-lg">
           <p className="font-semibold text-gray-300 mb-2">Investitsiyalar:</p>
           <div className="space-y-1 mb-3">
-            {plantation.investments.map((investment, index) => (
-              <div key={investment.id || index} className="text-white text-sm">
-                <span className="text-gray-400">
-                  {investment.invest_type === 1 ? 'Mahalliy' : investment.invest_type === 2 ? 'Xorijiy' : `Turi ${investment.invest_type}`}:
-                </span>
-                <span className="ml-2 font-medium">
-                  {new Intl.NumberFormat('uz-UZ').format(investment.investment_amount)} UZS
-                </span>
-              </div>
-            ))}
+            {plantation.investments.map((investment, index) => {
+              const isForeign = investment.invest_type === 2;
+              const formattedAmount = new Intl.NumberFormat('uz-UZ').format(investment.investment_amount);
+              const displayAmount = isForeign 
+                ? `${formattedAmount}$ (USD)`
+                : `${formattedAmount} UZS`;
+              return (
+                <div key={investment.id || index} className="text-white text-sm">
+                  <span className="text-gray-400">
+                    {investment.invest_type === 1 ? 'Mahalliy' : investment.invest_type === 2 ? 'Xorijiy' : `Turi ${investment.invest_type}`}:
+                  </span>
+                  <span className="ml-2 font-medium">
+                    {displayAmount}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <div className="border-t border-gray-600 pt-2">
             <p className="font-semibold text-gray-300">Jami investitsiyalar:</p>
-            <p className="text-white font-bold text-green-400 text-lg">
-              {new Intl.NumberFormat('uz-UZ').format(
-                plantation.investments.reduce((total, inv) => total + (inv.investment_amount || 0), 0)
-              )} UZS
-            </p>
+            <div className="space-y-1">
+              {(() => {
+                const localTotal = plantation.investments
+                  .filter(inv => inv.invest_type === 1)
+                  .reduce((total, inv) => total + (inv.investment_amount || 0), 0);
+                const foreignTotal = plantation.investments
+                  .filter(inv => inv.invest_type === 2)
+                  .reduce((total, inv) => total + (inv.investment_amount || 0), 0);
+                return (
+                  <>
+                    {localTotal > 0 && (
+                      <p className="text-white font-bold text-green-400">
+                        Mahalliy: {new Intl.NumberFormat('uz-UZ').format(localTotal)} UZS
+                      </p>
+                    )}
+                    {foreignTotal > 0 && (
+                      <p className="text-white font-bold text-green-400">
+                        Xorijiy: {new Intl.NumberFormat('uz-UZ').format(foreignTotal)}$ (USD)
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       )}
