@@ -167,7 +167,9 @@ class MainButton2 extends StatelessWidget {
             height: 52.h,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: DesignColors.AppColors.darkSurface,
+              color: isDisabled
+                  ? DesignColors.AppColors.darkSurface
+                  : DesignColors.AppColors.accentGreen,
               borderRadius: BorderRadius.circular(AppRadii.button),
               border: Border.all(
                 color: isDisabled

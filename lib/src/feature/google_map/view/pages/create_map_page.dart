@@ -72,12 +72,26 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                   } else {
                     final value = vm.cordinatesConverter();
 
+                    // Передаем текущее местоположение пользователя для user_location
+                    Map<String, double>? userLocationMap;
+                    if (vm.currentLocation != null) {
+                      userLocationMap = {
+                        "latitude": vm.currentLocation!.latitude,
+                        "longitude": vm.currentLocation!.longitude,
+                      };
+                      log("Passing userLocation: $userLocationMap");
+                    } else {
+                      log("currentLocation is null, userLocation will be null");
+                    }
+
                     final model = {
                       "farmerId": widget.farmerId,
                       "coordinates": value,
                       "latLon": vm.polylineCoordinates,
                       "polygonArea": vm.polygonAreaHectares,
+                      "userLocation": userLocationMap,
                     };
+                    log("Model to pass: userLocation = ${model['userLocation']}");
                     context.push(
                       "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}/${AppRouteNames.detailPage}",
                       extra: model,

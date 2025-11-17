@@ -218,7 +218,7 @@ final class RouterConfigService {
                             context,
                             state,
                             DetailPage(
-                                model: state.extra as Map<String, Object>)),
+                                model: state.extra as Map<String, dynamic>)),
                   ),
                 ],
               ),

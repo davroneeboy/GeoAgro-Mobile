@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/custom_app_bar_widget.dart';
@@ -63,11 +62,10 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
   Widget _buildContent(BuildContext context, WidgetRef ref, FarmerPlantationsVm vm) {
     if (vm.isLoading) {
       return Center(
-        child: Lottie.asset(
-          'assets/lotties/search.json',
-          width: 300.w,
-          height: 300.h,
-          fit: BoxFit.contain,
+        child: Icon(
+          Icons.search,
+          size: 120.sp,
+          color: DesignColors.AppColors.primary,
         ),
       );
     }
@@ -86,17 +84,16 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Lottie.asset(
-              'assets/lotties/no_result.json',
-              width: 200.w,
-              height: 200.h,
-              fit: BoxFit.contain,
+            Icon(
+              Icons.agriculture_outlined,
+              size: 120.sp,
+              color: DesignColors.AppColors.primary,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 24.h),
             Text(
               "Bu fermerda plantatsiya yo'q",
               style: AppTypography.bodyLarge(context).copyWith(
-                color: DesignColors.AppColors.darkOnSurfaceVariant,
+                color: DesignColors.AppColors.darkOnBackground,
               ),
             ),
           ],
