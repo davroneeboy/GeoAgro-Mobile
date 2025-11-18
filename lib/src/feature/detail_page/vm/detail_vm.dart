@@ -264,7 +264,6 @@ class DetailVM extends ChangeNotifier {
       final jsonData = mockGarden.toJson();
       // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
       jsonData['kontur_number'] = konturNumbers;
-<<<<<<< HEAD
       // Добавляем user_location только если он валиден
       p.log("userLocation value: $userLocation");
       if (userLocation != null && 
@@ -289,14 +288,6 @@ class DetailVM extends ChangeNotifier {
         }
       } else {
         p.log("userLocation is null or invalid, not adding to JSON");
-=======
-      // Добавляем user_location 
-      if (userLocation != null && userLocation!['latitude'] != null && userLocation!['longitude'] != null) {
-        jsonData['user_location'] = {
-          'latitude': userLocation!['latitude'],
-          'longitude': userLocation!['longitude'],
-        };
->>>>>>> d7afe1300e8403d9410167883cd7958493ca84b4
       }
       List<String> images = [];
       for (var mapEntry in _imageFiles.entries) {
@@ -696,10 +687,7 @@ class DetailVM extends ChangeNotifier {
   }
 
   /// Показать диалог выбора источника изображения (Camera/Gallery)
-  /// Для специальных пользователей показывает оба варианта
   Future<void> showImagePicker(BuildContext context, int cardId) async {
-    // Загружаем информацию о пользователе перед показом
-    await loadUserInfo();
     
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -713,15 +701,12 @@ class DetailVM extends ChangeNotifier {
                 title: const Text('Camera'),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
-              // Показываем галерею только для специальных пользователей
-              if (_isSpecialUser) ...[
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
-                  onTap: () => Navigator.pop(context, ImageSource.gallery),
-                ),
-              ],
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
             ],
           ),
         );
@@ -876,10 +861,7 @@ class DetailVM extends ChangeNotifier {
     coordinates = coordinate;
     polygonAreaFromMap = polygonArea;
     this.userLocation = userLocation;
-<<<<<<< HEAD
     p.log("setValue called with userLocation: $userLocation");
-=======
->>>>>>> d7afe1300e8403d9410167883cd7958493ca84b4
   }
 
   

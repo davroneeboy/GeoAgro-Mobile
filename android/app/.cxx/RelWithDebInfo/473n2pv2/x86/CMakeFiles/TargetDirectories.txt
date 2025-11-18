@@ -1,0 +1,2 @@
+/Users/rokki/Desktop/Agrosanoat/geoagro-flutter/android/app/.cxx/RelWithDebInfo/473n2pv2/x86/CMakeFiles/edit_cache.dir
+/Users/rokki/Desktop/Agrosanoat/geoagro-flutter/android/app/.cxx/RelWithDebInfo/473n2pv2/x86/CMakeFiles/rebuild_cache.dir
