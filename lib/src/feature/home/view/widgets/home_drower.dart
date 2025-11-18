@@ -133,7 +133,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'geoAgro v${currentAppVersion ?? "2.2.1"}',
+                    'geoAgro v${currentAppVersion ?? "3.0.1"}',
                     textAlign: TextAlign.center,
                     style: AppTypography.caption(context).copyWith(
                       color: DesignColors.AppColors.darkTextTertiary,

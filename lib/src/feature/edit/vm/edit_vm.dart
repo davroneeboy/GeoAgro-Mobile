@@ -927,10 +927,7 @@ class EditVM extends ChangeNotifier {
   }
 
   /// Показать диалог выбора источника изображения (Camera/Gallery)
-  /// Для специальных пользователей показывает оба варианта
   Future<void> showImagePicker(BuildContext context, int cardId) async {
-    // Загружаем информацию о пользователе перед показом
-    await loadUserInfo();
     
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -944,15 +941,12 @@ class EditVM extends ChangeNotifier {
                 title: const Text('Camera'),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
-              // Показываем галерею только для специальных пользователей
-              if (_isSpecialUser) ...[
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
-                  onTap: () => Navigator.pop(context, ImageSource.gallery),
-                ),
-              ],
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
             ],
           ),
         );

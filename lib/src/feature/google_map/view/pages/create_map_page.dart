@@ -89,9 +89,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                       "coordinates": value,
                       "latLon": vm.polylineCoordinates,
                       "polygonArea": vm.polygonAreaHectares,
-<<<<<<< HEAD
-                      "userLocation": userLocationMap,
-=======
                       // Передаем текущее местоположение пользователя для user_location
                       "userLocation": vm.currentLocation != null
                           ? {
@@ -99,7 +96,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                               "longitude": vm.currentLocation!.longitude,
                             }
                           : null,
->>>>>>> d7afe1300e8403d9410167883cd7958493ca84b4
                     };
                     log("Model to pass: userLocation = ${model['userLocation']}");
                     context.push(
