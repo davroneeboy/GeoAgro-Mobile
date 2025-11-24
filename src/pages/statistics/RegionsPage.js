@@ -1054,15 +1054,6 @@ const RegionsPage = () => {
           render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
         },
         {
-          title: "Ekilgan maydon (GA)",
-          dataIndex: "planted_area",
-          key: "planted_area",
-          sorter: true,
-          sortOrder: sortConfig.field === 'planted_area' ? sortConfig.order : null,
-          sortDirections: ['ascend','descend'],
-          render: (value) => <span style={{ color: '#e5e7eb' }}>{safeNumber(value).toFixed(1)}</span>,
-        },
-        {
           title: "Foydalanilmagan maydon (GA)",
           dataIndex: "not_used_area",
           key: "not_used_area",
