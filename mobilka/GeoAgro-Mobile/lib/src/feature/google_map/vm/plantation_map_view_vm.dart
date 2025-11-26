@@ -398,6 +398,45 @@ class PlantationMapViewVm extends ChangeNotifier {
     return perimeter;
   }
 
+  double calculateArea(List<PlantationCoordinate> coordinates) {
+    if (coordinates.length < 3) return 0.0;
+
+    // Конвертируем PlantationCoordinate в LatLng
+    final points = coordinates.map((c) => LatLng(c.latitude, c.longitude)).toList();
+
+    // Используем формулу площади Гаусса для сферических координат
+    double area = 0.0;
+    int n = points.length;
+
+    // Если полигон замкнут (последняя точка = первой), убираем дублирующую точку
+    List<LatLng> cleanPoints = List<LatLng>.from(points);
+    if (cleanPoints.length > 3 &&
+        cleanPoints.first.latitude == cleanPoints.last.latitude &&
+        cleanPoints.first.longitude == cleanPoints.last.longitude) {
+      cleanPoints.removeLast();
+      n = cleanPoints.length;
+    }
+
+    for (int i = 0; i < n; i++) {
+      int j = (i + 1) % n;
+      area += cleanPoints[i].longitude * cleanPoints[j].latitude;
+      area -= cleanPoints[j].longitude * cleanPoints[i].latitude;
+    }
+    area = area.abs() / 2.0;
+
+    // Переводим квадратные градусы в квадратные метры
+    double avgLat =
+        cleanPoints.map((p) => p.latitude).reduce((a, b) => a + b) / n;
+    const double meterPerDegreeLat = 111320.0; // метры на градус широты
+    double meterPerDegreeLng =
+        111320.0 * cos(avgLat * pi / 180); // метры на градус долготы
+
+    area = area * meterPerDegreeLat * meterPerDegreeLng;
+
+    // Конвертируем из квадратных метров в гектары (1 га = 10,000 м²)
+    return area / 10000.0;
+  }
+
   double _calculateDistance(LatLng start, LatLng end) {
     const double earthRadius = 6371000; // meters
     double dLat = _degreesToRadians(end.latitude - start.latitude);

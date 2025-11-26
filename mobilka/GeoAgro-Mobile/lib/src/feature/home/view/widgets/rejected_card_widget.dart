@@ -39,20 +39,17 @@ class RejectedCardWidget extends StatelessWidget {
           if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
             const CustomDriver(),
             10.verticalSpace,
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Tafsilot",
                   style: TextStyle(fontSize: 16.sp, color: AppColors.c1E1E1E, fontWeight: FontWeight.w600),
                 ),
-                16.horizontalSpace,
-                Expanded(
-                  child: Text(
-                    plantation.moderationComments!.first.text ?? '',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
-                  ),
+                10.verticalSpace,
+                Text(
+                  plantation.moderationComments!.first.text ?? '',
+                  style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
                 ),
               ],
             ),

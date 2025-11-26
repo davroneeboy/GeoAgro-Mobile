@@ -78,7 +78,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Загружаем координаты для карты
+      // Перезагружаем данные плантации при открытии страницы
+      ref.read(plantationViewVM(widget.id)).retry();
+      // Перезагружаем координаты для карты
       ref.read(plantationMapMiniVM(widget.id)).loadRelatedPlantations();
     });
   }
@@ -322,12 +324,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           "Sug'orish tizimlari",
           plantation.irrigationSystemsCount.toString(),
           Icons.precision_manufacturing_outlined,
-        ),
-      if (mapVm.currentPlantation?.coordinates.isNotEmpty ?? false)
-        _InfoEntry(
-          "Koordinatalar soni",
-          mapVm.currentPlantation!.coordinates.length.toString(),
-          Icons.map_outlined,
         ),
     ];
 
@@ -738,7 +734,11 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required PlantationMapViewVm mapVm,
     required MapEntry<String, Color> statusData,
   }) {
-    final areaFromMap = mapVm.currentPlantation?.totalArea;
+    // Пересчитываем площадь из координат, как и периметр
+    final calculatedArea = mapVm.currentPlantation != null &&
+            mapVm.currentPlantation!.coordinates.isNotEmpty
+        ? mapVm.calculateArea(mapVm.currentPlantation!.coordinates)
+        : null;
     final perimeter = mapVm.currentPlantation == null
         ? null
         : mapVm.calculatePerimeter(mapVm.currentPlantation!.coordinates);
@@ -752,8 +752,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       ),
       _InfoEntry(
         "Maydon (GIS)",
-        areaFromMap != null
-            ? "${areaFromMap.toStringAsFixed(2)} GA"
+        calculatedArea != null && calculatedArea > 0
+            ? "${calculatedArea.toStringAsFixed(2)} GA"
             : "${_formatNumber(plantation.totalArea)} GA",
         Icons.landscape_outlined,
       ),
