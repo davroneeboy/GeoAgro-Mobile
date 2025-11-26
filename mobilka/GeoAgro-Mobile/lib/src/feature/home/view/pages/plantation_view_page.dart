@@ -751,7 +751,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         statusData.value,
       ),
       _InfoEntry(
-        "Maydon (GIS)",
+        "Chegara maydon",
         calculatedArea != null && calculatedArea > 0
             ? "${calculatedArea.toStringAsFixed(2)} GA"
             : "${_formatNumber(plantation.totalArea)} GA",
