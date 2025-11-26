@@ -47,10 +47,26 @@ class RejectedCardWidget extends StatelessWidget {
                   style: TextStyle(fontSize: 16.sp, color: AppColors.c1E1E1E, fontWeight: FontWeight.w600),
                 ),
                 10.verticalSpace,
-                Text(
-                  plantation.moderationComments!.first.text ?? '',
-                  style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
-                ),
+                ...plantation.moderationComments!.map((comment) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 8.h),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "• ",
+                          style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
+                        ),
+                        Expanded(
+                          child: Text(
+                            comment.text ?? '',
+                            style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ],
             ),
           ],

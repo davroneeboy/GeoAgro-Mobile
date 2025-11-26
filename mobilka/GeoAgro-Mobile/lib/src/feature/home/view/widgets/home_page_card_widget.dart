@@ -192,7 +192,10 @@ class HomePageCardWidget extends StatelessWidget {
             SizedBox(height: AppSpacing.lg),
             _ModerationNote(
               context: context,
-              message: plantation.moderationComments!.first.text ?? '',
+              messages: plantation.moderationComments!
+                  .map((comment) => comment.text ?? '')
+                  .where((text) => text.isNotEmpty)
+                  .toList(),
             ),
           ],
           SizedBox(height: AppSpacing.lg),
@@ -345,7 +348,7 @@ class HomePageCardWidget extends StatelessWidget {
 
   Widget _ModerationNote({
     required BuildContext context,
-    required String message,
+    required List<String> messages,
   }) {
     return Container(
       width: double.infinity,
@@ -378,12 +381,31 @@ class HomePageCardWidget extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: AppSpacing.xs),
-                Text(
-                  message,
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: DesignColors.AppColors.darkTextSecondary,
-                  ),
-                ),
+                ...messages.map((message) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "• ",
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: DesignColors.AppColors.darkTextSecondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            message,
+                            style: AppTypography.bodySmall(context).copyWith(
+                              color: DesignColors.AppColors.darkTextSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ],
             ),
           ),
