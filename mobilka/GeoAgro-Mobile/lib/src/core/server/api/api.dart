@@ -195,7 +195,12 @@ class ApiService {
             }
             l.d("✅ API: user_location processed, total fields added: ${value.length > 0 ? value[0].length : 0}");
           } else {
-            formData.fields.add(MapEntry(key, value.toString()));
+            // Handle simple string fields (including comments)
+            final fieldValue = value.toString();
+            formData.fields.add(MapEntry(key, fieldValue));
+            if (key == 'comments') {
+              l.d("📝 API: Adding comments field: $key = $fieldValue");
+            }
           }
         } else {
           l.d("⚠️ API: Field $key is null, skipping");

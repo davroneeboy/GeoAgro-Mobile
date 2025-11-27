@@ -8,15 +8,19 @@ import 'package:agro_employee_public/design_system/theme/radius.dart';
 import 'package:agro_employee_public/design_system/theme/spacing.dart';
 import 'package:agro_employee_public/design_system/theme/typography.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/setting/setup.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../data/model/plantation/edit_plantation.dart';
+import '../../../../data/model/plantation/comment_model.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_view_vm.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
@@ -182,6 +186,114 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       return value.toString();
     }
     return value.toString();
+  }
+
+  Widget _buildCommentsList(BuildContext context, List<Comment> comments, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...comments.map((comment) => _buildCommentCard(context, comment, isDark)),
+        SizedBox(height: 16.h),
+        _buildAddCommentButton(context),
+      ],
+    );
+  }
+
+  Widget _buildCommentCard(BuildContext context, Comment comment, bool isDark) {
+    final theme = Theme.of(context);
+    String formattedDate = '';
+    try {
+      final date = DateTime.parse(comment.createdAt);
+      formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
+    } catch (e) {
+      formattedDate = comment.createdAt;
+    }
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(16.h),
+      decoration: BoxDecoration(
+        color: isDark
+            ? DesignColors.AppColors.darkSurface
+            : DesignColors.AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark
+              ? DesignColors.AppColors.darkOutline
+              : DesignColors.AppColors.lightOutline,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (comment.isModeration)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                  child: Text(
+                    "Moderatsiya",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (comment.isModeration) SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  formattedDate,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    fontSize: 12.sp,
+                    color: isDark
+                        ? DesignColors.AppColors.darkOnSurfaceVariant
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (comment.createdBy != null) ...[
+            SizedBox(height: 4.h),
+            Text(
+              comment.createdBy!.fullName,
+              style: AppTypography.bodySmall(context).copyWith(
+                fontSize: 12.sp,
+                color: isDark
+                    ? DesignColors.AppColors.darkOnSurfaceVariant
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          SizedBox(height: 8.h),
+          Text(
+            comment.body,
+            style: AppTypography.bodyMedium(context).copyWith(
+              fontSize: 14.sp,
+              color: isDark
+                  ? DesignColors.AppColors.darkOnSurface
+                  : DesignColors.AppColors.lightOnSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddCommentButton(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final vm = ref.watch(plantationViewVM(widget.id));
+        return _AddCommentWidget(plantationId: widget.id, vm: vm);
+      },
+    );
   }
 
   @override
@@ -462,6 +574,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required List<_InfoEntry> baseEntries,
     required MapEntry<String, Color> statusData,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final sections = <DetailSection>[
       DetailSection(
         title: "Xarita va holat",
@@ -600,6 +714,17 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     ])
                 .toList(),
           ),
+        ),
+      );
+    }
+
+    // Добавляем секцию с комментариями, если они есть
+    if (plantation.comments != null && plantation.comments!.isNotEmpty) {
+      sections.add(
+        DetailSection(
+          title: "Izohlar",
+          icon: Icons.comment_outlined,
+          content: _buildCommentsList(context, plantation.comments!, isDark),
         ),
       );
     }
@@ -1460,6 +1585,195 @@ class _MapGestureHandlerState extends State<_MapGestureHandler> {
       },
       behavior: HitTestBehavior.translucent,
       child: widget.child,
+    );
+  }
+}
+
+class _AddCommentWidget extends ConsumerStatefulWidget {
+  final int plantationId;
+  final _PlantationViewVm vm;
+
+  const _AddCommentWidget({
+    required this.plantationId,
+    required this.vm,
+  });
+
+  @override
+  ConsumerState<_AddCommentWidget> createState() => _AddCommentWidgetState();
+}
+
+class _AddCommentWidgetState extends ConsumerState<_AddCommentWidget> {
+  final TextEditingController _commentController = TextEditingController();
+  bool _isAdding = false;
+
+  Future<void> _addComment() async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty || _isAdding) return;
+
+    setState(() {
+      _isAdding = true;
+    });
+
+    try {
+      final repo = AppRepositoryImpl();
+      final response = await repo.addPlantationComment(
+        plantationId: widget.plantationId,
+        body: text,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _commentController.clear();
+        // Перезагружаем данные плантации для обновления списка комментариев
+        widget.vm.retry();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Izoh muvaffaqiyatli qo'shildi"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Xatolik yuz berdi"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Xatolik: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAdding = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: EdgeInsets.all(16.h),
+      decoration: BoxDecoration(
+        color: isDark
+            ? DesignColors.AppColors.darkSurface
+            : DesignColors.AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark
+              ? DesignColors.AppColors.darkOutline
+              : DesignColors.AppColors.lightOutline,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Yangi izoh qo'shish",
+            style: AppTypography.headlineSmall(context).copyWith(
+              fontSize: 16.sp,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          TextField(
+            controller: _commentController,
+            maxLines: 3,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
+            ],
+            style: AppTypography.input(context).copyWith(
+              fontSize: 14.sp,
+              color: isDark
+                  ? DesignColors.AppColors.darkOnBackground
+                  : DesignColors.AppColors.lightOnBackground,
+            ),
+            decoration: InputDecoration(
+              hintText: "Izoh kiriting...",
+              filled: true,
+              fillColor: isDark
+                  ? DesignColors.AppColors.darkSurfaceVariant
+                  : DesignColors.AppColors.lightSurfaceVariant,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.inputPaddingHorizontal,
+                vertical: AppSpacing.inputPaddingVertical,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.input),
+                borderSide: BorderSide(
+                      color: isDark
+                          ? DesignColors.AppColors.darkOutline
+                          : DesignColors.AppColors.lightOutline,
+                  width: 1.2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.input),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? DesignColors.AppColors.primary
+                      : theme.colorScheme.primary,
+                  width: 1.6,
+                ),
+              ),
+              hintStyle: AppTypography.bodyMedium(context).copyWith(
+                fontSize: 14.sp,
+                color: isDark
+                    ? DesignColors.AppColors.darkOnSurfaceVariant
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              isDense: true,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isAdding ? null : _addComment,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DesignColors.AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+              ),
+              child: _isAdding
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.h,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      "Qo'shish",
+                      style: TextStyle(fontSize: 14.sp),
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

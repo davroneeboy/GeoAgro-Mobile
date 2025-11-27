@@ -63,4 +63,8 @@ abstract class AppRepo {
   Future<String?> markNotificationsAsRead({bool markAll = false, List<int>? ids});
   Future<String?> markNotificationAsRead({required int id});
   Future<String?> deleteNotification({required int id});
+
+  // ==== Comments ====
+  Future<String?> getPlantationComments({required int plantationId});
+  Future<ApiResponse> addPlantationComment({required int plantationId, required String body});
 }

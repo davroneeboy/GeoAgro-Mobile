@@ -57,12 +57,12 @@ class RejectedCardWidget extends StatelessWidget {
                           "• ",
                           style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
                         ),
-                        Expanded(
-                          child: Text(
+                Expanded(
+                  child: Text(
                             comment.text ?? '',
-                            style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
-                          ),
-                        ),
+                    style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
+                  ),
+                ),
                       ],
                     ),
                   );

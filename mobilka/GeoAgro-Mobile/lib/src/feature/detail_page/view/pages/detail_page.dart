@@ -652,10 +652,63 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ),
                         ],
                       ),
-                    );
-                  },
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.xxl),
+              MainText(text: "Izohlar (ixtiyoriy)"),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: detailVm.commentsController,
+                maxLines: 4,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                inputFormatters: [
+                  // Разрешаем все Unicode символы, включая кириллицу, латиницу, цифры и знаки препинания
+                  FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
+                ],
+                style: AppTypography.input(context).copyWith(
+                  fontSize: 14.sp,
+                  color: isDark
+                      ? DesignColors.AppColors.darkOnBackground
+                      : DesignColors.AppColors.lightOnBackground,
                 ),
-                const SizedBox(height: AppSpacing.xxl),
+                decoration: InputDecoration(
+                  hintText: "Izoh kiriting (qo'shiladi yaratilgandan keyin)",
+                  filled: true,
+                  fillColor: isDark
+                      ? DesignColors.AppColors.darkSurfaceVariant
+                      : sectionColor,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.inputPaddingHorizontal,
+                    vertical: AppSpacing.inputPaddingVertical,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderSide: BorderSide(
+                      color: outlineColor,
+                      width: 1.2,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? DesignColors.AppColors.primary
+                          : theme.colorScheme.primary,
+                      width: 1.6,
+                    ),
+                  ),
+                  hintStyle: AppTypography.bodyMedium(context).copyWith(
+                    fontSize: 14.sp,
+                    color: isDark
+                        ? DesignColors.AppColors.darkOnSurfaceVariant
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xxl),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(

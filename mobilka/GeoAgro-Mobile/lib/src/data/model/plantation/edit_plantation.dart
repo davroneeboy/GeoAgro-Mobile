@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'comment_model.dart';
 
 EditPlantationModel editPlantationModelFromJson(String str) =>
     EditPlantationModel.fromJson(json.decode(str));
@@ -29,6 +30,7 @@ class EditPlantationModel {
   List<Subsidy>? subsidies;
   double? notUsableArea;
   double? emptyArea;
+  List<Comment>? comments;
 
   EditPlantationModel({
     this.id,
@@ -51,6 +53,7 @@ class EditPlantationModel {
     this.subsidies,
     this.notUsableArea,
     this.emptyArea,
+    this.comments,
   });
 
   EditPlantationModel copyWith({
@@ -74,6 +77,7 @@ class EditPlantationModel {
     List<Subsidy>? subsidies,
     double? notUsableArea,
     double? emptyArea,
+    List<Comment>? comments,
   }) =>
       EditPlantationModel(
         id: id ?? this.id,
@@ -98,6 +102,7 @@ class EditPlantationModel {
         subsidies: subsidies ?? this.subsidies,
         notUsableArea: notUsableArea ?? this.notUsableArea,
         emptyArea: emptyArea ?? this.emptyArea,
+        comments: comments ?? this.comments,
       );
 
   factory EditPlantationModel.fromJson(Map<String, dynamic> json) =>
@@ -158,6 +163,10 @@ class EditPlantationModel {
                 json["subsidies"]!.map((x) => Subsidy.fromJson(x))),
         notUsableArea: json["not_usable_area"]?.toDouble(),
         emptyArea: json["empty_area"]?.toDouble(),
+        comments: json["comments"] == null
+            ? null
+            : List<Comment>.from(
+                (json["comments"] as List<dynamic>).map((x) => Comment.fromJson(x as Map<String, dynamic>))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -192,6 +201,9 @@ class EditPlantationModel {
             : List<dynamic>.from(subsidies!.map((x) => x.toJson())),
         "not_usable_area": notUsableArea,
         "empty_area": emptyArea,
+        "comments": comments == null
+            ? []
+            : List<dynamic>.from(comments!.map((x) => x.toJson())),
       };
 }
 

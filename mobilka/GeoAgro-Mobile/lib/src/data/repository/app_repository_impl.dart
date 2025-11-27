@@ -529,4 +529,38 @@ class AppRepositoryImpl implements AppRepo {
     }
     return null;
   }
+
+  // ==== Comments ====
+  @override
+  Future<String?> getPlantationComments({required int plantationId}) async {
+    try {
+      final data = await ApiService.get(
+        ApiConst.apiPlantationComments(plantationId),
+        ApiParams.emptyParams(),
+      );
+      return data;
+    } on DioException catch (e) {
+      debugPrint("Server error: ${e.response?.data ?? e.message}");
+    } catch (e) {
+      debugPrint("Unexpected error: $e");
+    }
+    return null;
+  }
+
+  @override
+  Future<ApiResponse> addPlantationComment({required int plantationId, required String body}) async {
+    try {
+      final response = await ApiService.post(
+        ApiConst.apiPlantationComments(plantationId),
+        {"body": body},
+      );
+      return response;
+    } catch (e) {
+      log("Error adding comment: $e");
+      return ApiResponse(
+        statusCode: 500,
+        data: {"message": "Unexpected error: ${e.toString()}"},
+      );
+    }
+  }
 }

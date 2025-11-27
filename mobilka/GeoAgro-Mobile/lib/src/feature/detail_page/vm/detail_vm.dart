@@ -104,6 +104,7 @@ class DetailVM extends ChangeNotifier {
     'longitude': 69.240562,
   }; // Текущее местоположение пользователя для user_location (всегда установлено)
   TextEditingController tonnaController = TextEditingController();
+  TextEditingController commentsController = TextEditingController();
 
   String? errorMessage;
   Future<bool> createPt(WidgetRef ref) async {
@@ -267,6 +268,10 @@ class DetailVM extends ChangeNotifier {
       final jsonData = mockGarden.toJson();
       // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
       jsonData['kontur_number'] = konturNumbers;
+      // Убеждаемся, что comments не отправляется в теле запроса создания плантации
+      // Комментарий будет отправлен отдельным запросом после создания
+      jsonData.remove('comments');
+      jsonData.remove('moderation_comment');
       // Добавляем user_location (всегда валиден, так как передается из карты)
       p.log("🔍 DetailVM createPt: START - userLocation value: $userLocation");
       p.log("🔍 DetailVM createPt: userLocation type: ${userLocation.runtimeType}");
@@ -314,6 +319,47 @@ class DetailVM extends ChangeNotifier {
       final response = await _appRepositoryImpl.postCreatePlantationWithImages(
           body: jsonData, image: images);
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Если был введен комментарий, добавляем его после создания плантации
+        final commentsText = commentsController.text.trim();
+        if (commentsText.isNotEmpty) {
+          try {
+            // Получаем ID созданной плантации из ответа
+            dynamic responseData = response.data;
+            int? plantationId;
+            
+            // Если responseData - строка, пытаемся распарсить её как JSON
+            if (responseData is String) {
+              try {
+                responseData = jsonDecode(responseData);
+              } catch (e) {
+                p.log("⚠️ DetailVM: Failed to parse responseData as JSON: $e");
+              }
+            }
+            
+            if (responseData is Map<String, dynamic>) {
+              plantationId = responseData['id'] as int?;
+            }
+            
+            if (plantationId != null) {
+              p.log("✅ DetailVM: Extracted plantation ID: $plantationId, adding comment...");
+              final commentResponse = await _appRepositoryImpl.addPlantationComment(
+                plantationId: plantationId,
+                body: commentsText,
+              );
+              if (commentResponse.statusCode != 200 && commentResponse.statusCode != 201) {
+                p.log("⚠️ DetailVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was created");
+              } else {
+                p.log("✅ DetailVM: Comment added successfully");
+              }
+            } else {
+              p.log("⚠️ DetailVM: Could not extract plantation ID from response to add comment. Response data: $responseData");
+            }
+          } catch (e, stackTrace) {
+            p.log("⚠️ DetailVM: Error adding comment: $e");
+            p.log("⚠️ DetailVM: Stack trace: $stackTrace");
+            // Не прерываем процесс, плантация уже создана
+          }
+        }
         errorMessage = 'Muvaffaqiyatli yaratildi';
         return true;
       } else if (response.statusCode == 400) {
