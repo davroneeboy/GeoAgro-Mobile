@@ -14,6 +14,7 @@ import 'package:l/l.dart';
 import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
+import '../../../data/model/comment/comment_model.dart';
 
 final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
   return DetailVM();
@@ -22,6 +23,21 @@ final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
 class DetailVM extends ChangeNotifier {
   bool postLoading = false;
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
+  
+  // Comments state
+  List<CommentModel> _comments = [];
+  List<CommentModel> get comments => _comments;
+
+  bool _isLoadingComments = false;
+  bool get isLoadingComments => _isLoadingComments;
+
+  bool _showAddComment = false;
+  bool get showAddComment => _showAddComment;
+
+  void toggleAddComment() {
+    _showAddComment = !_showAddComment;
+    notifyListeners();
+  }
   
   // Вспомогательная функция для форматирования чисел без .0
   String formatNumber(dynamic value) {
@@ -1079,6 +1095,63 @@ class DetailVM extends ChangeNotifier {
 
   void setReservoirsBetonliVolume(String value) {
     reservoirsBetonliVolume.text = value;
+    notifyListeners();
+  }
+
+  // Comments methods
+
+  /// Загрузить комментарии плантации
+  Future<void> loadComments(int plantationId) async {
+    _isLoadingComments = true;
+    notifyListeners();
+    
+    try {
+      final result = await _appRepositoryImpl.getPlantationComments(plantationId);
+      if (result != null) {
+        _comments = result;
+        l.i('Loaded ${_comments.length} comments for plantation $plantationId');
+      } else {
+        l.w('Failed to load comments for plantation $plantationId');
+      }
+    } catch (e) {
+      l.e('Error loading comments: $e');
+    } finally {
+      _isLoadingComments = false;
+      notifyListeners();
+    }
+  }
+
+  /// Добавить комментарий
+  Future<bool> addComment(int plantationId, String body) async {
+    try {
+      l.i('Adding comment to plantation $plantationId: $body');
+      
+      final newComment = await _appRepositoryImpl.addPlantationComment(
+        plantationId: plantationId,
+        body: body,
+      );
+      
+      if (newComment != null) {
+        _comments.add(newComment);
+        _showAddComment = false;
+        notifyListeners();
+        l.i('Comment added successfully');
+        return true;
+      }
+      
+      l.w('Failed to add comment');
+      return false;
+    } catch (e) {
+      l.e('Error adding comment: $e');
+      return false;
+    }
+  }
+
+  /// Очистить комментарии (при смене плантации)
+  void clearComments() {
+    _comments = [];
+    _showAddComment = false;
+    _isLoadingComments = false;
     notifyListeners();
   }
 }

@@ -17,6 +17,9 @@ import '../../../../data/model/plantation/edit_plantation.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_view_vm.dart';
 import 'package:go_router/go_router.dart';
+import '../../../detail_page/vm/detail_vm.dart';
+import '../../../detail_page/view/widgets/comment_card_widget.dart';
+import '../../../detail_page/view/widgets/add_comment_widget.dart';
 
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
@@ -80,7 +83,16 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Загружаем координаты для карты
       ref.read(plantationMapMiniVM(widget.id)).loadRelatedPlantations();
+      // Загружаем комментарии
+      ref.read(detailVM).loadComments(widget.id);
     });
+  }
+
+  @override
+  void dispose() {
+    // Очищаем комментарии при выходе со страницы
+    ref.read(detailVM).clearComments();
+    super.dispose();
   }
 
   /// Пытается инициализировать карту с координатами из детальной информации
@@ -703,6 +715,15 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ),
       );
     }
+
+    // Add comments section
+    sections.add(
+      DetailSection(
+        title: "Izohlar",
+        icon: Icons.comment_outlined,
+        content: _buildCommentsSection(context, plantation.id),
+      ),
+    );
 
     // Add action buttons section
     sections.add(
@@ -1345,6 +1366,78 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Построить секцию комментариев
+  Widget _buildCommentsSection(BuildContext context, int? plantationId) {
+    if (plantationId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final detailVm = ref.watch(detailVM);
+    final comments = detailVm.comments;
+    final isLoading = detailVm.isLoadingComments;
+    final showAddComment = detailVm.showAddComment;
+
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Показываем существующие комментарии
+        if (comments.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Center(
+              child: Text(
+                'Izohlar yo\'q',
+                style: AppTypography.bodyMedium(context).copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: comments.length,
+            itemBuilder: (context, index) {
+              return CommentCard(comment: comments[index]);
+            },
+          ),
+        
+        const SizedBox(height: AppSpacing.lg),
+        
+        // Кнопка "Izoh qo'shish" или форма
+        if (!showAddComment)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => detailVm.toggleAddComment(),
+              icon: const Icon(Icons.add_comment_outlined, size: 20),
+              label: const Text('Izoh qo\'shish'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              ),
+            ),
+          )
+        else
+          AddCommentWidget(
+            onSubmit: (body) async {
+              return await detailVm.addComment(plantationId, body);
+            },
+            onCancel: () => detailVm.toggleAddComment(),
+          ),
+      ],
     );
   }
 }

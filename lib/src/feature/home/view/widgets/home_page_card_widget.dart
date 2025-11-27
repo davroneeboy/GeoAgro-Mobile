@@ -188,13 +188,6 @@ class HomePageCardWidget extends StatelessWidget {
                 ),
             ],
           ),
-          if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
-            SizedBox(height: AppSpacing.lg),
-            _ModerationNote(
-              context: context,
-              message: plantation.moderationComments!.first.text ?? '',
-            ),
-          ],
           SizedBox(height: AppSpacing.lg),
           Row(
             children: [
