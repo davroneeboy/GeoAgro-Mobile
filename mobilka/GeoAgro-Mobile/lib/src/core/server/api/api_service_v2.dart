@@ -97,6 +97,18 @@ class ApiServiceV2 {
           data: response.data,
         );
       } on DioException catch (e) {
+        // If it's a 401 error, the interceptor should handle it
+        // But if it somehow reaches here, don't retry and don't show error
+        if (e.response?.statusCode == 401) {
+          l.w("_makeRequest: 401 error detected - interceptor should handle this");
+          // Return a special response that indicates auth error
+          // The interceptor should have already redirected to login
+          return ApiResponse(
+            statusCode: 401,
+            data: {"message": "Authentication required"},
+          );
+        }
+        
         attempts++;
         l.e("API Error (attempt $attempts): ${e.message}");
         l.e("DioException type: ${e.type}");
