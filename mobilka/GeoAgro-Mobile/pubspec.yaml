@@ -70,10 +70,9 @@ flutter:
     - assets/images/user_arrow.png
 
 # Конфигурация для автоматического создания иконок
+# Используется ТОЛЬКО assets/images/gerb.png (только PNG, без XML)
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/gerb.png"
   remove_alpha_ios: true
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/gerb.png"
