@@ -36,7 +36,7 @@ class RejectedCardWidget extends StatelessWidget {
           10.verticalSpace,
           const CustomDriver(),
           10.verticalSpace,
-          if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
+          if ((plantation.comments?.isNotEmpty ?? false)) ...[
             const CustomDriver(),
             10.verticalSpace,
             Row(
@@ -48,7 +48,7 @@ class RejectedCardWidget extends StatelessWidget {
                 16.horizontalSpace,
                 Expanded(
                   child: Text(
-                    plantation.moderationComments!.first.text ?? '',
+                    plantation.comments!.first.body,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),

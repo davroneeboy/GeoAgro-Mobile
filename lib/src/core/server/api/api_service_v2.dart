@@ -262,4 +262,21 @@ class ApiServiceV2 {
     _dio = null;
     _isInitialized = false;
   }
+
+  // Comments API
+  
+  /// GET /api/plantations/{id}/comments/
+  static Future<ApiResponse> getPlantationComments(int plantationId) async {
+    final endpoint = ApiConst.plantationComments(plantationId);
+    return get(endpoint);
+  }
+
+  /// POST /api/plantations/{id}/comments/
+  static Future<ApiResponse> addPlantationComment({
+    required int plantationId,
+    required String body,
+  }) async {
+    final endpoint = ApiConst.plantationComments(plantationId);
+    return post(endpoint, data: {"body": body});
+  }
 } 

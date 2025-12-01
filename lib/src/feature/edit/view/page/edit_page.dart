@@ -29,6 +29,9 @@ import '../../../detail_page/view/widgets/subsidiya_button.dart';
 import '../../../detail_page/view/widgets/switch_card_widget.dart';
 import '../widget/edit_fruit_area.dart';
 import '../widget/edit_fruit_button.dart';
+import '../../../detail_page/vm/detail_vm.dart';
+import '../../../detail_page/view/widgets/comment_card_widget.dart';
+import '../../../detail_page/view/widgets/add_comment_widget.dart';
 
 class EditPage extends ConsumerStatefulWidget {
   final int id;
@@ -49,7 +52,15 @@ class _EditPageState extends ConsumerState<EditPage> {
     super.didChangeDependencies();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(editVm).getPlantationDetail(ref, widget.id);
+      ref.read(detailVM).loadComments(widget.id);
     });
+  }
+
+  @override
+  void dispose() {
+    // Очищаем состояние комментариев при выходе со страницы
+    ref.read(detailVM).clearComments();
+    super.dispose();
   }
 
   @override
@@ -563,6 +574,11 @@ class _EditPageState extends ConsumerState<EditPage> {
                 },
               ),
               SizedBox(height: 28.h),
+              // Comments section for edit page
+              MainText(text: "Izohlar"),
+              const SizedBox(height: 8),
+              _buildCommentsSection(context, widget.id),
+              SizedBox(height: 28.h),
               MainButton(
                 text: "Yangilanishni yuklash",
                 isLoading: edit.isSaving,
@@ -601,6 +617,71 @@ class _EditPageState extends ConsumerState<EditPage> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Секция комментариев для страницы редактирования
+  Widget _buildCommentsSection(BuildContext context, int plantationId) {
+    final commentsVm = ref.watch(detailVM);
+    final comments = commentsVm.comments;
+    final isLoading = commentsVm.isLoadingComments;
+    final showAddComment = commentsVm.showAddComment;
+
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (comments.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: DesignColors.AppColors.darkSurfaceVariant,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+            ),
+            child: Text(
+              "Izohlar yo'q",
+              style: AppTypography.bodyMedium(context).copyWith(
+                color: DesignColors.AppColors.darkOnSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: comments.length,
+            itemBuilder: (context, index) {
+              return CommentCard(comment: comments[index]);
+            },
+          ),
+        const SizedBox(height: AppSpacing.lg),
+        if (!showAddComment)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => commentsVm.toggleAddComment(),
+              icon: const Icon(Icons.add_comment_outlined, size: 20),
+              label: const Text("Izoh qo'shish"),
+            ),
+          )
+        else
+          AddCommentWidget(
+            onSubmit: (body) async {
+              return await commentsVm.addComment(plantationId, body);
+            },
+            onCancel: () => commentsVm.toggleAddComment(),
+          ),
+      ],
     );
   }
 }

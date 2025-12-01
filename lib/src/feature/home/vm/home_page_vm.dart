@@ -35,7 +35,7 @@ class HomePageVm extends ChangeNotifier {
 
   // Getters for filtered lists
   List<Result> get rejectedPlantations => plantationsList
-      .where((e) => (e.isChecked == false) && ((e.moderationComments?.isNotEmpty ?? false)))
+      .where((e) => (e.isChecked == false) && ((e.comments?.isNotEmpty ?? false)))
       .toList();
   
   // Get approved plantations (isChecked == true)
@@ -43,12 +43,12 @@ class HomePageVm extends ChangeNotifier {
   
   // Get pending plantations (isChecked == null or false, no moderation comment)
   List<Result> get pendingPlantations => plantationsList
-      .where((e) => (e.isChecked != true) && ((e.moderationComments == null) || (e.moderationComments?.isEmpty ?? true)))
+      .where((e) => (e.isChecked != true) && ((e.comments == null) || (e.comments?.isEmpty ?? true)))
       .toList();
   
   // Get recheck plantations (isChecked == false, has moderation comment)
   List<Result> get recheckPlantations => plantationsList
-      .where((e) => (e.isChecked == false) && ((e.moderationComments?.isNotEmpty ?? false)))
+      .where((e) => (e.isChecked == false) && ((e.comments?.isNotEmpty ?? false)))
       .toList();
 
   void _setLoading(bool value) {

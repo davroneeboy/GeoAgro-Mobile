@@ -33,6 +33,9 @@ final class ApiConst {
   static const String apiFarmersStatistics = "/api/statistics/farmers";
   static const String apiNotifications = "/api/notifications/";
   static const String apiNotificationsUnreadCount = "/api/notifications/unread-count/";
+  
+  // Comments
+  static String plantationComments(int plantationId) => '/api/plantations/$plantationId/comments/';
 }
 
 final class ApiParams {

@@ -3,6 +3,7 @@ import "dart:developer";
 
 import "package:dio/dio.dart";
 import "package:flutter/material.dart";
+import 'package:l/l.dart';
 
 import "app_repository.dart";
 import "../../core/server/api/api.dart";
@@ -11,6 +12,7 @@ import "../../core/server/api/api_constants.dart";
 import "../model/farmer/create_fermer_model.dart";
 import '../../core/storage/app_storage.dart';
 import '../../core/server/api/api_service_v2.dart';
+import '../model/comment/comment_model.dart';
 // Removed unused import: '../../core/setting/setup.dart'
 
 class AppRepositoryImpl implements AppRepo {
@@ -531,5 +533,47 @@ class AppRepositoryImpl implements AppRepo {
       debugPrint("Unexpected error: $e");
     }
     return null;
+  }
+
+  // Comments API
+  
+  @override
+  Future<List<CommentModel>?> getPlantationComments(int plantationId) async {
+    try {
+      final response = await ApiServiceV2.getPlantationComments(plantationId);
+      
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((json) => CommentModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      
+      return null;
+    } catch (e) {
+      l.e('Error getting plantation comments: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<CommentModel?> addPlantationComment({
+    required int plantationId,
+    required String body,
+  }) async {
+    try {
+      final response = await ApiServiceV2.addPlantationComment(
+        plantationId: plantationId,
+        body: body,
+      );
+      
+      if (response.statusCode == 201 && response.data is Map<String, dynamic>) {
+        return CommentModel.fromJson(response.data);
+      }
+      
+      return null;
+    } catch (e) {
+      l.e('Error adding plantation comment: $e');
+      return null;
+    }
   }
 }

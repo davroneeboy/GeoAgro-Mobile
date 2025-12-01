@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../comment/comment_model.dart';
 
 PlantationsListModel plantationsListModelFromJson(String str) => PlantationsListModel.fromJson(json.decode(str));
 
@@ -87,7 +88,7 @@ class Result {
   bool? isFertile;
   String? createdAt;
   bool? isChecked;
-  List<ModerationComment>? moderationComments;
+  List<CommentModel>? comments;
   int? createdById;
   String? createdByUsername;
 
@@ -102,32 +103,32 @@ class Result {
     this.isFertile,
     this.createdAt,
     this.isChecked,
-    this.moderationComments,
+    this.comments,
     this.createdById,
     this.createdByUsername,
   });
 
   factory Result.fromJson(Map<String, dynamic> json) {
-    List<ModerationComment>? moderationComments;
+    List<CommentModel>? comments;
     try {
-      if (json["moderation_comment"] != null && json["moderation_comment"] is List) {
-        final list = json["moderation_comment"] as List<dynamic>;
+      if (json["comments"] != null && json["comments"] is List) {
+        final list = json["comments"] as List<dynamic>;
         if (list.isNotEmpty) {
-          moderationComments = list
+          comments = list
               .map((x) {
                 try {
-                  return ModerationComment.fromJson(x as Map<String, dynamic>);
+                  return CommentModel.fromJson(x as Map<String, dynamic>);
                 } catch (e) {
                   return null;
                 }
               })
-              .whereType<ModerationComment>()
+              .whereType<CommentModel>()
               .toList();
         }
       }
     } catch (e) {
       // If parsing fails, just leave it as null
-      moderationComments = null;
+      comments = null;
     }
 
     return Result(
@@ -141,7 +142,7 @@ class Result {
       isFertile: json["is_fertile"],
       createdAt: json["created_at"],
       isChecked: json["is_checked"],
-      moderationComments: moderationComments,
+      comments: comments,
       createdById: (json["created_by"] is Map<String, dynamic>) ? json["created_by"]["id"] as int? : null,
       createdByUsername: (json["created_by"] is Map<String, dynamic>) ? json["created_by"]["username"] as String? : null,
     );
@@ -158,9 +159,9 @@ class Result {
         "is_fertile": isFertile,
         "created_at": createdAt,
         "is_checked": isChecked,
-        "moderation_comment": moderationComments == null
+        "comments": comments == null
             ? null
-            : List<dynamic>.from(moderationComments!.map((x) => x.toJson())),
+            : List<dynamic>.from(comments!.map((x) => x.toJson())),
         "created_by": {
           "id": createdById,
           "username": createdByUsername,
@@ -185,25 +186,5 @@ class District {
   Map<String, dynamic> toJson() => {
         "name": name,
         "region": region,
-      };
-}
-
-class ModerationComment {
-  final int? id;
-  final String? text;
-  final String? image;
-
-  ModerationComment({this.id, this.text, this.image});
-
-  factory ModerationComment.fromJson(Map<String, dynamic> json) => ModerationComment(
-        id: json["id"],
-        text: json["text"],
-        image: json["image"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "text": text,
-        "image": image,
       };
 }

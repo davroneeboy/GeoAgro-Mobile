@@ -17,6 +17,8 @@ class FarmerData {
   final int? rejectedPlantations;
   final int? pendingPlantations;
   final double? totalArea;
+  final double? uzumzorArea;
+  final double? bogArea;
   final String? lastAddedPlantations;
 
   FarmerData({
@@ -28,6 +30,8 @@ class FarmerData {
     this.rejectedPlantations,
     this.pendingPlantations,
     this.totalArea,
+    this.uzumzorArea,
+    this.bogArea,
     this.lastAddedPlantations,
   });
 
@@ -40,6 +44,8 @@ class FarmerData {
     rejectedPlantations: json["rejected_plantations"],
     pendingPlantations: json["pending_plantations"],
     totalArea: json["total_area"]?.toDouble(),
+    uzumzorArea: json["uzumzor_area"]?.toDouble(),
+    bogArea: json["bog_area"]?.toDouble(),
     lastAddedPlantations: json["last_added_plantations"],
   );
 
@@ -52,6 +58,8 @@ class FarmerData {
     "rejected_plantations": rejectedPlantations,
     "pending_plantations": pendingPlantations,
     "total_area": totalArea,
+    "uzumzor_area": uzumzorArea,
+    "bog_area": bogArea,
     "last_added_plantations": lastAddedPlantations,
   };
 }
