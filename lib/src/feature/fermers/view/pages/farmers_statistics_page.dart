@@ -136,10 +136,15 @@ class _OverviewHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalFarmers = statistics.length;
-    final totalArea = statistics.fold<double>(
+    final totalUzumzorArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.totalArea ?? 0),
+      (sum, farmer) => sum + (farmer.uzumzorArea ?? 0),
     );
+    final totalBogArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.bogArea ?? 0),
+    );
+    final totalArea = totalUzumzorArea + totalBogArea;
 
     return Container(
       width: double.infinity,
@@ -210,9 +215,13 @@ class _SummaryGrid extends StatelessWidget {
       0,
       (sum, farmer) => sum + (farmer.rejectedPlantations ?? 0),
     );
-    final totalArea = statistics.fold<double>(
+    final uzumzorArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.totalArea ?? 0.0),
+      (sum, farmer) => sum + (farmer.uzumzorArea ?? 0.0),
+    );
+    final bogArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.bogArea ?? 0.0),
     );
 
     final items = [
@@ -241,9 +250,15 @@ class _SummaryGrid extends StatelessWidget {
         accent: const Color(0xFFF87171),
       ),
       _SummaryItem(
-        title: "Umumiy maydon",
-        value: "${totalArea.toStringAsFixed(1)} ga",
-        icon: Icons.landscape_outlined,
+        title: "Uzumzor maydoni",
+        value: "${uzumzorArea.toStringAsFixed(1)} ga",
+        icon: Icons.grass_outlined,
+        accent: const Color(0xFF8B5CF6),
+      ),
+      _SummaryItem(
+        title: "Bog' maydoni",
+        value: "${bogArea.toStringAsFixed(1)} ga",
+        icon: Icons.park_outlined,
         accent: const Color(0xFF38E3A8),
       ),
     ];
@@ -465,9 +480,14 @@ class _FarmerCard extends StatelessWidget {
                     icon: Icons.highlight_off_outlined,
                   ),
                   _MetricPill(
-                    label: "Umumiy maydon",
-                    value: "${(farmer.totalArea ?? 0).toStringAsFixed(1)} ga",
-                    icon: Icons.straighten_outlined,
+                    label: "Uzumzor",
+                    value: "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
+                    icon: Icons.grass_outlined,
+                  ),
+                  _MetricPill(
+                    label: "Bog'",
+                    value: "${(farmer.bogArea ?? 0).toStringAsFixed(1)} ga",
+                    icon: Icons.park_outlined,
                   ),
                 ],
               ),
