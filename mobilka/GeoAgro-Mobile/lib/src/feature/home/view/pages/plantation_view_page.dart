@@ -193,9 +193,105 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ...comments.map((comment) => _buildCommentCard(context, comment, isDark)),
-        SizedBox(height: 16.h),
-        _buildAddCommentButton(context),
       ],
+    );
+  }
+
+  Widget _buildModerationCommentsList(BuildContext context, List<_ModerationCommentDisplay> comments, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...comments.map((comment) => _buildModerationCommentCard(context, comment, isDark)),
+      ],
+    );
+  }
+
+  Widget _buildModerationCommentCard(BuildContext context, _ModerationCommentDisplay comment, bool isDark) {
+    final theme = Theme.of(context);
+    String formattedDate = '';
+    if (comment.timestamp != null) {
+      try {
+        final date = DateTime.parse(comment.timestamp!);
+        formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
+      } catch (e) {
+        formattedDate = comment.timestamp!;
+      }
+    }
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(16.h),
+      decoration: BoxDecoration(
+        color: isDark
+            ? DesignColors.AppColors.darkSurface
+            : DesignColors.AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: DesignColors.AppColors.warning.withOpacity(0.5),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: DesignColors.AppColors.warning.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(4.r),
+                ),
+                child: Text(
+                  "Moderatsiya",
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: DesignColors.AppColors.warning,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (formattedDate.isNotEmpty) ...[
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    formattedDate,
+                    style: AppTypography.bodySmall(context).copyWith(
+                      fontSize: 12.sp,
+                      color: isDark
+                          ? DesignColors.AppColors.darkOnSurfaceVariant
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (comment.author != null && comment.author!.isNotEmpty) ...[
+            SizedBox(height: 4.h),
+            Text(
+              comment.author!,
+              style: AppTypography.bodySmall(context).copyWith(
+                fontSize: 12.sp,
+                color: isDark
+                    ? DesignColors.AppColors.darkOnSurfaceVariant
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          SizedBox(height: 8.h),
+          Text(
+            comment.text,
+            style: AppTypography.bodyMedium(context).copyWith(
+              fontSize: 14.sp,
+              color: isDark
+                  ? DesignColors.AppColors.darkOnSurface
+                  : DesignColors.AppColors.lightOnSurface,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -287,14 +383,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     );
   }
 
-  Widget _buildAddCommentButton(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final vm = ref.watch(plantationViewVM(widget.id));
-        return _AddCommentWidget(plantationId: widget.id, vm: vm);
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -718,13 +806,61 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       );
     }
 
-    // Добавляем секцию с комментариями, если они есть
-    if (plantation.comments != null && plantation.comments!.isNotEmpty) {
+    // Добавляем секцию с комментариями при создании (не модерация)
+    final regularComments = plantation.comments
+        ?.where((comment) => comment.isModeration == false)
+        .toList();
+    if (regularComments != null && regularComments.isNotEmpty) {
       sections.add(
         DetailSection(
-          title: "Izohlar",
+          title: "Izohlar (yaratilganda)",
           icon: Icons.comment_outlined,
-          content: _buildCommentsList(context, plantation.comments!, isDark),
+          content: _buildCommentsList(context, regularComments, isDark),
+        ),
+      );
+    }
+
+    // Добавляем секцию с комментариями модерации
+    final moderationCommentsFromComments = plantation.comments
+        ?.where((comment) => comment.isModeration == true)
+        .toList();
+    final moderationCommentsFromField = plantation.moderationComments;
+    
+    // Объединяем комментарии модерации из обоих источников
+    final allModerationComments = <_ModerationCommentDisplay>[];
+    
+    // Добавляем из comments где is_moderation: true
+    if (moderationCommentsFromComments != null) {
+      for (var comment in moderationCommentsFromComments) {
+        allModerationComments.add(_ModerationCommentDisplay(
+          id: comment.id,
+          text: comment.body,
+          timestamp: comment.createdAt,
+          author: comment.createdBy?.fullName,
+        ));
+      }
+    }
+    
+    // Добавляем из moderation_comment
+    if (moderationCommentsFromField != null) {
+      for (var comment in moderationCommentsFromField) {
+        if (comment.text != null && comment.text!.isNotEmpty) {
+          allModerationComments.add(_ModerationCommentDisplay(
+            id: comment.id,
+            text: comment.text!,
+            timestamp: null,
+            author: "Moderator",
+          ));
+        }
+      }
+    }
+    
+    if (allModerationComments.isNotEmpty) {
+      sections.add(
+        DetailSection(
+          title: "Moderatsiya izohlari",
+          icon: Icons.gavel_outlined,
+          content: _buildModerationCommentsList(context, allModerationComments, isDark),
         ),
       );
     }
@@ -1589,191 +1725,17 @@ class _MapGestureHandlerState extends State<_MapGestureHandler> {
   }
 }
 
-class _AddCommentWidget extends ConsumerStatefulWidget {
-  final int plantationId;
-  final _PlantationViewVm vm;
+// Вспомогательный класс для отображения комментариев модерации
+class _ModerationCommentDisplay {
+  final int? id;
+  final String text;
+  final String? timestamp;
+  final String? author;
 
-  const _AddCommentWidget({
-    required this.plantationId,
-    required this.vm,
+  _ModerationCommentDisplay({
+    this.id,
+    required this.text,
+    this.timestamp,
+    this.author,
   });
-
-  @override
-  ConsumerState<_AddCommentWidget> createState() => _AddCommentWidgetState();
-}
-
-class _AddCommentWidgetState extends ConsumerState<_AddCommentWidget> {
-  final TextEditingController _commentController = TextEditingController();
-  bool _isAdding = false;
-
-  Future<void> _addComment() async {
-    final text = _commentController.text.trim();
-    if (text.isEmpty || _isAdding) return;
-
-    setState(() {
-      _isAdding = true;
-    });
-
-    try {
-      final repo = AppRepositoryImpl();
-      final response = await repo.addPlantationComment(
-        plantationId: widget.plantationId,
-        body: text,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _commentController.clear();
-        // Перезагружаем данные плантации для обновления списка комментариев
-        widget.vm.retry();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Izoh muvaffaqiyatli qo'shildi"),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Xatolik yuz berdi"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Xatolik: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isAdding = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _commentController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: EdgeInsets.all(16.h),
-      decoration: BoxDecoration(
-        color: isDark
-            ? DesignColors.AppColors.darkSurface
-            : DesignColors.AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: isDark
-              ? DesignColors.AppColors.darkOutline
-              : DesignColors.AppColors.lightOutline,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Yangi izoh qo'shish",
-            style: AppTypography.headlineSmall(context).copyWith(
-              fontSize: 16.sp,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          TextField(
-            controller: _commentController,
-            maxLines: 3,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.newline,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
-            ],
-            style: AppTypography.input(context).copyWith(
-              fontSize: 14.sp,
-              color: isDark
-                  ? DesignColors.AppColors.darkOnBackground
-                  : DesignColors.AppColors.lightOnBackground,
-            ),
-            decoration: InputDecoration(
-              hintText: "Izoh kiriting...",
-              filled: true,
-              fillColor: isDark
-                  ? DesignColors.AppColors.darkSurfaceVariant
-                  : DesignColors.AppColors.lightSurfaceVariant,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.inputPaddingHorizontal,
-                vertical: AppSpacing.inputPaddingVertical,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.input),
-                borderSide: BorderSide(
-                      color: isDark
-                          ? DesignColors.AppColors.darkOutline
-                          : DesignColors.AppColors.lightOutline,
-                  width: 1.2,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.input),
-                borderSide: BorderSide(
-                  color: isDark
-                      ? DesignColors.AppColors.primary
-                      : theme.colorScheme.primary,
-                  width: 1.6,
-                ),
-              ),
-              hintStyle: AppTypography.bodyMedium(context).copyWith(
-                fontSize: 14.sp,
-                color: isDark
-                    ? DesignColors.AppColors.darkOnSurfaceVariant
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-              isDense: true,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isAdding ? null : _addComment,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: DesignColors.AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-              ),
-              child: _isAdding
-                  ? SizedBox(
-                      width: 20.w,
-                      height: 20.h,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      "Qo'shish",
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

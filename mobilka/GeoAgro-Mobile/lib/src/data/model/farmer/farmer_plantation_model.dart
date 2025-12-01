@@ -31,7 +31,7 @@ class FarmerPlantation {
   final bool isChecked;
   final bool? isRejected;
   final List<Coordinate> coordinates;
-  final double fertilityScore;
+  final double? fertilityScore;
   final double totalArea;
   final int? gardenEstablishedYear;
   final int? landType;
@@ -40,6 +40,8 @@ class FarmerPlantation {
   final String? districtName;
   final int? farmer;
   final String? farmerName;
+  final CreatedBy? createdBy;
+  final String? moderatedAt;
 
   FarmerPlantation({
     required this.id,
@@ -47,7 +49,7 @@ class FarmerPlantation {
     required this.isChecked,
     this.isRejected,
     required this.coordinates,
-    required this.fertilityScore,
+    this.fertilityScore,
     required this.totalArea,
     this.gardenEstablishedYear,
     this.landType,
@@ -56,6 +58,8 @@ class FarmerPlantation {
     this.districtName,
     this.farmer,
     this.farmerName,
+    this.createdBy,
+    this.moderatedAt,
   });
 
   factory FarmerPlantation.fromJson(Map<String, dynamic> json) {
@@ -67,6 +71,12 @@ class FarmerPlantation {
       }
     }
 
+    // Парсим created_by
+    CreatedBy? createdBy;
+    if (json['created_by'] != null && json['created_by'] is Map<String, dynamic>) {
+      createdBy = CreatedBy.fromJson(json['created_by'] as Map<String, dynamic>);
+    }
+
     return FarmerPlantation(
       id: json['id'] ?? 0,
       name: json['name'] ?? json['farmer_name'] ?? 'Plantatsiya',
@@ -75,7 +85,7 @@ class FarmerPlantation {
       coordinates: (json['coordinates'] as List<dynamic>?)
           ?.map((item) => Coordinate.fromJson(item))
           .toList() ?? [],
-      fertilityScore: (json['fertility_score'] ?? 0.0).toDouble(),
+      fertilityScore: json['fertility_score']?.toDouble(),
       totalArea: (json['total_area'] ?? 0.0).toDouble(),
       gardenEstablishedYear: json['garden_established_year'] as int?,
       landType: json['land_type'] as int?,
@@ -84,6 +94,8 @@ class FarmerPlantation {
       districtName: districtName,
       farmer: json['farmer'] as int?,
       farmerName: json['farmer_name'] as String?,
+      createdBy: createdBy,
+      moderatedAt: json['moderated_at'] as String?,
     );
   }
 
@@ -103,7 +115,48 @@ class FarmerPlantation {
       'district': districtName != null ? {'name': districtName} : null,
       'farmer': farmer,
       'farmer_name': farmerName,
+      'created_by': createdBy?.toJson(),
+      'moderated_at': moderatedAt,
     };
+  }
+}
+
+class CreatedBy {
+  final int id;
+  final String username;
+  final String? firstName;
+  final String? lastName;
+
+  CreatedBy({
+    required this.id,
+    required this.username,
+    this.firstName,
+    this.lastName,
+  });
+
+  factory CreatedBy.fromJson(Map<String, dynamic> json) => CreatedBy(
+        id: json["id"] as int,
+        username: json["username"] as String,
+        firstName: json["first_name"] as String?,
+        lastName: json["last_name"] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "username": username,
+        "first_name": firstName,
+        "last_name": lastName,
+      };
+
+  String get fullName {
+    if (firstName != null && lastName != null) {
+      return "$firstName $lastName".trim();
+    } else if (firstName != null) {
+      return firstName!;
+    } else if (lastName != null) {
+      return lastName!;
+    }
+    return username;
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +7,11 @@ import 'package:intl/intl.dart';
 
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/loading_widget.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_statistics_model.dart';
+import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -76,12 +79,309 @@ class _BodyContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _OverviewHeader(statistics: statistics),
-          SizedBox(height: AppSpacing.sectionSpacing),
-          _SummaryGrid(statistics: statistics),
-          SizedBox(height: AppSpacing.sectionSpacing),
-          _FarmersList(statistics: statistics),
+          const _SearchSection(),
+          SizedBox(height: AppSpacing.lg),
+          if (vm.searchResults != null) ...[
+            _SearchResultsList(vm: vm),
+          ] else ...[
+            _OverviewHeader(statistics: statistics),
+            SizedBox(height: AppSpacing.sectionSpacing),
+            _SummaryGrid(statistics: statistics),
+            SizedBox(height: AppSpacing.sectionSpacing),
+            _FarmersList(statistics: statistics),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _SearchSection extends ConsumerWidget {
+  const _SearchSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vm = ref.watch(farmersStatisticsVM);
+    
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: CustomTextField(
+                  controller: vm.searchInnController,
+                  hintText: "INN bo'yicha qidirish",
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.search,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: DesignColors.AppColors.darkTextSecondary,
+                    size: 20.sp,
+                  ),
+                  suffixIcon: vm.searchInnController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: DesignColors.AppColors.darkTextSecondary,
+                            size: 20.sp,
+                          ),
+                          onPressed: () {
+                            vm.clearSearch();
+                          },
+                        )
+                      : null,
+                  onChanged: (value) {
+                    ref.read(farmersStatisticsVM.notifier).notifyListeners();
+                  },
+                ),
+              ),
+              SizedBox(width: AppSpacing.md),
+              FilledButton.icon(
+                onPressed: vm.isSearching ? null : vm.searchByInn,
+                icon: vm.isSearching
+                    ? SizedBox(
+                        width: 16.sp,
+                        height: 16.sp,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            DesignColors.AppColors.darkTextPrimary,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        Icons.search,
+                        size: 18.sp,
+                      ),
+                label: Text(
+                  "Qidirish",
+                  style: AppTypography.bodySmall(context),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: DesignColors.AppColors.accentGreen,
+                  foregroundColor: DesignColors.AppColors.darkTextPrimary,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (vm.searchErrorMessage != null) ...[
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              vm.searchErrorMessage!,
+              style: AppTypography.caption(context).copyWith(
+                color: DesignColors.AppColors.error,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SearchResultsList extends StatelessWidget {
+  final FarmersStatisticsVm vm;
+
+  const _SearchResultsList({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    if (vm.searchResults == null || vm.searchResults!.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: DesignColors.AppColors.darkSurfaceVariant,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: DesignColors.AppColors.darkBorder),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 48.sp,
+                color: DesignColors.AppColors.darkTextSecondary,
+              ),
+              SizedBox(height: AppSpacing.md),
+              Text(
+                "Fermer topilmadi",
+                style: AppTypography.body(context).copyWith(
+                  color: DesignColors.AppColors.darkTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Qidiruv natijalari",
+              style: AppTypography.title(context).copyWith(
+                color: DesignColors.AppColors.darkTextPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: vm.clearSearch,
+              icon: Icon(
+                Icons.close,
+                size: 18.sp,
+                color: DesignColors.AppColors.darkTextSecondary,
+              ),
+              label: Text(
+                "Tozalash",
+                style: AppTypography.bodySmall(context).copyWith(
+                  color: DesignColors.AppColors.darkTextSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: AppSpacing.md),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: vm.searchResults!.length,
+          separatorBuilder: (_, __) => SizedBox(height: AppSpacing.md),
+          itemBuilder: (context, index) {
+            final farmer = vm.searchResults![index];
+            return _SearchResultCard(farmer: farmer);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchResultCard extends StatelessWidget {
+  final FarmerModel farmer;
+
+  const _SearchResultCard({required this.farmer});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        final farmerId = farmer.id ?? 0;
+        final farmerInn = farmer.inn ?? farmer.id ?? 0;
+        final farmerName = farmer.name ?? 'Fermer';
+        final route =
+            "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
+        context.push(route);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: DesignColors.AppColors.darkSurfaceVariant,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: DesignColors.AppColors.darkBorder),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          farmer.name ?? "Noma'lum fermer",
+                          style: AppTypography.title(context).copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (farmer.inn != null) ...[
+                          SizedBox(height: AppSpacing.xs),
+                          Text(
+                            "INN: ${farmer.inn}",
+                            style: AppTypography.caption(context).copyWith(
+                              color: DesignColors.AppColors.darkTextTertiary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16.sp,
+                    color: DesignColors.AppColors.darkTextTertiary,
+                  ),
+                ],
+              ),
+              if (farmer.phoneNumber != null || farmer.address != null) ...[
+                SizedBox(height: AppSpacing.md),
+                Divider(
+                  color: DesignColors.AppColors.darkDivider.withOpacity(0.6),
+                  height: 1,
+                ),
+                SizedBox(height: AppSpacing.md),
+                if (farmer.phoneNumber != null)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.phone,
+                          size: 16.sp,
+                          color: DesignColors.AppColors.darkTextSecondary,
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Text(
+                          farmer.phoneNumber!,
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: DesignColors.AppColors.darkTextSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (farmer.address != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16.sp,
+                        color: DesignColors.AppColors.darkTextSecondary,
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          farmer.address!,
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: DesignColors.AppColors.darkTextSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -136,9 +436,13 @@ class _OverviewHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalFarmers = statistics.length;
-    final totalArea = statistics.fold<double>(
+    final uzumzorArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.totalArea ?? 0),
+      (sum, farmer) => sum + (farmer.uzumzorArea ?? 0),
+    );
+    final bogArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.bogArea ?? 0),
     );
 
     return Container(
@@ -176,7 +480,14 @@ class _OverviewHeader extends StatelessWidget {
           ),
           SizedBox(height: AppSpacing.sm),
           Text(
-            "Fermerlar soni: $totalFarmers • Umumiy maydon: ${totalArea.toStringAsFixed(1)} ga",
+            "Fermerlar soni: $totalFarmers",
+            style: AppTypography.bodySmall(context).copyWith(
+              color: DesignColors.AppColors.darkTextSecondary,
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Text(
+            "Uzumzor maydoni: ${uzumzorArea.toStringAsFixed(1)} ga • Bog maydoni: ${bogArea.toStringAsFixed(1)} ga",
             style: AppTypography.bodySmall(context).copyWith(
               color: DesignColors.AppColors.darkTextSecondary,
             ),
@@ -210,9 +521,13 @@ class _SummaryGrid extends StatelessWidget {
       0,
       (sum, farmer) => sum + (farmer.rejectedPlantations ?? 0),
     );
-    final totalArea = statistics.fold<double>(
+    final uzumzorArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.totalArea ?? 0.0),
+      (sum, farmer) => sum + (farmer.uzumzorArea ?? 0.0),
+    );
+    final bogArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.bogArea ?? 0.0),
     );
 
     final items = [
@@ -241,10 +556,16 @@ class _SummaryGrid extends StatelessWidget {
         accent: const Color(0xFFF87171),
       ),
       _SummaryItem(
-        title: "Umumiy maydon",
-        value: "${totalArea.toStringAsFixed(1)} ga",
+        title: "Uzumzor maydoni",
+        value: "${uzumzorArea.toStringAsFixed(1)} ga",
         icon: Icons.landscape_outlined,
         accent: const Color(0xFF38E3A8),
+      ),
+      _SummaryItem(
+        title: "Bog maydoni",
+        value: "${bogArea.toStringAsFixed(1)} ga",
+        icon: Icons.park_outlined,
+        accent: const Color(0xFF10B981),
       ),
     ];
 
@@ -465,9 +786,14 @@ class _FarmerCard extends StatelessWidget {
                     icon: Icons.highlight_off_outlined,
                   ),
                   _MetricPill(
-                    label: "Umumiy maydon",
-                    value: "${(farmer.totalArea ?? 0).toStringAsFixed(1)} ga",
-                    icon: Icons.straighten_outlined,
+                    label: "Uzumzor maydoni",
+                    value: "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
+                    icon: Icons.landscape_outlined,
+                  ),
+                  _MetricPill(
+                    label: "Bog maydoni",
+                    value: "${(farmer.bogArea ?? 0).toStringAsFixed(1)} ga",
+                    icon: Icons.park_outlined,
                   ),
                 ],
               ),

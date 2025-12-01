@@ -307,7 +307,8 @@ class PlantationMapViewVm extends ChangeNotifier {
     } else if (plantation.isRejected == true) {
       return AppColors.cE60C0C; // Red - rejected
     } else {
-      return Colors.yellow.shade700; // Yellow - pending
+      // Если оба false - значит на модерации (Ko'rib chiqilmoqda)
+      return const Color(0xFFF59E0B); // Warning color - pending (желтый)
     }
   }
 

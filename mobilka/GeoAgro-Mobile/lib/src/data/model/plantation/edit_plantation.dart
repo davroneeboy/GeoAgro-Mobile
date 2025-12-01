@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'comment_model.dart';
+import 'plantations_list_model.dart';
 
 EditPlantationModel editPlantationModelFromJson(String str) =>
     EditPlantationModel.fromJson(json.decode(str));
@@ -31,6 +32,7 @@ class EditPlantationModel {
   double? notUsableArea;
   double? emptyArea;
   List<Comment>? comments;
+  List<ModerationComment>? moderationComments;
 
   EditPlantationModel({
     this.id,
@@ -54,6 +56,7 @@ class EditPlantationModel {
     this.notUsableArea,
     this.emptyArea,
     this.comments,
+    this.moderationComments,
   });
 
   EditPlantationModel copyWith({
@@ -78,6 +81,7 @@ class EditPlantationModel {
     double? notUsableArea,
     double? emptyArea,
     List<Comment>? comments,
+    List<ModerationComment>? moderationComments,
   }) =>
       EditPlantationModel(
         id: id ?? this.id,
@@ -103,6 +107,7 @@ class EditPlantationModel {
         notUsableArea: notUsableArea ?? this.notUsableArea,
         emptyArea: emptyArea ?? this.emptyArea,
         comments: comments ?? this.comments,
+        moderationComments: moderationComments ?? this.moderationComments,
       );
 
   factory EditPlantationModel.fromJson(Map<String, dynamic> json) =>
@@ -167,6 +172,28 @@ class EditPlantationModel {
             ? null
             : List<Comment>.from(
                 (json["comments"] as List<dynamic>).map((x) => Comment.fromJson(x as Map<String, dynamic>))),
+        moderationComments: (() {
+          try {
+            if (json["moderation_comment"] != null && json["moderation_comment"] is List) {
+              final list = json["moderation_comment"] as List<dynamic>;
+              if (list.isNotEmpty) {
+                return list
+                    .map((x) {
+                      try {
+                        return ModerationComment.fromJson(x as Map<String, dynamic>);
+                      } catch (e) {
+                        return null;
+                      }
+                    })
+                    .whereType<ModerationComment>()
+                    .toList();
+              }
+            }
+          } catch (e) {
+            // If parsing fails, just leave it as null
+          }
+          return null;
+        })(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -204,6 +231,9 @@ class EditPlantationModel {
         "comments": comments == null
             ? []
             : List<dynamic>.from(comments!.map((x) => x.toJson())),
+        "moderation_comment": moderationComments == null
+            ? null
+            : List<dynamic>.from(moderationComments!.map((x) => x.toJson())),
       };
 }
 

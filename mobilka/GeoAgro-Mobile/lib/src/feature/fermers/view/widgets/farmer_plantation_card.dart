@@ -30,8 +30,12 @@ class FarmerPlantationCard extends StatelessWidget {
           border: Border.all(
             color: plantation.isChecked 
                 ? DesignColors.AppColors.primary 
-                : DesignColors.AppColors.darkOutline,
-            width: plantation.isChecked ? 2 : 1,
+                : (plantation.isRejected == true
+                    ? DesignColors.AppColors.error
+                    : (!plantation.isChecked && plantation.isRejected != true
+                        ? DesignColors.AppColors.warning
+                        : DesignColors.AppColors.darkOutline)),
+            width: (plantation.isChecked || plantation.isRejected == true || (!plantation.isChecked && plantation.isRejected != true)) ? 2 : 1,
           ),
         ),
         child: Column(
@@ -49,6 +53,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Показываем статус в зависимости от isChecked и isRejected
                 if (plantation.isChecked)
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
@@ -63,10 +68,9 @@ class FarmerPlantationCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                if (plantation.isRejected == true)
+                  )
+                else if (plantation.isRejected == true)
                   Container(
-                    margin: EdgeInsets.only(left: AppSpacing.xs),
                     padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: DesignColors.AppColors.error,
@@ -74,6 +78,22 @@ class FarmerPlantationCard extends StatelessWidget {
                     ),
                     child: Text(
                       "Rad etilgan",
+                      style: AppTypography.labelSmall(context).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
+                else
+                  // Если оба false - значит на модерации
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: DesignColors.AppColors.warning,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      "Ko'rib chiqilmoqda",
                       style: AppTypography.labelSmall(context).copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -94,7 +114,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     context: context,
                     icon: Icons.eco,
                     label: "Unumdorlik",
-                    value: "${plantation.fertilityScore.toStringAsFixed(1)}%",
+                    value: "${(plantation.fertilityScore ?? 0.0).toStringAsFixed(1)}%",
                     color: DesignColors.AppColors.primary,
                   ),
                 ),
@@ -159,10 +179,55 @@ class FarmerPlantationCard extends StatelessWidget {
               ],
             ),
             
+            // ID
+            Padding(
+              padding: EdgeInsets.only(top: AppSpacing.sm),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.tag,
+                    size: 14.sp,
+                    color: DesignColors.AppColors.darkOnSurfaceVariant,
+                  ),
+                  SizedBox(width: AppSpacing.xs),
+                  Text(
+                    "ID: ${plantation.id}",
+                    style: AppTypography.labelSmall(context).copyWith(
+                      color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Created by
+            if (plantation.createdBy != null)
+              Padding(
+                padding: EdgeInsets.only(top: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: 14.sp,
+                      color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    ),
+                    SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        "Yaratgan: ${plantation.createdBy!.fullName} (${plantation.createdBy!.username})",
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: DesignColors.AppColors.darkOnSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            
             // Created date
             if (plantation.createdAt != null)
               Padding(
-                padding: EdgeInsets.only(top: AppSpacing.sm),
+                padding: EdgeInsets.only(top: AppSpacing.xs),
                 child: Row(
                   children: [
                     Icon(
@@ -172,7 +237,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     ),
                     SizedBox(width: AppSpacing.xs),
                     Text(
-                      _formatDate(plantation.createdAt!),
+                      "Yaratilgan: ${_formatDate(plantation.createdAt!)}",
                       style: AppTypography.labelSmall(context).copyWith(
                         color: DesignColors.AppColors.darkOnSurfaceVariant,
                       ),
@@ -180,6 +245,67 @@ class FarmerPlantationCard extends StatelessWidget {
                   ],
                 ),
               ),
+            
+            // Moderated at
+            if (plantation.moderatedAt != null)
+              Padding(
+                padding: EdgeInsets.only(top: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.verified,
+                      size: 14.sp,
+                      color: DesignColors.AppColors.primary,
+                    ),
+                    SizedBox(width: AppSpacing.xs),
+                    Text(
+                      "Tasdiqlangan: ${_formatDate(plantation.moderatedAt!)}",
+                      style: AppTypography.labelSmall(context).copyWith(
+                        color: DesignColors.AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            
+            // Status info
+            Padding(
+              padding: EdgeInsets.only(top: AppSpacing.xs),
+              child: Row(
+                children: [
+                  Icon(
+                    plantation.isChecked 
+                        ? Icons.check_circle 
+                        : (plantation.isRejected == true 
+                            ? Icons.cancel 
+                            : Icons.schedule),
+                    size: 14.sp,
+                    color: plantation.isChecked 
+                        ? DesignColors.AppColors.primary 
+                        : (plantation.isRejected == true 
+                            ? DesignColors.AppColors.error 
+                            : DesignColors.AppColors.warning),
+                  ),
+                  SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      plantation.isChecked 
+                          ? "Tasdiqlangan" 
+                          : (plantation.isRejected == true 
+                              ? "Rad etilgan" 
+                              : "Ko'rib chiqilmoqda"),
+                      style: AppTypography.labelSmall(context).copyWith(
+                        color: plantation.isChecked 
+                            ? DesignColors.AppColors.primary 
+                            : (plantation.isRejected == true 
+                                ? DesignColors.AppColors.error 
+                                : DesignColors.AppColors.warning),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
