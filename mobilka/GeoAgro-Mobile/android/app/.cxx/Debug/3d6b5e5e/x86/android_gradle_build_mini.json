@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/rokki/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/rokki/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/rokki/Desktop/Agrosanoat/geoagro-flutter/android/app/.cxx/Debug/3d6b5e5e/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/rokki/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/rokki/Desktop/Agrosanoat/geoagro-flutter/android/app/.cxx/Debug/3d6b5e5e/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

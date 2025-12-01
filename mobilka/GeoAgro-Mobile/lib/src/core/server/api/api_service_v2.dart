@@ -1,0 +1,277 @@
+import 'dart:io';
+import 'dart:async';
+import 'package:l/l.dart';
+import 'package:dio/io.dart';
+import 'package:dio/dio.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+
+import '../interceptors/token_interceptor.dart';
+import '../../constants/app_constants.dart';
+import '../../utils/network_utils.dart';
+import '../../storage/app_storage.dart';
+import 'api_constants.dart';
+import '../../../data/model/response/api_response.dart';
+
+class ApiServiceV2 {
+  static Dio? _dio;
+  static bool _isInitialized = false;
+
+  // Initialize Dio with better configuration
+  static Future<Dio> initDio() async {
+    if (_dio != null && _isInitialized) return _dio!;
+
+    _dio = Dio();
+    
+    // Configure base options
+    _dio!.options = BaseOptions(
+      baseUrl: ApiConst.baseUrl,
+      connectTimeout: Duration(seconds: AppConstants.apiTimeoutSeconds),
+      receiveTimeout: Duration(seconds: AppConstants.apiTimeoutSeconds),
+      sendTimeout: Duration(seconds: AppConstants.apiTimeoutSeconds),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      validateStatus: (status) => status != null && status < 500 && status != 401,
+    );
+
+    // Add interceptors
+    _dio!.interceptors.addAll([
+      TokenInterceptor.instance,
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ),
+    ]);
+
+    // Configure for Android
+    if (Platform.isAndroid) {
+      (_dio!.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+        return client;
+      };
+    }
+
+    _isInitialized = true;
+    return _dio!;
+  }
+
+  // Generic request method with retry logic
+  static Future<ApiResponse> _makeRequest(
+    Future<Response> Function() requestFunction, {
+    int maxRetries = AppConstants.apiRetryAttempts,
+  }) async {
+    int attempts = 0;
+    
+    l.i("_makeRequest: Starting with maxRetries: $maxRetries");
+    
+    while (attempts < maxRetries) {
+      try {
+        l.i("_makeRequest: Attempt ${attempts + 1}");
+        
+        // Check internet connection
+        final hasInternet = await NetworkUtils.hasInternetConnection();
+        l.i("_makeRequest: Internet connection: $hasInternet");
+        
+        // Временно отключаем проверку интернета для отладки
+        // if (!hasInternet) {
+        //   l.e("_makeRequest: No internet connection");
+        //   return ApiResponse(
+        //     statusCode: 0,
+        //     data: {"message": "Интернет алокасида хатолик юз берди"},
+        //   );
+        // }
+
+        l.i("_makeRequest: Calling requestFunction");
+        final response = await requestFunction();
+        l.i("_makeRequest: Response received: ${response.statusCode}");
+        
+        return ApiResponse(
+          statusCode: response.statusCode ?? 500,
+          data: response.data,
+        );
+      } on DioException catch (e) {
+        // If it's a 401 error, the interceptor should handle it
+        // But if it somehow reaches here, don't retry and don't show error
+        if (e.response?.statusCode == 401) {
+          l.w("_makeRequest: 401 error detected - interceptor should handle this");
+          // Return a special response that indicates auth error
+          // The interceptor should have already redirected to login
+          return ApiResponse(
+            statusCode: 401,
+            data: {"message": "Authentication required"},
+          );
+        }
+        
+        attempts++;
+        l.e("API Error (attempt $attempts): ${e.message}");
+        l.e("DioException type: ${e.type}");
+        l.e("DioException response: ${e.response?.data}");
+        
+        if (attempts >= maxRetries) {
+          l.e("_makeRequest: Max retries reached");
+          return ApiResponse(
+            statusCode: e.response?.statusCode ?? 500,
+            data: e.response?.data ?? {"message": e.message},
+          );
+        }
+        
+        // Wait before retry
+        l.i("_makeRequest: Waiting $attempts seconds before retry");
+        await Future.delayed(Duration(seconds: attempts));
+      } catch (e) {
+        l.e("Unexpected error: $e");
+        return ApiResponse(
+          statusCode: 500,
+          data: {"message": "Күтмаган хатолик юз берди"},
+        );
+      }
+    }
+    
+    l.e("_makeRequest: All retries exhausted");
+    return ApiResponse(
+      statusCode: 500,
+      data: {"message": "Максимал қайта уринишлар"},
+    );
+  }
+
+  // GET request
+  static Future<ApiResponse> get(String endpoint, {Map<String, dynamic>? queryParameters}) async {
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      return await dio.get(endpoint, queryParameters: queryParameters);
+    });
+  }
+
+  // POST request
+  static Future<ApiResponse> post(String endpoint, {dynamic data}) async {
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      return await dio.post(endpoint, data: data);
+    });
+  }
+
+  // PUT request
+  static Future<ApiResponse> put(String endpoint, {dynamic data}) async {
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      return await dio.put(endpoint, data: data);
+    });
+  }
+
+  // PATCH request
+  static Future<ApiResponse> patch(String endpoint, {dynamic data}) async {
+    l.i("PATCH request to: $endpoint");
+    l.i("PATCH data: $data");
+    
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      l.i("PATCH token: ${token != null ? 'present' : 'missing'}");
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      l.i("PATCH headers: ${dio.options.headers}");
+      
+      final response = await dio.patch(endpoint, data: data);
+      l.i("PATCH response: ${response.statusCode}");
+      return response;
+    });
+  }
+
+  // DELETE request
+  static Future<ApiResponse> delete(String endpoint) async {
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      return await dio.delete(endpoint);
+    });
+  }
+
+  // Multipart request for file uploads
+  static Future<ApiResponse> multipart(String endpoint, {
+    required Map<String, String> fields,
+    required List<MapEntry<String, File>> files,
+  }) async {
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      FormData formData = FormData.fromMap(fields);
+      
+      for (var fileEntry in files) {
+        formData.files.add(MapEntry(
+          fileEntry.key,
+          await MultipartFile.fromFile(fileEntry.value.path),
+        ));
+      }
+      
+      return await dio.post(endpoint, data: formData);
+    });
+  }
+
+  // Upload images
+  static Future<ApiResponse> uploadImages(String endpoint, List<File> images) async {
+    return _makeRequest(() async {
+      final dio = await initDio();
+      final token = await AppStorage.$read(key: StorageKey.accessToken);
+      
+      if (token != null && token.isNotEmpty) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      FormData formData = FormData();
+      
+      for (int i = 0; i < images.length; i++) {
+        formData.files.add(MapEntry(
+          'images[$i]',
+          await MultipartFile.fromFile(images[i].path),
+        ));
+      }
+      
+      return await dio.post(endpoint, data: formData);
+    });
+  }
+
+  // Clear cached data
+  static void clearCache() {
+    _dio = null;
+    _isInitialized = false;
+  }
+} 
