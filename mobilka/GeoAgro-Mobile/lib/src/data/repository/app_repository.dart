@@ -66,5 +66,5 @@ abstract class AppRepo {
 
   // ==== Comments ====
   Future<String?> getPlantationComments({required int plantationId});
-  Future<ApiResponse> addPlantationComment({required int plantationId, required String body});
+  Future<ApiResponse> addPlantationComment({required int plantationId, required String body, bool isModeration = false});
 }

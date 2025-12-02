@@ -342,14 +342,30 @@ class DetailVM extends ChangeNotifier {
             
             if (plantationId != null) {
               p.log("✅ DetailVM: Extracted plantation ID: $plantationId, adding comment...");
+              p.log("📤 DetailVM: Sending comment with isModeration: false");
+              p.log("📤 DetailVM: Comment text: $commentsText");
               final commentResponse = await _appRepositoryImpl.addPlantationComment(
                 plantationId: plantationId,
                 body: commentsText,
+                isModeration: false, // Явно указываем, что это обычный комментарий при создании
               );
+              p.log("📥 DetailVM: Comment response status: ${commentResponse.statusCode}");
+              p.log("📥 DetailVM: Comment response data: ${commentResponse.data}");
               if (commentResponse.statusCode != 200 && commentResponse.statusCode != 201) {
                 p.log("⚠️ DetailVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was created");
               } else {
                 p.log("✅ DetailVM: Comment added successfully");
+                // Проверяем, не дублируется ли комментарий в moderation_comment
+                if (commentResponse.data is Map<String, dynamic>) {
+                  final responseData = commentResponse.data as Map<String, dynamic>;
+                  if (responseData.containsKey('moderation_comment')) {
+                    final modComments = responseData['moderation_comment'];
+                    if (modComments is List && modComments.isNotEmpty) {
+                      p.log("⚠️ DetailVM: WARNING - Comment was duplicated in moderation_comment by server!");
+                      p.log("⚠️ DetailVM: This is a server-side issue - server automatically syncs comments to moderation_comment");
+                    }
+                  }
+                }
               }
             } else {
               p.log("⚠️ DetailVM: Could not extract plantation ID from response to add comment. Response data: $responseData");

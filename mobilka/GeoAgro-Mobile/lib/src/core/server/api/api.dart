@@ -111,8 +111,15 @@ class ApiService {
   static Future<ApiResponse> post(String api, Map<String, dynamic> data,
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
     try {
-      final response = await (await initDio())
-          .post<dynamic>(api, data: jsonEncode(data), queryParameters: params);
+      final dio = await initDio();
+      final headers = await getHeaders(isUpload: false);
+      
+      final response = await dio.post<dynamic>(
+        api,
+        data: jsonEncode(data),
+        queryParameters: params,
+        options: Options(headers: headers),
+      );
 
       return ApiResponse(
           statusCode: response.statusCode ?? 500, data: response.data);

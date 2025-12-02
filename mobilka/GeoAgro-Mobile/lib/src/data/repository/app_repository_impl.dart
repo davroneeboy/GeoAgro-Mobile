@@ -548,12 +548,21 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<ApiResponse> addPlantationComment({required int plantationId, required String body}) async {
+  Future<ApiResponse> addPlantationComment({required int plantationId, required String body, bool isModeration = false}) async {
     try {
+      final requestData = {"body": body, "is_moderation": isModeration};
+      log("📤 Adding comment to plantation $plantationId:");
+      log("📤 Request data: ${jsonEncode(requestData)}");
+      log("📤 is_moderation value: $isModeration (type: ${isModeration.runtimeType})");
+      
       final response = await ApiService.post(
         ApiConst.apiPlantationComments(plantationId),
-        {"body": body},
+        requestData,
       );
+      
+      log("📥 Comment response status: ${response.statusCode}");
+      log("📥 Comment response data: ${response.data}");
+      
       return response;
     } catch (e) {
       log("Error adding comment: $e");
