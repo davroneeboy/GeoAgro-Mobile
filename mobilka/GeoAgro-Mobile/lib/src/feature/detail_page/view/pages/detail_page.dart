@@ -106,12 +106,17 @@ class DetailPageState extends ConsumerState<DetailPage> {
         : Colors.black.withOpacity(0.08);
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: backgroundColor,
       appBar: const CustomAppBarWidget(
           title: "Ma`lumotlarni kiriting", canPop: true),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
+        padding: EdgeInsets.only(
+          left: AppSpacing.screenPadding,
+          right: AppSpacing.screenPadding,
+          top: AppSpacing.screenPadding,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.screenPadding,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: sectionColor,

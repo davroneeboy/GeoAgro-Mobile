@@ -438,16 +438,20 @@ class HomePageCardWidget extends StatelessWidget {
 
   // Вспомогательная функция для форматирования чисел без .0
   String _formatNumber(dynamic value) {
-    if (value == null) return "0";
+    if (value == null) return "0.00";
     if (value is double) {
-      return value == value.toInt().toDouble()
-          ? value.toInt().toString()
-          : value.toString();
+      return value.toStringAsFixed(2);
     }
     if (value is int) {
+      return value.toDouble().toStringAsFixed(2);
+    }
+    // Попытка преобразовать в число
+    try {
+      final numValue = double.parse(value.toString());
+      return numValue.toStringAsFixed(2);
+    } catch (e) {
       return value.toString();
     }
-    return value.toString();
   }
 
   void _handleDelete(BuildContext context, int plantationId, bool isChecked) {

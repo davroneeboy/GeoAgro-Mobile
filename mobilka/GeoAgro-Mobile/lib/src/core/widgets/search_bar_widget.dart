@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../style/app_colors.dart';
+import '../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../design_system/tokens/typography.dart';
 
 /// A search bar widget with debounce functionality
 /// 
@@ -107,28 +109,44 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                   child: TextField(
                     controller: _controller,
                     autofocus: true,
-                    style: TextStyle(fontSize: 14.sp),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: DesignColors.AppColors.darkTextPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                     ],
                     decoration: InputDecoration(
                       hintText: widget.placeholder,
-                      hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                      hintStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: DesignColors.AppColors.darkTextTertiary,
+                      ),
                       filled: true,
-                      fillColor: AppColors.cF7F7F7,
+                      fillColor: DesignColors.AppColors.darkSurfaceVariant,
                       contentPadding: REdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(
+                          color: DesignColors.AppColors.darkBorder,
+                          width: 1,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(
+                          color: DesignColors.AppColors.darkBorder,
+                          width: 1,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
-                        borderSide: BorderSide(color: AppColors.c28A745, width: 1),
+                        borderSide: BorderSide(
+                          color: DesignColors.AppColors.accentGreen,
+                          width: 1.5,
+                        ),
                       ),
                       suffixIcon: _controller.text.isNotEmpty
                           ? IconButton(

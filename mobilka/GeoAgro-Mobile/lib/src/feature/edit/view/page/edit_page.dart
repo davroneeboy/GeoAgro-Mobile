@@ -98,11 +98,17 @@ class _EditPageState extends ConsumerState<EditPage> {
 
     return Scaffold(
       backgroundColor: DesignColors.AppColors.darkBackground,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: CustomAppBarWidget(title: "Tahrirlash", canPop: true),
       body: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 18.w,
+          right: 18.w,
+          top: 10.h,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 10.h,
+        ),
         child: Padding(
-          padding: REdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          padding: REdgeInsets.symmetric(horizontal: 0, vertical: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -561,6 +567,61 @@ class _EditPageState extends ConsumerState<EditPage> {
                     ),
                   );
                 },
+              ),
+              const SizedBox(height: AppSpacing.xxl),
+              MainText(text: "Izohlar (ixtiyoriy)"),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: edit.commentsController,
+                maxLines: 4,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                inputFormatters: [
+                  // Разрешаем все Unicode символы, включая кириллицу, латиницу, цифры и знаки препинания
+                  FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
+                ],
+                style: AppTypography.input(context).copyWith(
+                  fontSize: 14.sp,
+                  color: isDark
+                      ? DesignColors.AppColors.darkOnBackground
+                      : colorScheme.onBackground,
+                ),
+                decoration: InputDecoration(
+                  hintText: "Izoh kiriting (qo'shiladi yangilangandan keyin)",
+                  filled: true,
+                  fillColor: isDark
+                      ? DesignColors.AppColors.darkSurfaceVariant
+                      : colorScheme.surfaceVariant,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.inputPaddingHorizontal,
+                    vertical: AppSpacing.inputPaddingVertical,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? DesignColors.AppColors.darkOutline
+                          : colorScheme.outline,
+                      width: 1.2,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? DesignColors.AppColors.primary
+                          : colorScheme.primary,
+                      width: 1.6,
+                    ),
+                  ),
+                  hintStyle: AppTypography.bodyMedium(context).copyWith(
+                    fontSize: 14.sp,
+                    color: isDark
+                        ? DesignColors.AppColors.darkOnSurfaceVariant
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  isDense: true,
+                ),
               ),
               SizedBox(height: 28.h),
               MainButton(

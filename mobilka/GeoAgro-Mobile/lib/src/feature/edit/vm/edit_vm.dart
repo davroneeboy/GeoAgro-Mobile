@@ -87,6 +87,7 @@ class EditVM extends ChangeNotifier {
   TextEditingController sxema1 = TextEditingController();
   TextEditingController sxema2 = TextEditingController();
   TextEditingController konturInputController = TextEditingController();
+  TextEditingController commentsController = TextEditingController();
   List<String> konturNumbers = [];
   int direction = 0;
   List<Subsidy> selectedEditSubsidy = [];
@@ -756,6 +757,33 @@ class EditVM extends ChangeNotifier {
     
     // Затем загружаем новые изображения
     bool imagesSuccess = await uploadImage();
+    
+    // Если был введен комментарий, добавляем его после успешного обновления плантации
+    final commentsText = commentsController.text.trim();
+    if (commentsText.isNotEmpty) {
+      try {
+        debugPrint("✅ EditVM: Adding comment after successful update...");
+        debugPrint("📤 EditVM: Sending comment with isModeration: false");
+        debugPrint("📤 EditVM: Comment text: $commentsText");
+        final commentResponse = await _appRepositoryImpl.addPlantationComment(
+          plantationId: id,
+          body: commentsText,
+          isModeration: false, // Явно указываем, что это обычный комментарий при редактировании
+        );
+        debugPrint("📥 EditVM: Comment response status: ${commentResponse.statusCode}");
+        debugPrint("📥 EditVM: Comment response data: ${commentResponse.data}");
+        if (commentResponse.statusCode != 200 && commentResponse.statusCode != 201) {
+          debugPrint("⚠️ EditVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was updated");
+        } else {
+          debugPrint("✅ EditVM: Comment added successfully");
+        }
+      } catch (e, stackTrace) {
+        debugPrint("⚠️ EditVM: Error adding comment: $e");
+        debugPrint("⚠️ EditVM: Stack trace: $stackTrace");
+        // Не прерываем процесс, плантация уже обновлена
+      }
+    }
+    
     return plantationSuccess && imagesSuccess;
   }
 

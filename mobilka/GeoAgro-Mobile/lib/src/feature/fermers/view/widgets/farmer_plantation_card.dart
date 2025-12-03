@@ -180,8 +180,8 @@ class FarmerPlantationCard extends StatelessWidget {
             ),
             
             // ID
-            Padding(
-              padding: EdgeInsets.only(top: AppSpacing.sm),
+              Padding(
+                padding: EdgeInsets.only(top: AppSpacing.sm),
               child: Row(
                 children: [
                   Icon(
@@ -301,11 +301,11 @@ class FarmerPlantationCard extends StatelessWidget {
                                 ? DesignColors.AppColors.error 
                                 : DesignColors.AppColors.warning),
                       ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
