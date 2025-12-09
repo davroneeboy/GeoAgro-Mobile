@@ -17,6 +17,7 @@ import PlantationMetaCards from "../components/common/PlantationMetaCards";
 import FruitAreasList from "../components/common/FruitAreasList";
 import InefficientAreasList from "../components/common/InefficientAreasList";
 import ModerationComments from "../components/common/ModerationComments";
+import UserComments from "../components/common/UserComments";
 import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
 /* global google */
 
@@ -618,6 +619,7 @@ const PlantationDetail = () => {
             <div className="mb-6 p-4 rounded-lg border border-gray-600 bg-gray-700/40">
               <div className="text-sm text-gray-300 mb-2">Mavjud izohlar</div>
               <ModerationComments comments={plantation.moderation_comment} />
+              <UserComments comments={plantation.comments} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

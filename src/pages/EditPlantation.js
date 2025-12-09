@@ -14,6 +14,7 @@ import {
 import translateAction from "../utils/moderationUtils";
 import PlantationStatusIndicator from "../components/PlantationStatusIndicator";
 import ModerationComments from "../components/common/ModerationComments";
+import UserComments from "../components/common/UserComments";
 import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
 import FruitAreasList from "../components/common/FruitAreasList";
 import InefficientAreasList from "../components/common/InefficientAreasList";
@@ -1647,10 +1648,16 @@ const EditPlantation = () => {
                     <ModerationComments comments={plantation.moderation_comment} />
                   </>
                 ) : (
+                  <div className="text-gray-400 text-sm">Moderatsiya izohlari mavjud emas</div>
+                )}
+                {/* Fermer izohlari */}
+                <UserComments comments={plantation.comments} />
+                {(!Array.isArray(plantation.moderation_comment) || plantation.moderation_comment.length === 0) && 
+                 (!Array.isArray(plantation.comments) || plantation.comments.length === 0) && (
                   <div className="text-gray-400 text-sm">Izohlar mavjud emas</div>
-                          )}
-                        </div>
-                      </div>
+                )}
+              </div>
+            </div>
 
             {/* Двойной ряд: Fermer + Mevali hududlar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -1947,6 +1954,12 @@ const EditPlantation = () => {
                               ))}
                           </>
                         ) : (
+                          <div className="text-gray-400 text-sm">Moderatsiya izohlari mavjud emas</div>
+                        )}
+                        {/* Fermer izohlari */}
+                        <UserComments comments={plantation.comments} />
+                        {(!Array.isArray(plantation.moderation_comment) || plantation.moderation_comment.length === 0) && 
+                         (!Array.isArray(plantation.comments) || plantation.comments.length === 0) && (
                           <div className="text-gray-400 text-sm">Izohlar mavjud emas</div>
                         )}
                       </div>
