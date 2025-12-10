@@ -28,6 +28,7 @@ import PerformanceDashboard from "./pages/admin/PerformanceDashboard";
 import MyLogsPage from "./pages/admin/MyLogsPage";
 import FarmerPlantationsMap from "./pages/FarmerPlantationsMap";
 import DeletionRequests from "./pages/DeletionRequests";
+import ArchivedPlantations from "./pages/ArchivedPlantations.tsx";
 
 import ConsoleRouter from "./admin/ConsoleRouter";
 
@@ -43,6 +44,7 @@ export default function AppRouter() {
       <Route path="/deletion-requests" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><DeletionRequests /></ProtectedRoute>} />
       <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><RejectedPlantations /></ProtectedRoute>} />
       <Route path="/approved-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ApprovedPlantations /></ProtectedRoute>} />
+      <Route path="/archived-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><ArchivedPlantations /></ProtectedRoute>} />
       <Route path="/plantations/uz" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><MapContainer /></ProtectedRoute>} />
       <Route path="/plantations/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><PlantationDetail /></ProtectedRoute>} />
       <Route path="/plantations/preview/:id" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><PlantationPreviewPage /></ProtectedRoute>} />

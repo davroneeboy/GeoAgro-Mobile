@@ -27,21 +27,38 @@ export interface Coordinate {
 
 export interface Plantation {
   id: number;
-  name: string;
+  name?: string;
   total_area: number;
-  coordinates: Coordinate[];
-  land_type: string;
-  crop_type: string;
+  coordinates?: Coordinate[];
+  land_type?: string;
+  crop_type?: string;
   farmer_name?: string;
-  district_id: number;
-  region_id: number;
-  created_at: string;
-  updated_at: string;
-  is_checked: boolean;
+  farmer?: {
+    id: number;
+    name: string;
+    inn?: string;
+  };
+  district_id?: number;
+  district?: {
+    id: number;
+    name: string;
+    region: number;
+  };
+  district_name?: string;
+  region_id?: number;
+  region_name?: string;
+  created_at?: string;
+  updated_at?: string;
+  is_checked?: boolean;
   is_rejected?: boolean;
   moderated_at?: string | null;
   moderated_by?: number | null;
   moderation_comment?: string | null;
+  archived?: boolean;
+  created_by?: number;
+  garden_established_year?: number;
+  planted_area?: number;
+  is_deleting?: boolean;
 }
 
 export interface PlantationFormData {

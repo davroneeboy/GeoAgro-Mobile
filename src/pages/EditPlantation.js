@@ -61,6 +61,10 @@ const EditPlantation = () => {
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const openApproveModal = () => setIsApproveModalOpen(true);
   const closeApproveModal = () => setIsApproveModalOpen(false);
+  // Archive confirmation modal
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const openArchiveModal = () => setIsArchiveModalOpen(true);
+  const closeArchiveModal = () => setIsArchiveModalOpen(false);
   // Confirm deletion modal state for moderation comments
   const [isCommentDeleteOpen, setIsCommentDeleteOpen] = useState(false);
   const [pendingCommentId, setPendingCommentId] = useState(null);
@@ -260,6 +264,7 @@ const EditPlantation = () => {
         if (isModalOpen) closeModal();
         if (isApproveModalOpen) closeApproveModal();
         if (isDeleteModalOpen) closeDeleteModal();
+        if (isArchiveModalOpen) closeArchiveModal();
         if (isCommentDeleteOpen) closeCommentDeleteModal();
         if (farmerPlantsOpen) setFarmerPlantsOpen(false);
         if (selectedImage) setSelectedImage(null);
@@ -280,7 +285,7 @@ const EditPlantation = () => {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
+  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isArchiveModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
 
   const handleConfirm = async () => {
     try {
@@ -449,6 +454,40 @@ const EditPlantation = () => {
     }
   };
 
+
+  const handleArchive = async () => {
+    try {
+      setError(null);
+      setSuccessMessage(null);
+      
+      const isCurrentlyArchived = plantation?.archived === true;
+      const newArchiveStatus = !isCurrentlyArchived;
+      
+      await apiRequest(`api/plantations/${id}/`, {
+        method: "PATCH",
+        body: JSON.stringify({ archived: newArchiveStatus }),
+      }, refreshAccessToken, authState.accessToken);
+
+      // Обновляем локальное состояние
+      setPlantation((prev) => prev ? { ...prev, archived: newArchiveStatus } : prev);
+      
+      if (newArchiveStatus) {
+        setSuccessMessage("Plantatsiya muvaffaqiyatli arxivlandi! Barcha rasmlar o'chirildi.");
+      } else {
+        setSuccessMessage("Plantatsiya muvaffaqiyatli arxivdan chiqarildi!");
+      }
+      
+      closeArchiveModal();
+      
+      // Обновляем историю
+      if (refetchLogs) {
+        refetchLogs();
+      }
+    } catch (err) {
+      setError(err?.message || "Arxivlashda xatolik yuz berdi");
+      console.error("Archive error:", err);
+    }
+  };
 
   const handleDeleteConfirm = async () => {
     try {
@@ -2157,24 +2196,93 @@ const EditPlantation = () => {
                 </div>
               )}
 
-            {canDeletePlantation() && isDeleteModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
-                  <div className="relative bg-gray-800 p-6 rounded-md w-96 border border-gray-600" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={closeDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
-                    <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
-                    <p className="text-gray-300 mb-4">Bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
+            {canDeletePlantation() && isArchiveModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeArchiveModal}>
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 relative" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={closeArchiveModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                    <h3 className="text-white text-lg font-semibold mb-4">
+                      {plantation?.archived ? "Arxivdan chiqarish" : "Arxivlash"}
+                    </h3>
+                    <p className="text-gray-300 mb-6">
+                      {plantation?.archived ? (
+                        "Plantatsiyani arxivdan chiqarishni tasdiqlaysizmi? Plantatsiya yana barcha ro'yxatlarda ko'rinadi."
+                      ) : (
+                        <>
+                          <strong className="text-red-400">Diqqat!</strong> Plantatsiyani arxivlash barcha rasmlarni <strong className="text-red-400">butunlay o'chiradi</strong> va bu amalni qaytarib bo'lmaydi. Plantatsiya barcha ro'yxatlardan (xarita, statistika, moderatsiya) olib tashlanadi.
+                        </>
+                      )}
+                    </p>
                     <div className="flex justify-end space-x-4">
                       <button
-                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-                        onClick={handleDeleteConfirm}
+                        className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                        onClick={closeArchiveModal}
                       >
-                        O'chirish
+                        Bekor qilish
+                      </button>
+                      <button
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md transition-colors"
+                        onClick={handleArchive}
+                      >
+                        {plantation?.archived ? "Arxivdan chiqarish" : "Arxivlash"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+            )}
+
+            {canDeletePlantation() && isDeleteModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
+                  <div className="relative bg-gray-800 p-6 rounded-md w-[500px] max-w-[90vw] border border-gray-600" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={closeDeleteModal} className="absolute top-2 right-2 text-gray-400 hover:text-white">✕</button>
+                    <h2 className="text-xl mb-4 text-white">Plantatsiyani o'chirish</h2>
+                    
+                    <div className="mb-4 p-4 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div className="flex-1">
+                          <p className="text-yellow-300 font-semibold mb-2">Diqqat!</p>
+                          <p className="text-gray-300 text-sm mb-3">
+                            Plantatsiyani butunlay o'chirishdan oldin, <strong className="text-yellow-300">arxivlashni</strong> ko'rib chiqing.
+                          </p>
+                          <div className="bg-gray-700/50 p-3 rounded border border-gray-600">
+                            <p className="text-gray-200 text-sm mb-2">
+                              <strong className="text-green-400">Arxivlash:</strong> Plantatsiya barcha ro'yxatlardan olib tashlanadi, lekin ma'lumotlar saqlanadi va keyinchalik qayta tiklash mumkin.
+                            </p>
+                            <p className="text-gray-200 text-sm">
+                              <strong className="text-red-400">To'liq o'chirish:</strong> Bu amalni qaytarib bo'lmaydi. Barcha ma'lumotlar butunlay yo'qoladi.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-300 mb-4">
+                      Shunday bo'lsa ham, plantatsiyani butunlay o'chirmoqchimisiz?
+                    </p>
+                    
+                    <div className="flex justify-end space-x-4">
+                      <button
+                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                        onClick={() => {
+                          closeDeleteModal();
+                          openArchiveModal();
+                        }}
+                      >
+                        Arxivlash
                       </button>
                       <button
                         className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
                         onClick={closeDeleteModal}
                       >
                         Bekor qilish
+                      </button>
+                      <button
+                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                        onClick={handleDeleteConfirm}
+                      >
+                        Ha, o'chirish
                       </button>
                     </div>
                   </div>
@@ -2258,6 +2366,18 @@ const EditPlantation = () => {
 
             <div className="w-px h-8 bg-gray-600"></div>
             
+            <button
+              onClick={openArchiveModal}
+              className={`${plantation?.archived ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-orange-600 hover:bg-orange-700'} text-white px-4 py-2 rounded-full transition-all hover:scale-105 flex items-center gap-2 text-sm font-medium shadow-lg`}
+              title={plantation?.archived ? "Arxivdan chiqarish" : "Arxivlash"}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+              <span>{plantation?.archived ? "Arxivdan chiqarish" : "Arxivlash"}</span>
+            </button>
+
+            <div className="w-px h-8 bg-gray-600"></div>
             
             <button
               onClick={openDeleteModal}
