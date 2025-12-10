@@ -54,6 +54,21 @@ class _FermersPageState extends ConsumerState<FermersPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Убеждаемся, что данные загружаются при открытии страницы
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = ref.read(fermerPageVM);
+      // Инициализируем ViewModel, если еще не инициализирован
+      vm.initialize();
+      // Загружаем данные, если список пуст и не идет загрузка
+      if (vm.fermersList.isEmpty && !vm.isLoading && !vm.isFetchingMore && vm.errorMessage == null) {
+        vm.getFermers(isLoadMore: false);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();

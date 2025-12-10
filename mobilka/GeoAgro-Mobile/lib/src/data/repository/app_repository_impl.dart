@@ -197,15 +197,23 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getFermersList({int? page}) async {
     try {
+      debugPrint("🌾 Fetching farmers list, page: ${page ?? 1}");
       final data = await ApiService.get(
         ApiConst.apiFermers,
         ApiParams.pageParams(page: page ?? 1),
       );
+      if (data != null) {
+        debugPrint("✅ Farmers data received: ${data.length} characters");
+      } else {
+        debugPrint("❌ Farmers data is null");
+      }
       return data;
     } on DioException catch (e) {
-      debugPrint("Server error: ${e.response?.data ?? e.message}");
+      debugPrint("❌ Server error in getFermersList: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
+      debugPrint("❌ Request URL: ${ApiConst.baseUrl}${ApiConst.apiFermers}");
+      debugPrint("❌ Request params: ${ApiParams.pageParams(page: page ?? 1)}");
     } catch (e) {
-      debugPrint("Unexpected error: $e");
+      debugPrint("❌ Unexpected error in getFermersList: $e");
     }
     return null;
   }

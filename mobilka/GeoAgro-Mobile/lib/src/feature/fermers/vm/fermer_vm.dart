@@ -92,9 +92,18 @@ class FermerVm extends ChangeNotifier {
   List<FarmerModel> fermersList = []; // Fermerlar ro'yxati
 
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
+  
+  bool _isInitialized = false;
 
   FermerVm() {
-    getFermers();
+    // Инициализация будет выполнена при первом обращении
+  }
+  
+  void initialize() {
+    if (!_isInitialized) {
+      _isInitialized = true;
+      getFermers();
+    }
   }
 
   void _setLoading(bool value) {
@@ -108,7 +117,12 @@ class FermerVm extends ChangeNotifier {
   }
 
   Future<void> getFermers({bool isLoadMore = false}) async {
-    if ((!canLoad && isLoadMore) || (isLoadMore && isFetchingMore)) return; // Yuklash mumkinligini tekshirish
+    if ((!canLoad && isLoadMore) || (isLoadMore && isFetchingMore)) {
+      log("⏭️ Skipping getFermers: canLoad=$canLoad, isLoadMore=$isLoadMore, isFetchingMore=$isFetchingMore");
+      return; // Yuklash mumkinligini tekshirish
+    }
+    
+    log("🔄 Starting getFermers: isLoadMore=$isLoadMore, currentPage=$currentPage");
     errorMessage = null;
 
     if (!isLoadMore) {
@@ -122,37 +136,51 @@ class FermerVm extends ChangeNotifier {
 
     try {
       // Ma'lumotlarni olish
+      log("📡 Fetching farmers from API, page: $currentPage");
       final data = await _appRepositoryImpl.getFermersList(page: currentPage);
 
       if (data == null) {
+        log("❌ getFermers: data is null");
         errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
         canLoad = false; // Qo'shimcha yuklashni to'xtatish
+        notifyListeners();
       } else {
         try {
+          log("📦 Parsing farmers data, length: ${data.length}");
           final model = farmerListModelFromJson(data);
 
           if (model.results != null) {
+            log("✅ Parsed ${model.results!.length} farmers");
             fermersList.addAll(model.results!); // Ro'yxatni to'ldirish
             currentPage++; // Sahifa raqamini oshirish
             canLoad = model.next != null; // `next` mavjudligini tekshirish
+            log("📊 Total farmers: ${fermersList.length}, canLoad: $canLoad, next: ${model.next}");
+            notifyListeners();
           } else {
+            log("⚠️ model.results is null");
             canLoad = false; // Ma'lumot yo'q bo'lsa, yuklashni to'xtatish
+            notifyListeners();
           }
         } catch (jsonError) {
-          log("JSON Parsing Error: $jsonError");
+          log("❌ JSON Parsing Error: $jsonError");
+          log("❌ Data that failed to parse: ${data.substring(0, data.length > 500 ? 500 : data.length)}");
           errorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
           canLoad = false;
+          notifyListeners();
         }
       }
     } catch (e) {
+      log("❌ Exception in getFermers: $e");
       errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
       canLoad = false; // Qo'shimcha yuklashni to'xtatish
+      notifyListeners();
     } finally {
       if (isLoadMore) {
         _setFetchingMore(false); // Qo'shimcha yuklanishni o'chirish
       } else {
         _setLoading(false); // Umumiy yuklanishni o'chirish
       }
+      log("✅ getFermers completed: isLoading=$isLoading, isFetchingMore=$isFetchingMore, farmersCount=${fermersList.length}");
     }
   }
 }
