@@ -1655,9 +1655,9 @@ const EditPlantation = () => {
                 {(!Array.isArray(plantation.moderation_comment) || plantation.moderation_comment.length === 0) && 
                  (!Array.isArray(plantation.comments) || plantation.comments.length === 0) && (
                   <div className="text-gray-400 text-sm">Izohlar mavjud emas</div>
-                )}
-              </div>
-            </div>
+                          )}
+                        </div>
+                      </div>
 
             {/* Двойной ряд: Fermer + Mevali hududlar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
