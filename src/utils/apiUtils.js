@@ -1,29 +1,58 @@
 import { API_BASE_URL2 } from '../config';
 import axios from 'axios';
+import { ApiError, ApiErrorCode } from '../types/apiErrors';
 
 // In-flight cache для дедупликации параллельных GET-запросов
 const inFlightRequests = new Map();
 // Отдельный кэш промисов JSON, чтобы не возвращать один и тот же Response
 const inFlightJsonRequests = new Map();
 
+/**
+ * Построить уникальный ключ для дедупликации запросов
+ */
 const buildRequestKey = (url, config = {}) => {
   const method = (config.method || 'GET').toUpperCase();
   const headers = Object.entries(config.headers || {})
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}:${String(v)}`)
     .join('|');
-  // Для GET тело игнорируем
   return `${method} ${url} | ${headers}`;
 };
 
+/**
+ * Создать ApiError из Response объекта
+ */
+const createApiErrorFromResponse = async (response) => {
+  let errorData = null;
+  try {
+    errorData = await response.json();
+  } catch {
+    // Тело не JSON
+  }
+
+  const message = 
+    errorData?.detail || 
+    errorData?.message || 
+    errorData?.error ||
+    `HTTP ${response.status}: ${response.statusText}`;
+
+  return ApiError.fromHttpStatus(response.status, message, {
+    status: response.status,
+    statusText: response.statusText,
+    data: errorData,
+  });
+};
+
+/**
+ * Дедупликация fetch запросов
+ */
 const dedupeFetch = async (url, config = {}) => {
   if (!url) {
-    throw new Error('URL is not defined');
+    throw new ApiError('URL is not defined', ApiErrorCode.BAD_REQUEST, 0);
   }
   const method = (config.method || 'GET').toUpperCase();
   if (method !== 'GET') {
-    const resp = await fetch(url, config);
-    return resp;
+    return await fetch(url, config);
   }
   const key = buildRequestKey(url, config);
   if (inFlightRequests.has(key)) {
@@ -36,47 +65,55 @@ const dedupeFetch = async (url, config = {}) => {
   return promise;
 };
 
-// Дедупликация, возвращающая уже распарсенный JSON (исключает повторное чтение body)
+/**
+ * Дедупликация с автоматическим парсингом JSON
+ */
 const dedupeFetchJson = async (url, config = {}) => {
   const method = (config.method || 'GET').toUpperCase();
+  
   if (method !== 'GET') {
     const resp = await fetch(url, config);
     if (!resp.ok) {
-      const error = new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-      error.response = { status: resp.status, statusText: resp.statusText };
-      throw error;
+      throw await createApiErrorFromResponse(resp);
     }
     return resp.json();
   }
+  
   const key = buildRequestKey(url, config);
   if (inFlightJsonRequests.has(key)) {
     return inFlightJsonRequests.get(key);
   }
+  
   const promise = (async () => {
     const resp = await fetch(url, config);
     if (!resp.ok) {
-      const error = new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-      error.response = { status: resp.status, statusText: resp.statusText };
-      throw error;
+      throw await createApiErrorFromResponse(resp);
     }
     return resp.json();
   })();
+  
   inFlightJsonRequests.set(key, promise);
   try {
-    const data = await promise;
-    return data;
+    return await promise;
   } finally {
     inFlightJsonRequests.delete(key);
   }
 };
 
+/**
+ * Универсальная функция для API запросов с поддержкой:
+ * - Дедупликации GET запросов
+ * - Автоматического обновления токена при 401
+ * - Централизованной обработки ошибок
+ */
 export const apiRequest = async (endpoint, options = {}, refreshToken, accessToken) => {
   if (!API_BASE_URL2) {
-    throw new Error('API_BASE_URL2 is not defined');
+    throw new ApiError('API_BASE_URL2 is not defined', ApiErrorCode.BAD_REQUEST, 0);
   }
   if (!endpoint) {
-    throw new Error('Endpoint is not defined');
+    throw new ApiError('Endpoint is not defined', ApiErrorCode.BAD_REQUEST, 0);
   }
+  
   const url = `${API_BASE_URL2}${endpoint.endsWith('/') ? endpoint : endpoint + '/'}`;
   
   // Если отправляем FormData, не задаём Content-Type вручную
@@ -85,7 +122,7 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
     'Content-Type': 'application/json',
   };
 
-  // Автоматически добавляем токен авторизации, если он передан
+  // Автоматически добавляем токен авторизации
   if (accessToken) {
     defaultHeaders.Authorization = `Bearer ${accessToken}`;
   }
@@ -100,9 +137,9 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
   };
 
   try {
-    // Дедупликация только для GET
     const response = await dedupeFetch(url, config);
 
+    // Обработка 401 с попыткой обновления токена
     if (response.status === 401 && refreshToken) {
       try {
         const newToken = await refreshToken();
@@ -114,22 +151,27 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
           },
         };
         const retryResponse = await dedupeFetch(url, retryConfig);
+        
         if (retryResponse.ok) {
-          return await retryResponse.json();
-        } else {
-          // Создаем ошибку с response объектом для совместимости с axios
-          const error = new Error(`HTTP ${retryResponse.status}: ${retryResponse.statusText}`);
-          error.response = {
-            status: retryResponse.status,
-            statusText: retryResponse.statusText,
-            data: null
-          };
-          throw error;
+          const contentType = retryResponse.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            return await retryResponse.json();
+          }
+          return null;
         }
+        
+        throw await createApiErrorFromResponse(retryResponse);
       } catch (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
+        // Ошибка обновления токена — редирект на логин
+        const tokenError = new ApiError(
+          'Token refresh failed',
+          ApiErrorCode.TOKEN_EXPIRED,
+          401,
+          { originalError: refreshError instanceof Error ? refreshError : undefined }
+        );
+        console.error("Failed to refresh token:", tokenError.toJSON());
         window.location.href = '/login';
-        throw refreshError;
+        throw tokenError;
       }
     }
 
@@ -137,27 +179,28 @@ export const apiRequest = async (endpoint, options = {}, refreshToken, accessTok
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         return await response.json();
-      } else {
-        return null;
       }
-    } else {
-      // Создаем ошибку с response объектом для совместимости с axios
-      const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
-      error.response = {
-        status: response.status,
-        statusText: response.statusText,
-        data: null
-      };
+      return null;
+    }
+
+    // Создаём ApiError для неуспешных ответов
+    throw await createApiErrorFromResponse(response);
+  } catch (error) {
+    // Если уже ApiError — пробрасываем
+    if (error instanceof ApiError) {
       throw error;
     }
-  } catch (error) {
-    console.error("API request failed:", error);
-    throw error;
+    // Сетевые ошибки и другие
+    throw ApiError.from(error);
   }
 };
 
-// Функция для создания axios инстанса с автоматическим добавлением токена
-export const createAuthenticatedAxios = (accessToken) => {
+/**
+ * Создание axios инстанса с централизованной обработкой ошибок
+ */
+export const createAuthenticatedAxios = (accessToken, options = {}) => {
+  const { onAuthError, onError } = options;
+  
   const axiosInstance = axios.create({
     baseURL: API_BASE_URL2,
     headers: {
@@ -166,15 +209,27 @@ export const createAuthenticatedAxios = (accessToken) => {
     },
   });
 
-  // Добавляем интерцептор для обработки 401 ошибок
+  // Интерцептор для преобразования ошибок в ApiError
   axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
-      if (error.response?.status === 401) {
-        
-        window.location.href = '/login';
+      const apiError = ApiError.from(error);
+      
+      // Обработка ошибок авторизации
+      if (apiError.isAuthError()) {
+        if (onAuthError) {
+          onAuthError(apiError);
+        } else {
+          window.location.href = '/login';
+        }
       }
-      return Promise.reject(error);
+      
+      // Общий callback для ошибок
+      if (onError) {
+        onError(apiError);
+      }
+      
+      return Promise.reject(apiError);
     }
   );
 
@@ -264,19 +319,36 @@ export function removeUserData() {
   localStorage.removeItem(USER_ROLE_KEY);
   localStorage.removeItem(REGION_ID_KEY);
   localStorage.removeItem(USER_INFO_KEY);
-} 
+}
 
-export function handleApiError(error, navigate) {
-  if (!error || !error.response) return;
-  const status = error.response.status;
-  if (status === 401) {
-    // Токен истёк — редирект на логин
+/**
+ * @deprecated Используйте handleApiError из utils/errorHandler.ts
+ * Оставлено для обратной совместимости
+ */
+export function handleApiError(error, navigate, options = {}) {
+  const { showAlert = true, onLogout } = options;
+  
+  // Преобразуем в ApiError
+  const apiError = ApiError.from(error);
+  
+  if (apiError.isAuthError()) {
+    if (onLogout) onLogout();
     if (navigate) navigate("/login");
     else window.location.href = "/login";
-  } else if (status === 403) {
-    // Нет прав — показываем сообщение и редиректим
-    alert("Сизда ушбу саҳифага рухсат йўқ");
+    return apiError;
+  }
+  
+  if (apiError.code === ApiErrorCode.FORBIDDEN) {
+    if (showAlert) {
+      alert(apiError.getUserMessage());
+    }
     if (navigate) navigate("/");
     else window.location.href = "/";
+    return apiError;
   }
-} 
+  
+  return apiError;
+}
+
+// Реэкспорт для удобства
+export { ApiError, ApiErrorCode }; 

@@ -787,20 +787,11 @@ const RejectedPlantations = () => {
                 onChange={(e) => handleFilterChange('region', e.target.value)}
                 className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
-                <option value="All">Barcha viloyatlar</option>
-                <option value="1">Toshkent</option>
-                <option value="2">Andijon</option>
-                <option value="3">Buxoro</option>
-                <option value="4">Farg'ona</option>
-                <option value="5">Jizzax</option>
-                <option value="6">Qashqadaryo</option>
-                <option value="7">Navoiy</option>
-                <option value="8">Namangan</option>
-                <option value="9">Samarqand</option>
-                <option value="10">Sirdaryo</option>
-                <option value="11">Surxondaryo</option>
-                <option value="12">Qoraqalpog'iston</option>
-                <option value="13">Xorazm</option>
+                {getRegionOptions().map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             

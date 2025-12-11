@@ -1168,19 +1168,11 @@ const Moderation = () => {
               }}
             >
               <option value="All">Region</option>
-              <option value="1">Tashkent</option>
-              <option value="2">Andijan</option>
-              <option value="3">Bukhara</option>
-              <option value="4">Fergana</option>
-              <option value="5">Jizzakh</option>
-              <option value="6">Kashkadarya</option>
-              <option value="7">Navoi</option>
-              <option value="8">Namangan</option>
-              <option value="9">Samarkand</option>
-              <option value="10">Sirdarya</option>
-              <option value="11">Surkhandarya</option>
-              <option value="12">Karakalpakstan</option>
-              <option value="13">Xorazm</option>
+              {getRegionOptions().slice(1).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
             
             {/* Фильтр по районам - появляется при выборе региона */}
