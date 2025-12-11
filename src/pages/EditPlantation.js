@@ -383,7 +383,7 @@ const EditPlantation = () => {
         } else if (fromPage === '/deletion-requests') {
           const currentPage = location.state?.page || 1;
           window.location.href = `/deletion-requests?page=${currentPage}`;
-        } else if (fromPage && fromPage.includes('/farmers/') && fromPage.includes('/map')) {
+        } else if (fromPage && (fromPage.includes('/farmers/') && fromPage.includes('/map'))) {
           // Возвращаемся на карту плантаций фермера
           window.location.href = fromPage;
         } else if (fromPage === '/moderation') {
@@ -507,7 +507,7 @@ const EditPlantation = () => {
       } else if (fromPage === '/deletion-requests') {
         const currentPage = location.state?.page || 1;
         window.location.href = `/deletion-requests?page=${currentPage}`;
-      } else if (fromPage && fromPage.includes('/farmers/') && fromPage.includes('/map')) {
+      } else if (fromPage && (fromPage.includes('/farmers/') && fromPage.includes('/map'))) {
         window.location.href = fromPage;
       } else {
         // По умолчанию возвращаемся на страницу модерации
@@ -568,7 +568,7 @@ const EditPlantation = () => {
       } else if (fromPage === '/deletion-requests') {
         const currentPage = location.state?.page || 1;
         window.location.href = `/deletion-requests?page=${currentPage}`;
-      } else if (fromPage && fromPage.includes('/farmers/') && fromPage.includes('/map')) {
+      } else if (fromPage && (fromPage.includes('/farmers/') && fromPage.includes('/map'))) {
         // Возвращаемся на карту плантаций фермера
         window.location.href = fromPage;
       } else {
