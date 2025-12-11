@@ -512,7 +512,7 @@ const LoadingSkeleton = () => (
 // ═══════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
-const Test2StatisticsPage = () => {
+const HomePage = () => {
   const { authState } = useContext(AuthContext);
   const [stats, setStats] = useState(null);
   const [dashboard, setDashboard] = useState(null);
@@ -1256,5 +1256,5 @@ const Test2StatisticsPage = () => {
   );
 };
 
-export default Test2StatisticsPage;
+export default HomePage;
 
