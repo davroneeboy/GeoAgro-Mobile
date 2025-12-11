@@ -467,21 +467,65 @@ const EditPlantation = () => {
         method: "PATCH",
         body: JSON.stringify({ archived: newArchiveStatus }),
       }, refreshAccessToken, authState.accessToken);
-
-      // Обновляем локальное состояние
-      setPlantation((prev) => prev ? { ...prev, archived: newArchiveStatus } : prev);
-      
-      if (newArchiveStatus) {
-        setSuccessMessage("Plantatsiya muvaffaqiyatli arxivlandi! Barcha rasmlar o'chirildi.");
-      } else {
-        setSuccessMessage("Plantatsiya muvaffaqiyatli arxivdan chiqarildi!");
-      }
       
       closeArchiveModal();
       
-      // Обновляем историю
-      if (refetchLogs) {
-        refetchLogs();
+      // Перенаправляем обратно на страницу откуда пришёл пользователь
+      const fromPage = location.state?.from;
+      const savedFilters = location.state?.filters;
+      const savedPage = location.state?.page;
+      
+      if (fromPage && fromPage.includes('/archived-plantations')) {
+        const searchParams = new URLSearchParams();
+        const pageToUse = savedPage || localStorage.getItem('archivedPlantationsPage') || 1;
+        searchParams.set('page', pageToUse.toString());
+        
+        if (savedFilters) {
+          if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+          if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+          if (savedFilters.crop_type && savedFilters.crop_type !== 'All') searchParams.set('crop_type', savedFilters.crop_type);
+          if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          if (savedFilters.plantation_id && savedFilters.plantation_id !== 'All') searchParams.set('plantation_id', savedFilters.plantation_id);
+        }
+        
+        window.location.href = `/archived-plantations?${searchParams.toString()}`;
+      } else if (fromPage && fromPage.includes('/approved-plantations')) {
+        const searchParams = new URLSearchParams();
+        const pageToUse = savedPage || localStorage.getItem('approvedPlantationsPage') || 1;
+        searchParams.set('page', pageToUse.toString());
+        
+        if (savedFilters) {
+          if (savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+          if (savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+          if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          if (savedFilters.plantation_id && savedFilters.plantation_id !== 'All') searchParams.set('plantation_id', savedFilters.plantation_id);
+        }
+        
+        window.location.href = `/approved-plantations?${searchParams.toString()}`;
+      } else if (fromPage === '/rejected-plantations') {
+        window.location.href = '/rejected-plantations';
+      } else if (fromPage === '/deletion-requests') {
+        const currentPage = location.state?.page || 1;
+        window.location.href = `/deletion-requests?page=${currentPage}`;
+      } else if (fromPage && fromPage.includes('/farmers/') && fromPage.includes('/map')) {
+        window.location.href = fromPage;
+      } else {
+        // По умолчанию возвращаемся на страницу модерации
+        const currentPage = localStorage.getItem('moderationPage') || 1;
+        const searchParams = new URLSearchParams();
+        searchParams.set('page', currentPage.toString());
+        if (savedFilters) {
+          if (savedFilters.action && savedFilters.action !== 'All') searchParams.set('action', savedFilters.action);
+          if (savedFilters.status && savedFilters.status !== 'All') searchParams.set('status', savedFilters.status);
+          if (savedFilters.type && savedFilters.type !== 'All') searchParams.set('type', savedFilters.type);
+          if (savedFilters.region && savedFilters.region !== 'All') searchParams.set('region', savedFilters.region);
+          if (savedFilters.district && savedFilters.district !== 'All') searchParams.set('district', savedFilters.district);
+          if (savedFilters.farmer && savedFilters.farmer !== 'All') searchParams.set('farmer', savedFilters.farmer);
+          if (savedFilters.farmer_id && savedFilters.farmer_id !== 'All') searchParams.set('farmer_id', savedFilters.farmer_id);
+          if (savedFilters.sort_by) searchParams.set('sort_by', savedFilters.sort_by);
+          if (savedFilters.sort_order) searchParams.set('sort_order', savedFilters.sort_order);
+        }
+        window.location.href = `/moderation?${searchParams.toString()}`;
       }
     } catch (err) {
       setError(err?.message || "Arxivlashda xatolik yuz berdi");
@@ -2228,7 +2272,7 @@ const EditPlantation = () => {
                     </div>
                   </div>
                 </div>
-            )}
+              )}
 
             {canDeletePlantation() && isDeleteModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={closeDeleteModal}>
