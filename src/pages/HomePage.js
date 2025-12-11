@@ -522,8 +522,25 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState(null);
-  const [regionSort, setRegionSort] = useState("count");
+  const [regionSort, setRegionSort] = useState("default");
   const isDark = true; // Только тёмная тема
+
+  // Фиксированный порядок регионов
+  const regionOrder = [
+    "Qoraqalpog'iston",
+    "Andijon",
+    "Buxoro",
+    "Jizzax",
+    "Qashqadaryo",
+    "Navoiy",
+    "Namangan",
+    "Samarqand",
+    "Surxondaryo",
+    "Sirdaryo",
+    "Toshkent",
+    "Farg'ona",
+    "Xorazm"
+  ];
 
   // ─────────────────────────────────────────────────────────────
   // DATA FETCHING
@@ -576,6 +593,31 @@ const HomePage = () => {
     const regions = [...dashboard.regions];
     
     switch (regionSort) {
+      case "default":
+        // Фиксированный порядок регионов
+        return regions.sort((a, b) => {
+          // Нормализуем названия для сравнения (убираем лишние пробелы, приводим к единому формату)
+          const normalizeName = (name) => name?.trim() || "";
+          const nameA = normalizeName(a.name);
+          const nameB = normalizeName(b.name);
+          
+          // Ищем индекс в списке (точное совпадение или с учетом нормализации)
+          const findIndex = (name) => {
+            const exactIndex = regionOrder.indexOf(name);
+            if (exactIndex !== -1) return exactIndex;
+            // Пробуем найти по нормализованному названию
+            return regionOrder.findIndex(r => normalizeName(r) === name);
+          };
+          
+          const indexA = findIndex(nameA);
+          const indexB = findIndex(nameB);
+          
+          // Если регион не найден в списке, помещаем его в конец
+          if (indexA === -1 && indexB === -1) return 0;
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
       case "count":
         return regions.sort((a, b) => b.plantations_count - a.plantations_count);
       case "area":
@@ -1011,6 +1053,7 @@ const HomePage = () => {
                         backgroundSize: '1.25em 1.25em'
                       }}
                     >
+                      <option value="default" className="bg-slate-800 text-slate-200">Asosiy tartib</option>
                       <option value="count" className="bg-slate-800 text-slate-200">Soni bo'yicha</option>
                       <option value="area" className="bg-slate-800 text-slate-200">Maydon bo'yicha</option>
                       <option value="approved" className="bg-slate-800 text-slate-200">Tasdiqlanganlar</option>
