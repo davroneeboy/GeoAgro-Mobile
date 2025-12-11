@@ -4,7 +4,7 @@ import { fetchPlantationsMap } from "../api/api.js";
 
 const CENTER = [41.2995, 69.2401];
 const ZOOM = 6;
-
+const ZOOM_HIDE_FILL = 12; // При этом зуме убирается заливка
 
 export const useMapsHook = ({
   onRegionClick,
@@ -17,6 +17,11 @@ export const useMapsHook = ({
   const mapRef = useRef();
   const [map, setMap] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(ZOOM);
+  
+  // Refs для слоёв
+  const currentDistrictsLayerRef = useRef(null);
+  const currentRegionsLayerRef = useRef(null);
 
   useEffect(() => {
     const mapInstance = L.map(mapRef.current, {
@@ -35,7 +40,48 @@ export const useMapsHook = ({
     return () => mapInstance.remove();
   }, []);
 
+  // Обработчик изменения зума для убирания заливки
+  useEffect(() => {
+    if (!map) return;
 
+    let lastZoom = map.getZoom();
+
+    const handleZoomEnd = () => {
+      const newZoom = map.getZoom();
+      setCurrentZoom(newZoom);
+
+      // Проверяем, пересекли ли порог ZOOM_HIDE_FILL
+      const wasAboveThreshold = lastZoom >= ZOOM_HIDE_FILL;
+      const isAboveThreshold = newZoom >= ZOOM_HIDE_FILL;
+
+      if (wasAboveThreshold !== isAboveThreshold) {
+        // Обновляем стили заливки
+        const shouldHideFill = isAboveThreshold;
+
+        if (currentDistrictsLayerRef.current) {
+          currentDistrictsLayerRef.current.setStyle({
+            fillOpacity: shouldHideFill ? 0 : 0.5,
+            fillColor: shouldHideFill ? "transparent" : "#52ADEC",
+          });
+        }
+
+        if (currentRegionsLayerRef.current) {
+          currentRegionsLayerRef.current.setStyle({
+            fillOpacity: shouldHideFill ? 0 : 0.5,
+            fillColor: shouldHideFill ? "transparent" : "#52ADEC",
+          });
+        }
+      }
+
+      lastZoom = newZoom;
+    };
+
+    map.on('zoomend', handleZoomEnd);
+
+    return () => {
+      map.off('zoomend', handleZoomEnd);
+    };
+  }, [map]);
 
   const initializeMap = async () => {
     try {
@@ -45,6 +91,10 @@ export const useMapsHook = ({
       }
       const response = await fetch(url);
       const geoData = await response.json();
+
+      // Сбрасываем refs
+      currentDistrictsLayerRef.current = null;
+      currentRegionsLayerRef.current = null;
 
       const geoLayer = L.geoJSON(geoData, {
         style: {
@@ -102,6 +152,7 @@ export const useMapsHook = ({
         },
       });
 
+      currentRegionsLayerRef.current = geoLayer;
       geoLayer.addTo(map);
       map.flyToBounds(geoLayer.getBounds());
     } catch (error) {
@@ -121,7 +172,7 @@ export const useMapsHook = ({
         }
       });
 
-      // Tumanni poligon va bog'lar bilan birга ko'rsatish
+      // Tumanni poligon va bog'lar bilan birga ko'rsatish
       plantations.forEach((plantation) => {
         const coordinates = plantation.coordinates.map((coord) => [
           coord.latitude,
@@ -173,13 +224,20 @@ export const useMapsHook = ({
         if (!(layer instanceof L.TileLayer)) map.removeLayer(layer);
       });
 
+      // Сбрасываем refs
+      currentDistrictsLayerRef.current = null;
+      currentRegionsLayerRef.current = null;
+
+      const currentZoomLevel = map.getZoom();
+      const shouldHideFill = currentZoomLevel >= ZOOM_HIDE_FILL;
+
       // Загружаем все районы региона
       const newGeoLayer = L.geoJSON(geoData, {
         style: {
-          fillColor: "#52ADEC",
+          fillColor: shouldHideFill ? "transparent" : "#52ADEC",
           color: "#fff",
           weight: 2,
-          fillOpacity: 0.5,
+          fillOpacity: shouldHideFill ? 0 : 0.5,
         },
          onEachFeature: (feature, layer) => {
            const tumanName = feature.properties?.name || "Noma'lum";
@@ -206,13 +264,18 @@ export const useMapsHook = ({
             },
             mouseout() {
               layer.closeTooltip();
+              const zoom = map.getZoom();
+              const hideFill = zoom >= ZOOM_HIDE_FILL;
               layer.setStyle({ 
-                fillColor: "#52ADEC",
-                fillOpacity: 0.5,
+                fillColor: hideFill ? "transparent" : "#52ADEC",
+                fillOpacity: hideFill ? 0 : 0.5,
                 weight: 2
               });
             },
             click: async () => {
+              // Сбрасываем ref районов т.к. переходим к выбору конкретного района
+              currentDistrictsLayerRef.current = null;
+
               // Удаляем все слои кроме базовой карты
               map.eachLayer((l) => {
                 if (!(l instanceof L.TileLayer)) {
@@ -240,6 +303,7 @@ export const useMapsHook = ({
         },
       });
 
+      currentDistrictsLayerRef.current = newGeoLayer;
       newGeoLayer.addTo(map);
       map.flyToBounds(newGeoLayer.getBounds());
     } catch (error) {
@@ -264,6 +328,10 @@ export const useMapsHook = ({
       map.eachLayer((layer) => {
         if (!(layer instanceof L.TileLayer)) map.removeLayer(layer);
       });
+
+      // Сбрасываем refs
+      currentDistrictsLayerRef.current = null;
+      currentRegionsLayerRef.current = null;
 
       // Найти нужный район по id
       const targetFeature = geoData.features?.find(
@@ -309,5 +377,5 @@ export const useMapsHook = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
-  return { mapRef, initializeMap, loadRegionGeoJSON, restoreRegionAndDistrict, loading };
+  return { mapRef, initializeMap, loadRegionGeoJSON, restoreRegionAndDistrict, loading, currentZoom };
 };

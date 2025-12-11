@@ -5,7 +5,7 @@ import Moderation from "./pages/Moderation";
 import RejectedPlantations from "./pages/RejectedPlantations";
 import ApprovedPlantations from "./pages/ApprovedPlantations";
 import LoginPage from "./pages/LoginPage";
-import MapContainer from "./pages/mapContainer";
+import MapContainer from "./pages/MapContainer";
 import PlantationDetail from "./pages/PlantationDetail";
 import EditPlantation from "./pages/EditPlantation";
 import PlantationPreviewPage from "./pages/PlantationPreviewPage";

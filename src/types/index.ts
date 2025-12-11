@@ -129,4 +129,209 @@ export interface CacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number;
+}
+
+// Map Progressive Loading Types
+export interface GeoJSONFeature {
+  type: 'Feature';
+  properties: {
+    id: string | number;
+    name: string;
+    ADM1_UZ?: string;
+    ADM1_EN?: string;
+    ADM1_RU?: string;
+    region_name?: string;
+    Shape_Leng?: number;
+    Shape_Area?: number;
+  };
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon';
+    coordinates: number[][][] | number[][][][];
+  };
+}
+
+export interface GeoJSONCollection {
+  type: 'FeatureCollection';
+  name?: string;
+  features: GeoJSONFeature[];
+}
+
+export interface MapZoomConfig {
+  INITIAL: number;
+  REGION_OPEN: number;
+  DISTRICT_OPEN: number;
+  PLANTATIONS_LOAD: number;
+  HIDE_FILL: number;
+}
+
+export interface RegionCache {
+  [regionId: string]: GeoJSONCollection;
+}
+
+export interface DistrictBounds {
+  id: number | string;
+  name: string;
+  regionId: string;
+  bounds: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
+  center: {
+    lat: number;
+    lng: number;
+  };
+}
+
+export interface PlantationCache {
+  [districtId: string]: {
+    data: Plantation[];
+    timestamp: number;
+  };
+}
+
+export interface MapState {
+  currentZoom: number;
+  currentRegionId: string | null;
+  currentDistrictId: number | null;
+  visibleBounds: MapBounds | null;
+  isAutoZooming: boolean;
+}
+
+export interface MapsHookProps {
+  onRegionClick: (regionId: string, regionName: string) => void;
+  onDistrictClick: (districtId: number, districtName: string) => void;
+  onPlantationClick: (plantation: Plantation, map: unknown) => void;
+  onMapLoad: (map: unknown) => void;
+  accessToken: string | null;
+  userRole: string | null;
+}
+
+export interface MapsHookReturn {
+  mapRef: React.RefObject<HTMLDivElement>;
+  initializeMap: () => Promise<void>;
+  loadRegionGeoJSON: (regionId: string) => Promise<void>;
+  restoreRegionAndDistrict: (regionId: string, districtId: number, districtName?: string) => Promise<void>;
+  loading: boolean;
+  currentZoom: number;
+  mapState: MapState;
+}
+
+// Leaflet Types extension
+declare global {
+  namespace L {
+    interface PolygonOptions {
+      isPlantation?: boolean;
+      isDistrictBoundary?: boolean;
+      regionId?: string;
+      districtId?: number | string;
+    }
+  }
+}
+
+// =============================================
+// MapContainer Types
+// =============================================
+
+export type UserRole = 'superuser' | 'headof_region' | 'observer' | 'user' | null;
+
+export type FilterStatus = 'all' | 'approved' | 'rejected' | 'pending' | 'moderation' | 'deleting';
+
+export interface MapFilters {
+  status: FilterStatus;
+  name: string;
+  inn: string;
+}
+
+export interface MapPagination {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  currentPage: number;
+}
+
+export interface SelectedRegion {
+  id: string | number;
+  name: string;
+}
+
+export interface SelectedDistrict {
+  id: number;
+  name: string;
+}
+
+export interface DistrictStats {
+  total_plantations?: number;
+  plantation_count?: number;
+  approved_count?: number;
+  approved?: number;
+  pending_count?: number;
+  pending?: number;
+  moderation_count?: number;
+  rejected_count?: number;
+  rejected?: number;
+  total_area?: number;
+  area?: number;
+}
+
+export interface PlantationImage {
+  id?: number;
+  image_url: string;
+}
+
+export interface FruitArea {
+  id?: number;
+  fruit: string;
+  variety: string;
+  area: number;
+}
+
+export interface PlantationFarmer {
+  id: number;
+  name: string;
+  inn?: string;
+  established_year?: string | number;
+}
+
+export interface PlantationDistrict {
+  id: number;
+  name: string;
+  region: number;
+}
+
+export interface PlantationDetail extends Plantation {
+  farmer?: PlantationFarmer;
+  district?: PlantationDistrict;
+  images?: PlantationImage[];
+  fruit_areas?: FruitArea[];
+}
+
+export interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  userRole: UserRole;
+  regionId?: number | null;
+  userInfo?: Record<string, unknown> | null;
+}
+
+export interface AuthContextType {
+  authState: AuthState;
+  login: (data: LoginData & { region_id?: number; user_info?: Record<string, unknown> }) => void;
+  logout: () => void;
+  refreshAccessToken: () => Promise<string | null>;
+  hasRole: (role: UserRole) => boolean;
+  hasAnyRole: (roles: UserRole[]) => boolean;
+  getUserRegion: () => number | null | undefined;
+}
+
+export interface PlantationMapParams {
+  page?: number;
+  page_size?: number;
+  returnFullResponse?: boolean;
+  status?: FilterStatus;
+  district_id?: number;
+  region?: string;
+  name?: string;
+  inn?: string;
 } 
