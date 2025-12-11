@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Moderation from "./pages/Moderation";
 import RejectedPlantations from "./pages/RejectedPlantations";
@@ -36,10 +36,9 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["superuser"]}><ConsoleRouter /></ProtectedRoute>} />
-      <Route path="/" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
+      <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/home" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><HomePage /></ProtectedRoute>} />
-      <Route path="/plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><MapContainer /></ProtectedRoute>} />
       <Route path="/moderation" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><Moderation /></ProtectedRoute>} />
       <Route path="/deletion-requests" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><DeletionRequests /></ProtectedRoute>} />
       <Route path="/rejected-plantations" element={<ProtectedRoute allowedRoles={["superuser", "headof_region"]}><RejectedPlantations /></ProtectedRoute>} />

@@ -228,7 +228,7 @@ const ArchivedPlantations: React.FC = () => {
     if (logout) {
       logout();
     }
-    navigate("/");
+    navigate("/home");
   };
 
   const handlePlantationClick = (plantationId: number): void => {
