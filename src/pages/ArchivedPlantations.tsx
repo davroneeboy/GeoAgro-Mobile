@@ -396,7 +396,7 @@ const ArchivedPlantations: React.FC = () => {
               className="block w-full bg-yellow-600 text-white py-2 rounded-lg font-medium text-center hover:bg-yellow-700 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Arxivlangan bog'lar
+              O'chirilgan bog'lar
             </Link>
           </div>
         )}
@@ -407,7 +407,7 @@ const ArchivedPlantations: React.FC = () => {
           <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-white text-2xl font-bold mb-2">Arxivlangan bog'lar</h1>
+                <h1 className="text-white text-2xl font-bold mb-2">O'chirilgan bog'lar</h1>
         </div>
             </div>
 
@@ -512,7 +512,7 @@ const ArchivedPlantations: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <span className="inline-block px-2 py-1 bg-yellow-600 text-white text-xs rounded">
-                          Arxivlangan
+                          O'chirilgan
                         </span>
                       </div>
                     </div>
@@ -538,7 +538,7 @@ const ArchivedPlantations: React.FC = () => {
                         <div className="text-gray-500">{formatDate(plantation.created_at)}</div>
                       </div>
                       <div className="bg-yellow-700/20 rounded p-2 border border-yellow-600">
-                        <div className="text-yellow-400 mb-1">Arxivlangan</div>
+                        <div className="text-yellow-400 mb-1">O'chirilgan</div>
                         <div className="text-white font-medium text-xs">
                           {plantation.archived ? "Ha" : "Yo'q"}
                         </div>
@@ -554,7 +554,7 @@ const ArchivedPlantations: React.FC = () => {
                 <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                   <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                     <div className="text-sm text-gray-400">
-                      Sahifa {page} dan {totalPages} | Jami: {count} ta arxivlangan bog'
+                      Sahifa {page} dan {totalPages} | Jami: {count} ta o'chirilgan bog'
                     </div>
                     
                     <div className="flex items-center space-x-2 sm:space-x-3">
@@ -630,14 +630,14 @@ const ArchivedPlantations: React.FC = () => {
             {plantations.length > 0 && (
               <div className="text-center mt-6">
                 <p className="text-gray-400 text-sm">
-                  Ko'rsatilgan: {plantations.length} ta arxivlangan bog'
+                  Ko'rsatilgan: {plantations.length} ta o'chirilgan bog'
                 </p>
               </div>
             )}
 
             {!loading && plantations.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-400 text-lg">Arxivlangan bog'lar topilmadi</p>
+                <p className="text-gray-400 text-lg">O'chirilgan bog'lar topilmadi</p>
               </div>
             )}
 

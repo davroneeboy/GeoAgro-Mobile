@@ -29,6 +29,7 @@ import MyLogsPage from "./pages/admin/MyLogsPage";
 import FarmerPlantationsMap from "./pages/FarmerPlantationsMap";
 import DeletionRequests from "./pages/DeletionRequests";
 import ArchivedPlantations from "./pages/ArchivedPlantations.tsx";
+import Test2StatisticsPage from "./pages/Test2StatisticsPage";
 
 import ConsoleRouter from "./admin/ConsoleRouter";
 
@@ -63,6 +64,7 @@ export default function AppRouter() {
       <Route path="/farmers/:id" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
       <Route path="/farmers/:id/map" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><FarmerPlantationsMap /></ProtectedRoute>} />
       <Route path="/farmers/new" element={<ProtectedRoute allowedRoles={["superuser"]}><FarmerEdit /></ProtectedRoute>} />
+      <Route path="/test2" element={<ProtectedRoute allowedRoles={["superuser", "headof_region", "observer"]}><Test2StatisticsPage /></ProtectedRoute>} />
     </Routes>
   );
 }

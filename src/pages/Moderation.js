@@ -718,8 +718,7 @@ const Moderation = () => {
                   saveFiltersToUrl(newFilters, 1);
                 }}
               >
-                <option value="All">Region</option>
-                {getRegionOptions().slice(1).map((option) => (
+                {getRegionOptions().map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -1167,8 +1166,7 @@ const Moderation = () => {
                 saveFiltersToUrl(newFilters, 1);
               }}
             >
-              <option value="All">Region</option>
-              {getRegionOptions().slice(1).map((option) => (
+              {getRegionOptions().map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
