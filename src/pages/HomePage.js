@@ -770,7 +770,7 @@ const HomePage = () => {
     );
   }
 
-  const { plantations, plantation_types, fruits, irrigation, fertility, investment, subsidy, economic_areas } = stats || {};
+  const { plantations, plantation_types, fruits, irrigation, fertility, investment, subsidy, economic_areas, farmers } = stats || {};
   const { overview, users, moderation, recent_activities, trends } = dashboard || {};
 
   // Получаем данные пользователя
@@ -869,7 +869,7 @@ const HomePage = () => {
             />
             <MetricCard
               title="Fermerlar"
-              value={overview?.total_farmers}
+              value={farmers?.total_farmers}
               icon={Icons.farmers}
               gradient="amber"
               delay={20}
