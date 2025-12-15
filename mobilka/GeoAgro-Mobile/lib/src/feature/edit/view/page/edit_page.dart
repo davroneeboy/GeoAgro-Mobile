@@ -39,6 +39,8 @@ class EditPage extends ConsumerStatefulWidget {
 }
 
 class _EditPageState extends ConsumerState<EditPage> {
+  bool _hasLoadedData = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,9 +49,13 @@ class _EditPageState extends ConsumerState<EditPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(editVm).getPlantationDetail(ref, widget.id);
-    });
+    // Загружаем данные только один раз при первой инициализации
+    if (!_hasLoadedData) {
+      _hasLoadedData = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(editVm).getPlantationDetail(ref, widget.id);
+      });
+    }
   }
 
   @override
@@ -247,6 +253,12 @@ class _EditPageState extends ConsumerState<EditPage> {
                         isDense: true,
                       ),
                       onSubmitted: (_) => edit.addKonturNumber(),
+                      onTap: () {
+                        // Предотвращаем перезагрузку при фокусе на поле
+                        // Просто фокусируемся на поле без дополнительных действий
+                      },
+                      enableInteractiveSelection: true,
+                      readOnly: false,
                     ),
                   ),
                   SizedBox(width: 8),

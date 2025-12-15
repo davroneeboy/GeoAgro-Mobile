@@ -333,7 +333,16 @@ class EditVM extends ChangeNotifier {
     return (a - b).abs() > 1e-9;
   }
 
+  bool _isLoadingDetail = false;
+  
   Future<void> getPlantationDetail(WidgetRef ref, int id) async {
+    // Предотвращаем повторную загрузку, если уже идет загрузка
+    if (_isLoadingDetail) {
+      debugPrint('[edit] getPlantationDetail: Already loading, skipping duplicate call');
+      return;
+    }
+    
+    _isLoadingDetail = true;
     errorMessage = null;
     isLoading = true;
     notifyListeners();
@@ -466,6 +475,7 @@ class EditVM extends ChangeNotifier {
     } catch (e) {
       errorMessage = e.toString();
     } finally {
+      _isLoadingDetail = false;
       isLoading = false;
       notifyListeners();
     }

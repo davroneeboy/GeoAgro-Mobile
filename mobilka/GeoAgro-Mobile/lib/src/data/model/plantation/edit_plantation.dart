@@ -31,6 +31,7 @@ class EditPlantationModel {
   List<Subsidy>? subsidies;
   double? notUsableArea;
   double? emptyArea;
+  List<String>? konturNumber;
   List<Comment>? comments;
   List<ModerationComment>? moderationComments;
 
@@ -55,6 +56,7 @@ class EditPlantationModel {
     this.subsidies,
     this.notUsableArea,
     this.emptyArea,
+    this.konturNumber,
     this.comments,
     this.moderationComments,
   });
@@ -80,6 +82,7 @@ class EditPlantationModel {
     List<Subsidy>? subsidies,
     double? notUsableArea,
     double? emptyArea,
+    List<String>? konturNumber,
     List<Comment>? comments,
     List<ModerationComment>? moderationComments,
   }) =>
@@ -106,6 +109,7 @@ class EditPlantationModel {
         subsidies: subsidies ?? this.subsidies,
         notUsableArea: notUsableArea ?? this.notUsableArea,
         emptyArea: emptyArea ?? this.emptyArea,
+        konturNumber: konturNumber ?? this.konturNumber,
         comments: comments ?? this.comments,
         moderationComments: moderationComments ?? this.moderationComments,
       );
@@ -168,6 +172,9 @@ class EditPlantationModel {
                 json["subsidies"]!.map((x) => Subsidy.fromJson(x))),
         notUsableArea: json["not_usable_area"]?.toDouble(),
         emptyArea: json["empty_area"]?.toDouble(),
+        konturNumber: json["kontur_number"] == null
+            ? null
+            : List<String>.from(json["kontur_number"].map((x) => x.toString())),
         comments: json["comments"] == null
             ? null
             : List<Comment>.from(
@@ -228,6 +235,9 @@ class EditPlantationModel {
             : List<dynamic>.from(subsidies!.map((x) => x.toJson())),
         "not_usable_area": notUsableArea,
         "empty_area": emptyArea,
+        "kontur_number": konturNumber == null
+            ? []
+            : List<dynamic>.from(konturNumber!.map((x) => x)),
         "comments": comments == null
             ? []
             : List<dynamic>.from(comments!.map((x) => x.toJson())),

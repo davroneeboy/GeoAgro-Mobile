@@ -525,6 +525,12 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           plantation.irrigationSystemsCount.toString(),
           Icons.precision_manufacturing_outlined,
         ),
+      if (plantation.konturNumber != null && plantation.konturNumber!.isNotEmpty)
+        _InfoEntry(
+          "Kontur raqamlari",
+          plantation.konturNumber!.join(", "),
+          Icons.numbers_outlined,
+        ),
     ];
 
     return entries;
