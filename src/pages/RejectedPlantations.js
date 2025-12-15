@@ -9,6 +9,7 @@ import {
   getRegionOptions,
   getDistrictsByRegion
 } from "../utils/moderationFilters";
+import { landTypeMapping, FRUIT_TYPES } from "../context/constants.js";
 
 const RejectedPlantations = () => {
   const navigate = useNavigate();
@@ -572,67 +573,232 @@ const RejectedPlantations = () => {
             {/* Список плантаций */}
             {!loading && plantations.length > 0 && (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                {plantations.map((plantation) => (
-                  <div
-                    key={plantation.id}
-                    className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors cursor-pointer"
-                    onClick={() => handlePlantationClick(plantation.id)}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-white mb-1">
-                          {plantation.farmer?.name || "Fermer nomi yo'q"}
-                        </h3>
-                        <p className="text-xs text-gray-400 mb-1">
-                          {plantation.name || "Sarlavhasiz bog'"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Maydon: {plantation.total_area || 0} GA
-                        </p>
+                {plantations.map((plantation) => {
+                  // Определяем тип плантации из разных источников
+                  let plantationType = "—";
+                  
+                  // Если types - это объект с plantation_type
+                  if (plantation.types && typeof plantation.types === 'object' && plantation.types.plantation_type) {
+                    plantationType = plantation.types.plantation_type === 1 ? "Bog'" : 
+                                   plantation.types.plantation_type === 2 ? "Uzumzor" : 
+                                   plantation.types.plantation_type === 3 ? "Issiqxona" : "—";
+                  }
+                  // Если types - это число (ID типа), пока не знаем маппинг, пропускаем
+                  // Можно добавить запрос к API для получения типа по ID, но пока оставляем как есть
+                  else if (plantation.crop_type) {
+                    const cropType = String(plantation.crop_type).toLowerCase();
+                    if (cropType.includes("bog") || cropType === "garden") {
+                      plantationType = "Bog'";
+                    } else if (cropType.includes("uzum") || cropType === "vineyard") {
+                      plantationType = "Uzumzor";
+                    } else if (cropType.includes("issiq") || cropType === "greenhouse") {
+                      plantationType = "Issiqxona";
+                    }
+                  }
+                  // Если есть fruit_areas, скорее всего это Bog'
+                  else if (plantation.fruit_areas && plantation.fruit_areas.length > 0) {
+                    plantationType = "Bog'";
+                  }
+                  
+                  const totalInvestments = plantation.investments?.reduce((sum, inv) => sum + (inv.investment_amount || 0), 0) || 0;
+                  const totalFruitArea = plantation.fruit_areas?.reduce((sum, fruit) => sum + (fruit.area || 0), 0) || 0;
+                  const rejectionReason = Array.isArray(plantation.moderation_comment)
+                    ? plantation.moderation_comment.map((c, i) => c?.text).filter(Boolean).join(', ')
+                    : (plantation.moderation_comment || plantation.comment || plantation.rejection_reason || '—');
+                  
+                  return (
+                    <div
+                      key={plantation.id}
+                      className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-red-600 hover:shadow-lg transition-all cursor-pointer"
+                      onClick={() => handlePlantationClick(plantation.id)}
+                    >
+                      {/* Заголовок с ID и статусом */}
+                      <div className="flex justify-between items-start mb-3 pb-2 border-b border-gray-700">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-xs px-2 py-0.5 bg-blue-600/30 text-blue-300 rounded font-medium">
+                              #{plantation.id}
+                            </span>
+                            <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs rounded font-semibold">
+                              Rad etilgan
+                            </span>
+                            {plantationType && plantationType !== "—" && (
+                              <span className="text-xs px-2 py-0.5 bg-green-600/30 text-green-300 rounded">
+                                {plantationType}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
+                            {plantation.farmer?.name || "Fermer nomi yo'q"}
+                          </h3>
+                          <p className="text-xs text-gray-400 line-clamp-1">
+                            {plantation.name || "Sarlavhasiz bog'"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="inline-block px-2 py-1 bg-red-600 text-white text-xs rounded">
-                          Rad etilgan
-                        </span>
+
+                      {/* Компактная сетка основной информации */}
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
+                          <div className="text-gray-400 text-[10px] mb-0.5">Viloyat</div>
+                          <div className="text-white font-medium text-xs truncate">
+                            {plantation.region_name 
+                              ? getRegionNameById(plantation.region_name)
+                              : getRegionNameById(plantation.district?.region)}
+                          </div>
+                        </div>
+                        <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
+                          <div className="text-gray-400 text-[10px] mb-0.5">Tuman</div>
+                          <div className="text-white font-medium text-xs truncate">
+                            {plantation.district_name || plantation.district?.name || "—"}
+                          </div>
+                        </div>
+                        <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
+                          <div className="text-gray-400 text-[10px] mb-0.5">Jami maydon</div>
+                          <div className="text-white font-semibold text-xs">
+                            {plantation.total_area?.toFixed(1) || 0} GA
+                          </div>
+                        </div>
+                        <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
+                          <div className="text-gray-400 text-[10px] mb-0.5">Ekilgan</div>
+                          <div className="text-white font-semibold text-xs">
+                            {plantation.planted_area?.toFixed(1) || 0} GA
+                          </div>
+                        </div>
+                        {plantation.irrigation_area && plantation.irrigation_area > 0 && (
+                          <div className="bg-green-700/20 rounded p-1.5 border border-green-600">
+                            <div className="text-green-400 text-[10px] mb-0.5">Sug'oriladi</div>
+                            <div className="text-green-300 font-semibold text-xs">
+                              {plantation.irrigation_area.toFixed(1)} GA
+                            </div>
+                          </div>
+                        )}
+                        {plantation.fertility_score !== undefined && (
+                          <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
+                            <div className="text-gray-400 text-[10px] mb-0.5">Unumdorlik</div>
+                            <div className={`font-semibold text-xs ${plantation.is_fertile ? 'text-green-300' : 'text-yellow-300'}`}>
+                              {plantation.fertility_score.toFixed(0)}%
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Фермер - компактно */}
+                      {plantation.farmer && (
+                        <div className="mb-2 p-1.5 bg-gray-700/20 rounded border border-gray-600">
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+                            {plantation.farmer.inn && (
+                              <>
+                                <span className="text-gray-400">STIR:</span>
+                                <span className="text-white font-medium">{plantation.farmer.inn}</span>
+                              </>
+                            )}
+                            {plantation.farmer.director_name && (
+                              <>
+                                <span className="text-gray-400">Direktor:</span>
+                                <span className="text-white truncate">{plantation.farmer.director_name}</span>
+                              </>
+                            )}
+                            {plantation.farmer.phone_number && (
+                              <>
+                                <span className="text-gray-400">Tel:</span>
+                                <span className="text-white">{plantation.farmer.phone_number}</span>
+                              </>
+                            )}
+                            {plantation.farmer.established_year && (
+                              <>
+                                <span className="text-gray-400">Tashkil:</span>
+                                <span className="text-white">{plantation.farmer.established_year}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Фрукты - компактно */}
+                      {plantation.fruit_areas && plantation.fruit_areas.length > 0 && (
+                        <div className="mb-2 p-1.5 bg-gray-700/20 rounded border border-gray-600">
+                          <div className="text-[10px] text-gray-400 mb-1">
+                            Mevalar ({plantation.fruit_areas.length}): {totalFruitArea.toFixed(1)} GA
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {plantation.fruit_areas.slice(0, 4).map((fruit, idx) => {
+                              const fruitName = (FRUIT_TYPES[fruit.fruit] || fruit.fruit);
+                              return (
+                                <span key={idx} className="text-[10px] px-1.5 py-0.5 bg-gray-600/50 text-white rounded">
+                                  {fruitName}
+                                  {fruit.variety && ` (${fruit.variety})`}
+                                  <span className="text-gray-300 ml-1">{fruit.area?.toFixed(1)} GA</span>
+                                </span>
+                              );
+                            })}
+                            {plantation.fruit_areas.length > 4 && (
+                              <span className="text-[10px] text-gray-500 italic">
+                                +{plantation.fruit_areas.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Причина отклонения */}
+                      {rejectionReason && rejectionReason !== '—' && (
+                        <div className="mb-2 p-1.5 bg-red-700/20 rounded border border-red-600">
+                          <div className="text-[10px] text-red-400 mb-1">Rad etish sababi:</div>
+                          <div className="text-red-300 text-[10px] line-clamp-2">
+                            {rejectionReason}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Дополнительная информация в одну строку */}
+                      <div className="flex flex-wrap gap-2 mb-2 text-[10px]">
+                        {plantation.garden_established_year && (
+                          <span className="px-1.5 py-0.5 bg-gray-700/30 text-gray-300 rounded">
+                            Bog' yili: {plantation.garden_established_year}
+                          </span>
+                        )}
+                        {plantation.land_type && (
+                          <span className="px-1.5 py-0.5 bg-gray-700/30 text-gray-300 rounded">
+                            {landTypeMapping[Number(plantation.land_type)] || plantation.land_type}
+                          </span>
+                        )}
+                        {totalInvestments > 0 && (
+                          <span className="px-1.5 py-0.5 bg-green-700/30 text-green-300 rounded font-medium">
+                            Invest: {(totalInvestments / 1000000).toFixed(1)} mln
+                          </span>
+                        )}
+                        {(plantation.irrigation_systems_count || (plantation.reservoirs && plantation.reservoirs.length > 0) || plantation.pump_station_count) && (
+                          <span className="px-1.5 py-0.5 bg-gray-700/30 text-gray-300 rounded">
+                            Infra: {plantation.irrigation_systems_count || 0} sug'orish, {(plantation.reservoirs?.length || plantation.reservoir_count || 0)} hovuz, {plantation.pump_station_count || 0} nasos
+                          </span>
+                        )}
+                        {(plantation.empty_area || plantation.not_usable_area || plantation.economic_inefficient_area) && (
+                          <span className="px-1.5 py-0.5 bg-gray-700/30 text-gray-300 rounded">
+                            Bo'sh: {plantation.empty_area?.toFixed(1) || 0}, Foydalanib bo'lmaydi: {plantation.not_usable_area?.toFixed(1) || 0}
+                            {plantation.economic_inefficient_area > 0 && `, Samarasiz: ${plantation.economic_inefficient_area.toFixed(1)}`}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Футер */}
+                      <div className="pt-1.5 border-t border-gray-700 flex justify-between items-center text-[10px] text-gray-500">
+                        <div className="flex flex-col gap-0.5">
+                          <span>Qo'shgan: {getUserName(plantation.created_by)}</span>
+                          {plantation.moderated_by && (
+                            <span className="text-red-400">Rad etgan: {getUserName(plantation.moderated_by)}</span>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-0.5 text-right">
+                          <span>{formatDate(plantation.created_at)}</span>
+                          {plantation.moderated_at && (
+                            <span className="text-red-400">{formatDate(plantation.moderated_at)}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
-                        <div className="text-gray-400 mb-1">Viloyat</div>
-                        <div className="text-white font-medium">
-                          {getRegionNameById(plantation.district?.region)}
-                        </div>
-                      </div>
-                      <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
-                        <div className="text-gray-400 mb-1">Tuman</div>
-                        <div className="text-white font-medium">
-                          {plantation.district?.name || "—"}
-                        </div>
-                      </div>
-                      <div className="bg-gray-700/30 rounded p-2 border border-gray-600">
-                        <div className="text-gray-400 mb-1">Qo'shgan</div>
-                        <div className="text-white font-medium">{getUserName(plantation.created_by)}</div>
-                        <div className="text-gray-500">{formatDate(plantation.created_at)}</div>
-                      </div>
-                      <div className="bg-red-700/20 rounded p-2 border border-red-600">
-                        <div className="text-red-400 mb-1">Rad etgan</div>
-                        <div className="text-white font-medium">{getUserName(plantation.moderated_by)}</div>
-                        <div className="text-red-400">{formatDate(plantation.moderated_at)}</div>
-                      </div>
-                    </div>
-
-                      <div className="mt-2 bg-gray-700/30 rounded p-2 border border-gray-600">
-                        <div className="text-gray-400 text-xs mb-1">Rad etish sababi</div>
-                        <div className="text-white text-xs">
-                          {Array.isArray(plantation.moderation_comment)
-                            ? plantation.moderation_comment.map((c, i) => <span key={i} className="inline-block mr-2">{c?.text}</span>)
-                            : (plantation.moderation_comment || plantation.comment || plantation.rejection_reason || '—')}
-                        </div>
-                      </div>
-                    
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

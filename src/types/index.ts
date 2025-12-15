@@ -30,17 +30,23 @@ export interface Plantation {
   name?: string;
   total_area: number;
   coordinates?: Coordinate[];
-  land_type?: string;
+  land_type?: string | number;
   crop_type?: string;
   farmer_name?: string;
   farmer?: {
     id: number;
     name: string;
-    inn?: string;
+    inn?: string | number;
+    director_name?: string;
+    phone_number?: string;
+    established_year?: string | number;
+    founder_name?: string;
+    address?: string;
+    resolution_number?: string;
   };
   district_id?: number;
   district?: {
-    id: number;
+    id?: number;
     name: string;
     region: number;
   };
@@ -53,12 +59,45 @@ export interface Plantation {
   is_rejected?: boolean;
   moderated_at?: string | null;
   moderated_by?: number | null;
-  moderation_comment?: string | null;
+  moderation_comment?: string | null | Array<{
+    id?: number;
+    text: string;
+    image?: string | null;
+    action?: string;
+    author?: string;
+    author_id?: number;
+    timestamp?: string;
+    author_role?: string;
+  }>;
   archived?: boolean;
   created_by?: number;
   garden_established_year?: number;
   planted_area?: number;
   is_deleting?: boolean;
+  // Дополнительные поля из API
+  types?: {
+    plantation_type?: number;
+    type_choice?: number;
+    subtype?: number | null;
+  } | number; // Может быть объектом или числом (ID типа)
+  empty_area?: number;
+  not_usable_area?: number;
+  economic_inefficient_area?: number;
+  irrigation_area?: number;
+  fertility_score?: number;
+  is_fertile?: boolean;
+  irrigation_systems_count?: number;
+  reservoir_count?: number;
+  pump_station_count?: number;
+  kontur_number?: number[];
+  investments?: Array<{
+    id?: number;
+    invest_type: number;
+    investment_amount: number;
+  }>;
+  reservoirs?: any[];
+  trellises?: any[];
+  fruit_areas?: FruitArea[];
 }
 
 export interface PlantationFormData {
@@ -290,8 +329,13 @@ export interface FruitArea {
 export interface PlantationFarmer {
   id: number;
   name: string;
-  inn?: string;
+  inn?: string | number;
   established_year?: string | number;
+  director_name?: string;
+  phone_number?: string;
+  founder_name?: string;
+  address?: string;
+  resolution_number?: string;
 }
 
 export interface PlantationDistrict {
