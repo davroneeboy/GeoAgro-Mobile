@@ -665,14 +665,12 @@ const RejectedPlantations = () => {
                             {plantation.planted_area?.toFixed(1) || 0} GA
                           </div>
                         </div>
-                        {plantation.irrigation_area && plantation.irrigation_area > 0 && (
-                          <div className="bg-green-700/20 rounded p-1.5 border border-green-600">
-                            <div className="text-green-400 text-[10px] mb-0.5">Sug'oriladi</div>
-                            <div className="text-green-300 font-semibold text-xs">
-                              {plantation.irrigation_area.toFixed(1)} GA
-                            </div>
+                        <div className={`rounded p-1.5 border ${plantation.irrigation_area && plantation.irrigation_area > 0 ? 'bg-green-700/20 border-green-600' : 'bg-gray-700/30 border-gray-600'}`}>
+                          <div className={`text-[10px] mb-0.5 ${plantation.irrigation_area && plantation.irrigation_area > 0 ? 'text-green-400' : 'text-gray-400'}`}>Sug'oriladi</div>
+                          <div className={`font-semibold text-xs ${plantation.irrigation_area && plantation.irrigation_area > 0 ? 'text-green-300' : 'text-white'}`}>
+                            {(plantation.irrigation_area || 0).toFixed(1)} GA
                           </div>
-                        )}
+                        </div>
                         {plantation.fertility_score !== undefined && (
                           <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
                             <div className="text-gray-400 text-[10px] mb-0.5">Unumdorlik</div>

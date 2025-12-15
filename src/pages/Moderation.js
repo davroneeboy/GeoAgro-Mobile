@@ -477,7 +477,7 @@ const Moderation = () => {
               return {
                 id: plantation.id,
                 name: plantation.farmer?.name || "—",
-                type: plantation.land_type,
+                type: plantation.land_type, // Может быть числом или строкой
                 area: `${Number(plantation.total_area ?? 0).toFixed(1)} га`,
                 region: `${regionName}, ${districtName}`,
                 status: plantation.status || "—",
@@ -488,6 +488,8 @@ const Moderation = () => {
                 moderationType,
                 prev_data: plantation.prev_data || null,
                 is_deleting: Boolean(plantation.is_deleting),
+                // Сохраняем полные данные плантации для доступа к новым полям
+                plantation: plantation,
               };
             } catch (_) {
               return null; // пропускаем битую запись
@@ -912,7 +914,9 @@ const Moderation = () => {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4">
                     <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Turi</div>
-                      <div className="text-white font-semibold text-sm sm:text-base">{landTypeMapping[plantation.type]}</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">
+                        {landTypeMapping[Number(plantation.type)] || plantation.type || "—"}
+                      </div>
                         </div>
                     <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
                       <div className="text-xs text-gray-400 mb-1">Maydon</div>
