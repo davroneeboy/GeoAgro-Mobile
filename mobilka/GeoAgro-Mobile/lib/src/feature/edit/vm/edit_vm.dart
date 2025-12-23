@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:agro_employee_public/src/data/model/plantation/edit_plantation.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -113,6 +115,7 @@ class EditVM extends ChangeNotifier {
   bool isSaving = false;
   late EditPlantationModel originalPlantationModel;
   double? polygonAreaFromMap; // Площадь полигона, рассчитанная на карте
+  List<LatLng>? polygonCoordinates; // Координаты полигона для вычисления граничной площади
   FruitModel? selectedFruit;
   FruitVarietyModel? selectedFruitVariety;
   FruitRootstocksModel? selectedFruitRoot;
@@ -354,11 +357,22 @@ class EditVM extends ChangeNotifier {
         originalPlantationModel = EditPlantationModel.fromJson(jsonData);
         unumdorlikValue = plantationModel.fertilityScore?.toDouble() ?? 0;
         
-        // Устанавливаем площадь полигона из API для валидации
-        polygonAreaFromMap = plantationModel.totalArea;
+        // Получаем координаты полигона из JSON для вычисления граничной площади
+        if (jsonData['coordinates'] != null && jsonData['coordinates'] is List) {
+          final coordsList = jsonData['coordinates'] as List<dynamic>;
+          polygonCoordinates = coordsList.map((coord) {
+            return LatLng(
+              (coord['latitude'] ?? 0.0).toDouble(),
+              (coord['longitude'] ?? 0.0).toDouble(),
+            );
+          }).toList();
+        }
         
-        // Логируем площадь полигона для отладки
-        debugPrint('[edit] getPlantationDetail: totalArea=${plantationModel.totalArea}, polygonAreaFromMap=$polygonAreaFromMap');
+        // НЕ используем старый totalArea - он не нужен для проверки
+        // polygonAreaFromMap больше не используется для проверки
+        
+        // Логируем для отладки
+        debugPrint('[edit] getPlantationDetail: totalArea=${plantationModel.totalArea}, coordinates count=${polygonCoordinates?.length ?? 0}');
         // Prefill core fields (format 2.0 -> 2, keep decimals like 2.02)
         notUsableArea.text = DecimalInputFormatter.formatBackendNumber(
           plantationModel.notUsableArea,
@@ -542,28 +556,28 @@ class EditVM extends ChangeNotifier {
       return "Kamida bitta meva maydoni qo'shing";
     }
     
-    // 10) Проверяем расхождение между площадью полигона и общей площадью
-    // Используем polygonAreaFromMap, если установлен, иначе plantationModel.totalArea
-    final polygonArea = polygonAreaFromMap ?? plantationModel.totalArea;
-    debugPrint('[edit] validateFields: polygonArea=$polygonArea, polygonAreaFromMap=$polygonAreaFromMap, plantationModel.totalArea=${plantationModel.totalArea}');
-    
-    if (polygonArea != null && polygonArea > 0) {
-      final totalArea = getTotalArea(ref);
-      debugPrint('[edit] validateFields: totalArea=$totalArea');
+    // 10) Проверяем расхождение между граничной площадью полигона (Chegara maydon) 
+    // и новым total_area (который получаем при редактировании)
+    // НЕ используем старый plantationModel.totalArea (9.44) - только граничную площадь из координат
+    final boundaryArea = calculateBoundaryArea();
+    if (boundaryArea != null && boundaryArea > 0) {
+      // Получаем новый total_area на основе всех введенных данных при редактировании
+      final newTotalArea = getTotalArea(ref);
+      debugPrint('[edit] validateFields: boundaryArea (Chegara maydon)=$boundaryArea, newTotalArea=$newTotalArea');
       
-      if (totalArea > 0) {
-        final difference = (polygonArea - totalArea).abs();
-        final percentageDifference = (difference / polygonArea) * 100;
+      if (newTotalArea > 0) {
+        final difference = (boundaryArea - newTotalArea).abs();
+        final percentageDifference = (difference / boundaryArea) * 100;
         debugPrint('[edit] validateFields: difference=$difference, percentageDifference=$percentageDifference%');
         
         if (percentageDifference > 15) {
-          return 'Xaritada chizilgan gektar (${polygonArea.toStringAsFixed(2)} ga) va umumiy maydon hisobida (${totalArea.toStringAsFixed(2)} ga) juda farq qiladi. Maksimal ruxsat etilgan xatolik 15%, joriy: ${percentageDifference.toStringAsFixed(1)}%';
+          return 'Chegara maydon (${boundaryArea.toStringAsFixed(2)} ga) va umumiy maydon hisobida (${newTotalArea.toStringAsFixed(2)} ga) juda farq qiladi. Maksimal ruxsat etilgan xatolik 15%, joriy: ${percentageDifference.toStringAsFixed(1)}%';
         }
       } else {
-        debugPrint('[edit] validateFields: totalArea is 0 or negative, skipping validation');
+        debugPrint('[edit] validateFields: newTotalArea is 0 or negative, skipping validation');
       }
     } else {
-      debugPrint('[edit] validateFields: polygonArea is null or 0, skipping validation');
+      debugPrint('[edit] validateFields: boundaryArea is null or 0, skipping validation (coordinates count=${polygonCoordinates?.length ?? 0})');
     }
     
     return null;
@@ -1477,6 +1491,44 @@ class EditVM extends ChangeNotifier {
     }
     
     return empty + notUsable + economicInefficient + planted;
+  }
+
+  // Вычисляет граничную площадь (Chegara maydon) из координат полигона
+  double? calculateBoundaryArea() {
+    if (polygonCoordinates == null || polygonCoordinates!.length < 3) {
+      return null;
+    }
+
+    final points = polygonCoordinates!;
+    int n = points.length;
+
+    // Если полигон замкнут (последняя точка = первой), убираем дублирующую точку
+    List<LatLng> cleanPoints = List<LatLng>.from(points);
+    if (cleanPoints.length > 3 &&
+        (cleanPoints.first.latitude - cleanPoints.last.latitude).abs() < 0.0001 &&
+        (cleanPoints.first.longitude - cleanPoints.last.longitude).abs() < 0.0001) {
+      cleanPoints.removeLast();
+      n = cleanPoints.length;
+    }
+
+    // Используем формулу площади Гаусса для сферических координат
+    double area = 0.0;
+    for (int i = 0; i < n; i++) {
+      int j = (i + 1) % n;
+      area += cleanPoints[i].longitude * cleanPoints[j].latitude;
+      area -= cleanPoints[j].longitude * cleanPoints[i].latitude;
+    }
+    area = area.abs() / 2.0;
+
+    // Переводим квадратные градусы в квадратные метры
+    double avgLat = cleanPoints.map((p) => p.latitude).reduce((a, b) => a + b) / n;
+    const double meterPerDegreeLat = 111320.0; // метры на градус широты
+    double meterPerDegreeLng = 111320.0 * math.cos(avgLat * math.pi / 180); // метры на градус долготы
+
+    area = area * meterPerDegreeLat * meterPerDegreeLng;
+
+    // Конвертируем из квадратных метров в гектары (1 га = 10,000 м²)
+    return area / 10000.0;
   }
 
   void setInvestmentMahhalliyAmount(String value) {

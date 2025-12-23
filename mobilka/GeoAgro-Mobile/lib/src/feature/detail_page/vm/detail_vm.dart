@@ -629,15 +629,17 @@ class DetailVM extends ChangeNotifier {
       return 'Rasm yuklash majburiy, kamida 2 ta rasm yuklang';
     }
     
-    // Проверяем расхождение между площадью полигона и общей площадью
+    // Проверяем расхождение между площадью полигона (вычисленной Flutter на карте) 
+    // и новым total_area (который получаем при редактировании)
     if (polygonAreaFromMap != null && polygonAreaFromMap! > 0) {
-      final totalArea = getTotalArea(ref);
-      if (totalArea > 0) {
-        final difference = (polygonAreaFromMap! - totalArea).abs();
+      // Получаем новый total_area на основе всех введенных данных при редактировании
+      final newTotalArea = getTotalArea(ref);
+      if (newTotalArea > 0) {
+        final difference = (polygonAreaFromMap! - newTotalArea).abs();
         final percentageDifference = (difference / polygonAreaFromMap!) * 100;
         
         if (percentageDifference > 15) {
-          return 'Xaritada chizilgan gektar (${polygonAreaFromMap!.toStringAsFixed(2)} ga) va umumiy maydon hisobida (${totalArea.toStringAsFixed(2)} ga) juda farq qiladi. Maksimal ruxsat etilgan xatolik 15%, joriy: ${percentageDifference.toStringAsFixed(1)}%';
+          return 'Xaritada chizilgan gektar (${polygonAreaFromMap!.toStringAsFixed(2)} ga) va umumiy maydon hisobida (${newTotalArea.toStringAsFixed(2)} ga) juda farq qiladi. Maksimal ruxsat etilgan xatolik 15%, joriy: ${percentageDifference.toStringAsFixed(1)}%';
         }
       }
     }

@@ -116,6 +116,7 @@ class HomePageCardWidget extends StatelessWidget {
     //   onTap: onPressed,
     //   child: CustomCardWidget(
     final farmerName = plantation.farmerName ?? "Noma'lum fermer";
+    final farmerInn = plantation.farmerInn?.toString() ?? null;
     final plantationId = plantation.id?.toString() ?? "N/A";
     final landType = yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
@@ -148,6 +149,16 @@ class HomePageCardWidget extends StatelessWidget {
                         height: 1.2,
                       ),
                     ),
+                    if (farmerInn != null) ...[
+                      SizedBox(height: AppSpacing.xs),
+                      Text(
+                        "ИНН: $farmerInn",
+                        style: AppTypography.bodySmall(context).copyWith(
+                          color: DesignColors.AppColors.darkTextSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                     SizedBox(height: AppSpacing.xs),
                     if (createdAt != null)
                       Text(

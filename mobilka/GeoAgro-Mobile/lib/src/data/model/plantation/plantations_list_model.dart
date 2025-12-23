@@ -81,6 +81,7 @@ class Result {
   District? district;
   int? farmer;
   String? farmerName; // Добавляем имя фермера
+  int? farmerInn; // ИНН фермера
   int? gardenEstablishedYear;
   double? totalArea;
   int? landType;
@@ -96,6 +97,7 @@ class Result {
     this.district,
     this.farmer,
     this.farmerName,
+    this.farmerInn,
     this.gardenEstablishedYear,
     this.totalArea,
     this.landType,
@@ -135,6 +137,7 @@ class Result {
       district: json["district"] == null ? null : District.fromJson(json["district"]),
       farmer: json["farmer"],
       farmerName: json["farmer_name"],
+      farmerInn: json["farmer_inn"] ?? json["inn"],
       gardenEstablishedYear: json["garden_established_year"],
       totalArea: json["total_area"]?.toDouble(),
       landType: json["land_type"],
@@ -152,6 +155,7 @@ class Result {
         "district": district?.toJson(),
         "farmer": farmer,
         "farmer_name": farmerName, // Добавляем в JSON
+        "farmer_inn": farmerInn,
         "garden_established_year": gardenEstablishedYear,
         "total_area": totalArea,
         "land_type": landType,
