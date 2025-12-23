@@ -84,6 +84,7 @@ class Result {
   int? farmerInn; // ИНН фермера
   int? gardenEstablishedYear;
   double? totalArea;
+  double? chegaraArea; // Граничная площадь (Chegara maydon)
   int? landType;
   bool? isFertile;
   String? createdAt;
@@ -100,6 +101,7 @@ class Result {
     this.farmerInn,
     this.gardenEstablishedYear,
     this.totalArea,
+    this.chegaraArea,
     this.landType,
     this.isFertile,
     this.createdAt,
@@ -140,6 +142,7 @@ class Result {
       farmerInn: json["farmer_inn"] ?? json["inn"],
       gardenEstablishedYear: json["garden_established_year"],
       totalArea: json["total_area"]?.toDouble(),
+      chegaraArea: json["chegara_area"]?.toDouble(),
       landType: json["land_type"],
       isFertile: json["is_fertile"],
       createdAt: json["created_at"],
@@ -158,6 +161,7 @@ class Result {
         "farmer_inn": farmerInn,
         "garden_established_year": gardenEstablishedYear,
         "total_area": totalArea,
+        "chegara_area": chegaraArea,
         "land_type": landType,
         "is_fertile": isFertile,
         "created_at": createdAt,

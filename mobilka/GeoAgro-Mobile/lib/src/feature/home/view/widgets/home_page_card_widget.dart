@@ -120,6 +120,9 @@ class HomePageCardWidget extends StatelessWidget {
     final plantationId = plantation.id?.toString() ?? "N/A";
     final landType = yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
+    final chegaraAreaText = (plantation.chegaraArea != null && plantation.chegaraArea! > 0)
+        ? "${plantation.chegaraArea!.toStringAsFixed(2)} ga"
+        : null;
     final establishedYear = plantation.gardenEstablishedYear != null
         ? "${plantation.gardenEstablishedYear} yil"
         : null;
@@ -190,6 +193,13 @@ class HomePageCardWidget extends StatelessWidget {
                 label: "Maydon",
                 value: areaText,
               ),
+              if (chegaraAreaText != null)
+                _InfoChip(
+                  context: context,
+                  icon: Icons.border_color_outlined,
+                  label: "Chegara maydon",
+                  value: chegaraAreaText,
+                ),
               if (establishedYear != null)
                 _InfoChip(
                   context: context,
