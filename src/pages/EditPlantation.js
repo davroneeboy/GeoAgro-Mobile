@@ -1612,7 +1612,10 @@ const EditPlantation = () => {
               // Проверка сумм площадей
               if (Array.isArray(plantation.fruit_areas) && plantation.fruit_areas.length > 0) {
                 const totalFruitArea = plantation.fruit_areas.reduce((sum, fa) => sum + (parseFloat(fa.area) || 0), 0);
-                const expectedFruitArea = (plantation.total_area || 0) - (plantation.empty_area || 0);
+                // Используем planted_area из API, если оно есть, иначе вычисляем как total_area - empty_area
+                const expectedFruitArea = plantation.planted_area !== undefined && plantation.planted_area !== null
+                  ? plantation.planted_area
+                  : (plantation.total_area || 0) - (plantation.empty_area || 0);
                 const areaDifference = Math.abs(totalFruitArea - expectedFruitArea);
                 
                 if (areaDifference > 0.1) {
