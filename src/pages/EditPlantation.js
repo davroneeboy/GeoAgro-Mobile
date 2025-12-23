@@ -1041,8 +1041,10 @@ const EditPlantation = () => {
             if (coords.length) {
               const isApproved = !!p?.is_checked;
               const isRejected = !!p?.is_rejected;
-              const fill = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : '#fadb14');
-              const stroke = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : '#ff0000');
+              // Проверяем, архивирована ли плантация
+              const isArchived = !isApproved && !isRejected && !p?.is_deleting && p?.archived;
+              const fill = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : (isArchived ? '#dc2626' : '#fadb14'));
+              const stroke = isApproved ? '#20c997' : (isRejected ? '#ff4d4f' : (isArchived ? '#dc2626' : '#ff0000'));
               const poly = new google.maps.Polygon({
                 paths: coords,
                 strokeColor: stroke,
@@ -1054,7 +1056,7 @@ const EditPlantation = () => {
                 zIndex: 10,
               });
 
-              const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : 'Kutilmoqda');
+              const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : (isArchived ? 'O\'chirilgan' : 'Kutilmoqda'));
               const contentHtml = `
                 <div class="tooltip-dark" style="min-width:200px"> 
                   <div class="tooltip-title">
@@ -2461,8 +2463,10 @@ const EditPlantation = () => {
                 {farmerPlants.map((p) => {
                   const isApproved = !!p.is_checked;
                   const isRejected = !!p.is_rejected;
-                  const badgeCls = isApproved ? 'bg-green-600/20 text-green-300 border-green-500/50' : (isRejected ? 'bg-red-600/20 text-red-300 border-red-500/50' : 'bg-yellow-600/20 text-yellow-300 border-yellow-500/50');
-                  const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : 'Kutilmoqda');
+                  // Проверяем, архивирована ли плантация
+                  const isArchived = !isApproved && !isRejected && !p.is_deleting && p.archived;
+                  const badgeCls = isApproved ? 'bg-green-600/20 text-green-300 border-green-500/50' : (isRejected ? 'bg-red-600/20 text-red-300 border-red-500/50' : (isArchived ? 'bg-red-700/20 text-red-300 border-red-600/50' : 'bg-yellow-600/20 text-yellow-300 border-yellow-500/50'));
+                  const statusText = isApproved ? 'Tasdiqlangan' : (isRejected ? 'Rad etilgan' : (isArchived ? 'O\'chirilgan' : 'Kutilmoqda'));
                   return (
                     <div key={p.id} className="p-3 bg-gray-700 rounded border border-gray-600 hover:bg-gray-650 cursor-pointer" onClick={() => { setFarmerPlantsOpen(false); window.location.href = `/plantations/${p.id}`; }}>
                       <div className="flex items-center justify-between">

@@ -607,11 +607,11 @@ const RejectedPlantations = () => {
                     : (plantation.moderation_comment || plantation.comment || plantation.rejection_reason || '—');
                   
                   return (
-                    <div
-                      key={plantation.id}
+                  <div
+                    key={plantation.id}
                       className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-red-600 hover:shadow-lg transition-all cursor-pointer"
-                      onClick={() => handlePlantationClick(plantation.id)}
-                    >
+                    onClick={() => handlePlantationClick(plantation.id)}
+                  >
                       {/* Заголовок с ID и статусом */}
                       <div className="flex justify-between items-start mb-3 pb-2 border-b border-gray-700">
                         <div className="flex-1 min-w-0">
@@ -629,13 +629,13 @@ const RejectedPlantations = () => {
                             )}
                           </div>
                           <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
-                            {plantation.farmer?.name || "Fermer nomi yo'q"}
-                          </h3>
+                          {plantation.farmer?.name || "Fermer nomi yo'q"}
+                        </h3>
                           <p className="text-xs text-gray-400 line-clamp-1">
-                            {plantation.name || "Sarlavhasiz bog'"}
-                          </p>
-                        </div>
+                          {plantation.name || "Sarlavhasiz bog'"}
+                        </p>
                       </div>
+                    </div>
 
                       {/* Компактная сетка основной информации */}
                       <div className="grid grid-cols-3 gap-2 mb-3">
@@ -645,20 +645,20 @@ const RejectedPlantations = () => {
                             {plantation.region_name 
                               ? getRegionNameById(plantation.region_name)
                               : getRegionNameById(plantation.district?.region)}
-                          </div>
                         </div>
+                      </div>
                         <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
                           <div className="text-gray-400 text-[10px] mb-0.5">Tuman</div>
                           <div className="text-white font-medium text-xs truncate">
                             {plantation.district_name || plantation.district?.name || "—"}
-                          </div>
                         </div>
+                      </div>
                         <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
                           <div className="text-gray-400 text-[10px] mb-0.5">Jami maydon</div>
                           <div className="text-white font-semibold text-xs">
                             {plantation.total_area?.toFixed(1) || 0} GA
-                          </div>
-                        </div>
+                      </div>
+                      </div>
                         <div className="bg-gray-700/30 rounded p-1.5 border border-gray-600">
                           <div className="text-gray-400 text-[10px] mb-0.5">Ekilgan</div>
                           <div className="text-white font-semibold text-xs">
@@ -679,7 +679,7 @@ const RejectedPlantations = () => {
                             </div>
                           </div>
                         )}
-                      </div>
+                    </div>
 
                       {/* Фермер - компактно */}
                       {plantation.farmer && (
@@ -709,16 +709,16 @@ const RejectedPlantations = () => {
                                 <span className="text-white">{plantation.farmer.established_year}</span>
                               </>
                             )}
-                          </div>
                         </div>
+                      </div>
                       )}
-
+                    
                       {/* Фрукты - компактно */}
                       {plantation.fruit_areas && plantation.fruit_areas.length > 0 && (
                         <div className="mb-2 p-1.5 bg-gray-700/20 rounded border border-gray-600">
                           <div className="text-[10px] text-gray-400 mb-1">
                             Mevalar ({plantation.fruit_areas.length}): {totalFruitArea.toFixed(1)} GA
-                          </div>
+                  </div>
                           <div className="flex flex-wrap gap-1">
                             {plantation.fruit_areas.slice(0, 4).map((fruit, idx) => {
                               const fruitName = (FRUIT_TYPES[fruit.fruit] || fruit.fruit);
