@@ -1172,7 +1172,7 @@ const RegionsPage = () => {
       ],
     },
     {
-      title: "Orosh",
+      title: "Tomchilab sug'orish",
       children: [
         {
           title: "Maydon (GA)",
