@@ -1278,7 +1278,7 @@ const RegionDetailPage = () => {
       ],
     },
     {
-      title: <span style={textLight}>Suv berish</span>,
+      title: <span style={textLight}>Tomchilab sug'orish</span>,
       children: [
         {
           title: <span style={textLight}>Maydon (GA)</span>,
