@@ -93,6 +93,7 @@ const ControllersPage = () => {
             approved_plantations: controller.plantations?.approved_plantations || 0,
             pending_plantations: controller.plantations?.pending_plantations || 0,
             rejected_plantations: controller.plantations?.rejected_plantations || 0,
+            archived_plantations: controller.plantations?.archived_plantations || 0,
             // Поля maydon
             total_area: controller.plantations?.total_area || 0,
             approved_area: controller.plantations?.approved_area || 0,
@@ -182,6 +183,7 @@ const ControllersPage = () => {
         approved_plantations: totals.approved || 0,
         pending_plantations: totals.pending || 0,
         rejected_plantations: totals.rejected || 0,
+        archived_plantations: totals.archived || 0,
         total_area: totalArea,
         approved_area: approvedArea,
         pending_area: pendingArea,
@@ -227,6 +229,7 @@ const ControllersPage = () => {
           approved_plantations: Number(row?.approved_plantations || 0),
           pending_plantations: Number(row?.pending_plantations || 0),
           rejected_plantations: Number(row?.rejected_plantations || 0),
+          archived_plantations: Number(row?.archived_plantations || 0),
           // Maydon
           total_area: Number(row?.total_area || 0),
           approved_area: Number(row?.approved_area || 0),
@@ -247,8 +250,9 @@ const ControllersPage = () => {
       approved: acc.approved + (curr.approved_plantations || 0),
       pending: acc.pending + (curr.pending_plantations || 0),
       rejected: acc.rejected + (curr.rejected_plantations || 0),
+      archived: acc.archived + (curr.archived_plantations || 0),
     }),
-    { total: 0, approved: 0, pending: 0, rejected: 0 }
+    { total: 0, approved: 0, pending: 0, rejected: 0, archived: 0 }
   );
 
   const textLight = { color: '#e5e7eb' };
@@ -290,6 +294,8 @@ const ControllersPage = () => {
           return Number(record.pending_plantations || 0);
         case 'rejected_plantations':
           return Number(record.rejected_plantations || 0);
+        case 'archived_plantations':
+          return Number(record.archived_plantations || 0);
         case 'rejection_rate':
           return Number(record.rejected_percentage || 0);
         case 'pending_rate':
@@ -408,6 +414,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
+          width: 90,
           render: (v) => <span style={textLight}>{v ?? 0}</span>,
         },
         {
@@ -417,6 +424,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
+          width: 120,
           render: (v) => (
             <span style={{...textLight, color: '#10b981', fontWeight: 'bold'}}>
               {v ?? 0}
@@ -430,6 +438,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'pending_plantations' ? sortConfig.order : null,
+          width: 110,
           render: (v) => (
             <span style={{...textLight, color: '#f59e0b', fontWeight: 'bold'}}>
               {v ?? 0}
@@ -443,6 +452,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
+          width: 110,
           render: (v) => (
             <span style={{...textLight, color: '#ef4444', fontWeight: 'bold'}}>
               {v ?? 0}
@@ -456,6 +466,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejection_rate' ? sortConfig.order : null,
+          width: 100,
           render: (v) => (
             <span style={{...textLight, color: '#ef4444', fontWeight: 'bold'}}>
               {v ? `${Number(v).toFixed(1)}%` : '0%'}
@@ -469,6 +480,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'pending_rate' ? sortConfig.order : null,
+          width: 110,
           render: (v) => (
             <span style={{...textLight, color: '#f59e0b', fontWeight: 'bold'}}>
               {v ? `${Number(v).toFixed(1)}%` : '0%'}
@@ -478,6 +490,7 @@ const ControllersPage = () => {
         {
           title: <span style={textLight}>Taqsimot</span>,
           key: 'distribution',
+          width: 90,
           render: (_, record) => {
             const total = record.total_plantations || 0;
             if (total === 0) return <span style={textLight}>—</span>;
@@ -485,6 +498,7 @@ const ControllersPage = () => {
             const approved = record.approved_plantations || 0;
             const pending = record.pending_plantations || 0;
             const rejected = record.rejected_plantations || 0;
+            const archived = record.archived_plantations || 0;
             
             return (
               <div className="w-16 h-2 bg-gray-600 rounded-full overflow-hidden">
@@ -504,10 +518,31 @@ const ControllersPage = () => {
                     style={{ width: `${(rejected / total) * 100}%` }}
                     title={`Rad etilgan: ${rejected}`}
                   ></div>
+                  {archived > 0 && (
+                    <div 
+                      className="bg-gray-500" 
+                      style={{ width: `${(archived / total) * 100}%` }}
+                      title={`O'chirilgan: ${archived}`}
+                    ></div>
+                  )}
                 </div>
               </div>
             );
           },
+        },
+        {
+          title: <span style={textLight}>O'chirilgan</span>,
+          dataIndex: 'archived_plantations',
+          key: 'archived_plantations',
+          sorter: true,
+          sortDirections: ['ascend','descend'],
+          sortOrder: sortConfig.field === 'archived_plantations' ? sortConfig.order : null,
+          width: 110,
+          render: (v) => (
+            <span style={{...textLight, color: '#9ca3af', fontWeight: 'bold'}}>
+              {v ?? 0}
+            </span>
+          ),
         },
       ],
     });
@@ -523,6 +558,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
+          width: 110,
           render: (v) => <span style={textLight}>{v ? Number(v).toFixed(1) : '0.0'}</span>,
         },
         {
@@ -532,6 +568,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'approved_area' ? sortConfig.order : null,
+          width: 130,
           render: (v) => (
             <span style={{...textLight, color: '#10b981', fontWeight: 'bold'}}>
               {v ? Number(v).toFixed(1) : '0.0'}
@@ -545,6 +582,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'pending_area' ? sortConfig.order : null,
+          width: 120,
           render: (v) => (
             <span style={{...textLight, color: '#f59e0b', fontWeight: 'bold'}}>
               {v ? Number(v).toFixed(1) : '0.0'}
@@ -558,6 +596,7 @@ const ControllersPage = () => {
           sorter: true,
           sortDirections: ['ascend','descend'],
           sortOrder: sortConfig.field === 'rejected_area' ? sortConfig.order : null,
+          width: 120,
           render: (v) => (
             <span style={{...textLight, color: '#ef4444', fontWeight: 'bold'}}>
               {v ? Number(v).toFixed(1) : '0.0'}
@@ -589,6 +628,7 @@ const ControllersPage = () => {
       approved_plantations: totals.approved,
       pending_plantations: totals.pending,
       rejected_plantations: totals.rejected,
+      archived_plantations: totals.archived,
       total_area: totalArea,
       approved_area: approvedArea,
       pending_area: pendingArea,
@@ -740,6 +780,7 @@ const ControllersPage = () => {
                   <Option value="approved_plantations">Plantatsiyalar — Tasdiqlangan</Option>
                   <Option value="pending_plantations">Plantatsiyalar — Kutilmoqda</Option>
                   <Option value="rejected_plantations">Plantatsiyalar — Rad etilgan</Option>
+                  <Option value="archived_plantations">Plantatsiyalar — O'chirilgan</Option>
                   <Option value="rejection_rate">Plantatsiyalar — Rad etish %</Option>
                   <Option value="pending_rate">Plantatsiyalar — Kutilmoqda %</Option>
                   <Option value="distribution">Plantatsiyalar — Taqsimot</Option>
@@ -810,6 +851,34 @@ const ControllersPage = () => {
         {/* Main Table */}
         <div className="overflow-x-auto controllers-table" style={{ position: 'relative' }}>
           <style jsx>{`
+            .controllers-table {
+              scrollbar-width: thin;
+              scrollbar-color: #6b7280 #374151;
+            }
+            .controllers-table::-webkit-scrollbar {
+              height: 8px;
+            }
+            .controllers-table::-webkit-scrollbar-track {
+              background: #374151;
+              border-radius: 4px;
+            }
+            .controllers-table::-webkit-scrollbar-thumb {
+              background: #6b7280;
+              border-radius: 4px;
+            }
+            .controllers-table::-webkit-scrollbar-thumb:hover {
+              background: #9ca3af;
+            }
+            .controllers-table .ant-table-thead > tr > th {
+              white-space: nowrap;
+              padding: 8px 12px !important;
+              min-width: fit-content;
+            }
+            .controllers-table .ant-table-tbody > tr > td {
+              white-space: nowrap;
+              padding: 8px 12px !important;
+              min-width: fit-content;
+            }
             .controllers-table .ant-table-thead > tr > th.ant-table-cell-fix-left {
               background: #1f2937 !important;
               border-right: 2px solid #6b7280 !important;
@@ -868,6 +937,13 @@ const ControllersPage = () => {
             }
             .controllers-table .ant-table-tbody > tr > td.ant-table-cell-fix-left:nth-child(5) {
               left: 510px;
+            }
+            @media (max-width: 768px) {
+              .controllers-table .ant-table-thead > tr > th,
+              .controllers-table .ant-table-tbody > tr > td {
+                padding: 6px 8px !important;
+                font-size: 12px;
+              }
             }
           `}</style>
           <ConfigProvider locale={{ Pagination: { items_per_page: 'Sahifa' } }}>
