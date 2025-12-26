@@ -310,6 +310,13 @@ const RegionsPage = () => {
                   uzumzors_area: regionData.uzumzors_area || 0,
                   issiqxonas_count: regionData.issiqxonas_count || 0,
                   issiqxonas_area: regionData.issiqxonas_area || 0,
+                  // Плановые данные
+                  plan_total_ga: regionData.plan?.total_ga_plan || 0,
+                  plan_total_count: regionData.plan?.total_count_plan || 0,
+                  plan_boglar_ga: regionData.plan?.boglar_ga_plan || 0,
+                  plan_boglar_count: regionData.plan?.boglar_count_plan || 0,
+                  plan_uzumzor_ga: regionData.plan?.uzumzor_ga_plan || 0,
+                  plan_uzumzor_count: regionData.plan?.uzumzor_count_plan || 0,
                   // Инвестиции
                   investment_local: regionData.investment?.local || 0,
                   investment_foreign: regionData.investment?.foreign || 0,
@@ -357,6 +364,13 @@ const RegionsPage = () => {
                   uzumzors_area: regionData.uzumzors_area || 0,
                   issiqxonas_count: regionData.issiqxonas_count || 0,
                   issiqxonas_area: regionData.issiqxonas_area || 0,
+                  // Плановые данные
+                  plan_total_ga: regionData.plan?.total_ga_plan || 0,
+                  plan_total_count: regionData.plan?.total_count_plan || 0,
+                  plan_boglar_ga: regionData.plan?.boglar_ga_plan || 0,
+                  plan_boglar_count: regionData.plan?.boglar_count_plan || 0,
+                  plan_uzumzor_ga: regionData.plan?.uzumzor_ga_plan || 0,
+                  plan_uzumzor_count: regionData.plan?.uzumzor_count_plan || 0,
                   // Инвестиции
                   investment_local: regionData.investment?.local || 0,
                   investment_foreign: regionData.investment?.foreign || 0,
@@ -456,6 +470,13 @@ const RegionsPage = () => {
                   uzumzors_area: regionData.uzumzors_area || 0,
                   issiqxonas_count: regionData.issiqxonas_count || 0,
                   issiqxonas_area: regionData.issiqxonas_area || 0,
+                  // Плановые данные
+                  plan_total_ga: regionData.plan?.total_ga_plan || 0,
+                  plan_total_count: regionData.plan?.total_count_plan || 0,
+                  plan_boglar_ga: regionData.plan?.boglar_ga_plan || 0,
+                  plan_boglar_count: regionData.plan?.boglar_count_plan || 0,
+                  plan_uzumzor_ga: regionData.plan?.uzumzor_ga_plan || 0,
+                  plan_uzumzor_count: regionData.plan?.uzumzor_count_plan || 0,
                   // Инвестиции
                   investment_local: regionData.investment?.local || 0,
                   investment_foreign: regionData.investment?.foreign || 0,
@@ -503,6 +524,13 @@ const RegionsPage = () => {
                   uzumzors_area: regionData.uzumzors_area || 0,
                   issiqxonas_count: regionData.issiqxonas_count || 0,
                   issiqxonas_area: regionData.issiqxonas_area || 0,
+                  // Плановые данные
+                  plan_total_ga: regionData.plan?.total_ga_plan || 0,
+                  plan_total_count: regionData.plan?.total_count_plan || 0,
+                  plan_boglar_ga: regionData.plan?.boglar_ga_plan || 0,
+                  plan_boglar_count: regionData.plan?.boglar_count_plan || 0,
+                  plan_uzumzor_ga: regionData.plan?.uzumzor_ga_plan || 0,
+                  plan_uzumzor_count: regionData.plan?.uzumzor_count_plan || 0,
           // Инвестиции
                   investment_local: regionData.investment?.local || 0,
                   investment_foreign: regionData.investment?.foreign || 0,
@@ -581,6 +609,13 @@ const RegionsPage = () => {
                   uzumzors_area: regionData.uzumzors_area || 0,
                   issiqxonas_count: regionData.issiqxonas_count || 0,
                   issiqxonas_area: regionData.issiqxonas_area || 0,
+                  // Плановые данные
+                  plan_total_ga: regionData.plan?.total_ga_plan || 0,
+                  plan_total_count: regionData.plan?.total_count_plan || 0,
+                  plan_boglar_ga: regionData.plan?.boglar_ga_plan || 0,
+                  plan_boglar_count: regionData.plan?.boglar_count_plan || 0,
+                  plan_uzumzor_ga: regionData.plan?.uzumzor_ga_plan || 0,
+                  plan_uzumzor_count: regionData.plan?.uzumzor_count_plan || 0,
                   // Инвестиции
                   investment_local: regionData.investment?.local || 0,
                   investment_foreign: regionData.investment?.foreign || 0,
@@ -628,6 +663,13 @@ const RegionsPage = () => {
                   uzumzors_area: regionData.uzumzors_area || 0,
                   issiqxonas_count: regionData.issiqxonas_count || 0,
                   issiqxonas_area: regionData.issiqxonas_area || 0,
+                  // Плановые данные
+                  plan_total_ga: regionData.plan?.total_ga_plan || 0,
+                  plan_total_count: regionData.plan?.total_count_plan || 0,
+                  plan_boglar_ga: regionData.plan?.boglar_ga_plan || 0,
+                  plan_boglar_count: regionData.plan?.boglar_count_plan || 0,
+                  plan_uzumzor_ga: regionData.plan?.uzumzor_ga_plan || 0,
+                  plan_uzumzor_count: regionData.plan?.uzumzor_count_plan || 0,
                   // Инвестиции
                   investment_local: regionData.investment?.local || 0,
                   investment_foreign: regionData.investment?.foreign || 0,
@@ -794,6 +836,13 @@ const RegionsPage = () => {
       uzumzors_area: safeNumber(data.uzumzors_area),
       issiqxonas_count: safeNumber(data.issiqxonas_count),
       issiqxonas_area: safeNumber(data.issiqxonas_area),
+      // Плановые данные
+      plan_total_ga: safeNumber(data.plan_total_ga),
+      plan_total_count: safeNumber(data.plan_total_count),
+      plan_boglar_ga: safeNumber(data.plan_boglar_ga),
+      plan_boglar_count: safeNumber(data.plan_boglar_count),
+      plan_uzumzor_ga: safeNumber(data.plan_uzumzor_ga),
+      plan_uzumzor_count: safeNumber(data.plan_uzumzor_count),
       // Новые поля из API
       approved_plantations: safeNumber(data.approved_plantations),
       pending_plantations: safeNumber(data.pending_plantations),
@@ -908,6 +957,13 @@ const RegionsPage = () => {
     uzumzors_area: 0,
     issiqxonas_count: 0,
     issiqxonas_area: 0,
+    // Плановые данные
+    plan_total_ga: 0,
+    plan_total_count: 0,
+    plan_boglar_ga: 0,
+    plan_boglar_count: 0,
+    plan_uzumzor_ga: 0,
+    plan_uzumzor_count: 0,
     // Новые поля
     approved_plantations: 0,
     pending_plantations: 0,
@@ -967,6 +1023,12 @@ const RegionsPage = () => {
         bogs_area: acc.bogs_area + safeNumber(curr.bogs_area),
         uzumzors_count: acc.uzumzors_count + safeNumber(curr.uzumzors_count),
         uzumzors_area: acc.uzumzors_area + safeNumber(curr.uzumzors_area),
+        plan_total_ga: acc.plan_total_ga + safeNumber(curr.plan_total_ga),
+        plan_total_count: acc.plan_total_count + safeNumber(curr.plan_total_count),
+        plan_boglar_ga: acc.plan_boglar_ga + safeNumber(curr.plan_boglar_ga),
+        plan_boglar_count: acc.plan_boglar_count + safeNumber(curr.plan_boglar_count),
+        plan_uzumzor_ga: acc.plan_uzumzor_ga + safeNumber(curr.plan_uzumzor_ga),
+        plan_uzumzor_count: acc.plan_uzumzor_count + safeNumber(curr.plan_uzumzor_count),
         issiqxonas_count: acc.issiqxonas_count + safeNumber(curr.issiqxonas_count),
         issiqxonas_area: acc.issiqxonas_area + safeNumber(curr.issiqxonas_area),
         // Новые поля
@@ -1027,6 +1089,24 @@ const RegionsPage = () => {
       title: "Umumiy maydon",
       children: [
         {
+          title: "Plan (GA)",
+          dataIndex: "plan_total_ga",
+          key: "plan_total_ga",
+          sorter: true,
+          sortOrder: sortConfig.field === 'plan_total_ga' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
+          render: (value) => <span style={{ color: '#94a3b8' }}>{safeNumber(value).toFixed(1)}</span>,
+        },
+        {
+          title: "Plan (Soni)",
+          dataIndex: "plan_total_count",
+          key: "plan_total_count",
+          sorter: true,
+          sortOrder: sortConfig.field === 'plan_total_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
+          render: (value) => <span style={{ color: '#94a3b8' }}>{safeNumber(value)}</span>,
+        },
+        {
           title: "Jami (GA)",
           dataIndex: "total_area",
           key: "total_area",
@@ -1068,6 +1148,24 @@ const RegionsPage = () => {
       title: "Bog'lar",
           children: [
             {
+              title: "Plan (Soni)",
+          dataIndex: "plan_boglar_count",
+          key: "plan_boglar_count",
+              sorter: true,
+          sortOrder: sortConfig.field === 'plan_boglar_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
+          render: (value) => <span style={{ color: '#94a3b8' }}>{safeNumber(value)}</span>,
+        },
+        {
+          title: "Plan (GA)",
+          dataIndex: "plan_boglar_ga",
+          key: "plan_boglar_ga",
+              sorter: true,
+          sortOrder: sortConfig.field === 'plan_boglar_ga' ? sortConfig.order : null,
+              sortDirections: ['ascend','descend'],
+              render: (value) => <span style={{ color: '#94a3b8' }}>{safeNumber(value).toFixed(1)}</span>,
+            },
+            {
               title: "Soni",
           dataIndex: "bogs_count",
           key: "bogs_count",
@@ -1090,6 +1188,24 @@ const RegionsPage = () => {
     {
       title: "Uzumzorlar",
           children: [
+            {
+              title: "Plan (Soni)",
+          dataIndex: "plan_uzumzor_count",
+          key: "plan_uzumzor_count",
+              sorter: true,
+          sortOrder: sortConfig.field === 'plan_uzumzor_count' ? sortConfig.order : null,
+          sortDirections: ['ascend','descend'],
+          render: (value) => <span style={{ color: '#94a3b8' }}>{safeNumber(value)}</span>,
+        },
+        {
+          title: "Plan (GA)",
+          dataIndex: "plan_uzumzor_ga",
+          key: "plan_uzumzor_ga",
+              sorter: true,
+          sortOrder: sortConfig.field === 'plan_uzumzor_ga' ? sortConfig.order : null,
+              sortDirections: ['ascend','descend'],
+              render: (value) => <span style={{ color: '#94a3b8' }}>{safeNumber(value).toFixed(1)}</span>,
+        },
             {
               title: "Soni",
           dataIndex: "uzumzors_count",
