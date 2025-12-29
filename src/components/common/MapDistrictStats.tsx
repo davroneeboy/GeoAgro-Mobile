@@ -12,6 +12,11 @@ interface DistrictStats {
   rejected?: number;
   total_area?: number;
   area?: number;
+  stats?: {
+    accepted?: number;
+    rejected?: number;
+    moderation?: number;
+  };
 }
 
 interface MapDistrictStatsProps {
@@ -73,10 +78,17 @@ const MapDistrictStats: React.FC<MapDistrictStatsProps> = ({
 
   const totalPlantations =
     stats.total_plantations || stats.plantation_count || paginationCount || 0;
-  const approvedCount = stats.approved_count || stats.approved || 0;
-  const pendingCount =
-    stats.pending_count || stats.pending || stats.moderation_count || 0;
-  const rejectedCount = stats.rejected_count || stats.rejected || 0;
+  // Используем новые данные из stats, если они доступны, иначе старые поля
+  // Проверяем наличие stats.stats и что значения являются числами (включая 0)
+  const approvedCount = stats.stats && typeof stats.stats.accepted === 'number'
+    ? stats.stats.accepted 
+    : stats.approved_count || stats.approved || 0;
+  const pendingCount = stats.stats && typeof stats.stats.moderation === 'number'
+    ? stats.stats.moderation
+    : stats.pending_count || stats.pending || stats.moderation_count || 0;
+  const rejectedCount = stats.stats && typeof stats.stats.rejected === 'number'
+    ? stats.stats.rejected
+    : stats.rejected_count || stats.rejected || 0;
   const totalArea = stats.total_area || stats.area || 0;
 
   if (compact) {

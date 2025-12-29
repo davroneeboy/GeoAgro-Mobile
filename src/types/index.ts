@@ -312,6 +312,11 @@ export interface DistrictStats {
   rejected?: number;
   total_area?: number;
   area?: number;
+  stats?: {
+    accepted?: number;
+    rejected?: number;
+    moderation?: number;
+  };
 }
 
 export interface PlantationImage {

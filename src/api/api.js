@@ -205,6 +205,7 @@ export async function fetchPlantationsMapAll(params = {}, accessToken) {
         next: data.next || null,
         previous: data.previous || null,
         results: Array.isArray(data.results) ? data.results : [],
+        stats: data.stats || null,
       };
     }
 

@@ -306,6 +306,7 @@ const MapContainer: React.FC = () => {
 
       let allResults: Plantation[] = [];
       let totalCount = 0;
+      let responseStats = null;
 
       if (currentFilters.status === "all") {
         params.page_size = PAGE_SIZE_ALL;
@@ -314,16 +315,38 @@ const MapContainer: React.FC = () => {
         const firstResponse = await fetchPlantationsMapAll(params, authState.accessToken);
         allResults = [...(firstResponse.results || [])];
         totalCount = firstResponse.count || 0;
+        responseStats = firstResponse.stats || null;
 
         if (firstResponse.next) {
           params.page = 2;
           const secondResponse = await fetchPlantationsMapAll(params, authState.accessToken);
           allResults = [...allResults, ...(secondResponse.results || [])];
+          // Используем stats из первого ответа, если второй не содержит stats
+          if (!responseStats && secondResponse.stats) {
+            responseStats = secondResponse.stats;
+          }
         }
       } else {
         const response = await fetchPlantationsMapAll(params, authState.accessToken);
         allResults = response.results || [];
         totalCount = response.count || 0;
+        responseStats = response.stats || null;
+      }
+
+      // Обновляем districtStats если есть stats в ответе
+      if (responseStats && currentDistrict) {
+        setDistrictStats((prev) => {
+          if (prev) {
+            return {
+              ...prev,
+              stats: responseStats,
+            };
+          } else {
+            return {
+              stats: responseStats,
+            } as DistrictStats;
+          }
+        });
       }
 
       setPlantations(allResults);
