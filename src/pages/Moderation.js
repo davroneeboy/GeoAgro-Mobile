@@ -751,7 +751,7 @@ const Moderation = () => {
               
               <input
                 type="text"
-                placeholder="Fermer nomi yoki ID"
+                placeholder="Fermer nomi"
                 className="px-3 py-2 sm:px-4 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base placeholder-gray-400"
                 value={filters.farmer === "All" ? "" : filters.farmer}
                 onChange={(e) => {
@@ -1200,7 +1200,7 @@ const Moderation = () => {
             )}
             <input
               type="text"
-              placeholder="Fermer nomi yoki ID"
+              placeholder="Fermer nomi"
               className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
               value={filters.farmer === "All" ? "" : filters.farmer}
               onChange={(e) => {
