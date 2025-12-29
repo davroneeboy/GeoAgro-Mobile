@@ -28,7 +28,7 @@ const getDistrictNameByRegionId = (regionId) => {
   // Маппинг region ID -> district name
   const districtNames = {
     1: "Toshkent",
-    2: "Andijon", 
+    2: "Andijon",
     3: "Buxoro",
     4: "Farg'ona",
     5: "Jizzax",
@@ -41,7 +41,7 @@ const getDistrictNameByRegionId = (regionId) => {
     12: "Qoraqalpog'iston",
     13: "Xorazm"
   };
-  
+
   return districtNames[regionId] || `Tuman_${regionId}`;
 };
 
@@ -72,7 +72,7 @@ const RegionDetailPage = () => {
           items.forEach(d => { if (d?.name && d?.id) map[d.name] = d.id; });
           setDistrictNameToId(map);
         }
-      } catch {}
+      } catch { }
     })();
   }, [authState.accessToken]);
 
@@ -80,7 +80,7 @@ const RegionDetailPage = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const dataType = searchParams.get('data_type');
-    
+
     if (dataType) {
       setActiveTab(dataType);
     } else {
@@ -99,27 +99,27 @@ const RegionDetailPage = () => {
         const targetRegion = String(id || '');
         const qs = location?.search || '';
         if (isHead && myRegion && targetRegion && myRegion !== targetRegion) {
-          navigate(`/statistics/regions/${myRegion}${qs}` , { replace: true });
+          navigate(`/statistics/regions/${myRegion}${qs}`, { replace: true });
           return;
         }
         const allowedId = (isHead && myRegion) ? myRegion : id;
-        
+
         // Читаем фильтры из URL параметров
         const searchParams = new URLSearchParams(location.search);
         const estDate = searchParams.get('est_date');
         const plantationType = searchParams.get('plantation_type');
         const regions = searchParams.get('regions');
         const dataType = searchParams.get('data_type');
-        
 
-        
+
+
         let data;
-        
+
         if (!dataType || dataType === 'all') {
           // Для всех плантаций используем новый API статистики
           let url = `${API_BASE_URL2}api/statistics/regions/${allowedId}/`;
           const queryParams = new URLSearchParams();
-          
+
           if (estDate) {
             queryParams.append("est_date", estDate);
           }
@@ -129,11 +129,11 @@ const RegionDetailPage = () => {
           if (regions) {
             queryParams.append("regions", regions);
           }
-          
+
           if (queryParams.toString()) {
             url += `?${queryParams.toString()}`;
           }
-          
+
           const response = await fetch(url, {
             headers: { Authorization: `Bearer ${authState.accessToken}` }
           });
@@ -141,21 +141,21 @@ const RegionDetailPage = () => {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           data = await response.json();
-  
+
           // Обрабатываем данные для all - новая структура API v2.0
           if (Array.isArray(data)) {
             let totalData = null;
             const dataMap = {};
-            
-            
+
+
             data.forEach((item, index) => {
               const districtId = item.district_id?.toString();
               const districtName = item.district_name;
-              
-              
+
+
               if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
-                
+
                 totalData = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -197,6 +197,13 @@ const RegionDetailPage = () => {
                   bogs_report: item.bogs_report || {},
                   uzumzor_report: item.uzumzor_report || {},
                   subsidy_report: item.subsidy_report || {},
+                  // Plan data
+                  plan_total_ga: Number(item.plan?.total_ga_plan || 0),
+                  plan_total_count: Number(item.plan?.total_count_plan || 0),
+                  plan_boglar_ga: Number(item.plan?.boglar_ga_plan || 0),
+                  plan_boglar_count: Number(item.plan?.boglar_count_plan || 0),
+                  plan_uzumzor_ga: Number(item.plan?.uzumzor_ga_plan || 0),
+                  plan_uzumzor_count: Number(item.plan?.uzumzor_count_plan || 0),
                 };
               } else if (districtName) {
                 // Обычные районы
@@ -206,7 +213,7 @@ const RegionDetailPage = () => {
                   high_fertility: item.high_fertility,
                   irrigation: item.irrigation
                 });
-                
+
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -248,10 +255,17 @@ const RegionDetailPage = () => {
                   bogs_report: item.bogs_report || {},
                   uzumzor_report: item.uzumzor_report || {},
                   subsidy_report: item.subsidy_report || {},
+                  // Plan data
+                  plan_total_ga: Number(item.plan?.total_ga_plan || 0),
+                  plan_total_count: Number(item.plan?.total_count_plan || 0),
+                  plan_boglar_ga: Number(item.plan?.boglar_ga_plan || 0),
+                  plan_boglar_count: Number(item.plan?.boglar_count_plan || 0),
+                  plan_uzumzor_ga: Number(item.plan?.uzumzor_ga_plan || 0),
+                  plan_uzumzor_count: Number(item.plan?.uzumzor_count_plan || 0),
                 };
               }
             });
-            
+
             console.log('Final processed all data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
@@ -259,7 +273,7 @@ const RegionDetailPage = () => {
           // Для подтвержденных используем новый API endpoint
           let approvedUrl = `${API_BASE_URL2}api/statistics/regions/${allowedId}/approved/`;
           const queryParams = new URLSearchParams();
-          
+
           if (estDate) {
             queryParams.append("est_date", estDate);
           }
@@ -269,11 +283,11 @@ const RegionDetailPage = () => {
           if (regions) {
             queryParams.append("regions", regions);
           }
-          
+
           if (queryParams.toString()) {
             approvedUrl += `?${queryParams.toString()}`;
           }
-          
+
           const response = await fetch(approvedUrl, {
             headers: { Authorization: `Bearer ${authState.accessToken}` }
           });
@@ -281,21 +295,21 @@ const RegionDetailPage = () => {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           data = await response.json();
-          
+
 
           // Обрабатываем данные для approved - новая структура API v2.0
           if (Array.isArray(data)) {
             const dataMap = {};
             let totalData = null;
-            
+
             console.log('Processing approved data:', data.length, 'items');
-            
+
             data.forEach((item, index) => {
               const districtId = item.district_id?.toString();
               const districtName = item.district_name;
-              
+
               console.log(`Processing approved item ${index}:`, { districtId, districtName, total_area: item.total_area });
-              
+
               if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
                 console.log('Processing approved TOTAL row:', {
@@ -305,7 +319,7 @@ const RegionDetailPage = () => {
                   high_fertility: item.high_fertility,
                   irrigation: item.irrigation
                 });
-                
+
                 totalData = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -347,6 +361,13 @@ const RegionDetailPage = () => {
                   bogs_report: item.bogs_report || {},
                   uzumzor_report: item.uzumzor_report || {},
                   subsidy_report: item.subsidy_report || {},
+                  // Plan data
+                  plan_total_ga: Number(item.plan?.total_ga_plan || 0),
+                  plan_total_count: Number(item.plan?.total_count_plan || 0),
+                  plan_boglar_ga: Number(item.plan?.boglar_ga_plan || 0),
+                  plan_boglar_count: Number(item.plan?.boglar_count_plan || 0),
+                  plan_uzumzor_ga: Number(item.plan?.uzumzor_ga_plan || 0),
+                  plan_uzumzor_count: Number(item.plan?.uzumzor_count_plan || 0),
                 };
               } else if (districtName) {
                 // Обычные районы
@@ -356,7 +377,7 @@ const RegionDetailPage = () => {
                   high_fertility: item.high_fertility,
                   irrigation: item.irrigation
                 });
-                
+
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -398,10 +419,17 @@ const RegionDetailPage = () => {
                   bogs_report: item.bogs_report || {},
                   uzumzor_report: item.uzumzor_report || {},
                   subsidy_report: item.subsidy_report || {},
+                  // Plan data
+                  plan_total_ga: Number(item.plan?.total_ga_plan || 0),
+                  plan_total_count: Number(item.plan?.total_count_plan || 0),
+                  plan_boglar_ga: Number(item.plan?.boglar_ga_plan || 0),
+                  plan_boglar_count: Number(item.plan?.boglar_count_plan || 0),
+                  plan_uzumzor_ga: Number(item.plan?.uzumzor_ga_plan || 0),
+                  plan_uzumzor_count: Number(item.plan?.uzumzor_count_plan || 0),
                 };
               }
             });
-            
+
             console.log('Final processed approved data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
@@ -425,22 +453,22 @@ const RegionDetailPage = () => {
           if (Array.isArray(rejectedData)) {
             const dataMap = {};
             let totalData = null;
-            
+
             console.log('Processing rejected data:', rejectedData.length, 'items');
-            
+
             rejectedData.forEach((item, index) => {
               const districtId = item.district_id?.toString();
               const districtName = item.district_name;
-              
-              console.log(`Processing rejected item ${index}:`, { 
-                districtId, 
-                districtName, 
+
+              console.log(`Processing rejected item ${index}:`, {
+                districtId,
+                districtName,
                 total_area: item.total_area,
                 irrigation: item.irrigation,
                 irrigation_area: item.irrigation?.area,
                 irrigation_count: item.irrigation?.count
               });
-              
+
               if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
                 console.log('Processing rejected TOTAL row:', {
@@ -452,7 +480,7 @@ const RegionDetailPage = () => {
                   irrigation_area: item.irrigation?.area,
                   irrigation_count: item.irrigation?.count
                 });
-                
+
                 totalData = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -494,6 +522,13 @@ const RegionDetailPage = () => {
                   bogs_report: item.bogs_report || {},
                   uzumzor_report: item.uzumzor_report || {},
                   subsidy_report: item.subsidy_report || {},
+                  // Plan data
+                  plan_total_ga: Number(item.plan?.total_ga_plan || 0),
+                  plan_total_count: Number(item.plan?.total_count_plan || 0),
+                  plan_boglar_ga: Number(item.plan?.boglar_ga_plan || 0),
+                  plan_boglar_count: Number(item.plan?.boglar_count_plan || 0),
+                  plan_uzumzor_ga: Number(item.plan?.uzumzor_ga_plan || 0),
+                  plan_uzumzor_count: Number(item.plan?.uzumzor_count_plan || 0),
                 };
               } else if (districtName) {
                 // Обычные районы
@@ -503,7 +538,7 @@ const RegionDetailPage = () => {
                   high_fertility: item.high_fertility,
                   irrigation: item.irrigation
                 });
-                
+
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -545,38 +580,45 @@ const RegionDetailPage = () => {
                   bogs_report: item.bogs_report || {},
                   uzumzor_report: item.uzumzor_report || {},
                   subsidy_report: item.subsidy_report || {},
+                  // Plan data
+                  plan_total_ga: Number(item.plan?.total_ga_plan || 0),
+                  plan_total_count: Number(item.plan?.total_count_plan || 0),
+                  plan_boglar_ga: Number(item.plan?.boglar_ga_plan || 0),
+                  plan_boglar_count: Number(item.plan?.boglar_count_plan || 0),
+                  plan_uzumzor_ga: Number(item.plan?.uzumzor_ga_plan || 0),
+                  plan_uzumzor_count: Number(item.plan?.uzumzor_count_plan || 0),
                 };
               }
             });
-            
+
             console.log('Final processed rejected data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
         } else {
           // Для модерации используем новый API: только ожидающие проверки
           const plantationsUrl = `${API_BASE_URL2}api/plantations/moderation/`;
-          
+
           const plantationsResponse = await fetch(plantationsUrl, {
             headers: {
               Authorization: `Bearer ${authState.accessToken}`,
             },
           });
-          
+
           if (!plantationsResponse.ok) {
             throw new Error(`HTTP error! status: ${plantationsResponse.status}`);
           }
-          
+
           const plantationsData = await plantationsResponse.json();
           const plantations = (plantationsData.results || []).filter(
             plantation => plantation.district?.region === parseInt(id)
           );
-          
+
           // Вычисляем статистику по районам на основе данных плантаций
           const districtStats = {};
           plantations.forEach(plantation => {
             const districtName = plantation.district?.name;
             if (!districtName) return;
-            
+
             if (!districtStats[districtName]) {
               districtStats[districtName] = {
                 total_area: 0,
@@ -594,12 +636,12 @@ const RegionDetailPage = () => {
             if (!districtStats[districtName].district_id && plantation.district?.id) {
               districtStats[districtName].district_id = plantation.district.id;
             }
-            
+
             const district = districtStats[districtName];
             district.total_area += plantation.total_area || 0;
             district.total_plantations += 1;
             district.outdated_ga += plantation.outdated_ga || 0;
-            
+
             // Добавляем данные по плодородности
             if (plantation.fertility_score === 'Low') {
               district.low_fertility.count += 1;
@@ -608,13 +650,13 @@ const RegionDetailPage = () => {
               district.high_fertility.count += 1;
               district.high_fertility.area += plantation.total_area || 0;
             }
-            
+
             // Добавляем данные по поливу
             district.irrigation.area += plantation.irrigation_area || 0;
             if (plantation.irrigation_area > 0) {
               district.irrigation.count += 1;
             }
-            
+
             // Добавляем инвестиции
             if (plantation.investments) {
               plantation.investments.forEach(inv => {
@@ -626,7 +668,7 @@ const RegionDetailPage = () => {
                 district.investment.total += inv.investment_amount || 0;
               });
             }
-            
+
             // Добавляем субсидии
             if (plantation.subsidies) {
               plantation.subsidies.forEach(sub => {
@@ -635,7 +677,7 @@ const RegionDetailPage = () => {
               });
             }
           });
-          
+
           // Формируем данные в том же формате, что и API статистики
           data = {
             data: districtStats,
@@ -648,7 +690,7 @@ const RegionDetailPage = () => {
           };
         }
         // Проверяем структуру данных и преобразуем если нужно
-        
+
         // Новый формат API: массив объектов по районам
         if (Array.isArray(data)) {
           const dataMap = {};
@@ -702,13 +744,13 @@ const RegionDetailPage = () => {
           // НО НЕ для вкладки "all", где есть by_region
           processedData = { data: data };
         }
-        
+
         setStatistics(processedData);
       } catch (err) {
         if (err?.response?.status === 403) {
           setError("403 Forbidden: Siz ushbu viloyat statistikalarini ko'ra olmaysiz");
         } else {
-        setError(err.message);
+          setError(err.message);
         }
       } finally {
         setLoading(false);
@@ -716,14 +758,14 @@ const RegionDetailPage = () => {
     };
 
 
-            fetchData();
-      }, [id, authState.accessToken, location.search, activeTab]);
+    fetchData();
+  }, [id, authState.accessToken, location.search, activeTab]);
 
   // Функция для экспорта в Excel
   const handleExportToExcel = async () => {
     try {
       setExporting(true);
-      
+
       // Получаем данные для экспорта
       let exportData = tableData;
       // Для вкладки "all" исключаем строку Jami из Excel
@@ -732,10 +774,10 @@ const RegionDetailPage = () => {
       }
       const regionName = REGION_NAMES[id] || `Region_${id}`;
       const filename = `${regionName}_${activeTab}_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
-      
+
       // Экспортируем
       const success = await exportToExcel(exportData, totals, activeTab, regionName, filename, true);
-      
+
       if (success) {
         message.success('Excel fayl muvaffaqiyatli yuklandi!');
       } else {
@@ -750,37 +792,37 @@ const RegionDetailPage = () => {
   };
 
   // Transform data for table
-  
+
   let tableData;
-  
+
   if (activeTab === 'all') {
     // Для вкладки "all" обрабатываем данные в любом формате
-    
+
     if (statistics?.by_region && Array.isArray(statistics.by_region)) {
       // Если есть by_region, используем его
-      
+
       tableData = statistics.by_region.map((item, index) => {
         const districtName = item.plantation__district__name || getDistrictNameByRegionId(item.plantation__district__region);
-        
+
         // Находим данные об инвестициях и субсидиях для этого региона
         const investmentData = statistics.investments_by_region?.find(inv => inv.plantation__district__region === item.plantation__district__region);
         const subsidyData = statistics.subsidies_by_region?.find(sub => sub.plantation__district__region === item.plantation__district__region);
         const typeData = statistics.by_region_types?.find(type => type.district__region === item.plantation__district__region);
-        
+
         // Проверяем, что значения не undefined/null
         const totalArea = item.total_area !== undefined && item.total_area !== null ? item.total_area : 0;
         const totalPlantations = item.plantation_count !== undefined && item.plantation_count !== null ? item.plantation_count : 0;
-        
+
         // Пробуем разные варианты названий поля для посаженной площади
-        const plantedArea = item.planted_area !== undefined && item.planted_area !== null ? item.planted_area : 
-                           item.fruit_area !== undefined && item.fruit_area !== null ? item.fruit_area :
-                           item.total_fruitarea !== undefined && item.total_fruitarea !== null ? item.total_fruitarea : 0;
+        const plantedArea = item.planted_area !== undefined && item.planted_area !== null ? item.planted_area :
+          item.fruit_area !== undefined && item.fruit_area !== null ? item.fruit_area :
+            item.total_fruitarea !== undefined && item.total_fruitarea !== null ? item.total_fruitarea : 0;
         // not_used_area из API (или запасные ключи). Если нет — вычисляем как разницу
         const notUsedRaw = (item.not_used_area ?? item.not_usable_area);
         const notUsedArea = (notUsedRaw === undefined || notUsedRaw === null)
           ? Math.max(0, Number(totalArea || 0) - Number(plantedArea || 0))
           : Number(notUsedRaw || 0);
-        
+
         const row = {
           key: districtName,
           district: districtName,
@@ -810,26 +852,34 @@ const RegionDetailPage = () => {
           irrigation_area: item.irrigation?.area || 0,
           irrigation_count: item.irrigation?.count || 0,
           // Эскирган
+          // Эскирган
           outdated_ga: item.outdated_ga || 0,
+          // Plan data
+          plan_total_ga: Number(item.plan_total_ga || 0),
+          plan_total_count: Number(item.plan_total_count || 0),
+          plan_boglar_ga: Number(item.plan_boglar_ga || 0),
+          plan_boglar_count: Number(item.plan_boglar_count || 0),
+          plan_uzumzor_ga: Number(item.plan_uzumzor_ga || 0),
+          plan_uzumzor_count: Number(item.plan_uzumzor_count || 0),
         };
-        
+
         return row;
       });
     } else if (statistics?.data && typeof statistics.data === 'object') {
       // Если есть data, но нет by_region, создаем данные из доступных полей
-      
+
       // Создаем массив районов из доступных данных
       const districts = Object.keys(statistics.data);
       tableData = districts.map(districtName => {
         const districtData = statistics.data[districtName];
-        
 
-        
+
+
         const computedNotUsed = (districtData.not_used_area ?? districtData.not_usable_area);
         const fallbackNotUsed = (computedNotUsed === undefined || computedNotUsed === null)
           ? Math.max(0, Number(districtData.total_area || 0) - Number(districtData.planted_area || 0))
           : Number(computedNotUsed || 0);
-        
+
         const row = {
           key: districtName,
           district: districtName,
@@ -859,20 +909,27 @@ const RegionDetailPage = () => {
           pending_plantations: districtData.pending_plantations || 0,
           rejected_plantations: districtData.rejected_plantations || 0,
           farmers_count: districtData.farmers_count || 0,
+          // Plan data
+          plan_total_ga: Number(districtData.plan_total_ga || 0),
+          plan_total_count: Number(districtData.plan_total_count || 0),
+          plan_boglar_ga: Number(districtData.plan_boglar_ga || 0),
+          plan_boglar_count: Number(districtData.plan_boglar_count || 0),
+          plan_uzumzor_ga: Number(districtData.plan_uzumzor_ga || 0),
+          plan_uzumzor_count: Number(districtData.plan_uzumzor_count || 0),
         };
-        
+
         return row;
       });
     } else {
       tableData = [];
     }
-    
+
   } else {
     // Для других вкладок обрабатываем данные как обычно
     tableData = Object.entries(statistics?.data || {}).map(
-    ([district, data]) => {
-      
-        
+      ([district, data]) => {
+
+
         const row = {
           key: district,
           district,
@@ -902,8 +959,15 @@ const RegionDetailPage = () => {
           // Орошение
           irrigation_area: data.irrigation?.area || 0,
           irrigation_count: data.irrigation?.count || 0,
+          // Plan data
+          plan_total_ga: Number(data.plan_total_ga || 0),
+          plan_total_count: Number(data.plan_total_count || 0),
+          plan_boglar_ga: Number(data.plan_boglar_ga || 0),
+          plan_boglar_count: Number(data.plan_boglar_count || 0),
+          plan_uzumzor_ga: Number(data.plan_uzumzor_ga || 0),
+          plan_uzumzor_count: Number(data.plan_uzumzor_count || 0),
         };
-        
+
         return row;
       }
     );
@@ -981,13 +1045,13 @@ const RegionDetailPage = () => {
 
   // Calculate totals for summary cards
   let totals;
-  
+
   if (activeTab === 'all') {
     // Для вкладки "all" рассчитываем итоги из любых доступных данных
-    
+
     if (statistics?.by_region && Array.isArray(statistics.by_region)) {
       // Если есть by_region, используем его
-      
+
       totals = statistics.by_region.reduce(
         (acc, curr) => ({
           total_area: (acc.total_area || 0) + (curr.total_area || 0),
@@ -1004,7 +1068,7 @@ const RegionDetailPage = () => {
         }),
         {}
       );
-      
+
       // Добавляем итоги по инвестициям и субсидиям
       if (statistics.investments_by_region) {
         totals.investment_local = statistics.investments_by_region.reduce((sum, inv) => sum + (inv.local || 0), 0);
@@ -1012,7 +1076,7 @@ const RegionDetailPage = () => {
         totals.investment_total = statistics.investments_by_region.reduce((sum, inv) => sum + (inv.total || 0), 0);
         totals.total_investment = totals.investment_total;
       }
-      
+
       if (statistics.subsidies_by_region) {
         totals.subsidy_count = statistics.subsidies_by_region.reduce((sum, sub) => sum + (sub.beneficiary_count || 0), 0);
         totals.total_subsidy = statistics.subsidies_by_region.reduce((sum, sub) => sum + (sub.total_amount || 0), 0);
@@ -1052,21 +1116,21 @@ const RegionDetailPage = () => {
   } else {
     // Для других вкладок рассчитываем итоги как обычно
     totals = Object.values(statistics?.data || {}).reduce(
-    (acc, curr) => ({
-      total_area: (acc.total_area || 0) + curr.total_area,
-      total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || curr.total_plantations || 0),
-      planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
-      total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
-      total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),
-      farmers_count: (acc.farmers_count || 0) + (curr.farmers_count || 0),
-      // Добавляем поля для совместимости с экспортом
-      investment_local: (acc.investment_local || 0) + (curr.investment?.local || 0),
-      investment_foreign: (acc.investment_foreign || 0) + (curr.investment?.foreign || 0),
-      investment_total: (acc.investment_total || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
-              subsidy_count: (acc.subsidy_count || 0) + (curr.subsidy?.subsidy_count || 0),
-    }),
-    {}
-  );
+      (acc, curr) => ({
+        total_area: (acc.total_area || 0) + curr.total_area,
+        total_plantations: (acc.total_plantations || 0) + (curr.plantation_count || curr.total_plantations || 0),
+        planted_area: (acc.planted_area || 0) + (curr.planted_area || 0),
+        total_investment: (acc.total_investment || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
+        total_subsidy: (acc.total_subsidy || 0) + (curr.subsidy?.total_subsidy || 0),
+        farmers_count: (acc.farmers_count || 0) + (curr.farmers_count || 0),
+        // Добавляем поля для совместимости с экспортом
+        investment_local: (acc.investment_local || 0) + (curr.investment?.local || 0),
+        investment_foreign: (acc.investment_foreign || 0) + (curr.investment?.foreign || 0),
+        investment_total: (acc.investment_total || 0) + ((curr.investment?.local || 0) + (curr.investment?.foreign || 0)),
+        subsidy_count: (acc.subsidy_count || 0) + (curr.subsidy?.subsidy_count || 0),
+      }),
+      {}
+    );
   }
 
   // Если вкладка rejected, подменяем planted_area на тотал из API
@@ -1076,13 +1140,13 @@ const RegionDetailPage = () => {
 
   // Add total row
   let totalRow;
-  
+
   if (activeTab === 'all' || activeTab === 'approved' || activeTab === 'rejected') {
     // Для вкладки "all" используем данные TOTAL из API, если есть
     if (statistics?.totalData) {
-    totalRow = {
-    key: "total",
-    district: "Jami",
+      totalRow = {
+        key: "total",
+        district: "Jami",
         total_area: statistics.totalData.total_area,
         total_plantations: statistics.totalData.plantation_count,
         farmers_count: statistics.totalData.farmers_count || 0,
@@ -1104,8 +1168,15 @@ const RegionDetailPage = () => {
         high_fertility_area: statistics.totalData.high_fertility?.area || 0,
         irrigation_area: statistics.totalData.irrigation?.area || 0,
         irrigation_count: statistics.totalData.irrigation?.count || 0,
-    };
-  } else {
+        // Plan data
+        plan_total_ga: Number(statistics.totalData.plan_total_ga || 0),
+        plan_total_count: Number(statistics.totalData.plan_total_count || 0),
+        plan_boglar_ga: Number(statistics.totalData.plan_boglar_ga || 0),
+        plan_boglar_count: Number(statistics.totalData.plan_boglar_count || 0),
+        plan_uzumzor_ga: Number(statistics.totalData.plan_uzumzor_ga || 0),
+        plan_uzumzor_count: Number(statistics.totalData.plan_uzumzor_count || 0),
+      };
+    } else {
       // Если нет данных TOTAL, не показываем строку Jami
       totalRow = null;
     }
@@ -1119,7 +1190,15 @@ const RegionDetailPage = () => {
     totalRow.bogs_area = sumField('bogs_area');
     totalRow.uzumzors_count = sumField('uzumzors_count');
     totalRow.uzumzors_area = sumField('uzumzors_area');
+    totalRow.uzumzors_area = sumField('uzumzors_area');
     totalRow.outdated_ga = sumField('outdated_ga');
+    // Plan totals
+    totalRow.plan_total_ga = sumField('plan_total_ga');
+    totalRow.plan_total_count = sumField('plan_total_count');
+    totalRow.plan_boglar_ga = sumField('plan_boglar_ga');
+    totalRow.plan_boglar_count = sumField('plan_boglar_count');
+    totalRow.plan_uzumzor_ga = sumField('plan_uzumzor_ga');
+    totalRow.plan_uzumzor_count = sumField('plan_uzumzor_count');
   }
 
   const dataWithTotal = totalRow ? [...sortedTableData, totalRow] : sortedTableData;
@@ -1135,7 +1214,7 @@ const RegionDetailPage = () => {
       fixed: "left",
       width: 150,
       sorter: true,
-      sortDirections: ['ascend','descend'],
+      sortDirections: ['ascend', 'descend'],
       sortOrder: sortConfig.field === 'district' ? sortConfig.order : null,
       render: (text, record) => (
         <span
@@ -1159,11 +1238,29 @@ const RegionDetailPage = () => {
       title: <span style={textLight}>Umumiy maydon</span>,
       children: [
         {
+          title: <span style={{ color: '#94a3b8' }}>Plan (GA)</span>,
+          dataIndex: "plan_total_ga",
+          key: "plan_total_ga",
+          sorter: true,
+          sortDirections: ['ascend', 'descend'],
+          sortOrder: sortConfig.field === 'plan_total_ga' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#94a3b8' }}>{Number(value || 0).toFixed(1)}</span>,
+        },
+        {
+          title: <span style={{ color: '#94a3b8' }}>Plan (Soni)</span>,
+          dataIndex: "plan_total_count",
+          key: "plan_total_count",
+          sorter: true,
+          sortDirections: ['ascend', 'descend'],
+          sortOrder: sortConfig.field === 'plan_total_count' ? sortConfig.order : null,
+          render: (value) => <span style={{ color: '#94a3b8' }}>{Number(value || 0)}</span>,
+        },
+        {
           title: <span style={textLight}>Jami (GA)</span>,
           dataIndex: "total_area",
           key: "total_area",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'total_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1176,7 +1273,7 @@ const RegionDetailPage = () => {
           dataIndex: "total_plantations",
           key: "total_plantations",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'total_plantations' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{value}</span>,
         },
@@ -1185,7 +1282,7 @@ const RegionDetailPage = () => {
           dataIndex: "farmers_count",
           key: "farmers_count",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'farmers_count' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1198,7 +1295,7 @@ const RegionDetailPage = () => {
           dataIndex: "planted_area",
           key: "planted_area",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'planted_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1211,7 +1308,7 @@ const RegionDetailPage = () => {
           dataIndex: "not_used_area",
           key: "not_used_area",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'not_used_area' ? sortConfig.order : null,
           render: (value, record) => {
             const n = Number(value) || 0;
@@ -1231,20 +1328,29 @@ const RegionDetailPage = () => {
           dataIndex: 'outdated_ga',
           key: 'outdated_ga',
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'outdated_ga' ? sortConfig.order : null,
-          render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span>
+          render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span>
         },
       ],
     },
-      {
-      title: <span style={textLight}>Turlari</span>,
-        children: [
-          { title: <span style={textLight}>Bog'lar — soni</span>, dataIndex: 'bogs_count', key: 'bogs_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Bog'lar — maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-          { title: <span style={textLight}>Uzumzorlar — soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{v||0}</span> },
-          { title: <span style={textLight}>Uzumzorlar — maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', sorter: true, sortDirections: ['ascend','descend'], sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null, render: (v)=> <span style={textLight}>{Number(v||0).toFixed(1)}</span> },
-        ],
+    {
+      title: <span style={textLight}>Bog'lar</span>,
+      children: [
+        { title: <span style={{ color: '#94a3b8' }}>Plan (Soni)</span>, dataIndex: 'plan_boglar_count', key: 'plan_boglar_count', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'plan_boglar_count' ? sortConfig.order : null, render: (v) => <span style={{ color: '#94a3b8' }}>{v || 0}</span> },
+        { title: <span style={{ color: '#94a3b8' }}>Plan (GA)</span>, dataIndex: 'plan_boglar_ga', key: 'plan_boglar_ga', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'plan_boglar_ga' ? sortConfig.order : null, render: (v) => <span style={{ color: '#94a3b8' }}>{Number(v || 0).toFixed(1)}</span> },
+        { title: <span style={textLight}>Soni</span>, dataIndex: 'bogs_count', key: 'bogs_count', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'bogs_count' ? sortConfig.order : null, render: (v) => <span style={textLight}>{v || 0}</span> },
+        { title: <span style={textLight}>Maydon (GA)</span>, dataIndex: 'bogs_area', key: 'bogs_area', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'bogs_area' ? sortConfig.order : null, render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span> },
+      ],
+    },
+    {
+      title: <span style={textLight}>Uzumzorlar</span>,
+      children: [
+        { title: <span style={{ color: '#94a3b8' }}>Plan (Soni)</span>, dataIndex: 'plan_uzumzor_count', key: 'plan_uzumzor_count', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'plan_uzumzor_count' ? sortConfig.order : null, render: (v) => <span style={{ color: '#94a3b8' }}>{v || 0}</span> },
+        { title: <span style={{ color: '#94a3b8' }}>Plan (GA)</span>, dataIndex: 'plan_uzumzor_ga', key: 'plan_uzumzor_ga', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'plan_uzumzor_ga' ? sortConfig.order : null, render: (v) => <span style={{ color: '#94a3b8' }}>{Number(v || 0).toFixed(1)}</span> },
+        { title: <span style={textLight}>Soni</span>, dataIndex: 'uzumzors_count', key: 'uzumzors_count', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'uzumzors_count' ? sortConfig.order : null, render: (v) => <span style={textLight}>{v || 0}</span> },
+        { title: <span style={textLight}>Maydon (GA)</span>, dataIndex: 'uzumzors_area', key: 'uzumzors_area', sorter: true, sortDirections: ['ascend', 'descend'], sortOrder: sortConfig.field === 'uzumzors_area' ? sortConfig.order : null, render: (v) => <span style={textLight}>{Number(v || 0).toFixed(1)}</span> },
+      ],
     },
     {
       title: <span style={textLight}>Unumdorlik</span>,
@@ -1254,7 +1360,7 @@ const RegionDetailPage = () => {
           dataIndex: "low_fertility_area",
           key: "low_fertility_area",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'low_fertility_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1267,7 +1373,7 @@ const RegionDetailPage = () => {
           dataIndex: "high_fertility_area",
           key: "high_fertility_area",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'high_fertility_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1285,7 +1391,7 @@ const RegionDetailPage = () => {
           dataIndex: "irrigation_area",
           key: "irrigation_area",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'irrigation_area' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1298,7 +1404,7 @@ const RegionDetailPage = () => {
           dataIndex: "irrigation_count",
           key: "irrigation_count",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'irrigation_count' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1316,7 +1422,7 @@ const RegionDetailPage = () => {
           dataIndex: "investment_local",
           key: "investment_local",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'investment_local' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1329,7 +1435,7 @@ const RegionDetailPage = () => {
           dataIndex: "investment_foreign",
           key: "investment_foreign",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'investment_foreign' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1342,7 +1448,7 @@ const RegionDetailPage = () => {
           dataIndex: "investment_total",
           key: "investment_total",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'investment_total' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1360,7 +1466,7 @@ const RegionDetailPage = () => {
           dataIndex: "subsidy_count",
           key: "subsidy_count",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'subsidy_count' ? sortConfig.order : null,
           render: (value) => <span style={textLight}>{value}</span>,
         },
@@ -1369,7 +1475,7 @@ const RegionDetailPage = () => {
           dataIndex: "total_subsidy",
           key: "total_subsidy",
           sorter: true,
-          sortDirections: ['ascend','descend'],
+          sortDirections: ['ascend', 'descend'],
           sortOrder: sortConfig.field === 'total_subsidy' ? sortConfig.order : null,
           render: (value, record) => (
             <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal" }}>
@@ -1390,7 +1496,7 @@ const RegionDetailPage = () => {
         dataIndex: "approved_plantations",
         key: "approved_plantations",
         sorter: true,
-        sortDirections: ['ascend','descend'],
+        sortDirections: ['ascend', 'descend'],
         sortOrder: sortConfig.field === 'approved_plantations' ? sortConfig.order : null,
         render: (value, record) => (
           <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", color: '#10b981' }}>
@@ -1403,7 +1509,7 @@ const RegionDetailPage = () => {
         dataIndex: "pending_plantations",
         key: "pending_plantations",
         sorter: true,
-        sortDirections: ['ascend','descend'],
+        sortDirections: ['ascend', 'descend'],
         sortOrder: sortConfig.field === 'pending_plantations' ? sortConfig.order : null,
         render: (value, record) => (
           <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", color: '#f59e0b' }}>
@@ -1416,7 +1522,7 @@ const RegionDetailPage = () => {
         dataIndex: "rejected_plantations",
         key: "rejected_plantations",
         sorter: true,
-        sortDirections: ['ascend','descend'],
+        sortDirections: ['ascend', 'descend'],
         sortOrder: sortConfig.field === 'rejected_plantations' ? sortConfig.order : null,
         render: (value, record) => (
           <span style={{ ...textLight, fontWeight: record.key === "total" ? "bold" : "normal", color: '#ef4444' }}>
@@ -1467,11 +1573,10 @@ const RegionDetailPage = () => {
                 const queryString = searchParams.toString();
                 navigate(`/statistics/regions/${id}${queryString ? `?${queryString}` : ''}`);
               }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'all'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'all'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                }`}
             >
               Barcha planatsiyalar
             </button>
@@ -1482,11 +1587,10 @@ const RegionDetailPage = () => {
                 const queryString = searchParams.toString();
                 navigate(`/statistics/regions/${id}?${queryString}`);
               }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'approved'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-300 hover:bg-gray-500'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'approved'
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-300 hover:bg-gray-500'
+                }`}
             >
               Tasdiqlangan
             </button>
@@ -1497,16 +1601,15 @@ const RegionDetailPage = () => {
                 const queryString = searchParams.toString();
                 navigate(`/statistics/regions/${id}?${queryString}`);
               }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'rejected'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-300 hover:bg-gray-500'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'rejected'
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-300 hover:bg-gray-500'
+                }`}
             >
               Rad etilgan
             </button>
           </div>
-          
+
           {/* Кнопка экспорта */}
           <div className="flex justify-end mt-4">
             <Button
@@ -1528,7 +1631,7 @@ const RegionDetailPage = () => {
           const estDate = searchParams.get('est_date');
           const plantationType = searchParams.get('plantation_type');
           const regions = searchParams.get('regions');
-          
+
           if (estDate || plantationType || regions) {
             return (
               <div className="mb-4 p-3 bg-blue-900 border border-blue-600 rounded-md">
@@ -1598,9 +1701,9 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                    title={<span style={{ color: '#9ca3af' }}>
-                      {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 'Jami investitsiyalar'}
-                    </span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan investitsiyalar' : 'Jami investitsiyalar'}
+                </span>}
                 value={totals.total_investment}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}
@@ -1611,9 +1714,9 @@ const RegionDetailPage = () => {
           <Col xs={12} md={6}>
             <Card style={{ background: '#1f2937', border: '1px solid #374151', color: '#e5e7eb' }} bodyStyle={{ padding: 16 }}>
               <Statistic
-                    title={<span style={{ color: '#9ca3af' }}>
-                      {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 'Jami subsidiyalar'}
-                    </span>}
+                title={<span style={{ color: '#9ca3af' }}>
+                  {activeTab === 'approved' ? 'Tasdiqlangan subsidiyalar' : 'Jami subsidiyalar'}
+                </span>}
                 value={totals.total_subsidy}
                 precision={0}
                 formatter={(value) => `${Number(value).toLocaleString()} UZS`}
@@ -1635,33 +1738,33 @@ const RegionDetailPage = () => {
 
         {/* Main Table */}
         <div className="overflow-x-auto">
-        <Table
-          loading={loading}
-          columns={columns}
-          dataSource={dataWithTotal}
-          scroll={{ x: "max-content" }}
-          bordered
+          <Table
+            loading={loading}
+            columns={columns}
+            dataSource={dataWithTotal}
+            scroll={{ x: "max-content" }}
+            bordered
             size="small"
-          pagination={false}
-          className="region-statistics-table"
+            pagination={false}
+            className="region-statistics-table"
             style={{ background: '#1f2937', color: '#e5e7eb', minWidth: 600 }}
-          rowClassName={(record) => {
-            if (record.key === 'total') {
-              return 'total-row-dark';
-            }
-            return '';
-          }}
-          onChange={(_, __, sorter) => {
-            const s = Array.isArray(sorter) ? sorter[0] : sorter;
-            const order = s?.order || null;
-            const fieldKey = s?.columnKey || null;
-            if (!order || !fieldKey) {
-              setSortConfig({ field: null, order: 'ascend' });
-            } else {
-              setSortConfig({ field: fieldKey, order });
-            }
-          }}
-        />
+            rowClassName={(record) => {
+              if (record.key === 'total') {
+                return 'total-row-dark';
+              }
+              return '';
+            }}
+            onChange={(_, __, sorter) => {
+              const s = Array.isArray(sorter) ? sorter[0] : sorter;
+              const order = s?.order || null;
+              const fieldKey = s?.columnKey || null;
+              if (!order || !fieldKey) {
+                setSortConfig({ field: null, order: 'ascend' });
+              } else {
+                setSortConfig({ field: fieldKey, order });
+              }
+            }}
+          />
         </div>
       </div>
     </StatisticsLayout>
