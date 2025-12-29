@@ -5,51 +5,69 @@ import AuthContext from "../context/AuthContext";
 import { UserOutlined, BookOutlined, SettingOutlined } from "@ant-design/icons";
 
 const MENU_ITEMS = [
-  { to: "/plantations/uz", label: "Bog'lar", icon: (
+  {
+    to: "/plantations/uz", label: "Bog'lar", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
       </svg>
-    ) },
-  { to: "/statistics/regions", label: "Statistika", icon: (
+    )
+  },
+  {
+    to: "/statistics/regions", label: "Statistika", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
-    ) },
-  { to: "/farmers", label: "Fermerlar", icon: (
+    )
+  },
+  {
+    to: "/farmers", label: "Fermerlar", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
-    ) },
-  { to: "/moderation", label: "Moderatsiya", icon: (
+    )
+  },
+  {
+    to: "/moderation", label: "Moderatsiya", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-    ) },
-  { to: "/deletion-requests", label: "O'chirish so'rovlari", icon: (
+    )
+  },
+  {
+    to: "/deletion-requests", label: "O'chirish so'rovlari", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
       </svg>
-    ) },
-  { to: "/approved-plantations", label: "Tasdiqlangan", icon: (
+    )
+  },
+  {
+    to: "/approved-plantations", label: "Tasdiqlangan", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
       </svg>
-    ) },
-  { to: "/rejected-plantations", label: "Rad etilgan", icon: (
+    )
+  },
+  {
+    to: "/rejected-plantations", label: "Rad etilgan", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
-    ) },
-  { to: "/archived-plantations", label: "O'chirilgan", icon: (
+    )
+  },
+  {
+    to: "/archived-plantations", label: "O'chirilgan", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
       </svg>
-    ) },
-  { to: "/admin/logs", label: "Admin logs", icon: (
+    )
+  },
+  {
+    to: "/admin/logs", label: "Admin logs", icon: (
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
       </svg>
-    ) },
+    )
+  },
 ];
 
 const isHeadOfRegion = (role) => {
@@ -62,7 +80,7 @@ const getMenuItemsByRole = (role, regionId) => {
   if (role === "superuser") {
     return [
       ...MENU_ITEMS.filter(item => item.to !== "/admin/logs" && item.to !== "/admin/performance" && item.to !== "/my/logs"),
-      { to: "/admin", label: "Admin panel", icon: (
+      /* { to: "/admin", label: "Admin panel", icon: (
         <svg className="w-5 h-5 text-white" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
           <g>
             <path d="m58 5h-52c-3.3 0-6 2.7-6 6v32c0 3.3 2.7 6 6 6h17.8c-.3 2.1-1.2 5.2-3.6 6.1-.9.4-1.4 1.3-1.2 2.2s1 1.6 2 1.6h22.4c1 0 1.8-.7 2-1.6s-.3-1.9-1.2-2.2c-2.3-.9-3.4-3.9-3.8-6.1h17.6c3.3 0 6-2.7 6-6v-32c0-3.3-2.7-6-6-6zm-52 4h52c1.1 0 2 .9 2 2v26h-56v-26c0-1.1.9-2 2-2zm32.3 46h-12.3c1.2-2.1 1.7-4.4 1.9-6h8.4c.2 1.6.8 3.9 2 6zm19.7-10h-52c-1.1 0-2-.9-2-2v-2h56v2c0 1.1-.9 2-2 2z"/>
@@ -73,20 +91,26 @@ const getMenuItemsByRole = (role, regionId) => {
             </g>
           </g>
         </svg>
-      ) },
-      { to: "/admin/logs", label: "Admin logs", icon: (
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      ) },
-      { to: "/admin/performance", label: "Performance", icon: (
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3v18h18M7 13l3 3 7-7" />
-        </svg>
-      ) },
-      { to: "/my/logs", label: "Mening loglarim", icon: (
-        <BookOutlined className="w-5 h-5 text-white" />
-      ) },
+      ) }, */
+      {
+        to: "/admin/logs", label: "Admin logs", icon: (
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        )
+      },
+      {
+        to: "/admin/performance", label: "Performance", icon: (
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3v18h18M7 13l3 3 7-7" />
+          </svg>
+        )
+      },
+      {
+        to: "/my/logs", label: "Mening loglarim", icon: (
+          <BookOutlined className="w-5 h-5 text-white" />
+        )
+      },
     ];
   }
   if (isHeadOfRegion(role)) {
@@ -117,9 +141,11 @@ const getMenuItemsByRole = (role, regionId) => {
       approvedPlantationsItem,
       rejectedPlantationsItem,
       archivedPlantationsItem,
-      { to: "/my/logs", label: "Mening loglarim", icon: (
-        <UserOutlined className="w-5 h-5 text-white" />
-      ) },
+      {
+        to: "/my/logs", label: "Mening loglarim", icon: (
+          <UserOutlined className="w-5 h-5 text-white" />
+        )
+      },
     ].filter(Boolean);
   }
   // Наблюдатель: карта UZ, статистика и список фермеров (без контролеров)
@@ -132,9 +158,11 @@ const getMenuItemsByRole = (role, regionId) => {
     return base;
   }
   if (!role) return MENU_ITEMS;
-  return [MENU_ITEMS[0], { to: "/my/logs", label: "Mening loglarim", icon: (
-    <UserOutlined className="w-6 h-6 text-white" />
-  ) }];
+  return [MENU_ITEMS[0], {
+    to: "/my/logs", label: "Mening loglarim", icon: (
+      <UserOutlined className="w-6 h-6 text-white" />
+    )
+  }];
 };
 
 const LeftNav = () => {
@@ -149,8 +177,8 @@ const LeftNav = () => {
   });
 
   useEffect(() => {
-    try { localStorage.setItem('leftNavCollapsed', String(collapsed)); } catch {}
-    try { window.dispatchEvent(new Event('leftnav-toggle')); } catch {}
+    try { localStorage.setItem('leftNavCollapsed', String(collapsed)); } catch { }
+    try { window.dispatchEvent(new Event('leftnav-toggle')); } catch { }
   }, [collapsed]);
 
 
@@ -167,51 +195,65 @@ const LeftNav = () => {
   const statsSubItems = useMemo(() => {
     if (authState?.userRole === "superuser") {
       return [
-    { to: '/statistics/regions', label: 'Viloyatlar', icon: (
-      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
-      </svg>
-    ) },
-    { to: '/statistics/fruits', label: 'Mevalar', icon: (
-      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
-      </svg>
-    ) },
-    { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
-      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-      </svg>
-    ) }
+        {
+          to: '/statistics/regions', label: 'Viloyatlar', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
+            </svg>
+          )
+        },
+        {
+          to: '/statistics/fruits', label: 'Mevalar', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
+            </svg>
+          )
+        },
+        {
+          to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+          )
+        }
       ];
     }
     if (authState?.userRole === "headof_region") {
       const myRegion = effectiveRegionId;
       return [
-        ...(myRegion ? [{ to: `/statistics/regions/${myRegion}`, label: 'Viloyat statistikasi', icon: (
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
-          </svg>
-        ) }] : [])
+        ...(myRegion ? [{
+          to: `/statistics/regions/${myRegion}`, label: 'Viloyat statistikasi', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
+            </svg>
+          )
+        }] : [])
       ];
     }
     if (authState?.userRole === "observer") {
       return [
-        { to: '/statistics/regions', label: 'Viloyatlar', icon: (
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
-          </svg>
-        ) },
-        { to: '/statistics/fruits', label: 'Mevalar', icon: (
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
-      </svg>
-    ) },
-    { to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
-      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-      </svg>
-    ) }
-  ];
+        {
+          to: '/statistics/regions', label: 'Viloyatlar', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h18M3 12h18M3 17h18" />
+            </svg>
+          )
+        },
+        {
+          to: '/statistics/fruits', label: 'Mevalar', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4c-3 0-5 2-5 5 0 4 5 9 5 9s5-5 5-9c0-3-2-5-5-5z" />
+            </svg>
+          )
+        },
+        {
+          to: '/statistics/controllers', label: 'Nazoratchilar', icon: (
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+          )
+        }
+      ];
     }
     return [];
   }, [authState?.userRole]);
@@ -244,7 +286,7 @@ const LeftNav = () => {
 
       <nav className="py-3 px-2 space-y-3 mt-2">
         {/* Основные пункты меню */}
-        {items.filter(item => !['/admin','/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
+        {items.filter(item => !['/admin', '/admin/logs', '/admin/performance', '/my/logs'].includes(item.to)).map(item => {
           const active = isActive(item.to);
           const isStats = item.to === '/statistics/regions' || item.to.startsWith('/statistics/regions/');
           return (
@@ -271,8 +313,8 @@ const LeftNav = () => {
                   ))}
                 </div>
               )}
-               {/* В свернутом состоянии показываем подменю статистики сразу под иконкой статистики */}
-               {collapsed && location.pathname.startsWith('/statistics') && isStats && (
+              {/* В свернутом состоянии показываем подменю статистики сразу под иконкой статистики */}
+              {collapsed && location.pathname.startsWith('/statistics') && isStats && (
                 <div className='px-2 space-y-3 mt-2'>
                   {statsSubItems.map(sub => (
                     <Link
@@ -290,10 +332,10 @@ const LeftNav = () => {
           );
         })}
         {/* Admin block только для superuser */}
-        {authState?.userRole === 'superuser' && items.some(item => ['/admin','/admin/logs','/admin/performance','/my/logs'].includes(item.to)) && (
+        {authState?.userRole === 'superuser' && items.some(item => ['/admin', '/admin/logs', '/admin/performance', '/my/logs'].includes(item.to)) && (
           <div className="admin-block flex flex-col gap-2">
             {!collapsed && <div className="text-xs font-bold text-gray-400 uppercase px-4 pb-2 pt-1 tracking-widest flex items-center gap-2"><SettingOutlined className="text-base" /> Admin panel</div>}
-            {items.filter(item => ['/admin','/admin/logs','/admin/performance','/my/logs'].includes(item.to)).map(item => {
+            {items.filter(item => ['/admin', '/admin/logs', '/admin/performance', '/my/logs'].includes(item.to)).map(item => {
               const active = isActive(item.to);
               return (
                 <Link
@@ -310,11 +352,11 @@ const LeftNav = () => {
           </div>
         )}
       </nav>
-      
+
 
       {/* РљРЅРѕРїРєР° РІС‡РµСЂС‡РёРІР° РІ СѓРіР»Сѓ */}
       <button
-        onClick={() => { try { logout?.(); } catch(e) {} navigate('/login'); }}
+        onClick={() => { try { logout?.(); } catch (e) { } navigate('/login'); }}
         title="Chiqish"
         className="p-2 rounded-full bg-red-600 hover:bg-red-500 text-white border border-red-500 shadow"
         style={{ position: 'fixed', bottom: 12, left: 12, zIndex: 60 }}
