@@ -50,11 +50,20 @@ const Farmers = () => {
 
         const params = new URLSearchParams();
         params.set("page", String(page));
-        if (searchQuery && !isNumericSearch) params.set("search", searchQuery);
-        if (isNumericSearch && digitsOnly.length === 9) params.set("inn", digitsOnly);
+        params.set("page_size", String(PAGE_SIZE));
+        
+        // Используем параметр поиска API для всех случаев поиска
+        if (searchQuery) {
+          if (isNumericSearch && digitsOnly.length > 0) {
+            // Для числового поиска используем параметр inn (даже для частичного ИНН)
+            params.set("inn", digitsOnly);
+          } else {
+            // Для текстового поиска используем параметр search
+            params.set("search", searchQuery);
+          }
+        }
 
         let url = `${API_BASE_URL2}api/farmers/?${params.toString()}`;
-        
         
         const headers = {
           'Content-Type': 'application/json',
@@ -67,23 +76,7 @@ const Farmers = () => {
 
         let response = await axios.get(url, { headers });
         
-
         let results = response.data.results || [];
-
-        // Если частичный ИНН (<9), собираем несколько страниц и фильтруем локально
-        if (isNumericSearch && digitsOnly.length > 0 && digitsOnly.length < 9) {
-          const aggregated = [...results];
-          // Попробуем выкачать до 10 страниц (200 записей максимум) или пока страница короче PAGE_SIZE
-          for (let p = 2; p <= 10; p += 1) {
-            const pageUrl = `${API_BASE_URL2}api/farmers/?page=${p}`;
-            
-            const pageResp = await axios.get(pageUrl, { headers });
-            const pageResults = pageResp.data.results || [];
-            aggregated.push(...pageResults);
-            if (pageResults.length < PAGE_SIZE) break;
-          }
-          results = aggregated;
-        }
         
         // Форматируем номера телефонов
         const formattedFarmers = results.map(farmer => ({
@@ -91,25 +84,9 @@ const Farmers = () => {
           phone_number: formatPhoneNumber(farmer.phone_number)
         }));
         
-        // Клиентская фильтрация по частичному ИНН
-        const clientFiltered = (isNumericSearch && digitsOnly.length > 0)
-          ? formattedFarmers.filter(f => (String(f.inn || "").replace(/\D/g, "")).includes(digitsOnly))
-          : formattedFarmers;
-
-        // Клиентская пагинация для частичного ИНН
-        if (isNumericSearch && digitsOnly.length > 0 && digitsOnly.length < 9) {
-          const total = clientFiltered.length;
-          setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-          const start = (page - 1) * PAGE_SIZE;
-          const end = start + PAGE_SIZE;
-          setFarmers(clientFiltered.slice(start, end));
-          return;
-        }
-        
-        setFarmers(clientFiltered);
-        const serverCount = response.data.count || clientFiltered.length;
-        const effectiveCount = (isNumericSearch && digitsOnly.length > 0) ? clientFiltered.length : serverCount;
-        setTotalPages(Math.max(1, Math.ceil(effectiveCount / PAGE_SIZE)));
+        setFarmers(formattedFarmers);
+        const serverCount = response.data.count || 0;
+        setTotalPages(Math.max(1, Math.ceil(serverCount / PAGE_SIZE)));
       } catch (error) {
         console.error("Error fetching farmers:", error);
         console.error("Error details:", error.response?.data || error.message);
