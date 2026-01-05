@@ -111,7 +111,7 @@ const EditPlantation = () => {
   const DEFAULT_REJECT_REASONS = [
     "Investitsiya summasi noto'g'ri",
     "Fotosurat yo'q yoki sifatsiz",
-    "Bog' qator oralari ko'chatlarining foto suratini yuklang,
+    "Bog' qator oralari ko'chatlarining foto suratini yuklang",
     "Umumiy maydon gektari bo'sh maydon gektari bilan bir xil",
     "Mevali maydon turi kiritilmagan",
     "Ekin maydoni gektari noto'g'ri",
@@ -125,7 +125,7 @@ const EditPlantation = () => {
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
 
-  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
   // dragActive visual state removed; handlers keep preventing default
   const [focusedIdx, setFocusedIdx] = useState(null);
