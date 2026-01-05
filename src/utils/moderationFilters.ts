@@ -130,6 +130,7 @@ export const districtsByRegion: DistrictsByRegion = {
     { id: "98", name: "Navoiy sh" },
     { id: "178", name: "G'ozg'on shaxar" },
     { id: "176", name: "Zarafshon" },
+    { id: "91", name: "Konimex t" },
   ],
   "8": [ // Namangan
     { id: "98", name: "Namangan t" },
