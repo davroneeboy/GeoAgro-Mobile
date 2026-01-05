@@ -145,6 +145,10 @@ class FarmersStatisticsVm extends ChangeNotifier {
     }
   }
 
+  void onSearchChanged(String value) {
+    notifyListeners();
+  }
+
   void clearSearch() {
     searchInnController.clear();
     searchResults = null;

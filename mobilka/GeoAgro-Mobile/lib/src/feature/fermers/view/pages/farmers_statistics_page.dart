@@ -140,7 +140,7 @@ class _SearchSection extends ConsumerWidget {
                         )
                       : null,
                   onChanged: (value) {
-                    ref.read(farmersStatisticsVM.notifier).notifyListeners();
+                    ref.read(farmersStatisticsVM.notifier).onSearchChanged(value);
                   },
                 ),
               ),
