@@ -111,7 +111,7 @@ const EditPlantation = () => {
   const DEFAULT_REJECT_REASONS = [
     "Investitsiya summasi noto'g'ri",
     "Fotosurat yo'q yoki sifatsiz",
-    "Bog' maydoni fotosurati to'liq olinmagan",
+    "Bog' qator oralari ko'chatlarining foto suratini yuklang,
     "Umumiy maydon gektari bo'sh maydon gektari bilan bir xil",
     "Mevali maydon turi kiritilmagan",
     "Ekin maydoni gektari noto'g'ri",
@@ -119,6 +119,8 @@ const EditPlantation = () => {
     "Chegara noto'g'ri chizilgan",
     "Umumiy maydon bilan chizilgan maydon gektari bir xil emas",
     "Bosh maydon to'g'ri kiriting",
+    "Bo'sh maydonni to'ldiring",
+    "Eski yildagi ko'chatlar hamda yangi yildagi ko'chatlarning yilini ajrating",
     "Kontur raqami kiritilmagan",
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
