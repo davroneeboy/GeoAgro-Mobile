@@ -542,18 +542,27 @@ class _SummaryGrid extends StatelessWidget {
         value: "$approvedPlantations",
         icon: Icons.verified_outlined,
         accent: const Color(0xFF38BDF8),
+        onTap: () {
+          context.push("${AppRouteNames.home}${AppRouteNames.approvedPage}");
+        },
       ),
       _SummaryItem(
         title: "Ko'rib chiqilmoqda",
         value: "$pendingPlantations",
         icon: Icons.pending_actions_outlined,
         accent: const Color(0xFFFBBF24),
+        onTap: () {
+          context.push("${AppRouteNames.home}${AppRouteNames.pendingPage}");
+        },
       ),
       _SummaryItem(
         title: "Rad etilgan",
         value: "$rejectedPlantations",
         icon: Icons.highlight_off_outlined,
         accent: const Color(0xFFF87171),
+        onTap: () {
+          context.push("${AppRouteNames.home}${AppRouteNames.recheckPage}");
+        },
       ),
       _SummaryItem(
         title: "Uzumzor maydoni",
@@ -589,12 +598,14 @@ class _SummaryItem {
   final String value;
   final IconData icon;
   final Color accent;
+  final VoidCallback? onTap;
 
   const _SummaryItem({
     required this.title,
     required this.value,
     required this.icon,
     required this.accent,
+    this.onTap,
   });
 }
 
@@ -619,44 +630,51 @@ class _SummaryCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: item.accent.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                item.icon,
-                color: item.accent,
-                size: 22.sp,
-              ),
-            ),
-            Column(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  item.value,
-                  style: AppTypography.headline3(context).copyWith(
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.w700,
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: item.accent.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    item.icon,
+                    color: item.accent,
+                    size: 22.sp,
                   ),
                 ),
-                SizedBox(height: AppSpacing.xs),
-                Text(
-                  item.title,
-                  style: AppTypography.caption(context).copyWith(
-                    color: DesignColors.AppColors.darkTextTertiary,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.value,
+                      style: AppTypography.headline3(context).copyWith(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.xs),
+                    Text(
+                      item.title,
+                      style: AppTypography.caption(context).copyWith(
+                        color: DesignColors.AppColors.darkTextTertiary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
