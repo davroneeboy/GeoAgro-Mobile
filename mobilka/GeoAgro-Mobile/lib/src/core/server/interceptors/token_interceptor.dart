@@ -102,6 +102,13 @@ class TokenInterceptor extends Interceptor {
 
     log("TokenInterceptor processing error: ${err.response?.statusCode} - ${err.response?.data}");
 
+    // Skip interception for login endpoint
+    if (err.requestOptions.path.contains('/api/login/')) {
+      super.onError(err, handler);
+      return;
+    }
+
+
     final responseData = err.response?.data;
     final statusCode = err.response?.statusCode;
     

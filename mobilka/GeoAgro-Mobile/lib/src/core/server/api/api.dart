@@ -17,6 +17,7 @@ import "../interceptors/connectivity_interceptor.dart";
 import "../interceptors/token_interceptor.dart";
 import "../interceptors/secure_logger_interceptor.dart";
 import "../../../data/model/response/api_response.dart";
+import "../../setting/setup.dart";
 
 @immutable
 class ApiService {
@@ -76,10 +77,13 @@ class ApiService {
       // "Accept": isUpload ? "multipart/form-data" : "application/json; charset=UTF-8",
     };
 
-    final token = await AppStorage.$read(key: StorageKey.accessToken) ?? "";
-
+    final token = accessToken ?? await AppStorage.$read(key: StorageKey.accessToken) ?? "";
+    
     if (token.isNotEmpty) {
+      // l.d("🔐 API: Using token (starts with): ${token.substring(0, token.length > 10 ? 10 : token.length)}...");
       headers.putIfAbsent("Authorization", () => "Bearer $token");
+    } else {
+      l.w("⚠️ API: No token found for headers!");
     }
 
     return headers;

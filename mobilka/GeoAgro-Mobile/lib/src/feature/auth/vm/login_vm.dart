@@ -42,10 +42,16 @@ class LoginVm extends ChangeNotifier {
 
         // Token modelini yaratish va saqlash
         _tokenModel = tokenModelFromJson(jsonEncode(jsonData));
-        _putTokensToStorage();
+        await _putTokensToStorage();
 
         // Update in-memory username immediately for this session
         username = userNameC.text.trim();
+        accessToken = _tokenModel.access;
+        debugPrint("🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
+
+        // Small delay to ensure everything settles (storage I/O, etc)
+        // This helps prevent 401 on immediate subsequent requests
+        await Future.delayed(const Duration(milliseconds: 500));
 
         // Fetch current user info and store districtId
         debugPrint("🚀 Login successful, now fetching user info...");
@@ -58,7 +64,7 @@ class LoginVm extends ChangeNotifier {
       }
       // Agar status code 401 bo‘lsa
       else if (response.statusCode == 401) {
-        errorMessage = "Bunday foydalanuvchi yo'q.";
+        errorMessage = "Noto'g'ri foydalanuvchi nomi yoki parol";
         return false;
       }
       // Boshqa holatlar (masalan, server xatosi)
@@ -77,9 +83,9 @@ class LoginVm extends ChangeNotifier {
     }
   }
 
-  void _putTokensToStorage() {
-    AppStorage.$write(key: StorageKey.accessToken, value: _tokenModel.access);
-    AppStorage.$write(key: StorageKey.refreshToken, value: _tokenModel.refresh);
+  Future<void> _putTokensToStorage() async {
+    await AppStorage.$write(key: StorageKey.accessToken, value: _tokenModel.access);
+    await AppStorage.$write(key: StorageKey.refreshToken, value: _tokenModel.refresh);
   }
 
   Future<void> _fetchAndStoreUserInfo() async {
