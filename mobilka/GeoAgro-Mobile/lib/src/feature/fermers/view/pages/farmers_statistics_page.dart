@@ -9,8 +9,9 @@ import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
-import 'package:agro_employee_public/src/core/widgets/loading_widget.dart';
+import 'package:agro_employee_public/src/core/widgets/loading_widget.dart' hide EmptyStateWidget;
 import 'package:agro_employee_public/src/data/model/farmer/farmer_statistics_model.dart';
+import 'package:agro_employee_public/src/core/widgets/empty_state_widget.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
@@ -67,7 +68,15 @@ class _BodyContent extends StatelessWidget {
 
     final statistics = vm.statistics;
     if (statistics == null || statistics.isEmpty) {
-      return _EmptyState();
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: const EmptyStateWidget(
+            subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+          ),
+        ),
+      );
     }
 
     return SingleChildScrollView(
@@ -387,46 +396,8 @@ class _SearchResultCard extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: DesignColors.AppColors.darkSurface,
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-              border: Border.all(color: DesignColors.AppColors.darkBorder),
-            ),
-            child: Icon(
-              Icons.analytics_outlined,
-              size: 42.sp,
-              color: DesignColors.AppColors.darkTextSecondary,
-            ),
-          ),
-          SizedBox(height: AppSpacing.md),
-          Text(
-            "Statistika ma'lumotlari topilmadi",
-            style: AppTypography.body(context).copyWith(
-              color: DesignColors.AppColors.darkTextSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-          Text(
-            "Ma'lumotlarni yangilash uchun pastga torting",
-            style: AppTypography.caption(context).copyWith(
-              color: DesignColors.AppColors.darkTextTertiary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// _EmptyState removed
+
 
 class _OverviewHeader extends StatelessWidget {
   final List<FarmerData> statistics;

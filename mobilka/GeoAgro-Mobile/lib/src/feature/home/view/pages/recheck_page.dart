@@ -12,6 +12,7 @@ import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/server/api/api.dart';
 import '../../../../core/server/api/api_constants.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../data/repository/app_repository_impl.dart';
@@ -170,25 +171,16 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
         color: AppColors.c28A745,
         backgroundColor: DesignColors.AppColors.darkBackground,
         child: vm.list.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off_rounded,
-                      size: 64.sp,
-                      color: DesignColors.AppColors.darkTextSecondary.withOpacity(0.5),
+            ? LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: const EmptyStateWidget(
+                      message: "Rad etilgan plantatsiyalar topilmadi",
+                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
                     ),
-                    16.verticalSpace,
-                    Text(
-                      "Ma'lumot topilmadi",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: DesignColors.AppColors.darkTextSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               )
             : ListView.separated(

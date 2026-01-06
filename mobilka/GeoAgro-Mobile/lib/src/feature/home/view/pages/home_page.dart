@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/widgets/error_state_widget.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../data/repository/app_repository_impl.dart';
@@ -220,28 +221,17 @@ class _HomePageState extends ConsumerState<HomePage> {
               },
               color: DesignColors.AppColors.accentGreen,
               backgroundColor: DesignColors.AppColors.darkSurface,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset('assets/svg/last_transaction.svg',
-                              fit: BoxFit.contain),
-                          16.verticalSpace,
-                          Text(
-                            maxLines: 2,
-                            "Sizning hududingizga doir \n hech qanday Bog', Issiqxona, Uzumzor yoq",
-                            style: TextStyle(
-                                fontSize: 18.sp,
-                                color: DesignColors.AppColors.darkTextPrimary),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    )),
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: const EmptyStateWidget(
+                      message: "Sizning hududingizga doir \n hech qanday Bog', Issiqxona, Uzumzor yoq",
+                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+                    ),
+                  ),
+                ),
               ),
             )
           : RefreshIndicator(

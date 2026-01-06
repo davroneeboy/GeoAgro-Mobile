@@ -7,12 +7,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/style/app_colors.dart';
 import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/typography.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../core/server/api/api.dart';
 import '../../../../core/server/api/api_constants.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import '../widgets/home_page_card_widget.dart';
@@ -169,68 +171,81 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
         onRefresh: () async => vm.fetch(isLoadMore: false),
         color: AppColors.c28A745,
         backgroundColor: DesignColors.AppColors.darkBackground,
-        child: ListView.separated(
-          physics: const AlwaysScrollableScrollPhysics(),
-          controller: _controller,
-          separatorBuilder: (_, __) => 16.verticalSpace,
-          padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          itemCount: vm.list.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == vm.list.length && !vm.isSearching) {
-              // Кнопка "Qolganlarini ko'rish"
-              return Container(
-                margin: REdgeInsets.symmetric(vertical: 16),
-                child: ElevatedButton(
-                  onPressed: vm.isFetchingMore ? null : () {
-                    vm.fetch(isLoadMore: true);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.c28A745,
-                    foregroundColor: Colors.white,
-                    padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+        child: vm.list.isEmpty
+            ? LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: const EmptyStateWidget(
+                      message: "Tasdiqlangan plantatsiyalar topilmadi",
+                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
                     ),
                   ),
-                  child: vm.isFetchingMore
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 20.w,
-                              height: 20.h,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                            8.horizontalSpace,
-                            Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
-                          ],
-                        )
-                      : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
                 ),
-              );
-            }
-            final plantation = vm.list[index];
-            return InkWell(
-              onTap: () {
-                if (plantation.id != null) {
-                  context.go("${AppRouteNames.home}${AppRouteNames.plantationView}", extra: plantation.id);
-                }
-              },
-              child: HomePageCardWidget(
-                plantation: plantation,
-                showEditButton: true,
-                customProvider: sharedHomePageVM, // Use shared provider for deletion
-                onDeleteSuccess: () {
-                  // Обновляем список после успешного удаления
-                  ref.read(approvedPageVM.notifier).fetch();
+              )
+            : ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                controller: _controller,
+                separatorBuilder: (_, __) => 16.verticalSpace,
+                padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                itemCount: vm.list.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == vm.list.length && !vm.isSearching) {
+                    // Кнопка "Qolganlarini ko'rish"
+                    return Container(
+                      margin: REdgeInsets.symmetric(vertical: 16),
+                      child: ElevatedButton(
+                        onPressed: vm.isFetchingMore ? null : () {
+                          vm.fetch(isLoadMore: true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.c28A745,
+                          foregroundColor: Colors.white,
+                          padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: vm.isFetchingMore
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 20.w,
+                                    height: 20.h,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  8.horizontalSpace,
+                                  Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
+                                ],
+                              )
+                            : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
+                      ),
+                    );
+                  }
+                  final plantation = vm.list[index];
+                  return InkWell(
+                    onTap: () {
+                      if (plantation.id != null) {
+                        context.go("${AppRouteNames.home}${AppRouteNames.plantationView}", extra: plantation.id);
+                      }
+                    },
+                    child: HomePageCardWidget(
+                      plantation: plantation,
+                      showEditButton: true,
+                      customProvider: sharedHomePageVM, // Use shared provider for deletion
+                      onDeleteSuccess: () {
+                        // Обновляем список после успешного удаления
+                        ref.read(approvedPageVM.notifier).fetch();
+                      },
+                    ),
+                  );
                 },
               ),
-            );
-          },
-        ),
       ),
     );
   }

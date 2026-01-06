@@ -6,8 +6,8 @@ class AppColors {
   AppColors._();
 
   // ===== DARK THEME (DEFAULT) =====
-  static const Color darkBackground = Color(0xFF0F172A); // Tailwind slate-950
-  static const Color darkSurface = Color(0xFF111827); // Tailwind slate-900
+  static const Color darkBackground = Color(0xFF021024); // Deep Navy Blue
+  static const Color darkSurface = Color(0xFF051933); // Lighter Navy for surface
   static const Color darkSurfaceVariant = Color(0xFF1F2937); // Tailwind slate-800
   static const Color darkTextPrimary = Color(0xFFF9FAFB); // Tailwind slate-50
   static const Color darkTextSecondary = Color(0xFFE2E8F0); // Tailwind slate-200

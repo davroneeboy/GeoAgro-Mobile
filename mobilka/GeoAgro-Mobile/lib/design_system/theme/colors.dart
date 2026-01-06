@@ -19,7 +19,7 @@ class AppColors {
   static const Color lightOutline = Color(0xFFE0DED9);
   static const Color lightOutlineVariant = Color(0xFFEBE8E2);
 
-  static const Color darkBackground = Color(0xFF353935);
+  static const Color darkBackground = Color(0xFF021024); // Deep Navy Blue
   static const Color darkSurface = Color(0xFF3F433F);
   static const Color darkSurfaceVariant = Color(0xFF4A4E4A);
   static const Color darkSurfaceElevated = Color(0xFF555955);

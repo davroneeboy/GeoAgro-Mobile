@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 
 import '../style/app_colors.dart';
@@ -251,13 +252,14 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon
-            Icon(
-              icon ?? Icons.inbox_outlined,
-              size: 64.sp,
-              color: Colors.grey[400],
+            // SVG Illustration
+            SvgPicture.asset(
+              'assets/svg/last_transaction.svg',
+              width: 200.w,
+              height: 200.w,
+              fit: BoxFit.contain,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 24.h),
             // Message
             Text(
               message,

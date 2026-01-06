@@ -5,12 +5,6 @@ import 'colors.dart';
 import 'spacing.dart';
 import 'radius.dart';
 
-/// Design System Theme Configuration
-/// 
-/// Material 3 themes with comprehensive component customization
-/// - Light theme: #F9F6EE background (warm off-white)
-/// - Dark theme: #353935 background (muted dark gray-green)
-/// - Primary accent: #16A34A (emerald green)
 class AppTheme {
   AppTheme._();
 
