@@ -7,7 +7,7 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../interceptors/token_interceptor.dart';
 import '../../constants/app_constants.dart';
-import '../../utils/network_utils.dart';
+
 import '../../storage/app_storage.dart';
 import 'api_constants.dart';
 import '../../../data/model/response/api_response.dart';
@@ -16,13 +16,12 @@ class ApiServiceV2 {
   static Dio? _dio;
   static bool _isInitialized = false;
 
-  // Initialize Dio with better configuration
   static Future<Dio> initDio() async {
     if (_dio != null && _isInitialized) return _dio!;
 
     _dio = Dio();
     
-    // Configure base options
+
     _dio!.options = BaseOptions(
       baseUrl: ApiConst.baseUrl,
       connectTimeout: Duration(seconds: AppConstants.apiTimeoutSeconds),
@@ -34,7 +33,8 @@ class ApiServiceV2 {
       validateStatus: (status) => status != null && status < 500 && status != 401,
     );
 
-    // Add interceptors
+
+
     _dio!.interceptors.addAll([
       TokenInterceptor.instance,
       PrettyDioLogger(
@@ -48,7 +48,8 @@ class ApiServiceV2 {
       ),
     ]);
 
-    // Configure for Android
+
+
     if (Platform.isAndroid) {
       (_dio!.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
         final client = HttpClient();
@@ -62,7 +63,6 @@ class ApiServiceV2 {
     return _dio!;
   }
 
-  // Generic request method with retry logic
   static Future<ApiResponse> _makeRequest(
     Future<Response> Function() requestFunction, {
     int maxRetries = AppConstants.apiRetryAttempts,
@@ -75,20 +75,7 @@ class ApiServiceV2 {
       try {
         l.i("_makeRequest: Attempt ${attempts + 1}");
         
-        // Check internet connection
-        final hasInternet = await NetworkUtils.hasInternetConnection();
-        l.i("_makeRequest: Internet connection: $hasInternet");
-        
-        // Временно отключаем проверку интернета для отладки
-        // if (!hasInternet) {
-        //   l.e("_makeRequest: No internet connection");
-        //   return ApiResponse(
-        //     statusCode: 0,
-        //     data: {"message": "Интернет алокасида хатолик юз берди"},
-        //   );
-        // }
 
-        l.i("_makeRequest: Calling requestFunction");
         final response = await requestFunction();
         l.i("_makeRequest: Response received: ${response.statusCode}");
         
@@ -97,12 +84,8 @@ class ApiServiceV2 {
           data: response.data,
         );
       } on DioException catch (e) {
-        // If it's a 401 error, the interceptor should handle it
-        // But if it somehow reaches here, don't retry and don't show error
         if (e.response?.statusCode == 401) {
           l.w("_makeRequest: 401 error detected - interceptor should handle this");
-          // Return a special response that indicates auth error
-          // The interceptor should have already redirected to login
           return ApiResponse(
             statusCode: 401,
             data: {"message": "Authentication required"},
@@ -122,7 +105,7 @@ class ApiServiceV2 {
           );
         }
         
-        // Wait before retry
+        
         l.i("_makeRequest: Waiting $attempts seconds before retry");
         await Future.delayed(Duration(seconds: attempts));
       } catch (e) {
@@ -141,7 +124,6 @@ class ApiServiceV2 {
     );
   }
 
-  // GET request
   static Future<ApiResponse> get(String endpoint, {Map<String, dynamic>? queryParameters}) async {
     return _makeRequest(() async {
       final dio = await initDio();
@@ -155,7 +137,6 @@ class ApiServiceV2 {
     });
   }
 
-  // POST request
   static Future<ApiResponse> post(String endpoint, {dynamic data}) async {
     return _makeRequest(() async {
       final dio = await initDio();
@@ -220,7 +201,6 @@ class ApiServiceV2 {
     });
   }
 
-  // Multipart request for file uploads
   static Future<ApiResponse> multipart(String endpoint, {
     required Map<String, String> fields,
     required List<MapEntry<String, File>> files,
@@ -246,7 +226,6 @@ class ApiServiceV2 {
     });
   }
 
-  // Upload images
   static Future<ApiResponse> uploadImages(String endpoint, List<File> images) async {
     return _makeRequest(() async {
       final dio = await initDio();
@@ -269,7 +248,6 @@ class ApiServiceV2 {
     });
   }
 
-  // Clear cached data
   static void clearCache() {
     _dio = null;
     _isInitialized = false;

@@ -40,12 +40,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-
-    // Данные загружаются автоматически в конструкторе HomePageVm
-    // Не нужно вызывать здесь, чтобы избежать лишних rebuilds
   }
 
-  // Метод для обновления списка извне (например, после создания плантации)
   void refreshPlantationsList() {
     ref.read(homePageVM).getPlantationsModel(isLoadMore: false);
   }
@@ -209,7 +205,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
                 icon: Icon(Icons.notifications_none),
               ),
-              // Badge placeholder: will be updated when we wire unread count into HomePage VM if needed
             ],
           ),
         ],
@@ -264,7 +259,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == vm.plantationsList.length && !vm.isSearching) {
-                    // Кнопка "Qolganlarini ko'rish"
                     return Container(
                       margin: REdgeInsets.symmetric(vertical: 16),
                       child: ElevatedButton(

@@ -18,7 +18,6 @@ import '../../../../data/repository/app_repository_impl.dart';
 import '../widgets/home_page_card_widget.dart';
 import '../../vm/home_page_vm.dart';
 
-// Shared HomePageVM provider for deletion functionality
 final sharedHomePageVM = ChangeNotifierProvider.autoDispose<HomePageVm>((ref) {
   return HomePageVm(AppRepositoryImpl());
 });
@@ -43,13 +42,12 @@ class _RejectedVm extends ChangeNotifier {
 
   Future<void> fetch({bool isLoadMore = false, String? search}) async {
     if ((!canLoadNext && isLoadMore) || (isLoadMore && isFetchingMore)) return;
-    if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) return; // disable pagination while searching
+    if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) return;
     
-    // If search query changed, reset pagination
     if (search != _searchQuery && !isLoadMore) {
       _searchQuery = search;
     }
-    
+
     errorMessage = null;
     if (!isLoadMore) {
       currentPage = 1;
@@ -69,13 +67,12 @@ class _RejectedVm extends ChangeNotifier {
       } else {
         final model = PlantationsListModel.fromJson(jsonDecode(data));
         final incomingItems = model.results ?? [];
-        
-        // Просто добавляем все приходящие данные в массив
+
         list.addAll(incomingItems);
-        
+
         debugPrint("REJECTED PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
         debugPrint("Total plantations: ${list.length}");
-        
+
         currentPage++;
         canLoadNext = model.next != null;
       }
@@ -202,7 +199,6 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
                 itemCount: vm.list.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == vm.list.length && !vm.isSearching) {
-                    // Кнопка "Qolganlarini ko'rish"
                     return Container(
                       margin: REdgeInsets.symmetric(vertical: 16),
                       child: ElevatedButton(
@@ -247,9 +243,8 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
                     child: HomePageCardWidget(
                       plantation: plantation,
                       showEditButton: true,
-                      customProvider: sharedHomePageVM, // Use shared provider for deletion
+                      customProvider: sharedHomePageVM,
                       onDeleteSuccess: () {
-                        // Обновляем список после успешного удаления
                         ref.read(rejectedPageVM.notifier).fetch();
                       },
                     ),

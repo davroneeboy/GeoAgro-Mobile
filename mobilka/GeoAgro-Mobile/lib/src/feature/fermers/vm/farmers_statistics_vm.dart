@@ -13,7 +13,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
   List<FarmerData>? statistics;
   int? districtId;
   
-  // Поиск по ИНН
+
+
   final TextEditingController searchInnController = TextEditingController();
   bool isSearching = false;
   List<FarmerModel>? searchResults;
@@ -64,12 +65,10 @@ class FarmersStatisticsVm extends ChangeNotifier {
       } else {
         try {
           final jsonData = jsonDecode(data);
-          // API теперь возвращает {count: X, results: [...]}
           if (jsonData is Map<String, dynamic> && jsonData['results'] != null) {
             final resultsJson = jsonEncode(jsonData['results']);
             statistics = farmerStatisticsModelFromJson(resultsJson);
           } else {
-            // Fallback на старый формат, если он еще используется
             statistics = farmerStatisticsModelFromJson(data);
           }
         } catch (jsonError) {

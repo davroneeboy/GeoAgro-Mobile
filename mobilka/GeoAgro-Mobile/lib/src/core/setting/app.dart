@@ -5,19 +5,6 @@ import "../widgets/app_material_context.dart";
 import "../widgets/custom_screen_util.dart";
 import "remote_controller.dart";
 
-// class App extends StatelessWidget {
-//   const App({super.key});
-
-//   static void run() => runApp(const ProviderScope(child: App()));
-
-//   @override
-//   Widget build(BuildContext context) => const CustomScreenUtil(
-//         enabledPreview: false,
-//         child: AppMaterialContext(),
-//       );
-// }
-
-/// [Chat Version]
 class App extends StatelessWidget {
   final RemoteController remoteController;
 

@@ -10,11 +10,10 @@ import '../widgets/modern_login_input_widget.dart';
 import '../widgets/modern_login_button.dart';
 import '../../../../core/routes/router_config.dart';
 import '../../../../core/routes/app_route_names.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 
-// Riverpod provider
 final loginPageVM = ChangeNotifierProvider.autoDispose<LoginVm>((ref) {
   return LoginVm();
 });
@@ -41,7 +40,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
     _usernameFocus = FocusNode();
     _passwordFocus = FocusNode();
 
-    // Fade animation
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -51,7 +49,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
       curve: Curves.easeOut,
     );
 
-    // Slide animation
     _slideController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -64,7 +61,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
       curve: Curves.easeOutCubic,
     ));
 
-    // Start animations
     _fadeController.forward();
     _slideController.forward();
   }
@@ -112,7 +108,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Telegram botni ochishda xatolik yuz berdi"),
-          backgroundColor: DesignColors.AppColors.error,
+          backgroundColor: design_colors.AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -128,24 +124,22 @@ class _LoginPageState extends ConsumerState<LoginPage>
     final loginVmNotifier = ref.read(loginPageVM.notifier);
 
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: design_colors.AppColors.darkBackground,
       body: SafeArea(
         child: Stack(
           children: [
-            // Background gradient
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    DesignColors.AppColors.darkBackground,
-                    DesignColors.AppColors.darkSurface,
+                    design_colors.AppColors.darkBackground,
+                    design_colors.AppColors.darkSurface,
                   ],
                 ),
               ),
             ),
-            // Main content
             FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -163,16 +157,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           SizedBox(height: 20.h),
-                          // Logo section
                           _buildLogoSection(),
                           SizedBox(height: 48.h),
-                          // Title section
                           _buildTitleSection(),
                           SizedBox(height: 48.h),
-                          // Form fields
                           _buildFormFields(vm, loginVmNotifier),
                           SizedBox(height: 32.h),
-                          // Login button
                           _buildLoginButton(vm, loginVmNotifier),
                           SizedBox(height: 24.h),
                         ],
@@ -182,7 +172,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 ),
               ),
             ),
-            // Help button
             _buildHelpButton(),
           ],
         ),
@@ -193,13 +182,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget _buildLogoSection() {
     return Column(
       children: [
-        // Logo with subtle shadow
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -215,14 +203,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         ),
         SizedBox(height: 20.h),
-        // Agency name
         Text(
           "Qishloq xo'jaligi vazirligi\nhuzuridagi",
           textAlign: TextAlign.center,
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 13.sp,
             fontWeight: FontWeight.w500,
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: design_colors.AppColors.darkTextSecondary,
             height: 1.5,
             letterSpacing: 0.2,
           ),
@@ -234,7 +221,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           style: AppTypography.title(context).copyWith(
             fontSize: 16.sp,
             fontWeight: FontWeight.w700,
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: design_colors.AppColors.darkTextPrimary,
             height: 1.4,
           ),
         ),
@@ -252,7 +239,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           style: AppTypography.headline2(context).copyWith(
             fontSize: 32.sp,
             fontWeight: FontWeight.w800,
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: design_colors.AppColors.darkTextPrimary,
             height: 1.2,
             letterSpacing: -0.5,
           ),
@@ -263,7 +250,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           textAlign: TextAlign.center,
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 15.sp,
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: design_colors.AppColors.darkTextSecondary,
             height: 1.4,
           ),
         ),
@@ -275,7 +262,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Username field
         ModernLoginInputWidget(
           label: "Foydalanuvchi nomi",
           hintText: "Username",
@@ -294,7 +280,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
           },
         ),
         SizedBox(height: 24.h),
-        // Password field
         ModernLoginInputWidget(
           label: "Parol",
           hintText: "Password",
@@ -331,21 +316,21 @@ class _LoginPageState extends ConsumerState<LoginPage>
           if (isSuccess && mounted) {
             Utils.fireTopSnackBar(
               "Muvoffaqiyatli Tizimga Kirildi",
-              DesignColors.AppColors.success,
+              design_colors.AppColors.success,
               context,
             );
             RouterConfigService.router.go(AppRouteNames.home);
           } else if (mounted) {
             Utils.fireTopSnackBar(
               vm.errorMessage ?? "Xatolik yuz berdi",
-              DesignColors.AppColors.error,
+              design_colors.AppColors.error,
               context,
             );
           }
         } else {
           Utils.fireTopSnackBar(
             "Iltimos, ma'lumotlarni to'g'ri kiriting.",
-            DesignColors.AppColors.error,
+            design_colors.AppColors.error,
             context,
           );
         }
@@ -373,7 +358,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -382,7 +367,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 child: Icon(
                   Icons.help_outline_rounded,
                   size: 22.sp,
-                  color: DesignColors.AppColors.accentGreen,
+                  color: design_colors.AppColors.accentGreen,
                 ),
               ),
             ),
