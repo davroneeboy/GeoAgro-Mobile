@@ -116,6 +116,7 @@ export const districtsByRegion: DistrictsByRegion = {
     { id: "86", name: "Chiroqchi t" },
     { id: "87", name: "Shahrisabz t" },
     { id: "88", name: "Yakkabog' t" },
+    { id: "89", name: "Ko'kdala t" },
     { id: "80", name: "Kasbi t" },
   ],
   "7": [ // Navoiy
