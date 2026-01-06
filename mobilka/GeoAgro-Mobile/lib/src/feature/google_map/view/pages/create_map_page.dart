@@ -126,8 +126,9 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             polylines: vm.polylines,
             polygons: {
               ...vm.polygons,
-              ...vm.nearbyPolygons
-            }, // Объединяем полигоны пользователя и соседних плантаций
+              ...vm.nearbyPolygons,
+              ...vm.districtBoundaries, // Границы района пользователя
+            }, // Объединяем полигоны пользователя, соседних плантаций и границы района
             markers: vm.markers,
             onTap: vm.onTap,
           ),

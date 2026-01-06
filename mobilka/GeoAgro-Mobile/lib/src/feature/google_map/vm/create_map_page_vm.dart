@@ -1,6 +1,7 @@
 // create_map_page_vm.dart
 import 'dart:math';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,6 +13,8 @@ import '../../../data/model/plantation/nearby_plantations_model.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
+import '../../../core/services/geojson_service.dart';
+import '../../../core/setting/setup.dart';
 
 List<LatLng> polygoneCoordinates = [];
 
@@ -31,6 +34,7 @@ class CreateMapPageVm extends ChangeNotifier {
   final Set<Polygon> polygons = {};
   final Set<Marker> markers = {};
   final Set<Polygon> nearbyPolygons = {}; // Polygons for nearby plantations
+  final Set<Polygon> districtBoundaries = {}; // Границы района пользователя
 
   BitmapDescriptor? userArrowIcon;
   double userHeading = 0.0;
@@ -265,6 +269,9 @@ class CreateMapPageVm extends ChangeNotifier {
     // Загружаем плантации пользователя
     loadNearbyPlantations();
 
+    // Загружаем границы района пользователя
+    loadDistrictBoundaries();
+
     notifyListeners();
   }
 
@@ -317,6 +324,96 @@ class CreateMapPageVm extends ChangeNotifier {
     } finally {
       isLoadingNearby = false;
       notifyListeners();
+    }
+  }
+
+  /// Загрузить границы района пользователя из GeoJSON
+  Future<void> loadDistrictBoundaries() async {
+    try {
+      // Получаем districtId из storage
+      final userDistrictId = await AppStorage.$readInt(key: StorageKey.districtId);
+      if (userDistrictId == null || userDistrictId <= 0) {
+        debugPrint('⚠️ District ID not found, using default from setup: $districtId');
+        // Используем districtId из setup.dart как fallback
+        if (districtId > 0) {
+          await _loadBoundariesForDistrict(districtId);
+        }
+        return;
+      }
+
+      await _loadBoundariesForDistrict(userDistrictId);
+    } catch (e) {
+      debugPrint('❌ Error loading district boundaries: $e');
+    }
+  }
+
+  /// Загрузить границы для конкретного districtId
+  Future<void> _loadBoundariesForDistrict(int userDistrictId) async {
+    try {
+      final geoJsonService = GeoJsonService();
+      
+      // Пытаемся получить regionId из API (если доступно)
+      int? regionId;
+      try {
+        final userInfo = await _appRepositoryImpl.getUserInfo();
+        if (userInfo != null) {
+          final decoded = jsonDecode(userInfo) as Map<String, dynamic>;
+          regionId = decoded['region_id'] as int?;
+          if (regionId != null && regionId > 0) {
+            debugPrint('✅ Got regionId from API: $regionId');
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not get regionId from API: $e');
+      }
+
+      // Если не получили из API, получаем по districtId из маппинга
+      if (regionId == null || regionId <= 0) {
+        regionId = await geoJsonService.getRegionIdByDistrictId(userDistrictId);
+        if (regionId == null) {
+          debugPrint('⚠️ Region ID not found for district ID: $userDistrictId');
+          return;
+        }
+        debugPrint('✅ Got regionId from mapping: $regionId');
+      }
+
+      debugPrint('📍 Loading boundaries for districtId: $userDistrictId, regionId: $regionId');
+
+      // Получаем границы района
+      final boundaries = await geoJsonService.getDistrictBoundaries(
+        districtId: userDistrictId,
+        regionId: regionId,
+      );
+
+      if (boundaries.isEmpty) {
+        debugPrint('⚠️ No boundaries found for districtId: $userDistrictId');
+        return;
+      }
+
+      // Очищаем старые границы
+      districtBoundaries.clear();
+
+      // Создаем полигоны для каждого контура границы
+      for (int i = 0; i < boundaries.length; i++) {
+        final boundary = boundaries[i];
+        if (boundary.length < 3) continue; // Полигон должен иметь минимум 3 точки
+
+        districtBoundaries.add(
+          Polygon(
+            polygonId: PolygonId('district_boundary_$i'),
+            points: boundary,
+            strokeColor: Colors.white, // Белый цвет для границ
+            strokeWidth: 3,
+            fillColor: Colors.transparent, // Прозрачная заливка
+            geodesic: true,
+          ),
+        );
+      }
+
+      debugPrint('✅ Loaded ${districtBoundaries.length} boundary polygons for district $userDistrictId');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('❌ Error loading boundaries for district $userDistrictId: $e');
     }
   }
 
@@ -972,6 +1069,9 @@ class CreateMapPageVm extends ChangeNotifier {
       // Загружаем соседние плантации после получения местоположения
       loadNearbyPlantations();
 
+      // Загружаем границы района пользователя
+      loadDistrictBoundaries();
+
       if (mapController != null && currentLocation != null) {
         mapController!.animateCamera(CameraUpdate.newCameraPosition(
           CameraPosition(target: currentLocation!, zoom: 18),
@@ -989,6 +1089,9 @@ class CreateMapPageVm extends ChangeNotifier {
 
       // Загружаем соседние плантации
       loadNearbyPlantations();
+
+      // Загружаем границы района пользователя
+      loadDistrictBoundaries();
     } finally {
       _setLoading(false);
       notifyListeners();
