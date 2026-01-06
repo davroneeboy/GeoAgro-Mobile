@@ -23,6 +23,7 @@ class CustomTextField extends StatelessWidget {
   final bool readOnly;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final ValueChanged<String>? onSubmitted;
 
   const CustomTextField({
     super.key,
@@ -41,6 +42,7 @@ class CustomTextField extends StatelessWidget {
     this.readOnly = false,
     this.suffixIcon,
     this.prefixIcon,
+    this.onSubmitted,
   });
 
   @override
@@ -84,6 +86,7 @@ class CustomTextField extends StatelessWidget {
           textInputAction: textInputAction,
           onTap: onTap,
           readOnly: readOnly,
+          onSubmitted: onSubmitted,
           style: AppTypography.body(context).copyWith(
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,

@@ -118,11 +118,6 @@ class DevMenuPage extends StatelessWidget {
                 icon: Icons.person_add,
               ),
               _DevMenuItem(
-                title: 'Search Farmer',
-                route: '${AppRouteNames.home}/${AppRouteNames.farmers}/${AppRouteNames.searchFarmers}',
-                icon: Icons.search,
-              ),
-              _DevMenuItem(
                 title: 'Farmer Plantations',
                 route: '${AppRouteNames.home}/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?inn=123456789&name=Test',
                 icon: Icons.agriculture,

@@ -2,7 +2,6 @@ import 'package:agro_employee_public/src/feature/home/view/pages/natification_pa
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../feature/fermers/view/pages/farmer_search_page.dart';
 import '../../feature/fermers/view/pages/farmer_plantations_page.dart';
 import '../../feature/fermers/view/pages/test_plantations_page.dart';
 import '../../feature/edit/view/page/edit_page.dart';
@@ -151,13 +150,6 @@ final class RouterConfigService {
                 path: AppRouteNames.createFarmers,
                 pageBuilder: (context, state) => customEachTransitionAnimation(
                     context, state, FermerCreatePage()),
-              ),
-
-              // Search Farmer page
-              GoRoute(
-                path: AppRouteNames.searchFarmers,
-                pageBuilder: (context, state) => customEachTransitionAnimation(
-                    context, state, FarmerSearchPage()),
               ),
 
               // Farmer Plantations page
