@@ -19,6 +19,7 @@ import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
 import FruitAreasList from "../components/common/FruitAreasList";
 import InefficientAreasList from "../components/common/InefficientAreasList";
 import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
+import ImageGallery from "../components/common/ImageGallery";
 /* global google */
 
 const EditPlantation = () => {
@@ -89,7 +90,7 @@ const EditPlantation = () => {
     }
   };
   const [expandedSections, setExpandedSections] = useState({});
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [createdByUser, setCreatedByUser] = useState(null);
@@ -270,7 +271,7 @@ const EditPlantation = () => {
         if (isArchiveModalOpen) closeArchiveModal();
         if (isCommentDeleteOpen) closeCommentDeleteModal();
         if (farmerPlantsOpen) setFarmerPlantsOpen(false);
-        if (selectedImage) setSelectedImage(null);
+        if (selectedImageIndex !== null) setSelectedImageIndex(null);
       }
       
       // Alt+1-9 - Выбрать/снять причину отклонения по номеру
@@ -288,7 +289,7 @@ const EditPlantation = () => {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isArchiveModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImage]);
+  }, [isModalOpen, isApproveModalOpen, isDeleteModalOpen, isArchiveModalOpen, isCommentDeleteOpen, isDeleted, selectedReasons, farmerPlantsOpen, selectedImageIndex]);
 
   const handleConfirm = async () => {
     try {
@@ -1891,7 +1892,10 @@ const EditPlantation = () => {
                       src={img.image_url}
                       alt={`Изображение ${idx + 1}`}
                       className="w-full h-24 object-cover border border-gray-600 rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setSelectedImage(img.image_url)}
+                      onClick={() => {
+                        const index = plantation.images.findIndex(i => i.image_url === img.image_url);
+                        setSelectedImageIndex(index >= 0 ? index : null);
+                      }}
                     />
                   ))}
                 </div>
@@ -2489,18 +2493,12 @@ const EditPlantation = () => {
         </div>
       )}
 
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
-          onClick={() => setSelectedImage(null)}
-        >
-          <ImageWithHeicSupport
-            src={selectedImage}
-            alt="Увеличенное изображение"
-            className="max-w-full max-h-full rounded-md"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+      {selectedImageIndex !== null && plantation.images && plantation.images.length > 0 && (
+        <ImageGallery
+          images={plantation.images}
+          initialIndex={selectedImageIndex}
+          onClose={() => setSelectedImageIndex(null)}
+        />
       )}
 
 

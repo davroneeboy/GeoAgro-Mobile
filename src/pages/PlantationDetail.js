@@ -20,6 +20,7 @@ import ModerationComments from "../components/common/ModerationComments";
 import UserComments from "../components/common/UserComments";
 import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
 import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
+import ImageGallery from "../components/common/ImageGallery";
 /* global google */
 
 const PlantationDetail = () => {
@@ -28,7 +29,7 @@ const PlantationDetail = () => {
   const [plantation, setPlantation] = useState(() => location.state?.previewPlantation || null);
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState({});
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [error, setError] = useState(null);
   const [createdByUser, setCreatedByUser] = useState(null);
   const [moderatedByUser, setModeratedByUser] = useState(null);
@@ -874,7 +875,10 @@ const PlantationDetail = () => {
                       src={img.image_url}
                       alt={`Изображение ${idx + 1}`}
                       className="w-full h-24 object-cover border border-gray-600 rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setSelectedImage(img.image_url)}
+                      onClick={() => {
+                        const index = plantation.images.findIndex(i => i.image_url === img.image_url);
+                        setSelectedImageIndex(index >= 0 ? index : null);
+                      }}
                     />
                   ))}
                 </div>
@@ -909,17 +913,12 @@ const PlantationDetail = () => {
           <p className="text-white">Plantatsiya topilmadi</p>
         </div>
       )}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
-          onClick={() => setSelectedImage(null)}
-        >
-          <img
-            src={selectedImage}
-            alt="Увеличенное изображение"
-            className="max-w-full max-h-full rounded-md"
-          />
-        </div>
+      {selectedImageIndex !== null && plantation.images && plantation.images.length > 0 && (
+        <ImageGallery
+          images={plantation.images}
+          initialIndex={selectedImageIndex}
+          onClose={() => setSelectedImageIndex(null)}
+        />
       )}
       {farmerPlantsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
