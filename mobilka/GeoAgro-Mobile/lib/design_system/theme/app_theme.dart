@@ -8,10 +8,7 @@ import 'radius.dart';
 class AppTheme {
   AppTheme._();
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // LIGHT THEME
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
   static ThemeData get light {
     final colorScheme = _lightColorScheme;
     

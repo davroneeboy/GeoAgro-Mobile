@@ -151,6 +151,8 @@ class HomePageCardWidget extends StatelessWidget {
                         color: DesignColors.AppColors.darkTextPrimary,
                         height: 1.2,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                     if (farmerInn != null) ...[
                       SizedBox(height: AppSpacing.xs),
@@ -160,6 +162,8 @@ class HomePageCardWidget extends StatelessWidget {
                           color: DesignColors.AppColors.darkTextSecondary,
                           fontWeight: FontWeight.w500,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ],
                     SizedBox(height: AppSpacing.xs),
@@ -169,6 +173,8 @@ class HomePageCardWidget extends StatelessWidget {
                         style: AppTypography.bodySmall(context).copyWith(
                           color: DesignColors.AppColors.darkTextTertiary,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                   ],
                 ),

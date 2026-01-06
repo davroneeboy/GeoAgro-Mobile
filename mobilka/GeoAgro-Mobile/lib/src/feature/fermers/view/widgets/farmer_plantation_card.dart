@@ -41,16 +41,30 @@ class FarmerPlantationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with name and status
+            // Header with ID and status
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    plantation.name ?? 'Plantatsiya',
-                    style: AppTypography.headlineLarge(context).copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: DesignColors.AppColors.darkOnBackground,
-                    ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.tag,
+                        size: 20.sp,
+                        color: DesignColors.AppColors.primary,
+                      ),
+                      SizedBox(width: AppSpacing.xs),
+                      Flexible(
+                        child: Text(
+                          "ID: ${plantation.id}",
+                          style: AppTypography.headlineLarge(context).copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: DesignColors.AppColors.primary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 // Показываем статус в зависимости от isChecked и isRejected
@@ -179,27 +193,6 @@ class FarmerPlantationCard extends StatelessWidget {
               ],
             ),
             
-            // ID
-              Padding(
-                padding: EdgeInsets.only(top: AppSpacing.sm),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.tag,
-                    size: 14.sp,
-                    color: DesignColors.AppColors.darkOnSurfaceVariant,
-                  ),
-                  SizedBox(width: AppSpacing.xs),
-                  Text(
-                    "ID: ${plantation.id}",
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: DesignColors.AppColors.darkOnSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
             // Created by
             if (plantation.createdBy != null)
               Padding(
@@ -236,10 +229,14 @@ class FarmerPlantationCard extends StatelessWidget {
                       color: DesignColors.AppColors.darkOnSurfaceVariant,
                     ),
                     SizedBox(width: AppSpacing.xs),
-                    Text(
-                      "Yaratilgan: ${_formatDate(plantation.createdAt!)}",
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    Expanded(
+                      child: Text(
+                        "Yaratilgan: ${_formatDate(plantation.createdAt!)}",
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: DesignColors.AppColors.darkOnSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
@@ -258,10 +255,14 @@ class FarmerPlantationCard extends StatelessWidget {
                       color: DesignColors.AppColors.primary,
                     ),
                     SizedBox(width: AppSpacing.xs),
-                    Text(
-                      "Tasdiqlangan: ${_formatDate(plantation.moderatedAt!)}",
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: DesignColors.AppColors.primary,
+                    Expanded(
+                      child: Text(
+                        "Tasdiqlangan: ${_formatDate(plantation.moderatedAt!)}",
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: DesignColors.AppColors.primary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
@@ -337,10 +338,14 @@ class FarmerPlantationCard extends StatelessWidget {
           color: color,
         ),
         SizedBox(width: AppSpacing.xs),
-        Text(
-          label,
-          style: AppTypography.labelSmall(context).copyWith(
-            color: color,
+        Flexible(
+          child: Text(
+            label,
+            style: AppTypography.labelSmall(context).copyWith(
+              color: color,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
@@ -378,12 +383,17 @@ class FarmerPlantationCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: color,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           Text(
             label,
             style: AppTypography.labelSmall(context).copyWith(
               color: DesignColors.AppColors.darkOnSurfaceVariant,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            textAlign: TextAlign.center,
           ),
         ],
       ),
