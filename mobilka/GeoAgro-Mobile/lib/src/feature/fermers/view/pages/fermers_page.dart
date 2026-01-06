@@ -10,7 +10,6 @@ import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
-import 'package:agro_employee_public/src/core/widgets/main_button.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
@@ -40,6 +39,14 @@ class FermersPage extends ConsumerStatefulWidget {
 }
 
 class _FermersPageState extends ConsumerState<FermersPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -55,6 +62,23 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     });
   }
 
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final vm = ref.read(fermerPageVM);
+      if (vm.canLoad && !vm.isFetchingMore && !vm.isLoading && vm.searchResults == null) {
+        vm.getFermers(isLoadMore: true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(fermerPageVM);
@@ -62,7 +86,28 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     if (vm.isLoading) {
       return Scaffold(
         backgroundColor: DesignColors.AppColors.darkBackground,
-        appBar: CustomAppBarWidget(title: "Fermerlar", canPop: true),
+        appBar: CustomAppBarWidget(
+        title: "Fermerlar",
+        canPop: true,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final result = await context.push<bool?>(
+                "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
+              );
+              if (result == true && mounted) {
+                await ref.read(fermerPageVM).getFermers(isLoadMore: false);
+              }
+            },
+            icon: Icon(
+              Icons.person_add_rounded,
+              color: DesignColors.AppColors.accentGreen,
+              size: 24.sp,
+            ),
+            tooltip: "Yangi Fermer Qo'shish",
+          ),
+        ],
+      ),
         body: Center(
           child: Lottie.asset(
             'assets/lotties/search.json',
@@ -78,7 +123,28 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     if (vm.errorMessage != null) {
       return Scaffold(
         backgroundColor: DesignColors.AppColors.darkBackground,
-        appBar: const CustomAppBarWidget(title: "Fermerlar", canPop: true),
+        appBar: CustomAppBarWidget(
+          title: "Fermerlar",
+          canPop: true,
+          actions: [
+            IconButton(
+              onPressed: () async {
+                final result = await context.push<bool?>(
+                  "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
+                );
+                if (result == true && mounted) {
+                  await ref.read(fermerPageVM).getFermers(isLoadMore: false);
+                }
+              },
+              icon: Icon(
+                Icons.person_add_rounded,
+                color: DesignColors.AppColors.accentGreen,
+                size: 24.sp,
+              ),
+              tooltip: "Yangi Fermer Qo'shish",
+            ),
+          ],
+        ),
         body: ErrorStateWidget(
             errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdo",
             onTap: () => vm.getFermers()),
@@ -91,6 +157,24 @@ class _FermersPageState extends ConsumerState<FermersPage> {
       appBar: CustomAppBarWidget(
         title: "Fermerni tanlang",
         canPop: true,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final result = await context.push<bool?>(
+                "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
+              );
+              if (result == true && mounted) {
+                await vm.getFermers(isLoadMore: false);
+              }
+            },
+            icon: Icon(
+              Icons.person_add_rounded,
+              color: DesignColors.AppColors.accentGreen,
+              size: 24.sp,
+            ),
+            tooltip: "Yangi Fermer Qo'shish",
+          ),
+        ],
       ),
       body: Padding(
         padding: REdgeInsets.symmetric(horizontal: 14),
@@ -101,6 +185,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
           color: DesignColors.AppColors.accentGreen,
           backgroundColor: DesignColors.AppColors.darkSurface,
           child: SingleChildScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
@@ -128,22 +213,6 @@ class _FermersPageState extends ConsumerState<FermersPage> {
                         )
                       : _FarmersList(vm: vm),
                 ],
-                
-                // Add Farmer Button
-                Padding(
-                  padding: REdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: MainButton(
-                    text: "Yangi Fermer Qo'shish",
-                    onTap: () async {
-                      final result = await context.push<bool?>(
-                        "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
-                      );
-                      if (result == true) {
-                        await vm.getFermers(isLoadMore: false);
-                      }
-                    },
-                  ),
-                ),
               ],
             ),
           ),

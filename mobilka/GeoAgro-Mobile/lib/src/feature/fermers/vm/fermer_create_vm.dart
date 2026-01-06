@@ -17,59 +17,189 @@ class FermerCreateVm extends ChangeNotifier {
   TextEditingController inn = TextEditingController();
   TextEditingController establishedYear = TextEditingController();
 
+  // Ошибки валидации для каждого поля
+  String? nameError;
+  String? founderNameError;
+  String? directorNameError;
+  String? phoneNumberError;
+  String? addressError;
+  String? innError;
+  String? establishedYearError;
+
   bool isLoading = false;
+
+  FermerCreateVm() {
+    // Добавляем слушатели для валидации в реальном времени
+    name.addListener(_validateName);
+    founderName.addListener(_validateFounderName);
+    directorName.addListener(_validateDirectorName);
+    phoneNumber.addListener(_validatePhoneNumber);
+    address.addListener(_validateAddress);
+    inn.addListener(_validateInn);
+    establishedYear.addListener(_validateEstablishedYear);
+  }
 
   void _setLoading(bool value) {
     isLoading = value;
     notifyListeners();
   }
 
-  String? checkValidate() {
-    if (name.text.length < 3) {
-      return "Tashkilot nomi uzunligi eng kamidan 3 ta belgidan ko'p bo'lishi kerak.";
-    }
+  // Санитизация данных для защиты от XSS
+  String _sanitizeInput(String input) {
+    return input
+        .replaceAll(RegExp(r'<[^>]*>'), '') // Удаляем HTML теги
+        .replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false), '') // Удаляем script теги
+        .replaceAll(RegExp(r'javascript:', caseSensitive: false), '') // Удаляем javascript:
+        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false), '') // Удаляем обработчики событий
+        .trim();
+  }
 
-    if (founderName.text.length < 3) {
-      return "Asoschi ismi uzunligi eng kamidan 3 ta belgidan ko'p bo'lishi kerak.";
+  // Валидация имени организации
+  void _validateName() {
+    final value = _sanitizeInput(name.text);
+    if (value.isEmpty) {
+      nameError = "Tashkilot nomi bo'sh bo'lmasligi zarur";
+    } else if (value.length < 2) {
+      nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else {
+      nameError = null;
     }
+    notifyListeners();
+  }
 
-    if (directorName.text.length < 3) {
-      return "Rahbar ismi uzunligi eng kamidan 3 ta belgidan ko'p bo'lishi kerak.";
+  // Валидация имени основателя (только буквы и пробелы)
+  void _validateFounderName() {
+    final value = _sanitizeInput(founderName.text);
+    if (value.isEmpty) {
+      founderNameError = "Asoschi ismi bo'sh bo'lmasligi zarur";
+    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
+      founderNameError = "Asoschi ismi faqat harflardan iborat bo'lishi kerak";
+    } else if (value.length < 2) {
+      founderNameError = "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else {
+      founderNameError = null;
     }
+    notifyListeners();
+  }
 
-    if (phoneNumber.text.length != 9) {
-      return "Telefon raqam formati 997777777 ya'ni 9 ta sondan iborat bo'lishi zarur.";
+  // Валидация имени директора (только буквы и пробелы)
+  void _validateDirectorName() {
+    final value = _sanitizeInput(directorName.text);
+    if (value.isEmpty) {
+      directorNameError = "Rahbar ismi bo'sh bo'lmasligi zarur";
+    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
+      directorNameError = "Rahbar ismi faqat harflardan iborat bo'lishi kerak";
+    } else if (value.length < 2) {
+      directorNameError = "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else {
+      directorNameError = null;
     }
+    notifyListeners();
+  }
 
-    if (address.text.isEmpty) {
-      return "Adres bo'sh bo'lmasligi zarur.";
+  // Валидация номера телефона
+  void _validatePhoneNumber() {
+    final value = phoneNumber.text.trim();
+    if (value.isEmpty) {
+      phoneNumberError = "Telefon raqam bo'sh bo'lmasligi zarur";
+    } else if (!RegExp(r'^\d{9}$').hasMatch(value)) {
+      phoneNumberError = "Telefon raqam 9 ta raqamdan iborat bo'lishi zarur (masalan: 997777777)";
+    } else {
+      phoneNumberError = null;
     }
+    notifyListeners();
+  }
 
-    if (inn.text.length < 3) {
-      return "INN mos kelmadi.";
+  // Валидация адреса
+  void _validateAddress() {
+    final value = _sanitizeInput(address.text);
+    if (value.isEmpty) {
+      addressError = "Manzil bo'sh bo'lmasligi zarur";
+    } else if (value.length < 5) {
+      addressError = "Manzil kamida 5 ta belgidan iborat bo'lishi kerak";
+    } else {
+      addressError = null;
     }
+    notifyListeners();
+  }
 
-    if (establishedYear.text.length != 4) {
-      return "Tashkilot yaratilgan yili 4(xonali) bolishi zarur";
+  // Валидация ИНН
+  void _validateInn() {
+    final value = inn.text.trim();
+    if (value.isEmpty) {
+      innError = "INN bo'sh bo'lmasligi zarur";
+    } else if (!RegExp(r'^\d+$').hasMatch(value)) {
+      innError = "INN faqat raqamlardan iborat bo'lishi kerak";
+    } else if (value.length < 9) {
+      innError = "INN kamida 9 ta raqamdan iborat bo'lishi kerak";
+    } else if (value.length > 12) {
+      innError = "INN 12 ta raqamdan oshmasligi kerak";
+    } else {
+      innError = null;
     }
+    notifyListeners();
+  }
 
-    if (int.parse(establishedYear.text.trim()) > DateTime.now().year) {
-      return "Tashkilot yaratilgan yili hozigi yilga ${DateTime.now().year} teng yoki undan kichkina b'lishi zarur.";
+  // Валидация года создания
+  void _validateEstablishedYear() {
+    final value = establishedYear.text.trim();
+    if (value.isEmpty) {
+      establishedYearError = "Yaratilgan yil bo'sh bo'lmasligi zarur";
+    } else if (!RegExp(r'^\d{4}$').hasMatch(value)) {
+      establishedYearError = "Yaratilgan yil 4 ta raqamdan iborat bo'lishi zarur";
+    } else {
+      try {
+        final year = int.parse(value);
+        final currentYear = DateTime.now().year;
+        if (year > currentYear) {
+          establishedYearError = "Yaratilgan yil $currentYear yoki undan kichik bo'lishi kerak";
+        } else if (year < 1900) {
+          establishedYearError = "Yaratilgan yil 1900 yoki undan katta bo'lishi kerak";
+        } else {
+          establishedYearError = null;
+        }
+      } catch (e) {
+        establishedYearError = "Noto'g'ri yil formati";
+      }
     }
+    notifyListeners();
+  }
 
-    return null;
+  // Проверка всей формы перед отправкой
+  bool validateAll() {
+    _validateName();
+    _validateFounderName();
+    _validateDirectorName();
+    _validatePhoneNumber();
+    _validateAddress();
+    _validateInn();
+    _validateEstablishedYear();
+
+    return nameError == null &&
+        founderNameError == null &&
+        directorNameError == null &&
+        phoneNumberError == null &&
+        addressError == null &&
+        innError == null &&
+        establishedYearError == null;
   }
 
   Future<bool> createFermer() async {
     _setLoading(true);
     try {
+      // Санитизация всех данных перед отправкой
+      final sanitizedName = _sanitizeInput(name.text);
+      final sanitizedFounderName = _sanitizeInput(founderName.text);
+      final sanitizedDirectorName = _sanitizeInput(directorName.text);
+      final sanitizedAddress = _sanitizeInput(address.text);
+
       // Farmer Model ni yaratish
       CreateFermerModel fermerModel = CreateFermerModel(
-        name: name.text.trim(),
-        founderName: founderName.text.trim(),
-        directorName: directorName.text.trim(),
+        name: sanitizedName,
+        founderName: sanitizedFounderName,
+        directorName: sanitizedDirectorName,
         phoneNumber: phoneNumber.text.trim(),
-        address: address.text.trim(),
+        address: sanitizedAddress,
         inn: inn.text.trim(),
         establishedYear: int.parse(establishedYear.text.trim()),
         district: "$districtId",
@@ -102,8 +232,18 @@ class FermerCreateVm extends ChangeNotifier {
 
   @override
   void dispose() {
+    // Удаляем слушатели перед dispose
+    name.removeListener(_validateName);
+    founderName.removeListener(_validateFounderName);
+    directorName.removeListener(_validateDirectorName);
+    phoneNumber.removeListener(_validatePhoneNumber);
+    address.removeListener(_validateAddress);
+    inn.removeListener(_validateInn);
+    establishedYear.removeListener(_validateEstablishedYear);
+
     super.dispose();
     name.dispose();
+    founderName.dispose();
     directorName.dispose();
     address.dispose();
     phoneNumber.dispose();

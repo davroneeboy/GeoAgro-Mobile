@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,9 +9,9 @@ import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/main_button.dart';
+import '../../../../core/widgets/custom_text_field.dart';
 import '../../vm/fermer_create_vm.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
-import '../widgets/fermer_create_page_input_widget.dart';
 
 final fermerCreatePageVM =
     ChangeNotifierProvider.autoDispose<FermerCreateVm>((ref) {
@@ -49,57 +50,81 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLabel(context, "Tashkilot nomi"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
+                CustomTextField(
+                  label: "Tashkilot nomi",
+                  controller: vm.name,
                   hintText: "Firma nomi",
-                  textEditingController: vm.name,
+                  isRequired: true,
+                  errorText: vm.nameError,
                 ),
                 SizedBox(height: AppSpacing.md),
-                _buildLabel(context, "Asoschi"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
+                CustomTextField(
+                  label: "Asoschi",
+                  controller: vm.founderName,
                   hintText: "Eshmatov Toshmat",
-                  textEditingController: vm.founderName,
+                  isRequired: true,
+                  errorText: vm.founderNameError,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                  ],
                 ),
                 SizedBox(height: AppSpacing.md),
-                _buildLabel(context, "Rahbar"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
+                CustomTextField(
+                  label: "Rahbar",
+                  controller: vm.directorName,
                   hintText: "Eshmatov Toshmet 2",
-                  textEditingController: vm.directorName,
+                  isRequired: true,
+                  errorText: vm.directorNameError,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                  ],
                 ),
                 SizedBox(height: AppSpacing.md),
-                _buildLabel(context, "Telefon raqam"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
-                  hintText: "+998 97 777 77 77",
-                  textEditingController: vm.phoneNumber,
-                  textInputType: TextInputType.phone,
+                CustomTextField(
+                  label: "Telefon raqam",
+                  controller: vm.phoneNumber,
+                  hintText: "997777777",
+                  isRequired: true,
+                  errorText: vm.phoneNumberError,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(9),
+                  ],
                 ),
                 SizedBox(height: AppSpacing.md),
-                _buildLabel(context, "Manzil"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
+                CustomTextField(
+                  label: "Manzil",
+                  controller: vm.address,
                   hintText: "Orientir, manzil",
-                  textEditingController: vm.address,
+                  isRequired: true,
+                  errorText: vm.addressError,
                 ),
                 SizedBox(height: AppSpacing.md),
-                _buildLabel(context, "Yaratilgan yili"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
+                CustomTextField(
+                  label: "Yaratilgan yili",
+                  controller: vm.establishedYear,
                   hintText: "2023",
-                  textEditingController: vm.establishedYear,
-                  textInputType: TextInputType.number,
+                  isRequired: true,
+                  errorText: vm.establishedYearError,
+                  keyboardType: TextInputType.number,
                   maxLength: 4,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                 ),
                 SizedBox(height: AppSpacing.md),
-                _buildLabel(context, "INN"),
-                SizedBox(height: AppSpacing.sm),
-                FermerCreatePageInputWidget(
+                CustomTextField(
+                  label: "INN",
+                  controller: vm.inn,
                   hintText: "302208505",
-                  textEditingController: vm.inn,
-                  textInputType: TextInputType.number,
+                  isRequired: true,
+                  errorText: vm.innError,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                  ],
                 ),
                 SizedBox(height: AppSpacing.xxl),
                 MainButton(
@@ -107,14 +132,7 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   isLoading: vm.isLoading,
                   onTap: () async {
                     FocusScope.of(context).unfocus();
-                    final errorMessage = vm.checkValidate();
-                    if (errorMessage != null) {
-                      Utils.fireTopSnackBar(
-                        errorMessage,
-                        DesignColors.AppColors.error,
-                        context,
-                      );
-                    } else {
+                    if (vm.validateAll()) {
                       final result = await vm.createFermer();
                       if (!result && context.mounted) {
                         Utils.fireTopSnackBar(
@@ -130,6 +148,12 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                         );
                         context.pop(true);
                       }
+                    } else {
+                      Utils.fireTopSnackBar(
+                        "Iltimos, barcha maydonlarni to'g'ri to'ldiring",
+                        DesignColors.AppColors.error,
+                        context,
+                      );
                     }
                   },
                 ),
@@ -141,14 +165,4 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
     );
   }
 
-  Widget _buildLabel(BuildContext context, String text) {
-    return Text(
-      text,
-      style: AppTypography.bodySmall(context).copyWith(
-        color: DesignColors.AppColors.darkTextSecondary,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.2,
-      ),
-    );
-  }
 }
