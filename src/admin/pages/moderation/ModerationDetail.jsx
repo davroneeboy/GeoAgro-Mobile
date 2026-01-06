@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Descriptions, Row, Spin, message, Space, Button, Table, Image, Tag, Modal, Input } from 'antd';
+import { Card, Col, Descriptions, Row, Spin, message, Space, Button, Table, Tag, Modal, Input } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { moderationApi } from '../../services/adminApi';
 import { API_BASE_URL2 } from '../../../config';
+import ImageWithHeicSupport from '../../../components/common/ImageWithHeicSupport';
 
 function resolveImageSrc(item) {
   const pick = (obj, keys) => keys.map(k => obj?.[k]).find(Boolean);
@@ -202,7 +203,13 @@ export default function ModerationDetail() {
         <Card title="Изображения">
           <Space wrap>
             {images.map((src, idx) => (
-              <Image key={idx} width={160} src={src} alt={String(idx)} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <ImageWithHeicSupport 
+                key={idx} 
+                src={src} 
+                alt={String(idx)} 
+                className="w-40 h-40 object-cover border border-gray-300 rounded"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+              />
             ))}
           </Space>
         </Card>

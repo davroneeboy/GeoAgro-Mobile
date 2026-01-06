@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { GOOGLE_API_KEY } from "../config";
 import AuthContext from "../context/AuthContext";
 import { apiRequest } from "../utils/apiUtils";
+import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
 
 /* global google */
 
@@ -590,7 +591,7 @@ const PlantationPreviewPage = () => {
                 <h3 className="text-white font-semibold mb-2">Galereya</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {plantation.images.slice(0, 4).map((img, idx) => (
-                    <img
+                    <ImageWithHeicSupport
                       key={idx}
                       src={img.image_url}
                       alt={`Rasm ${idx + 1}`}

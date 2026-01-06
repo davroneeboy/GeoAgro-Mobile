@@ -19,6 +19,7 @@ import InefficientAreasList from "../components/common/InefficientAreasList";
 import ModerationComments from "../components/common/ModerationComments";
 import UserComments from "../components/common/UserComments";
 import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
+import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
 /* global google */
 
 const PlantationDetail = () => {
@@ -868,7 +869,7 @@ const PlantationDetail = () => {
                 <h3 className="text-lg font-semibold mb-3 text-white">Galereya:</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {plantation.images.map((img, idx) => (
-                    <img
+                    <ImageWithHeicSupport
                       key={idx}
                       src={img.image_url}
                       alt={`Изображение ${idx + 1}`}

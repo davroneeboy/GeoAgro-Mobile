@@ -18,6 +18,7 @@ import UserComments from "../components/common/UserComments";
 import CloseButtonWithReturn from "../components/common/CloseButtonWithReturn";
 import FruitAreasList from "../components/common/FruitAreasList";
 import InefficientAreasList from "../components/common/InefficientAreasList";
+import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
 /* global google */
 
 const EditPlantation = () => {
@@ -1885,7 +1886,7 @@ const EditPlantation = () => {
                 <h3 className="text-lg font-semibold mb-3 text-white">Galereya:</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {plantation.images.map((img, idx) => (
-                    <img
+                    <ImageWithHeicSupport
                       key={idx}
                       src={img.image_url}
                       alt={`Изображение ${idx + 1}`}
@@ -1968,7 +1969,7 @@ const EditPlantation = () => {
                                     <div className="flex items-center gap-2">
                               {mc?.image && typeof mc.image === 'string' && (
                                 <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                                  <img src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-gray-600" />
+                                  <ImageWithHeicSupport src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-gray-600" />
                                 </a>
                               )}
                               {canDeleteComments && mc?.id && (
@@ -2041,7 +2042,7 @@ const EditPlantation = () => {
                                     <div className="flex items-center gap-2">
                                       {mc?.image && typeof mc.image === 'string' && (
                                         <a href={mc.image} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                                          <img src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-blue-500/50" />
+                                          <ImageWithHeicSupport src={mc.image} alt="comment" className="w-12 h-12 object-cover rounded border border-blue-500/50" />
                                         </a>
                                       )}
                                       {canDeleteComments && mc?.id && (
@@ -2493,10 +2494,11 @@ const EditPlantation = () => {
           className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
           onClick={() => setSelectedImage(null)}
         >
-          <img
+          <ImageWithHeicSupport
             src={selectedImage}
             alt="Увеличенное изображение"
             className="max-w-full max-h-full rounded-md"
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}

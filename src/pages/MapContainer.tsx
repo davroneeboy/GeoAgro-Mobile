@@ -8,6 +8,7 @@ import { landTypeMapping } from "../context/constants";
 import AuthContext from "../context/AuthContext";
 import { apiRequest } from "../utils/apiUtils";
 import { MapDistrictStatsCard } from "../components/common/MapDistrictStats";
+import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
 import type {
   MapFilters,
   MapPagination,
@@ -739,7 +740,7 @@ const MapContainer: React.FC = () => {
             <h3 className="text-base font-semibold mb-2 text-white">Galereya:</h3>
             <div className="grid grid-cols-2 gap-2">
               {selectedPlantation.images.map((img, idx) => (
-                <img
+                <ImageWithHeicSupport
                   key={img.id || idx}
                   src={img.image_url}
                   alt={`${selectedPlantation.name || "Bog'"} - rasm ${idx + 1}`}

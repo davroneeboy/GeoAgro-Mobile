@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { GOOGLE_API_KEY, API_BASE_URL2 } from "../config";
 import AuthContext from "../context/AuthContext";
 import { fetchFarmerPlantations } from "../api/api";
+import ImageWithHeicSupport from "../components/common/ImageWithHeicSupport";
 
 /* global google */
 
@@ -390,7 +391,7 @@ const FarmerPlantationsMap = () => {
                       <h3 className="text-white font-semibold mb-2">Galereya</h3>
                       <div className="grid grid-cols-2 gap-2">
                         {selected.images.map((img, idx) => (
-                          <img key={idx} src={img.image_url} alt={`Rasm ${idx+1}`} className="w-full h-24 object-cover border border-gray-600 rounded" />
+                          <ImageWithHeicSupport key={idx} src={img.image_url} alt={`Rasm ${idx+1}`} className="w-full h-24 object-cover border border-gray-600 rounded" />
                         ))}
                       </div>
                     </div>
@@ -432,7 +433,7 @@ const FarmerPlantationsMap = () => {
                           {Array.isArray(p.images) && p.images.length > 0 && (
                             <div className="mt-2 grid grid-cols-2 gap-2">
                               {p.images.slice(0,2).map((img, idx) => (
-                                <img key={idx} src={img.image_url} alt={`Rasm ${idx+1}`} className="w-full h-16 object-cover border border-gray-600 rounded" />
+                                <ImageWithHeicSupport key={idx} src={img.image_url} alt={`Rasm ${idx+1}`} className="w-full h-16 object-cover border border-gray-600 rounded" />
                               ))}
                             </div>
                           )}
