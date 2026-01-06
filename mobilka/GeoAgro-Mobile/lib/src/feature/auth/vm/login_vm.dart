@@ -27,7 +27,6 @@ class LoginVm extends ChangeNotifier {
   Future<bool> login() async {
     _setLoading(true);
     try {
-      // API so‘rovi yuborish
       debugPrint("🔐 Login attempt for: ${userNameC.text.trim()}");
       final response = await _appRepositoryImpl.login(
         username: userNameC.text.trim(),
@@ -36,49 +35,36 @@ class LoginVm extends ChangeNotifier {
       debugPrint("🔐 Login response status: ${response.statusCode}");
       debugPrint("🔐 Login response data: ${response.data}");
 
-      // Agar status code 200 yoki 201 bo‘lsa
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonData = response.data;
 
-        // Token modelini yaratish va saqlash
         _tokenModel = tokenModelFromJson(jsonEncode(jsonData));
         await _putTokensToStorage();
 
-        // Update in-memory username immediately for this session
         username = userNameC.text.trim();
         accessToken = _tokenModel.access;
         debugPrint("🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
 
-        // Small delay to ensure everything settles (storage I/O, etc)
-        // This helps prevent 401 on immediate subsequent requests
         await Future.delayed(const Duration(milliseconds: 500));
 
-        // Fetch current user info and store districtId
         debugPrint("🚀 Login successful, now fetching user info...");
         await _fetchAndStoreUserInfo();
         debugPrint("✅ User info fetch completed");
 
-        // Xato xabarni tozalash va true qaytarish
         errorMessage = null;
         return true;
-      }
-      // Agar status code 401 bo‘lsa
-      else if (response.statusCode == 401) {
+      } else if (response.statusCode == 401) {
         errorMessage = "Noto'g'ri foydalanuvchi nomi yoki parol";
         return false;
-      }
-      // Boshqa holatlar (masalan, server xatosi)
-      else {
+      } else {
         errorMessage = "Server ochib qolgan bo'lishi mumkin.";
         return false;
       }
     } catch (e) {
-      // Kutilmagan xatoliklar uchun
       debugPrint("❌ Login unexpected error: $e");
       errorMessage = "Internet yoki server bilan muammo yuz berdi.";
       return false;
     } finally {
-      // Foydalanuvchini xabardor qilish
       _setLoading(false);
     }
   }
@@ -90,28 +76,26 @@ class LoginVm extends ChangeNotifier {
 
   Future<void> _fetchAndStoreUserInfo() async {
     debugPrint("🔍 Starting getUserInfo request...");
-    
+
     try {
       debugPrint("📡 Calling getUserInfo API...");
       final userInfoJson = await _appRepositoryImpl.getUserInfo();
-      
+
       if (userInfoJson == null) {
         debugPrint("❌ getUserInfo returned null");
         return;
       }
-      
+
       debugPrint("✅ getUserInfo response received: $userInfoJson");
       final decoded = jsonDecode(userInfoJson);
       debugPrint("🔍 Decoded user info: $decoded");
-      
+
       if (decoded is Map<String, dynamic>) {
-        // API returns district_id directly, not nested in location
         final dId = decoded["district_id"];
         final uId = decoded["id"];
         debugPrint("🏘️ District ID from API: $dId");
         debugPrint("👤 User ID from API: $uId");
 
-        // Store userId first
         if (uId is int && uId > 0) {
           await AppStorage.$writeInt(key: StorageKey.userId, value: uId);
           debugPrint("💾 Stored userId: $uId");
@@ -122,24 +106,19 @@ class LoginVm extends ChangeNotifier {
           await AppStorage.$writeInt(key: StorageKey.districtId, value: dId);
           debugPrint("💾 Stored districtId: $dId");
         }
-        
-        // Проверяем версию приложения и сохраняем специальные поля
+
         final userInfo = UserInfoModel.fromJson(decoded);
         if (userInfo.flutterVersion != null) {
           debugPrint("🔍 App version check: server=${userInfo.flutterVersion}");
-          // Версия будет проверена в drawer при первом открытии
         }
-        
-        // Сохраняем is_specialuser
+
         await AppStorage.$writeBool(key: StorageKey.isSpecialUser, value: userInfo.isSpecialUser);
         debugPrint("💾 Stored isSpecialUser: ${userInfo.isSpecialUser}");
-        
-        // Сохраняем limit_km (если не null)
+
         if (userInfo.limitKm != null) {
           await AppStorage.$writeDouble(key: StorageKey.limitKm, value: userInfo.limitKm!);
           debugPrint("💾 Stored limitKm: ${userInfo.limitKm} km");
         } else {
-          // Если null, удаляем старое значение (будет использован дефолт 1 км)
           await AppStorage.$delete(key: StorageKey.limitKm);
           debugPrint("💾 limitKm is null, will use default 1 km");
         }
