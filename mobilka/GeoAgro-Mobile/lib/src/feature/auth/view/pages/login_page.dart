@@ -273,7 +273,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             FocusScope.of(context).requestFocus(_passwordFocus);
           },
           validator: (value) {
-            if (value == null || value.isEmpty) {
+            if (value == null || value.trim().isEmpty) {
               return "Foydalanuvchi nomi kiritilishi shart";
             }
             return null;
@@ -294,7 +294,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             }
           },
           validator: (value) {
-            if (value == null || value.isEmpty) {
+            if (value == null || value.trim().isEmpty) {
               return "Parol kiritilishi shart";
             }
             return null;

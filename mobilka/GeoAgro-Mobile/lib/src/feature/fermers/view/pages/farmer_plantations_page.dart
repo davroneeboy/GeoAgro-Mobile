@@ -144,6 +144,7 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
                       color: DesignColors.AppColors.darkOnSurfaceVariant,
                     ),
                   ),
+                  SizedBox(height: AppSpacing.sm),
                 ],
               ),
             ),

@@ -1019,9 +1019,11 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       ),
       _InfoEntry(
         "Chegara maydon",
-        calculatedArea != null && calculatedArea > 0
-            ? "${calculatedArea.toStringAsFixed(2)} GA"
-            : "${_formatNumber(plantation.totalArea)} GA",
+        plantation.chegaraArea != null && plantation.chegaraArea! > 0
+            ? "${_formatNumber(plantation.chegaraArea)} GA"
+            : (calculatedArea != null && calculatedArea > 0
+                ? "${calculatedArea.toStringAsFixed(2)} GA"
+                : "${_formatNumber(plantation.totalArea)} GA"),
         Icons.landscape_outlined,
       ),
       if (perimeter != null && perimeter > 0)

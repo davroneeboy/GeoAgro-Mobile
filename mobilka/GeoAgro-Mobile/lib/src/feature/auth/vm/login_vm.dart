@@ -25,12 +25,21 @@ class LoginVm extends ChangeNotifier {
   }
 
   Future<bool> login() async {
+    // Валидация перед отправкой запроса
+    final trimmedUsername = userNameC.text.trim();
+    final trimmedPassword = passwordC.text.trim();
+    
+    if (trimmedUsername.isEmpty || trimmedPassword.isEmpty) {
+      errorMessage = "Noto'g'ri foydalanuvchi nomi yoki parol";
+      return false;
+    }
+    
     _setLoading(true);
     try {
-      debugPrint("🔐 Login attempt for: ${userNameC.text.trim()}");
+      debugPrint("🔐 Login attempt for: $trimmedUsername");
       final response = await _appRepositoryImpl.login(
-        username: userNameC.text.trim(),
-        password: passwordC.text.trim(),
+        username: trimmedUsername,
+        password: trimmedPassword,
       );
       debugPrint("🔐 Login response status: ${response.statusCode}");
       debugPrint("🔐 Login response data: ${response.data}");
@@ -41,7 +50,7 @@ class LoginVm extends ChangeNotifier {
         _tokenModel = tokenModelFromJson(jsonEncode(jsonData));
         await _putTokensToStorage();
 
-        username = userNameC.text.trim();
+        username = trimmedUsername; // Сохраняем в глобальную переменную из setup.dart
         accessToken = _tokenModel.access;
         debugPrint("🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
 
