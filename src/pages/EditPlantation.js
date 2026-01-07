@@ -1768,7 +1768,8 @@ const EditPlantation = () => {
                   </div>
                   </div>
                 )}
-              {Array.isArray(plantation.fruit_areas) && plantation.fruit_areas.length > 0 && (
+              {Array.isArray(plantation.fruit_areas) && plantation.fruit_areas.length > 0 && 
+               plantation.fruit_areas.some(area => !area.iqtisodiy_samarasiz) && (
                 <FruitAreasList fruit_areas={plantation.fruit_areas} />
               )}
             </div>
