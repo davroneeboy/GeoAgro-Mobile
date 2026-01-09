@@ -131,6 +131,12 @@ const UzbekistanMap = () => {
 
   // Google Maps API-ni yuklash
   useEffect(() => {
+    // Проверка наличия API ключа
+    if (!GOOGLE_API_KEY) {
+      console.error("⚠️ Google Maps API ключ не настроен! Проверьте переменную окружения REACT_APP_GOOGLE_MAPS_API_KEY в Netlify.");
+      return;
+    }
+
     const loadGoogleMaps = () => {
       const existingScript = document.getElementById("googleMaps");
       if (!existingScript) {
@@ -141,6 +147,9 @@ const UzbekistanMap = () => {
         script.defer = true;
         script.setAttribute('loading', 'async');
         script.onload = initializeMap;
+        script.onerror = () => {
+          console.error("Failed to load Google Maps API - проверьте API ключ и ограничения по домену в Google Cloud Console");
+        };
         document.body.appendChild(script);
       } else {
         initializeMap();

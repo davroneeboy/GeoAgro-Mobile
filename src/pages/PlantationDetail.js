@@ -514,6 +514,12 @@ const PlantationDetail = () => {
 
   useEffect(() => {
     if (plantation && !loading) {
+      // Проверка наличия API ключа
+      if (!GOOGLE_API_KEY) {
+        console.error("⚠️ Google Maps API ключ не настроен! Проверьте переменную окружения REACT_APP_GOOGLE_MAPS_API_KEY в Netlify.");
+        return;
+      }
+
       const loadGoogleMapsScript = () => {
         // Добавляем небольшую задержку, чтобы убедиться, что DOM готов
         setTimeout(() => {
@@ -536,6 +542,9 @@ const PlantationDetail = () => {
             if (typeof google !== "undefined") {
               initializeMap();
             }
+          };
+          script.onerror = () => {
+            console.error("Failed to load Google Maps API - проверьте API ключ и ограничения по домену в Google Cloud Console");
           };
         } else {
           if (typeof google !== "undefined") {

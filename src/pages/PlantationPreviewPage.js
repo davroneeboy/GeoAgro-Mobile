@@ -342,6 +342,12 @@ const PlantationPreviewPage = () => {
   useEffect(() => {
     if (!plantation || !plantation.coordinates) return;
 
+    // Проверка наличия API ключа
+    if (!GOOGLE_API_KEY) {
+      console.error("⚠️ Google Maps API ключ не настроен! Проверьте переменную окружения REACT_APP_GOOGLE_MAPS_API_KEY в Netlify.");
+      return;
+    }
+
     const ensureScript = () => new Promise((resolve, reject) => {
       if (typeof google !== "undefined") return resolve();
       const existing = document.getElementById("googleMaps");
@@ -356,7 +362,10 @@ const PlantationPreviewPage = () => {
       script.async = true;
       script.defer = true;
       script.onload = () => resolve();
-      script.onerror = () => reject();
+      script.onerror = () => {
+        console.error("Failed to load Google Maps API - проверьте API ключ и ограничения по домену в Google Cloud Console");
+        reject();
+      };
       document.body.appendChild(script);
     });
 
