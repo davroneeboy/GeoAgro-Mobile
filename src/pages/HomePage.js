@@ -292,16 +292,30 @@ const RegionBar = ({ region, maxCount, delay, isDark, onClick }) => {
         </div>
       </div>
       
-      <div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-slate-700/50" : "bg-slate-200"}`}>
+      <div className={`h-5 rounded-full overflow-hidden relative ${isDark ? "bg-slate-700/50" : "bg-slate-200"}`}>
         <div className="h-full flex transition-all duration-1000 ease-out" style={{ width: `${width}%` }}>
           <div 
-            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400"
-            style={{ width: `${approvedPercent}%` }}
-          />
-          <div 
-            className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
-            style={{ width: `${100 - approvedPercent}%` }}
-          />
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 flex items-center justify-center"
+            style={{ width: approvedPercent === 100 ? '100%' : `${approvedPercent}%` }}
+          >
+            {approvedPercent >= 15 && (
+              <span className="text-[10px] font-semibold text-white px-1 whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                {Math.round(approvedPercent)}%
+              </span>
+            )}
+          </div>
+          {approvedPercent < 100 && (
+            <div 
+              className="h-full bg-gradient-to-r from-amber-500 to-amber-400 flex items-center justify-center"
+              style={{ width: `${100 - approvedPercent}%` }}
+            >
+              {(100 - approvedPercent) >= 15 && (
+                <span className="text-[10px] font-semibold text-white px-1 whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                  {Math.round(100 - approvedPercent)}%
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       
