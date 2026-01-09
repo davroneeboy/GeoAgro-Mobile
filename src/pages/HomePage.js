@@ -406,7 +406,7 @@ const ActivityItem = ({ activity, type, isDark, delay }) => {
 // ═══════════════════════════════════════════════════════════════
 // STAT MINI CARD
 // ═══════════════════════════════════════════════════════════════
-const StatMini = ({ label, value, color = "slate", isDark }) => {
+const StatMini = ({ label, value, color = "slate", isDark, percentage }) => {
   const colors = {
     emerald: isDark ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" : "bg-emerald-50 text-emerald-600 ring-emerald-200",
     cyan: isDark ? "bg-cyan-500/10 text-cyan-400 ring-cyan-500/20" : "bg-cyan-50 text-cyan-600 ring-cyan-200",
@@ -423,6 +423,11 @@ const StatMini = ({ label, value, color = "slate", isDark }) => {
       <div className="font-bold text-lg">
         {typeof value === "number" ? value.toLocaleString() : value}
       </div>
+      {percentage !== undefined && (
+        <div className="text-xs opacity-60 mt-0.5">
+          {percentage.toFixed(1)}%
+        </div>
+      )}
     </div>
   );
 };
@@ -951,9 +956,46 @@ const HomePage = () => {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-4">
-                  <StatMini label="Tasdiqlangan" value={plantations?.approved_plantations} color="emerald" isDark={isDark} />
-                  <StatMini label="Kutilmoqda" value={plantations?.pending_plantations} color="amber" isDark={isDark} />
-                  <StatMini label="Rad etilgan" value={plantations?.rejected_plantations} color="rose" isDark={isDark} />
+                  {(() => {
+                    const total = (plantations?.approved_plantations || 0) + 
+                                  (plantations?.pending_plantations || 0) + 
+                                  (plantations?.rejected_plantations || 0);
+                    const approvedPercent = total > 0 
+                      ? ((plantations?.approved_plantations || 0) / total) * 100 
+                      : 0;
+                    const pendingPercent = total > 0 
+                      ? ((plantations?.pending_plantations || 0) / total) * 100 
+                      : 0;
+                    const rejectedPercent = total > 0 
+                      ? ((plantations?.rejected_plantations || 0) / total) * 100 
+                      : 0;
+                    
+                    return (
+                      <>
+                        <StatMini 
+                          label="Tasdiqlangan" 
+                          value={plantations?.approved_plantations} 
+                          color="emerald" 
+                          isDark={isDark}
+                          percentage={approvedPercent}
+                        />
+                        <StatMini 
+                          label="Kutilmoqda" 
+                          value={plantations?.pending_plantations} 
+                          color="amber" 
+                          isDark={isDark}
+                          percentage={pendingPercent}
+                        />
+                        <StatMini 
+                          label="Rad etilgan" 
+                          value={plantations?.rejected_plantations} 
+                          color="rose" 
+                          isDark={isDark}
+                          percentage={rejectedPercent}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
               </ChartWrapper>
             </GlassCard>
