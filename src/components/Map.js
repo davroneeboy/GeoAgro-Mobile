@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { GoogleMap, LoadScript, Polygon } from "@react-google-maps/api";
 import uzbGeoJson from "../assets/regions.geojson";
+import { GOOGLE_API_KEY } from "../config";
 
 const containerStyle = {
   width: "100%",
@@ -38,7 +39,7 @@ const Map = () => {
   }, []);
 
   return (
-    <LoadScript googleMapsApiKey="ВАШ_API_КЛЮЧ">
+    <LoadScript googleMapsApiKey={GOOGLE_API_KEY}>
       <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={6}>
         {mapPolygons.map((polygon, index) => (
           <Polygon
