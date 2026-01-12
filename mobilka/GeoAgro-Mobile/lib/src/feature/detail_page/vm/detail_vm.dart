@@ -14,6 +14,7 @@ import 'package:l/l.dart';
 import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
+import '../../../core/utils/sanitization_utils.dart';
 
 final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
   return DetailVM();
@@ -98,7 +99,6 @@ class DetailVM extends ChangeNotifier {
   int farmerId = 0;
   int direction = 0;
   List<Coordinate> coordinates = [];
-  double? polygonAreaFromMap; // Площадь полигона, рассчитанная на карте
   Map<String, double> userLocation = {
     'latitude': 41.311081,
     'longitude': 69.240562,
@@ -320,8 +320,10 @@ class DetailVM extends ChangeNotifier {
           body: jsonData, image: images);
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Если был введен комментарий, добавляем его после создания плантации
-        final commentsText = commentsController.text.trim();
-        if (commentsText.isNotEmpty) {
+        final rawCommentsText = commentsController.text.trim();
+        if (rawCommentsText.isNotEmpty) {
+          // Санитизация комментария для защиты от XSS
+          final commentsText = SanitizationUtils.sanitizeComment(rawCommentsText);
           try {
             // Получаем ID созданной плантации из ответа
             dynamic responseData = response.data;
@@ -629,21 +631,6 @@ class DetailVM extends ChangeNotifier {
       return 'Rasm yuklash majburiy, kamida 2 ta rasm yuklang';
     }
     
-    // Проверяем расхождение между площадью полигона (вычисленной Flutter на карте) 
-    // и новым total_area (который получаем при редактировании)
-    if (polygonAreaFromMap != null && polygonAreaFromMap! > 0) {
-      // Получаем новый total_area на основе всех введенных данных при редактировании
-      final newTotalArea = getTotalArea(ref);
-      if (newTotalArea > 0) {
-        final difference = (polygonAreaFromMap! - newTotalArea).abs();
-        final percentageDifference = (difference / polygonAreaFromMap!) * 100;
-        
-        if (percentageDifference > 15) {
-          return 'Xaritada chizilgan gektar (${polygonAreaFromMap!.toStringAsFixed(2)} ga) va umumiy maydon hisobida (${newTotalArea.toStringAsFixed(2)} ga) juda farq qiladi. Maksimal ruxsat etilgan xatolik 15%, joriy: ${percentageDifference.toStringAsFixed(1)}%';
-        }
-      }
-    }
-    
     return null;
   }
 
@@ -935,12 +922,10 @@ class DetailVM extends ChangeNotifier {
   void setValue({
     required int id,
     required List<Coordinate> coordinate,
-    double? polygonArea,
     required Map<String, double> userLocation,
   }) {
     farmerId = id;
     coordinates = coordinate;
-    polygonAreaFromMap = polygonArea;
     this.userLocation = userLocation;
     p.log("✅ DetailVM setValue: userLocation received: $userLocation");
     p.log("✅ DetailVM setValue: userLocation stored: ${this.userLocation}");

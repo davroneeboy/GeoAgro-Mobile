@@ -71,7 +71,6 @@ class DetailPageState extends ConsumerState<DetailPage> {
     ref.read(detailVM).setValue(
         id: widget.model["farmerId"] as int,
         coordinate: widget.model["coordinates"] as List<Coordinate>,
-        polygonArea: widget.model["polygonArea"] as double?,
         userLocation: userLocation);
     debugPrint("✅ DetailPage: setValue called successfully");
     super.didChangeDependencies();

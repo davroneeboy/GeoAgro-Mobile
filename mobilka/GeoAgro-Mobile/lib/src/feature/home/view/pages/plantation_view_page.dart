@@ -1032,7 +1032,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         "Chegara maydon",
         chegaraAreaValue != null && chegaraAreaValue > 0
             ? "${_formatNumber(chegaraAreaValue)} GA"
-            : "Ma'lumot yo'q",
+            : "${_formatNumber(plantation.totalArea)} GA",
         Icons.landscape_outlined,
       ),
       if (perimeter != null && perimeter > 0)
