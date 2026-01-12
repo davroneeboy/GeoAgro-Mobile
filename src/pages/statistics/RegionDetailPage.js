@@ -207,12 +207,6 @@ const RegionDetailPage = () => {
                 };
               } else if (districtName) {
                 // Обычные районы
-                console.log(`Processing district ${districtName}:`, {
-                  total_area: item.total_area,
-                  low_fertility: item.low_fertility,
-                  high_fertility: item.high_fertility,
-                  irrigation: item.irrigation
-                });
 
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
@@ -266,7 +260,6 @@ const RegionDetailPage = () => {
               }
             });
 
-            console.log('Final processed all data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
         } else if (dataType === 'approved') {
@@ -302,24 +295,12 @@ const RegionDetailPage = () => {
             const dataMap = {};
             let totalData = null;
 
-            console.log('Processing approved data:', data.length, 'items');
-
             data.forEach((item, index) => {
               const districtId = item.district_id?.toString();
               const districtName = item.district_name;
 
-              console.log(`Processing approved item ${index}:`, { districtId, districtName, total_area: item.total_area });
-
               if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
-                console.log('Processing approved TOTAL row:', {
-                  total_area: item.total_area,
-                  total_plantations: item.total_plantations,
-                  low_fertility: item.low_fertility,
-                  high_fertility: item.high_fertility,
-                  irrigation: item.irrigation
-                });
-
                 totalData = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -371,12 +352,6 @@ const RegionDetailPage = () => {
                 };
               } else if (districtName) {
                 // Обычные районы
-                console.log(`Processing approved district ${districtName}:`, {
-                  total_area: item.total_area,
-                  low_fertility: item.low_fertility,
-                  high_fertility: item.high_fertility,
-                  irrigation: item.irrigation
-                });
 
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
@@ -430,7 +405,6 @@ const RegionDetailPage = () => {
               }
             });
 
-            console.log('Final processed approved data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
         } else if (dataType === 'rejected') {
@@ -454,33 +428,12 @@ const RegionDetailPage = () => {
             const dataMap = {};
             let totalData = null;
 
-            console.log('Processing rejected data:', rejectedData.length, 'items');
-
             rejectedData.forEach((item, index) => {
               const districtId = item.district_id?.toString();
               const districtName = item.district_name;
 
-              console.log(`Processing rejected item ${index}:`, {
-                districtId,
-                districtName,
-                total_area: item.total_area,
-                irrigation: item.irrigation,
-                irrigation_area: item.irrigation?.area,
-                irrigation_count: item.irrigation?.count
-              });
-
               if (districtId === "TOTAL") {
                 // Сохраняем данные TOTAL для строки "Jami"
-                console.log('Processing rejected TOTAL row:', {
-                  total_area: item.total_area,
-                  total_plantations: item.total_plantations,
-                  low_fertility: item.low_fertility,
-                  high_fertility: item.high_fertility,
-                  irrigation: item.irrigation,
-                  irrigation_area: item.irrigation?.area,
-                  irrigation_count: item.irrigation?.count
-                });
-
                 totalData = {
                   total_area: Number(item.total_area || 0),
                   plantation_count: Number(item.total_plantations || 0),
@@ -532,12 +485,6 @@ const RegionDetailPage = () => {
                 };
               } else if (districtName) {
                 // Обычные районы
-                console.log(`Processing rejected district ${districtName}:`, {
-                  total_area: item.total_area,
-                  low_fertility: item.low_fertility,
-                  high_fertility: item.high_fertility,
-                  irrigation: item.irrigation
-                });
 
                 dataMap[districtName] = {
                   total_area: Number(item.total_area || 0),
@@ -591,7 +538,6 @@ const RegionDetailPage = () => {
               }
             });
 
-            console.log('Final processed rejected data:', { dataMap: Object.keys(dataMap), totalData });
             data = { data: dataMap, totalData: totalData };
           }
         } else {

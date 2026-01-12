@@ -270,19 +270,11 @@ const RegionsPage = () => {
           
           // Новый API возвращает массив объектов с данными регионов
           if (Array.isArray(allData)) {
-            console.log('Processing regions data:', allData.length, 'items');
             allData.forEach((regionData, index) => {
               const regionId = regionData.region_id?.toString();
-              console.log(`Region ${index}:`, { regionId, region_name: regionData.region_name, total_area: regionData.total_area });
               
               // Обрабатываем итоговую строку отдельно
               if (regionId === "TOTAL") {
-                console.log('Processing TOTAL row:', {
-                  total_area: regionData.total_area,
-                  low_fertility: regionData.low_fertility,
-                  high_fertility: regionData.high_fertility,
-                  irrigation: regionData.irrigation
-                });
                 data['total'] = {
                   total_area: regionData.total_area || 0,
                   total_plantations: regionData.total_plantations || 0,
@@ -331,12 +323,6 @@ const RegionsPage = () => {
                 };
               } else if (regionId) {
                 // Обычные регионы
-                console.log(`Processing region ${regionId}:`, {
-                  total_area: regionData.total_area,
-                  low_fertility: regionData.low_fertility,
-                  high_fertility: regionData.high_fertility,
-                  irrigation: regionData.irrigation
-                });
                 data[regionId] = {
                   total_area: regionData.total_area || 0,
                   total_plantations: regionData.total_plantations || 0,
@@ -387,9 +373,6 @@ const RegionsPage = () => {
             });
           }
 
-          console.log('Final processed data:', data);
-          console.log('Data keys:', Object.keys(data));
-
           setStatistics(data);
         } else if (activeTab === 'approved') {
           
@@ -423,26 +406,16 @@ const RegionsPage = () => {
           // Загружаем данные для всех регионов сразу с фильтром approved
           const approvedData = await fetchRegionsStatisticsWithStatus('approved', params, authState.accessToken);
           
-          console.log('Approved API Response:', approvedData); // Для отладки
-          
           // Преобразуем данные в нужный формат для таблицы
           data = {};
           
           // Новый API возвращает массив объектов с данными регионов
           if (Array.isArray(approvedData)) {
-            console.log('Processing approved regions data:', approvedData.length, 'items');
             approvedData.forEach((regionData, index) => {
               const regionId = regionData.region_id?.toString();
-              console.log(`Approved Region ${index}:`, { regionId, region_name: regionData.region_name, total_area: regionData.total_area });
               
               // Обрабатываем итоговую строку отдельно
               if (regionId === "TOTAL") {
-                console.log('Processing approved TOTAL row:', {
-                  total_area: regionData.total_area,
-                  low_fertility: regionData.low_fertility,
-                  high_fertility: regionData.high_fertility,
-                  irrigation: regionData.irrigation
-                });
                 data['total'] = {
                   total_area: regionData.total_area || 0,
                   total_plantations: regionData.total_plantations || 0,
@@ -491,13 +464,7 @@ const RegionsPage = () => {
                 };
               } else if (regionId) {
                 // Обычные регионы
-                console.log(`Processing approved region ${regionId}:`, {
-                  total_area: regionData.total_area,
-                  low_fertility: regionData.low_fertility,
-                  high_fertility: regionData.high_fertility,
-                  irrigation: regionData.irrigation
-                });
-              data[regionId] = {
+                data[regionId] = {
                   total_area: regionData.total_area || 0,
                   total_plantations: regionData.total_plantations || 0,
                   total_fruitarea: regionData.planted_area || 0,
@@ -547,9 +514,6 @@ const RegionsPage = () => {
             });
           }
 
-          console.log('Final processed approved data:', data);
-          console.log('Approved data keys:', Object.keys(data));
-          
           setStatistics(data);
           setApprovedTotals(data['total'] || null);
           setRejectedTotals(null);
@@ -572,16 +536,9 @@ const RegionsPage = () => {
           if (Array.isArray(rejectedData)) {
             rejectedData.forEach((regionData, index) => {
               const regionId = regionData.region_id?.toString();
-              console.log(`Rejected Region ${index}:`, { regionId, region_name: regionData.region_name, total_area: regionData.total_area });
               
               // Обрабатываем итоговую строку отдельно
               if (regionId === "TOTAL") {
-                console.log('Processing rejected TOTAL row:', {
-                  total_area: regionData.total_area,
-                  low_fertility: regionData.low_fertility,
-                  high_fertility: regionData.high_fertility,
-                  irrigation: regionData.irrigation
-                });
                 data['total'] = {
                   total_area: regionData.total_area || 0,
                   total_plantations: regionData.total_plantations || 0,
@@ -630,12 +587,6 @@ const RegionsPage = () => {
                 };
               } else if (regionId) {
                 // Обычные регионы
-                console.log(`Processing rejected region ${regionId}:`, {
-                  total_area: regionData.total_area,
-                  low_fertility: regionData.low_fertility,
-                  high_fertility: regionData.high_fertility,
-                  irrigation: regionData.irrigation
-                });
                 data[regionId] = {
                   total_area: regionData.total_area || 0,
                   total_plantations: regionData.total_plantations || 0,
@@ -685,9 +636,6 @@ const RegionsPage = () => {
               }
             });
           }
-
-          console.log('Final processed rejected data:', data);
-          console.log('Rejected data keys:', Object.keys(data));
 
           setStatistics(data);
           setRejectedTotals(data['total'] || null);
@@ -812,16 +760,6 @@ const RegionsPage = () => {
     .map(([regionId, data]) => {
     if (regionId === '11') { // Parkent
     }
-    
-    console.log(`Creating table row for region ${regionId}:`, {
-      low_fertility: data.low_fertility,
-      high_fertility: data.high_fertility,
-      irrigation: data.irrigation,
-      low_fertility_area: data.low_fertility_area,
-      high_fertility_area: data.high_fertility_area,
-      irrigation_area: data.irrigation_area,
-      irrigation_count: data.irrigation_count
-    });
     
     return {
     key: regionId,
@@ -987,11 +925,6 @@ const RegionsPage = () => {
   
   // Проверяем, есть ли данные "total" из API
   if (statistics?.total) {
-    console.log('Creating total row from statistics.total:', {
-      low_fertility: statistics.total.low_fertility,
-      high_fertility: statistics.total.high_fertility,
-      irrigation: statistics.total.irrigation
-    });
     totalRow = {
       key: "total",
       region: "Jami",
