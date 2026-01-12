@@ -17,6 +17,7 @@ class EditPlantationModel {
   Types? types;
   double? totalArea;
   double? irrigationArea;
+  double? chegaraArea; // Граничная площадь (Chegara maydon)
   double? fertilityScore;
   int? landType;
   bool? isFertile;
@@ -42,6 +43,7 @@ class EditPlantationModel {
     this.types,
     this.totalArea,
     this.irrigationArea,
+    this.chegaraArea,
     this.fertilityScore,
     this.landType,
     this.isFertile,
@@ -68,6 +70,7 @@ class EditPlantationModel {
     Types? types,
     double? totalArea,
     double? irrigationArea,
+    double? chegaraArea,
     double? fertilityScore,
     int? landType,
     bool? isFertile,
@@ -94,6 +97,7 @@ class EditPlantationModel {
         types: types ?? this.types,
         totalArea: totalArea ?? this.totalArea,
         irrigationArea: irrigationArea ?? this.irrigationArea,
+        chegaraArea: chegaraArea ?? this.chegaraArea,
         fertilityScore: fertilityScore ?? this.fertilityScore,
         landType: landType ?? this.landType,
         isFertile: isFertile ?? this.isFertile,
@@ -122,6 +126,7 @@ class EditPlantationModel {
         types: json["types"] == null ? null : Types.fromJson(json["types"]),
         totalArea: json["total_area"]?.toDouble(),
         irrigationArea: json["irrigation_area"]?.toDouble(),
+        chegaraArea: json["chegara_area"]?.toDouble(),
         fertilityScore: json["fertility_score"]?.toDouble(),
         landType: json["land_type"],
         isFertile: json["is_fertile"],
@@ -210,6 +215,7 @@ class EditPlantationModel {
         "types": types?.toJson(),
         "total_area": totalArea,
         "irrigation_area": irrigationArea,
+        "chegara_area": chegaraArea,
         "fertility_score": fertilityScore,
         "land_type": landType,
         "is_fertile": isFertile,

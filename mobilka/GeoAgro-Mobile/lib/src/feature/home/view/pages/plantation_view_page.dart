@@ -1014,14 +1014,12 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required PlantationMapViewVm mapVm,
     required MapEntry<String, Color> statusData,
   }) {
-    // Пересчитываем площадь из координат, как и периметр
-    final calculatedArea = mapVm.currentPlantation != null &&
-            mapVm.currentPlantation!.coordinates.isNotEmpty
-        ? mapVm.calculateArea(mapVm.currentPlantation!.coordinates)
-        : null;
     final perimeter = mapVm.currentPlantation == null
         ? null
         : mapVm.calculatePerimeter(mapVm.currentPlantation!.coordinates);
+
+    // Используем chegaraArea из API, если доступно, иначе totalArea
+    final chegaraAreaValue = plantation.chegaraArea ?? plantation.totalArea;
 
     final metrics = <_InfoEntry>[
       _InfoEntry(
@@ -1032,9 +1030,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       ),
       _InfoEntry(
         "Chegara maydon",
-        calculatedArea != null && calculatedArea > 0
-            ? "${calculatedArea.toStringAsFixed(2)} GA"
-            : "${_formatNumber(plantation.totalArea)} GA",
+        chegaraAreaValue != null && chegaraAreaValue > 0
+            ? "${_formatNumber(chegaraAreaValue)} GA"
+            : "Ma'lumot yo'q",
         Icons.landscape_outlined,
       ),
       if (perimeter != null && perimeter > 0)
