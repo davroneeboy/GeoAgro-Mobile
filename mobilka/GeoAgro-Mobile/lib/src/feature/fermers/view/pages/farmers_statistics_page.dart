@@ -750,41 +750,71 @@ class _FarmerCard extends StatelessWidget {
                 height: 1,
               ),
               SizedBox(height: AppSpacing.md),
-              Wrap(
-                spacing: AppSpacing.lg,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  _MetricPill(
-                    label: "Plantatsiyalar",
-                    value: "${farmer.totalPlantations ?? 0}",
-                    icon: Icons.forest_outlined,
-                  ),
-                  _MetricPill(
-                    label: "Tasdiqlangan",
-                    value: "${farmer.approvedPlantations ?? 0}",
-                    icon: Icons.check_circle_outlined,
-                  ),
-                  _MetricPill(
-                    label: "Ko'rib chiqilmoqda",
-                    value: "${farmer.pendingPlantations ?? 0}",
-                    icon: Icons.schedule_outlined,
-                  ),
-                  _MetricPill(
-                    label: "Rad etilgan",
-                    value: "${farmer.rejectedPlantations ?? 0}",
-                    icon: Icons.highlight_off_outlined,
-                  ),
-                  _MetricPill(
-                    label: "Uzumzor maydoni",
-                    value: "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
-                    icon: Icons.landscape_outlined,
-                  ),
-                  _MetricPill(
-                    label: "Bog maydoni",
-                    value: "${(farmer.bogArea ?? 0).toStringAsFixed(1)} ga",
-                    icon: Icons.park_outlined,
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final spacing = AppSpacing.lg;
+                  final availableWidth = constraints.maxWidth;
+                  
+                  // Минимальная ширина для одного элемента (примерно 140-160px)
+                  final minTileWidth = 140.0;
+                  
+                  // Список всех метрик
+                  final metrics = [
+                    _MetricPill(
+                      label: "Plantatsiyalar",
+                      value: "${farmer.totalPlantations ?? 0}",
+                      icon: Icons.forest_outlined,
+                    ),
+                    _MetricPill(
+                      label: "Tasdiqlangan",
+                      value: "${farmer.approvedPlantations ?? 0}",
+                      icon: Icons.check_circle_outlined,
+                    ),
+                    _MetricPill(
+                      label: "Ko'rib chiqilmoqda",
+                      value: "${farmer.pendingPlantations ?? 0}",
+                      icon: Icons.schedule_outlined,
+                    ),
+                    _MetricPill(
+                      label: "Rad etilgan",
+                      value: "${farmer.rejectedPlantations ?? 0}",
+                      icon: Icons.highlight_off_outlined,
+                    ),
+                    _MetricPill(
+                      label: "Uzumzor maydoni",
+                      value: "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
+                      icon: Icons.landscape_outlined,
+                    ),
+                    _MetricPill(
+                      label: "Bog maydoni",
+                      value: "${(farmer.bogArea ?? 0).toStringAsFixed(1)} ga",
+                      icon: Icons.park_outlined,
+                    ),
+                  ];
+                  
+                  // Вычисляем, помещаются ли все элементы в одну строку
+                  // Если ширина каждого элемента при размещении в одну строку >= minTileWidth, используем один столбец
+                  // Если нет - используем два столбца
+                  final singleRowWidth = availableWidth / metrics.length;
+                  final useTwoColumns = singleRowWidth < minTileWidth && metrics.length > 1;
+                  
+                  // Вычисляем ширину элемента
+                  final tileWidth = useTwoColumns
+                      ? (availableWidth - spacing) / 2
+                      : (availableWidth - (spacing * (metrics.length - 1))) / metrics.length;
+
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: AppSpacing.sm,
+                    alignment: WrapAlignment.start,
+                    children: metrics.map((metric) {
+                      return SizedBox(
+                        width: tileWidth,
+                        child: metric,
+                      );
+                    }).toList(),
+                  );
+                },
               ),
             ],
           ),

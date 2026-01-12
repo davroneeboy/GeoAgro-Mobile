@@ -1518,14 +1518,27 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isTwoColumn = constraints.maxWidth > 360;
-        final tileWidth = isTwoColumn
-            ? (constraints.maxWidth - AppSpacing.md) / 2
-            : constraints.maxWidth;
+        final spacing = AppSpacing.md;
+        final availableWidth = constraints.maxWidth;
+        
+        // Минимальная ширина для одного элемента (примерно 140-160px)
+        final minTileWidth = 140.0;
+        
+        // Вычисляем, помещаются ли все элементы в одну строку
+        // Если ширина каждого элемента при размещении в одну строку >= minTileWidth, используем один столбец
+        // Если нет - используем два столбца
+        final singleRowWidth = availableWidth / effectiveEntries.length;
+        final useTwoColumns = singleRowWidth < minTileWidth && effectiveEntries.length > 1;
+        
+        // Вычисляем ширину элемента
+        final tileWidth = useTwoColumns
+            ? (availableWidth - spacing) / 2
+            : (availableWidth - (spacing * (effectiveEntries.length - 1))) / effectiveEntries.length;
 
         return Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
+          spacing: spacing,
+          runSpacing: spacing,
+          alignment: WrapAlignment.start,
           children: effectiveEntries.map((entry) {
             return SizedBox(
               width: tileWidth,
