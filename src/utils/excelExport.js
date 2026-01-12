@@ -569,7 +569,7 @@ export const exportFarmersToExcel = (rows, districtName, filename) => {
     const workbook = XLSX.utils.book_new();
 
     const columns = [
-      { header: 'Fermer', key: 'name', width: 30 },
+      { header: 'INN', key: 'farmer_inn', width: 20 },
       { header: 'Plantatsiyalar (jami)', key: 'total_plantations', width: 20 },
       { header: 'Tasdiqlangan', key: 'approved_plantations', width: 18 },
       { header: 'Umumiy maydon (GA)', key: 'total_area', width: 20 },
@@ -578,7 +578,7 @@ export const exportFarmersToExcel = (rows, districtName, filename) => {
     ];
 
     const formatted = (rows || []).map(r => ({
-      name: r.name || '',
+      farmer_inn: r.farmer_inn || r.inn || '',
       total_plantations: Number(r.total_plantations || 0),
       approved_plantations: Number(r.approved_plantations || 0),
       total_area: Number(r.total_area || 0),

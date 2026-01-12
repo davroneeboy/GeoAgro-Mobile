@@ -119,6 +119,7 @@ const DistrictFarmersPage = () => {
         // Нормализуем поля под ожидаемые столбцы
         const normalize = (r) => {
           const name = r.name || r.farmer_name || r.farmer?.name || r.farmer?.full_name || r.company_name || '';
+          const farmer_inn = r.farmer_inn ?? r.inn ?? r.farmer?.inn ?? r.farmer?.farmer_inn ?? '';
           const total_plantations = Number(r.total_plantations ?? r.plantations_count ?? r.total_count ?? r.count ?? 0);
           const approved_plantations = Number(r.approved_plantations ?? r.approved ?? r.approved_count ?? 0);
           const rejected_plantations = Number(r.rejected_plantations ?? r.rejected_count ?? 0);
@@ -131,7 +132,8 @@ const DistrictFarmersPage = () => {
           const farmer_id = r.farmer_id ?? r.id ?? r.farmer?.id;
           return { 
             farmer_id, 
-            name, 
+            name,
+            farmer_inn,
             total_plantations, 
             approved_plantations, 
             rejected_plantations,
