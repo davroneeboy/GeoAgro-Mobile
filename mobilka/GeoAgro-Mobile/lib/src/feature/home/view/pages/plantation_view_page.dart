@@ -1181,28 +1181,28 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     return Row(
       children: [
-        Expanded(
-          child: FilledButton.icon(
-            onPressed: isChecked
-                ? null
-                : () {
-                    if (plantation.id != null) {
-                      context.go(
-                        "${AppRouteNames.home}${AppRouteNames.editPage}",
-                        extra: plantation.id,
-                      );
-                    }
-                  },
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            label: const Text("Tahrirlash"),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppSpacing.lg,
+        if (!isChecked) ...[
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () {
+                if (plantation.id != null) {
+                  context.go(
+                    "${AppRouteNames.home}${AppRouteNames.editPage}",
+                    extra: plantation.id,
+                  );
+                }
+              },
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              label: const Text("Tahrirlash"),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.lg,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
+        ],
         Expanded(
           child: FilledButton.tonalIcon(
             onPressed: () => _handleDelete(context, plantation, mapVm),

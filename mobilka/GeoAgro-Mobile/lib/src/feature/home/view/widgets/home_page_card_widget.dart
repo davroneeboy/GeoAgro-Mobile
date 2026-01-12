@@ -111,7 +111,8 @@ class HomePageCardWidget extends StatelessWidget {
     final matchesByUsername = plantation.createdByUsername != null &&
         username != null &&
         plantation.createdByUsername == username;
-    final canEdit = showEditButton && (matchesById || matchesByUsername);
+    final isChecked = plantation.isChecked ?? false;
+    final canEdit = showEditButton && (matchesById || matchesByUsername) && !isChecked;
     // return InkWell(
     //   onTap: onPressed,
     //   child: CustomCardWidget(
