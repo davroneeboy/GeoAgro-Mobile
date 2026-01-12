@@ -612,6 +612,12 @@ class EditVM extends ChangeNotifier {
       final response =
           await _appRepositoryImpl.editPlantation(id: id, body: body);
 
+      // Проверяем на ошибку 403 (Forbidden)
+      if (response.statusCode == 403) {
+        errorMessage = "Sizga ruxsat berilmagan";
+        return false;
+      }
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       } else {

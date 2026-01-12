@@ -30,6 +30,13 @@ class FarmerPlantationsVm extends ChangeNotifier {
       debugPrint('FarmerPlantationsVm: API response received: ${response != null ? 'success' : 'null'}');
       
       if (response != null) {
+        // Проверяем на ошибку 403 (Forbidden)
+        if (response == "FORBIDDEN_403") {
+          _errorMessage = "Sizga ruxsat berilmagan";
+          debugPrint('FarmerPlantationsVm: Access forbidden (403)');
+          return;
+        }
+        
         final data = jsonDecode(response);
         debugPrint('FarmerPlantationsVm: Parsed data: $data');
         final farmerPlantationResponse = FarmerPlantationResponse.fromJson(data);

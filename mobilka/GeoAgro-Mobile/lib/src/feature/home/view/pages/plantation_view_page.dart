@@ -21,6 +21,8 @@ import '../../../../data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_view_vm.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../pages/home_page.dart';
+import '../widgets/delete_confirmation_dialog.dart';
 
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
@@ -78,14 +80,20 @@ class PlantationViewPage extends ConsumerStatefulWidget {
 }
 
 class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
+  bool _hasTriedToLoadMapCoordinates = false;
+  bool _hasTriedToInitializeFromDetail = false;
+  
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Перезагружаем данные плантации при открытии страницы
       ref.read(plantationViewVM(widget.id)).retry();
-      // Перезагружаем координаты для карты
-      ref.read(plantationMapMiniVM(widget.id)).loadRelatedPlantations();
+      // Перезагружаем координаты для карты только один раз
+      if (!_hasTriedToLoadMapCoordinates) {
+        _hasTriedToLoadMapCoordinates = true;
+        ref.read(plantationMapMiniVM(widget.id)).loadRelatedPlantations();
+      }
     });
   }
 
@@ -403,14 +411,19 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (!isLoading && !hasError && plantation != null) {
       // Пытаемся использовать координаты из детальной информации для немедленного отображения
-      if (mapVm.currentPlantation == null && !mapVm.isLoading) {
+      // Только если еще не пытались инициализировать и карта не загружена
+      if (!_hasTriedToInitializeFromDetail && 
+          mapVm.currentPlantation == null && 
+          !mapVm.isLoading) {
+        _hasTriedToInitializeFromDetail = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // Пытаемся получить координаты из ответа API детальной информации
           _tryInitializeMapFromDetail(plantation.id);
           
           // Также загружаем координаты через стандартный endpoint, если инициализация не удалась
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mapVm.currentPlantation == null && !mapVm.isLoading) {
+            if (mapVm.currentPlantation == null && !mapVm.isLoading && !_hasTriedToLoadMapCoordinates) {
+              _hasTriedToLoadMapCoordinates = true;
               mapVm.loadRelatedPlantations();
             }
           });
@@ -1264,50 +1277,74 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, size: 48),
-        iconColor: Theme.of(context).colorScheme.error,
-        title: const Text("Plantatsiyani o'chirish"),
-        content: Text(
-          "Haqiqatan ham bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
-          style: AppTypography.bodyMedium(context),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Bekor qilish"),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deletePlantation(context, plantation.id);
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          final vm = ref.watch(homePageVM.notifier);
+          final isDeleting = ref.watch(homePageVM).isDeleting;
+          
+          return DeleteConfirmationDialog(
+            onConfirm: (String reason) async {
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+              await _deletePlantation(context, plantation.id, reason: reason);
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text("O'chirish"),
-          ),
-        ],
+            onCancel: () {
+              Navigator.of(context).pop();
+            },
+            isDeleting: isDeleting,
+          );
+        },
       ),
     );
   }
 
-  Future<void> _deletePlantation(BuildContext context, int? plantationId) async {
+  Future<void> _deletePlantation(BuildContext context, int? plantationId, {String? reason}) async {
     if (plantationId == null) return;
 
     try {
-      // TODO: Implement actual delete API call
-      // final repo = AppRepositoryImpl();
-      // await repo.deletePlantation(id: plantationId);
+      final vm = ref.read(homePageVM.notifier);
+      // Получаем статус плантации из mapVm, так как EditPlantationModel не содержит isChecked
+      final mapVm = ref.read(plantationMapMiniVM(widget.id));
+      final isChecked = mapVm.currentPlantation?.isChecked ?? false;
+      
+      bool result;
+      if (!isChecked) {
+        // Для неподтвержденных плантаций - прямое удаление
+        result = await vm.deletePlantation(id: plantationId);
+      } else {
+        // Для подтвержденных плантаций - отправка на модерацию
+        result = await vm.deletePlantationPermanently(id: plantationId, reason: reason ?? "O'chirish so'rovi");
+      }
       
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Plantatsiya muvaffaqiyatli o'chirildi"),
-            backgroundColor: DesignColors.AppColors.success,
-          ),
-        );
-        Navigator.of(context).pop(); // Go back to previous screen
+        debugPrint("Delete: Result: $result, deletMessage: ${vm.deletMessage}");
+        if (result) {
+          // Показываем сообщение об успехе
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(vm.deletMessage ?? "Plantatsiya muvaffaqiyatli o'chirildi"),
+              backgroundColor: DesignColors.AppColors.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // Возвращаемся на предыдущую страницу
+          if (context.mounted) {
+            // Используем go_router для возврата на предыдущую страницу
+            context.pop();
+          }
+        } else {
+          // Показываем сообщение об ошибке
+          final errorMessage = vm.deletMessage ?? "O'chirishda xatolik yuz berdi";
+          debugPrint("Delete: Showing error message: $errorMessage");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: DesignColors.AppColors.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -1315,6 +1352,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           SnackBar(
             content: Text("Xatolik: $e"),
             backgroundColor: DesignColors.AppColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

@@ -141,14 +141,121 @@ class HomePageVm extends ChangeNotifier {
 
   Future<bool> deletePlantation({required int id}) async {
     deletMessage = null;
+    debugPrint("Delete: Starting deletion for plantation ID: $id");
     _safeNotifyListeners();
 
     try {
       final data = await _appRepositoryImpl.deletePlantationModel(id: id, model: {});
+      debugPrint("Delete: Received data from repository: '$data' (type: ${data.runtimeType})");
       if (data == null) {
         deletMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+        _safeNotifyListeners();
         return false;
       } else {
+        // Проверяем на ошибку 403 (Forbidden)
+        if (data == "FORBIDDEN_403") {
+          deletMessage = "Sizga ruxsat berilmagan";
+          return false;
+        }
+        
+        // Сначала пытаемся распарсить как JSON, чтобы проверить на наличие ошибок
+        try {
+          // Пытаемся распарсить строку как JSON
+          Map<String, dynamic> jsonData;
+          if (data is String) {
+            // Если строка начинается с {, пытаемся распарсить
+            final trimmedData = data.trim();
+            if (trimmedData.startsWith('{') && trimmedData.endsWith('}')) {
+              jsonData = jsonDecode(trimmedData) as Map<String, dynamic>;
+            } else {
+              // Если это не JSON, но содержит error, все равно пытаемся распарсить
+              jsonData = jsonDecode(data) as Map<String, dynamic>;
+            }
+          } else {
+            jsonData = data as Map<String, dynamic>;
+          }
+          
+          // Проверяем на наличие поля "error" в ответе
+          if (jsonData.containsKey("error")) {
+            final errorMessage = jsonData["error"] is String 
+                ? jsonData["error"] as String 
+                : jsonData["error"].toString();
+            debugPrint("Delete error detected: $errorMessage");
+            deletMessage = errorMessage;
+            _safeNotifyListeners();
+            return false;
+          }
+        } catch (parseError) {
+          // Если не удалось распарсить как валидный JSON, пытаемся извлечь ошибку из строки
+          debugPrint("Delete: Failed to parse as JSON: $parseError");
+          final dataStr = data.toString();
+          
+          // Проверяем, содержит ли строка формат {error: ...}
+          if (dataStr.contains("error:") || dataStr.contains("{error")) {
+            // Пытаемся извлечь сообщение об ошибке
+            try {
+              // Ищем паттерн error: <message>
+              final errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(dataStr);
+              if (errorMatch != null) {
+                final errorMessage = errorMatch.group(1)?.trim() ?? "Xatolik yuz berdi";
+                debugPrint("Delete: Extracted error message: $errorMessage");
+                deletMessage = errorMessage;
+                _safeNotifyListeners();
+                return false;
+              }
+              
+              // Альтернативный паттерн: {error: message}
+              final errorMatch2 = RegExp(r'\{error:\s*([^}]+)\}').firstMatch(dataStr);
+              if (errorMatch2 != null) {
+                final errorMessage = errorMatch2.group(1)?.trim() ?? "Xatolik yuz berdi";
+                debugPrint("Delete: Extracted error message (pattern 2): $errorMessage");
+                deletMessage = errorMessage;
+                _safeNotifyListeners();
+                return false;
+              }
+            } catch (e) {
+              debugPrint("Delete: Failed to extract error from string: $e");
+            }
+            
+            // Если не удалось извлечь, используем общее сообщение
+            deletMessage = "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
+            _safeNotifyListeners();
+            return false;
+          }
+          
+          // Если это не ошибка, продолжаем обработку
+          debugPrint("Delete: Not an error format, continuing...");
+        }
+          
+          // Проверяем на ошибку 403 в JSON ответе
+          if (jsonData.containsKey("detail") && jsonData["detail"] is String) {
+            final detail = jsonData["detail"] as String;
+            if (detail.toLowerCase().contains("forbidden") || 
+                detail.toLowerCase().contains("ruxsat") ||
+                detail.toLowerCase().contains("доступ") ||
+                detail.toLowerCase().contains("permission")) {
+              deletMessage = "Sizga ruxsat berilmagan";
+              _safeNotifyListeners();
+              return false;
+            }
+          }
+          
+          // Если есть id или detail без ошибки, считаем успехом
+          if (jsonData.containsKey("id") || jsonData.containsKey("detail")) {
+            deletMessage = jsonData["detail"]?.toString() ?? "Plantatsiya muvaffaqiyatli o'chirildi";
+            plantationsList.removeWhere((plantation) => plantation.id == id);
+            approvedList.removeWhere((plantation) => plantation.id == id);
+            pendingList.removeWhere((plantation) => plantation.id == id);
+            recheckList.removeWhere((plantation) => plantation.id == id);
+            rejectedList.removeWhere((plantation) => plantation.id == id);
+            _safeNotifyListeners();
+            return true;
+          }
+        } catch (_) {
+          // Если не удалось распарсить как JSON, проверяем строку
+        }
+        
+        // Проверяем строку на наличие "success"
         if (data == "success" || data.toString().toLowerCase().contains("success")) {
           deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
           plantationsList.removeWhere((plantation) => plantation.id == id);
@@ -159,31 +266,97 @@ class HomePageVm extends ChangeNotifier {
           _safeNotifyListeners();
           return true;
         } else {
+          // Если не JSON и не success, проверяем на ошибки в строке
           try {
+            // Пытаемся распарсить как JSON еще раз для проверки на ошибки
             final jsonData = jsonDecode(data) as Map<String, dynamic>;
-            if (jsonData.containsKey("id") || jsonData.containsKey("detail")) {
-              deletMessage = jsonData["detail"]?.toString() ?? "Plantatsiya muvaffaqiyatli o'chirildi";
-              plantationsList.removeWhere((plantation) => plantation.id == id);
-              approvedList.removeWhere((plantation) => plantation.id == id);
-              pendingList.removeWhere((plantation) => plantation.id == id);
-              recheckList.removeWhere((plantation) => plantation.id == id);
-              rejectedList.removeWhere((plantation) => plantation.id == id);
+            if (jsonData.containsKey("error")) {
+              final errorMessage = jsonData["error"] is String 
+                  ? jsonData["error"] as String 
+                  : jsonData["error"].toString();
+              debugPrint("Delete error detected in string parse: $errorMessage");
+              deletMessage = errorMessage;
               _safeNotifyListeners();
-              return true;
+              return false;
             }
-          } catch (_) {
-            deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
-            plantationsList.removeWhere((plantation) => plantation.id == id);
-            approvedList.removeWhere((plantation) => plantation.id == id);
-            pendingList.removeWhere((plantation) => plantation.id == id);
-            recheckList.removeWhere((plantation) => plantation.id == id);
-            rejectedList.removeWhere((plantation) => plantation.id == id);
-            _safeNotifyListeners();
-            return true;
+          } catch (parseError) {
+            debugPrint("Delete: Failed to parse JSON in else block: $parseError, data: $data");
+            // Если не удалось распарсить JSON, проверяем строку на наличие ключевых слов ошибки
+            final dataStr = data.toString().toLowerCase();
+            
+            // Проверяем на ошибку 403
+            if (dataStr.contains("forbidden") || 
+                dataStr.contains("ruxsat") ||
+                dataStr.contains("доступ") ||
+                dataStr.contains("403")) {
+              deletMessage = "Sizga ruxsat berilmagan";
+              _safeNotifyListeners();
+              return false;
+            }
+            
+            // Проверяем на другие ошибки (например, "error", "no plantation", "matches")
+            if (dataStr.contains("error") || 
+                dataStr.contains("no plantation") ||
+                dataStr.contains("matches") ||
+                dataStr.contains("not found") ||
+                dataStr.contains("query")) {
+              // Пытаемся извлечь сообщение об ошибке из строки
+              try {
+                final originalData = data.toString();
+                // Если строка содержит формат {error: message}, извлекаем сообщение
+                if (originalData.contains("{") && originalData.contains("}")) {
+                  // Пытаемся распарсить как валидный JSON
+                  try {
+                    final jsonData = jsonDecode(originalData) as Map<String, dynamic>;
+                    if (jsonData.containsKey("error")) {
+                      deletMessage = jsonData["error"] is String 
+                          ? jsonData["error"] as String 
+                          : jsonData["error"].toString();
+                      _safeNotifyListeners();
+                      return false;
+                    }
+                  } catch (_) {
+                    // Если не валидный JSON, извлекаем через регулярное выражение
+                    // Формат: {error: No Plantation matches the given query.}
+                    final errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                    if (errorMatch != null) {
+                      final errorMessage = errorMatch.group(1)?.trim() ?? "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
+                      debugPrint("Delete: Extracted error message from invalid JSON: $errorMessage");
+                      deletMessage = errorMessage;
+                      _safeNotifyListeners();
+                      return false;
+                    }
+                  }
+                }
+                
+                // Если не удалось извлечь, используем общее сообщение
+                deletMessage = "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
+              } catch (e) {
+                debugPrint("Delete: Failed to extract error message: $e");
+                deletMessage = "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
+              }
+              _safeNotifyListeners();
+              return false;
+            }
           }
-          deletMessage = "Kutilmagan javob qaytdi";
-          return false;
+          
+          // Если нет признаков ошибки, считаем успехом
+          debugPrint("Delete: No error detected, treating as success");
+          deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
+          plantationsList.removeWhere((plantation) => plantation.id == id);
+          approvedList.removeWhere((plantation) => plantation.id == id);
+          pendingList.removeWhere((plantation) => plantation.id == id);
+          recheckList.removeWhere((plantation) => plantation.id == id);
+          rejectedList.removeWhere((plantation) => plantation.id == id);
+          _safeNotifyListeners();
+          return true;
         }
+        
+        // Если дошли сюда, значит ответ не распознан
+        debugPrint("Delete: Unrecognized response: $data");
+        deletMessage = "Kutilmagan javob qaytdi";
+        _safeNotifyListeners();
+        return false;
       }
     } catch (e) {
       deletMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
@@ -209,6 +382,12 @@ class HomePageVm extends ChangeNotifier {
         deletMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
         return false;
       } else {
+        // Проверяем на ошибку 403 (Forbidden)
+        if (data == "FORBIDDEN_403") {
+          deletMessage = "Sizga ruxsat berilmagan";
+          return false;
+        }
+        
         if (data == "success") {
           deletMessage = "O'chirish so'rovi moderatsiyaga yuborildi";
           plantationsList.removeWhere((plantation) => plantation.id == id);
@@ -227,9 +406,37 @@ class HomePageVm extends ChangeNotifier {
           final jsonData = jsonDecode(data) as Map<String, dynamic>;
           debugPrint("Delete JSON parsed: $jsonData");
 
+          // Проверяем на ошибку 403 в JSON ответе
+          if (jsonData.containsKey("detail") && jsonData["detail"] is String) {
+            final detail = jsonData["detail"] as String;
+            final detailLower = detail.toLowerCase();
+            if (detailLower.contains("forbidden") || 
+                detailLower.contains("ruxsat") ||
+                detailLower.contains("доступ") ||
+                detailLower.contains("permission") ||
+                detailLower.contains("403")) {
+              debugPrint("Delete 403 error detected in detail: $detail");
+              deletMessage = "Sizga ruxsat berilmagan";
+              return false;
+            }
+          }
+          
           if (jsonData.containsKey("error")) {
-            final errorMessage = jsonData["error"] as String;
+            final errorMessage = jsonData["error"] is String 
+                ? jsonData["error"] as String 
+                : jsonData["error"].toString();
             debugPrint("Delete error: $errorMessage");
+            
+            final errorLower = errorMessage.toLowerCase();
+            if (errorLower.contains("forbidden") || 
+                errorLower.contains("ruxsat") ||
+                errorLower.contains("доступ") ||
+                errorLower.contains("permission") ||
+                errorLower.contains("403")) {
+              debugPrint("Delete 403 error detected in error field");
+              deletMessage = "Sizga ruxsat berilmagan";
+              return false;
+            }
 
             if (errorMessage.contains("аллақачон юборилган") || errorMessage.contains("аллақачон ўчирилган") || 
                 errorMessage.contains("уже отправлена") || errorMessage.contains("уже удалена")) {
@@ -241,7 +448,9 @@ class HomePageVm extends ChangeNotifier {
           }
 
           if (jsonData.containsKey("detail")) {
-            final detailMessage = jsonData["detail"] as String;
+            final detailMessage = jsonData["detail"] is String
+                ? jsonData["detail"] as String
+                : jsonData["detail"].toString();
             debugPrint("Delete detail message: $detailMessage");
 
             if (detailMessage.contains("ўчирилди") || 
@@ -275,6 +484,16 @@ class HomePageVm extends ChangeNotifier {
             return false;
           }
         } catch (jsonError) {
+          // Если не удалось распарсить JSON, проверяем строку на наличие ключевых слов ошибки 403
+          final dataStr = data.toString().toLowerCase();
+          if (dataStr.contains("forbidden") || 
+              dataStr.contains("ruxsat") ||
+              dataStr.contains("доступ") ||
+              dataStr.contains("403")) {
+            debugPrint("Delete 403 error detected in raw data");
+            deletMessage = "Sizga ruxsat berilmagan";
+            return false;
+          }
           if (data.toString().toLowerCase().contains("success")) {
             deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
             plantationsList.removeWhere((plantation) => plantation.id == id);

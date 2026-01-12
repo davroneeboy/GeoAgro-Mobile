@@ -24,12 +24,20 @@ class PlantationMapViewVm extends ChangeNotifier {
   final Set<Circle> circles = {};
 
   LatLng initialPosition = const LatLng(41.311081, 69.240562);
+  
+  bool _isDisposed = false;
 
   PlantationMapViewVm(this.plantationId);
+  
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Инициализирует карту с координатами из детальной информации о плантации
@@ -85,11 +93,11 @@ class PlantationMapViewVm extends ChangeNotifier {
 
         _drawPlantationsOnMap();
         _centerMapOnCurrentPlantation();
-        notifyListeners();
+        _safeNotifyListeners();
         
         // Дополнительное обновление после небольшой задержки
         Future.delayed(const Duration(milliseconds: 300), () {
-          notifyListeners();
+          _safeNotifyListeners();
           debugPrint("[PlantationMapViewVm] Force update after initialization");
         });
       } else {
@@ -102,14 +110,20 @@ class PlantationMapViewVm extends ChangeNotifier {
   }
 
   Future<void> loadRelatedPlantations() async {
+    if (_isDisposed) return;
+    
     isLoading = true;
     errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final loaded = await _loadFromRelatedEndpoint();
+      if (_isDisposed) return;
+      
       if (!loaded) {
         final fallbackLoaded = await _loadFromUserMap();
+        if (_isDisposed) return;
+        
         if (!fallbackLoaded) {
           errorMessage = "Ma'lumotlar topilmadi";
         }
@@ -117,16 +131,18 @@ class PlantationMapViewVm extends ChangeNotifier {
 
       isLoading = false;
       // Убеждаемся, что карта обновится после загрузки
-      notifyListeners();
+      _safeNotifyListeners();
       
       // Дополнительное обновление после небольшой задержки для гарантии отображения
       Future.delayed(const Duration(milliseconds: 100), () {
-        notifyListeners();
+        _safeNotifyListeners();
       });
     } catch (e) {
+      if (_isDisposed) return;
+      
       errorMessage = "Xatolik: $e";
       isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -162,7 +178,7 @@ class PlantationMapViewVm extends ChangeNotifier {
     
     // Дополнительное обновление для гарантии отображения полигона
     Future.delayed(const Duration(milliseconds: 200), () {
-      notifyListeners();
+      _safeNotifyListeners();
     });
     
     return true;
@@ -199,7 +215,7 @@ class PlantationMapViewVm extends ChangeNotifier {
     
     // Дополнительное обновление для гарантии отображения полигона
     Future.delayed(const Duration(milliseconds: 200), () {
-      notifyListeners();
+      _safeNotifyListeners();
     });
     
     return true;
@@ -249,8 +265,9 @@ class PlantationMapViewVm extends ChangeNotifier {
             fillColor: isCurrent
                 ? color.withValues(alpha: 0.35)
                 : color.withValues(alpha: 0.2),
-            strokeColor: color,
-            strokeWidth: isCurrent ? 3 : 2,
+            // Для текущей плантации обводка желтая, для остальных - цвет по статусу
+            strokeColor: isCurrent ? Colors.yellow : color,
+            strokeWidth: isCurrent ? 4 : 2,
           ),
         );
 
@@ -258,8 +275,9 @@ class PlantationMapViewVm extends ChangeNotifier {
           Polyline(
             polylineId: PolylineId('polyline_${plantation.id}'),
             points: polygonPoints,
-            color: color,
-            width: isCurrent ? 3 : 2,
+            // Для текущей плантации линия желтая, для остальных - цвет по статусу
+            color: isCurrent ? Colors.yellow : color,
+            width: isCurrent ? 4 : 2,
           ),
         );
       } else if (points.length == 2) {
@@ -267,8 +285,9 @@ class PlantationMapViewVm extends ChangeNotifier {
           Polyline(
             polylineId: PolylineId('polyline_${plantation.id}'),
             points: points,
-            color: color,
-            width: isCurrent ? 3 : 2,
+            // Для текущей плантации линия желтая, для остальных - цвет по статусу
+            color: isCurrent ? Colors.yellow : color,
+            width: isCurrent ? 4 : 2,
           ),
         );
       } else if (isCurrent) {
@@ -277,8 +296,9 @@ class PlantationMapViewVm extends ChangeNotifier {
             circleId: CircleId('circle_${plantation.id}'),
             center: points.first,
             fillColor: color.withValues(alpha: 0.25),
-            strokeColor: color,
-            strokeWidth: 2,
+            // Для текущей плантации обводка желтая
+            strokeColor: Colors.yellow,
+            strokeWidth: 4,
             radius: 25,
           ),
         );
@@ -290,12 +310,12 @@ class PlantationMapViewVm extends ChangeNotifier {
     debugPrint("[PlantationMapViewVm] Total polygons: ${polygons.length}, polylines: ${polylines.length}, markers: ${markers.length}, circles: ${circles.length}");
     
     // Принудительно обновляем карту после отрисовки полигонов
-    notifyListeners();
+    _safeNotifyListeners();
     
     // Дополнительное обновление после небольшой задержки для гарантии отображения
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (polygons.isNotEmpty || polylines.isNotEmpty || markers.isNotEmpty) {
-        notifyListeners();
+      if (!_isDisposed && (polygons.isNotEmpty || polylines.isNotEmpty || markers.isNotEmpty)) {
+        _safeNotifyListeners();
         debugPrint("[PlantationMapViewVm] Force update after drawing polygons");
       }
     });
@@ -344,7 +364,7 @@ class PlantationMapViewVm extends ChangeNotifier {
 
     // Обновляем initialPosition сразу для немедленного отображения
     initialPosition = center;
-    notifyListeners();
+    _safeNotifyListeners();
 
     final bounds = LatLngBounds(
       southwest: LatLng(minLat, minLng),
@@ -457,6 +477,7 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     mapController?.dispose();
     super.dispose();
   }

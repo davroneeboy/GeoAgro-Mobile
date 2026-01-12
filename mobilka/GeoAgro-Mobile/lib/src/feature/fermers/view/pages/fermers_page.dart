@@ -158,7 +158,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
         title: "Fermerni tanlang",
         canPop: true,
         actions: [
-          IconButton(
+        IconButton(
             onPressed: () async {
               final result = await context.push<bool?>(
                 "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
@@ -166,29 +166,29 @@ class _FermersPageState extends ConsumerState<FermersPage> {
               if (result == true && mounted) {
                 await vm.getFermers(isLoadMore: false);
               }
-            },
-            icon: Icon(
+          },
+          icon: Icon(
               Icons.person_add_rounded,
               color: DesignColors.AppColors.accentGreen,
               size: 24.sp,
-            ),
+          ),
             tooltip: "Yangi Fermer Qo'shish",
           ),
         ],
-      ),
+              ),
       body: Padding(
-        padding: REdgeInsets.symmetric(horizontal: 14),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await vm.getFermers(isLoadMore: false);
-          },
-          color: DesignColors.AppColors.accentGreen,
-          backgroundColor: DesignColors.AppColors.darkSurface,
+              padding: REdgeInsets.symmetric(horizontal: 14),
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await vm.getFermers(isLoadMore: false);
+                },
+                color: DesignColors.AppColors.accentGreen,
+                backgroundColor: DesignColors.AppColors.darkSurface,
           child: SingleChildScrollView(
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
+                child: Column(
+                  children: [
                 // Search Section
                 _SearchSection(),
                 SizedBox(height: AppSpacing.lg),
@@ -383,33 +383,33 @@ class _FarmersList extends StatelessWidget {
         ...List.generate(
           vm.fermersList.length + (vm.isFetchingMore ? 1 : 0),
           (index) {
-            if (index == vm.fermersList.length) {
-              return Padding(
-                padding: REdgeInsets.all(16.0),
-                child: Center(
-                  child: CircularProgressIndicator(
+                                if (index == vm.fermersList.length) {
+                                  return Padding(
+                                    padding: REdgeInsets.all(16.0),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
                     color: DesignColors.AppColors.accentGreen,
                   ),
-                ),
-              );
-            }
+                                    ),
+                                  );
+                                }
 
             final farmer = vm.fermersList[index];
             return Padding(
               padding: EdgeInsets.only(bottom: AppSpacing.md),
               child: FermerPageCardWidget(
-                onPressed: () {
-                  context.push(
-                    "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}",
+                                  onPressed: () {
+                                    context.push(
+                                        "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}",
                     extra: farmer.id,
                   );
-                },
-                fermerModel: farmer,
+                                  },
+                                  fermerModel: farmer,
               ),
-            );
-          },
-        ),
-      ],
+                                );
+                              },
+                    ),
+                  ],
     );
   }
 }

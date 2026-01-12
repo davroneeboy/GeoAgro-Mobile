@@ -375,9 +375,46 @@ class ApiService {
     try {
       final response = await (await initDio()).delete<dynamic>(api, queryParameters: params);
       // DELETE может вернуть 204 (No Content) или 200 с телом ответа
-      if (response.statusCode == 204 || response.statusCode == 200) {
+      if (response.statusCode == 204) {
         return "success";
       }
+      
+      // Если статус 200, проверяем содержимое ответа на наличие ошибок
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        if (responseData == null) {
+          return "success";
+        }
+        
+        // Проверяем, не является ли ответ ошибкой
+        try {
+          final dataStr = responseData.toString();
+          // Пытаемся распарсить как JSON
+          if (dataStr.trim().startsWith('{') && dataStr.trim().endsWith('}')) {
+            final jsonData = jsonDecode(dataStr) as Map<String, dynamic>;
+            if (jsonData.containsKey("error")) {
+              // Это ошибка, возвращаем как есть для обработки в репозитории
+              return dataStr;
+            }
+          }
+          // Если не JSON или нет ошибки, проверяем строку
+          final dataLower = dataStr.toLowerCase();
+          if (dataLower.contains("error") || 
+              dataLower.contains("{error") ||
+              dataLower.contains("no plantation") ||
+              dataLower.contains("matches") ||
+              dataLower.contains("query")) {
+            // Это ошибка, возвращаем как есть
+            return dataStr;
+          }
+          // Нет ошибки, возвращаем success
+          return "success";
+        } catch (_) {
+          // Если не удалось проверить, возвращаем как есть
+          return responseData.toString();
+        }
+      }
+      
       return response.data?.toString() ?? "success";
     } on TimeoutException catch (_) {
       l.e("The connection has timed out, Please try again!");
@@ -388,6 +425,12 @@ class ApiService {
       if (e.response?.statusCode == 204) {
         return "success";
       }
+      
+      // Если статус 200, но есть данные об ошибке, возвращаем их
+      if (e.response?.statusCode == 200 && e.response?.data != null) {
+        return e.response!.data.toString();
+      }
+      
       rethrow;
     } on Object catch (_) {
       rethrow;
