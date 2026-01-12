@@ -124,6 +124,9 @@ const EditPlantation = () => {
     "Bo'sh maydonni to'ldiring",
     "Eski yildagi ko'chatlar hamda yangi yildagi ko'chatlarning yilini ajrating",
     "Kontur raqami kiritilmagan",
+    "Rasm xato yoki meva turi",
+    "Shpallerlar ko'rsatilmagan",
+    "Mevali hududga ekilgan yili buyicha kiriting",
   ];
   const [selectedReasons, setSelectedReasons] = useState([]);
 
