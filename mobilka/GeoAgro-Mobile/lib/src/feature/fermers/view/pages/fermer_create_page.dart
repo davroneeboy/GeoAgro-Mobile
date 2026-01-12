@@ -56,6 +56,9 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   hintText: "Firma nomi",
                   isRequired: true,
                   errorText: vm.nameError,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                  ],
                 ),
                 SizedBox(height: AppSpacing.md),
                 CustomTextField(

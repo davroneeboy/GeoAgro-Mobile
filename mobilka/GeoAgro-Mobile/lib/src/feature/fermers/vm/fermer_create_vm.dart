@@ -54,13 +54,17 @@ class FermerCreateVm extends ChangeNotifier {
         .trim();
   }
 
-  // Валидация имени организации
+  // Валидация имени организации (только латиница)
   void _validateName() {
     final value = _sanitizeInput(name.text);
     if (value.isEmpty) {
       nameError = "Tashkilot nomi bo'sh bo'lmasligi zarur";
     } else if (value.length < 2) {
       nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else if (RegExp(r'[а-яА-ЯёЁ]').hasMatch(value)) {
+      nameError = "Tashkilot nomi faqat lotin harflaridan iborat bo'lishi kerak (kirill harflari qabul qilinmaydi)";
+    } else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+      nameError = "Tashkilot nomi faqat lotin harflari va probellaridan iborat bo'lishi kerak";
     } else {
       nameError = null;
     }

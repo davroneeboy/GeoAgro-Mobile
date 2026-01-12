@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -54,6 +55,22 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
       return;
     }
     
+    // Проверка на кириллицу
+    if (RegExp(r'[а-яА-ЯёЁ]').hasMatch(newName)) {
+      setState(() {
+        _errorMessage = "Fermer nomi faqat lotin harflaridan iborat bo'lishi kerak (kirill harflari qabul qilinmaydi)";
+      });
+      return;
+    }
+    
+    // Проверка на наличие только латиницы и пробелов
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(newName)) {
+      setState(() {
+        _errorMessage = "Fermer nomi faqat lotin harflari va probellaridan iborat bo'lishi kerak";
+      });
+      return;
+    }
+    
     if (newName == widget.currentName) {
       Navigator.of(context).pop();
       return;
@@ -87,6 +104,9 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
               label: "Fermer nomi",
               isRequired: true,
               enabled: !widget.isLoading,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+              ],
             ),
             if (_errorMessage != null) ...[
               SizedBox(height: AppSpacing.sm),
