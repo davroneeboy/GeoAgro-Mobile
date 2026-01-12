@@ -353,6 +353,34 @@ class ApiService {
     }
   }
 
+  /// PUT method that returns ApiResponse
+  static Future<ApiResponse> putWithResponse(String api, Map<String, dynamic> data) async {
+    try {
+      final response = await (await initDio()).put<dynamic>(api, data: data);
+
+      return ApiResponse(
+        statusCode: response.statusCode ?? 500,
+        data: response.data,
+      );
+    } on TimeoutException catch (_) {
+      l.e("The connection has timed out, Please try again!");
+      rethrow;
+    } on DioException catch (e) {
+      // Обрабатываем DioException и возвращаем ApiResponse с данными об ошибке
+      l.e("PUT request failed: ${e.response?.statusCode}, ${e.response?.data}");
+      if (e.response != null) {
+        return ApiResponse(
+          statusCode: e.response!.statusCode ?? 500,
+          data: e.response!.data,
+        );
+      }
+      rethrow;
+    } on Object catch (e) {
+      l.e(e.toString());
+      rethrow;
+    }
+  }
+
   static Future<Response?> patch(String api, Map<String, dynamic> data) async {
     try {
       final response = await (await initDio()).patch<dynamic>(api, data: data);

@@ -30,6 +30,8 @@ abstract class AppRepo {
 
   Future<ApiResponse> postNewFermer({required CreateFermerModel fermer});
 
+  Future<ApiResponse> updateFarmer({required int id, required Map<String, dynamic> data});
+
   Future<String?> getFruits();
 
   Future<String?> getFruitsVerity({required String verity});

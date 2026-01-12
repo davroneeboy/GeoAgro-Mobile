@@ -75,6 +75,7 @@
 //   }
 // }
 
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -253,6 +254,110 @@ class FermerVm extends ChangeNotifier {
     searchResults = null;
     searchErrorMessage = null;
     notifyListeners();
+  }
+
+  // Update farmer name
+  bool isUpdating = false;
+  String? updateErrorMessage;
+
+  Future<bool> updateFarmerName({required int id, required String newName}) async {
+    isUpdating = true;
+    updateErrorMessage = null;
+    notifyListeners();
+
+    try {
+      log("UpdateFarmerName: Starting update for farmer $id with name: $newName");
+      
+      // Сначала получаем текущие данные фермера
+      final farmerData = await _appRepositoryImpl.getFarmerById(id);
+      if (farmerData == null) {
+        updateErrorMessage = "Fermer ma'lumotlari topilmadi";
+        isUpdating = false;
+        notifyListeners();
+        log("UpdateFarmerName: Farmer data not found");
+        return false;
+      }
+      
+      // Парсим данные фермера
+      final farmerJson = jsonDecode(farmerData);
+      final farmerModel = FarmerModel.fromJson(farmerJson);
+      
+      // Преобразуем в Map для отправки
+      final updateData = farmerModel.toJson();
+      // Обновляем только поле name
+      updateData["name"] = newName;
+      
+      log("UpdateFarmerName: Sending update with all farmer data, updating name to: $newName");
+      
+      final response = await _appRepositoryImpl.updateFarmer(
+        id: id,
+        data: updateData,
+      );
+
+      log("UpdateFarmerName: Response status: ${response.statusCode}, data: ${response.data}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Обновляем название в локальном списке
+        final farmerIndex = fermersList.indexWhere((f) => f.id == id);
+        if (farmerIndex != -1) {
+          fermersList[farmerIndex].name = newName;
+        }
+        
+        // Обновляем в результатах поиска, если есть
+        if (searchResults != null) {
+          final searchIndex = searchResults!.indexWhere((f) => f.id == id);
+          if (searchIndex != -1) {
+            searchResults![searchIndex].name = newName;
+          }
+        }
+
+        isUpdating = false;
+        notifyListeners();
+        log("UpdateFarmerName: Success");
+        return true;
+      } else {
+        // Извлекаем сообщение об ошибке из ответа
+        String errorMsg = "Xatolik yuz berdi";
+        if (response.data != null) {
+          try {
+            if (response.data is Map) {
+              final dataMap = response.data as Map<String, dynamic>;
+              if (dataMap.containsKey("detail")) {
+                errorMsg = dataMap["detail"].toString();
+              } else if (dataMap.containsKey("message")) {
+                errorMsg = dataMap["message"].toString();
+              } else if (dataMap.containsKey("error")) {
+                errorMsg = dataMap["error"].toString();
+              } else if (dataMap.containsKey("name")) {
+                // Если есть ошибки валидации для поля name
+                final nameErrors = dataMap["name"];
+                if (nameErrors is List && nameErrors.isNotEmpty) {
+                  errorMsg = nameErrors.first.toString();
+                } else if (nameErrors is String) {
+                  errorMsg = nameErrors;
+                }
+              }
+            } else if (response.data is String) {
+              errorMsg = response.data as String;
+            }
+          } catch (e) {
+            log("UpdateFarmerName: Failed to parse error message: $e");
+          }
+        }
+        
+        updateErrorMessage = errorMsg;
+        isUpdating = false;
+        notifyListeners();
+        log("UpdateFarmerName: Failed with status ${response.statusCode}: $errorMsg");
+        return false;
+      }
+    } catch (e) {
+      log("UpdateFarmerName: Exception: $e");
+      updateErrorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      isUpdating = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   @override

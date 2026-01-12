@@ -10,22 +10,39 @@ class FarmerPlantationsVm extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   int _farmerInn = 0;
+  bool _isDisposed = false;
 
   List<FarmerPlantation> get plantations => _plantations;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get farmerInn => _farmerInn;
 
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
   Future<void> getFarmerPlantations({required int farmerInn}) async {
+    if (_isDisposed) {
+      debugPrint('FarmerPlantationsVm: Attempted to load plantations after dispose');
+      return;
+    }
+
     _farmerInn = farmerInn;
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     debugPrint('FarmerPlantationsVm: Loading plantations for farmer INN: $farmerInn');
 
     try {
       final response = await _appRepositoryImpl.getFarmerPlantations(farmerInn: farmerInn);
+      
+      if (_isDisposed) {
+        debugPrint('FarmerPlantationsVm: Disposed during API call, ignoring response');
+        return;
+      }
       
       debugPrint('FarmerPlantationsVm: API response received: ${response != null ? 'success' : 'null'}');
       
@@ -34,6 +51,8 @@ class FarmerPlantationsVm extends ChangeNotifier {
         if (response == "FORBIDDEN_403") {
           _errorMessage = "Sizga ruxsat berilmagan";
           debugPrint('FarmerPlantationsVm: Access forbidden (403)');
+          _isLoading = false;
+          _safeNotifyListeners();
           return;
         }
         
@@ -47,17 +66,30 @@ class FarmerPlantationsVm extends ChangeNotifier {
         debugPrint('FarmerPlantationsVm: No data received from API');
       }
     } catch (e) {
+      if (_isDisposed) {
+        debugPrint('FarmerPlantationsVm: Disposed during error handling, ignoring');
+        return;
+      }
       _errorMessage = "Xatolik yuz berdi: ${e.toString()}";
       debugPrint('FarmerPlantationsVm: Error loading plantations: $e');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   void clearPlantations() {
+    if (_isDisposed) return;
     _plantations.clear();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

@@ -25,6 +25,7 @@ final class ApiConst {
   static const String apiGetUserInfo = "/api/user_info/";
   static const String apiGetDistrcts = "/api/districts/";
   static const String apiFermers = "/api/farmers/";
+  static String apiUpdateFarmer(int id) => "/api/farmers/$id/";
   static String apiFarmerPlantations({required int farmerInn}) => "/api/mymap/plantations/?farmer_inn=$farmerInn";
   static const String apiFruits = "/api/fruits";
   static const String apiFruitsVerity = "/api/variety";

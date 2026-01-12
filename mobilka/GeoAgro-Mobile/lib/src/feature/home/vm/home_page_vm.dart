@@ -225,34 +225,38 @@ class HomePageVm extends ChangeNotifier {
           
           // Если это не ошибка, продолжаем обработку
           debugPrint("Delete: Not an error format, continuing...");
-        }
           
-          // Проверяем на ошибку 403 в JSON ответе
-          if (jsonData.containsKey("detail") && jsonData["detail"] is String) {
-            final detail = jsonData["detail"] as String;
-            if (detail.toLowerCase().contains("forbidden") || 
-                detail.toLowerCase().contains("ruxsat") ||
-                detail.toLowerCase().contains("доступ") ||
-                detail.toLowerCase().contains("permission")) {
-              deletMessage = "Sizga ruxsat berilmagan";
-              _safeNotifyListeners();
-              return false;
+          // Пытаемся распарсить еще раз
+          try {
+            final jsonData = jsonDecode(dataStr) as Map<String, dynamic>;
+            
+            // Проверяем на ошибку 403 в JSON ответе
+            if (jsonData.containsKey("detail") && jsonData["detail"] is String) {
+              final detail = jsonData["detail"] as String;
+              if (detail.toLowerCase().contains("forbidden") || 
+                  detail.toLowerCase().contains("ruxsat") ||
+                  detail.toLowerCase().contains("доступ") ||
+                  detail.toLowerCase().contains("permission")) {
+                deletMessage = "Sizga ruxsat berilmagan";
+                _safeNotifyListeners();
+                return false;
+              }
             }
+            
+            // Если есть id или detail без ошибки, считаем успехом
+            if (jsonData.containsKey("id") || jsonData.containsKey("detail")) {
+              deletMessage = jsonData["detail"]?.toString() ?? "Plantatsiya muvaffaqiyatli o'chirildi";
+              plantationsList.removeWhere((plantation) => plantation.id == id);
+              approvedList.removeWhere((plantation) => plantation.id == id);
+              pendingList.removeWhere((plantation) => plantation.id == id);
+              recheckList.removeWhere((plantation) => plantation.id == id);
+              rejectedList.removeWhere((plantation) => plantation.id == id);
+              _safeNotifyListeners();
+              return true;
+            }
+          } catch (_) {
+            // Если не удалось распарсить как JSON, проверяем строку
           }
-          
-          // Если есть id или detail без ошибки, считаем успехом
-          if (jsonData.containsKey("id") || jsonData.containsKey("detail")) {
-            deletMessage = jsonData["detail"]?.toString() ?? "Plantatsiya muvaffaqiyatli o'chirildi";
-            plantationsList.removeWhere((plantation) => plantation.id == id);
-            approvedList.removeWhere((plantation) => plantation.id == id);
-            pendingList.removeWhere((plantation) => plantation.id == id);
-            recheckList.removeWhere((plantation) => plantation.id == id);
-            rejectedList.removeWhere((plantation) => plantation.id == id);
-            _safeNotifyListeners();
-            return true;
-          }
-        } catch (_) {
-          // Если не удалось распарсить как JSON, проверяем строку
         }
         
         // Проверяем строку на наличие "success"

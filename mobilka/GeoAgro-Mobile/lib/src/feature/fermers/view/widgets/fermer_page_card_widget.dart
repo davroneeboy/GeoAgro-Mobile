@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
@@ -7,15 +8,18 @@ import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
+import 'package:agro_employee_public/src/feature/fermers/view/widgets/edit_farmer_name_dialog.dart';
+import 'package:agro_employee_public/src/feature/fermers/view/pages/fermers_page.dart';
+import 'package:agro_employee_public/src/feature/fermers/vm/fermer_vm.dart';
 
-class FermerPageCardWidget extends StatelessWidget {
+class FermerPageCardWidget extends ConsumerWidget {
   final FarmerModel fermerModel;
   final VoidCallback onPressed;
   const FermerPageCardWidget(
       {super.key, required this.onPressed, required this.fermerModel});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
         debugPrint(
@@ -52,13 +56,30 @@ class FermerPageCardWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        fermerModel.name ?? "Noma'lum fermer",
-                        style: AppTypography.title(context).copyWith(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.w700,
-                          color: DesignColors.AppColors.darkTextPrimary,
-                          height: 1.25,
+                      GestureDetector(
+                        onTap: () {
+                          _showEditNameDialog(context, ref);
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                fermerModel.name ?? "Noma'lum fermer",
+                                style: AppTypography.title(context).copyWith(
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: DesignColors.AppColors.darkTextPrimary,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: AppSpacing.xs),
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 18.sp,
+                              color: DesignColors.AppColors.accentGreen,
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(height: AppSpacing.xs.h),
@@ -135,6 +156,46 @@ class FermerPageCardWidget extends StatelessWidget {
             SizedBox(height: AppSpacing.md.h),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditNameDialog(BuildContext context, WidgetRef ref) {
+    final vm = ref.read(fermerPageVM);
+    final currentName = fermerModel.name ?? "";
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => EditFarmerNameDialog(
+        currentName: currentName,
+        isLoading: vm.isUpdating,
+        onSave: (newName) async {
+          final success = await vm.updateFarmerName(
+            id: fermerModel.id!,
+            newName: newName,
+          );
+          
+          if (dialogContext.mounted) {
+            if (success) {
+              Navigator.of(dialogContext).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Fermer nomi muvaffaqiyatli yangilandi"),
+                  backgroundColor: DesignColors.AppColors.success,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(vm.updateErrorMessage ?? "Xatolik yuz berdi"),
+                  backgroundColor: DesignColors.AppColors.error,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          }
+        },
       ),
     );
   }

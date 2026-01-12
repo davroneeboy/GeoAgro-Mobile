@@ -381,6 +381,22 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
+  Future<ApiResponse> updateFarmer({required int id, required Map<String, dynamic> data}) async {
+    try {
+      debugPrint("UpdateFarmer: Updating farmer $id with data: $data");
+      final response = await ApiService.putWithResponse(ApiConst.apiUpdateFarmer(id), data);
+      debugPrint("UpdateFarmer: Response status: ${response.statusCode}, data: ${response.data}");
+      return response;
+    } catch (e) {
+      debugPrint("UpdateFarmer: Error: $e");
+      return ApiResponse(
+        statusCode: 500,
+        data: {"message": "Unexpected error: ${e.toString()}"},
+      );
+    }
+  }
+
+  @override
   Future<ApiResponse> postNewFermer({required CreateFermerModel fermer}) async {
     try {
       final response =
