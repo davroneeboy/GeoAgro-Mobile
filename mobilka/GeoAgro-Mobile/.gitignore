@@ -55,3 +55,6 @@ app.*.map.json
 
 # Server files (update server)
 /server/
+
+# Large GeoJSON files
+**/tuman_chegara.geojson
