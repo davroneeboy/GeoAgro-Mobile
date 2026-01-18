@@ -15,6 +15,8 @@ import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/utils/sanitization_utils.dart';
+import '../../../core/utils/utils.dart';
+import '../../../../design_system/theme/colors.dart' as DesignColors;
 
 final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
   return DetailVM();
@@ -782,22 +784,38 @@ class DetailVM extends ChangeNotifier {
     );
 
     if (source != null) {
-      await pickImage(cardId: cardId, source: source);
+      await pickImage(cardId: cardId, source: source, context: context);
     }
   }
 
   /// Старый метод для обратной совместимости (используется в некоторых местах)
-  Future<void> pickImageFromCamera(int cardId) =>
-      pickImage(cardId: cardId, source: ImageSource.camera);
+  Future<void> pickImageFromCamera(int cardId, {BuildContext? context}) =>
+      pickImage(cardId: cardId, source: ImageSource.camera, context: context);
       
   /// Основной метод для выбора изображения
-  Future<void> pickImage(
-      {required int cardId, required ImageSource source}) async {
+  Future<void> pickImage({
+    required int cardId,
+    required ImageSource source,
+    BuildContext? context,
+  }) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      _imageFiles[cardId] = File(pickedFile.path);
-      notifyListeners();
+    if (pickedFile == null) return;
+    
+    // Валидация формата изображения
+    if (!Utils.isValidImageFormat(pickedFile.path)) {
+      final mountedContext = context;
+      if (mountedContext != null && mountedContext.mounted) {
+        Utils.fireTopSnackBar(
+          "Faqat JPEG yoki JPG formatidagi rasmlar qabul qilinadi",
+          DesignColors.AppColors.error,
+          mountedContext,
+        );
+      }
+      return;
     }
+    
+    _imageFiles[cardId] = File(pickedFile.path);
+    notifyListeners();
   }
 
   Future<void> getFruit() async {

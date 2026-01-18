@@ -150,6 +150,12 @@ class FermerPageCardWidget extends ConsumerWidget {
                     title: "Tashkil topgan yil",
                     value: fermerModel.establishedYear.toString(),
                   ),
+                if (fermerModel.createdBy != null)
+                  _InfoPill(
+                    icon: Icons.person_outline,
+                    title: "Yaratgan",
+                    value: "${fermerModel.createdBy!.fullName} (${fermerModel.createdBy!.username})",
+                  ),
               ],
             ),
             SizedBox(height: AppSpacing.md.h),

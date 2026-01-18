@@ -387,6 +387,27 @@ class _SearchResultCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                if (farmer.createdBy != null) ...[
+                  SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 16.sp,
+                        color: DesignColors.AppColors.darkTextSecondary,
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          "Yaratgan: ${farmer.createdBy!.fullName} (${farmer.createdBy!.username})",
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: DesignColors.AppColors.darkTextSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ],
           ),

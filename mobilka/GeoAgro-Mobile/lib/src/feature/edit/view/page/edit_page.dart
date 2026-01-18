@@ -67,8 +67,6 @@ class _EditPageState extends ConsumerState<EditPage> {
     final isTrellisTemit = ref.watch(switchTrellisTemir);
     final isTrellisBeton = ref.watch(switchTrellisBeton);
     final isReservoirs = ref.watch(switchReservoirs);
-    final isReservoirsBeton = ref.watch(switchReservoirsBeton);
-    final isReservoirsQoplamali = ref.watch(switchReservoirsQoplamali);
     final isInvestmentXorijiy = ref.watch(switchInvestmentXorjiy);
     final isInvestmentMahhalliy = ref.watch(switchInvestmentMahhalliy);
 
@@ -481,51 +479,124 @@ class _EditPageState extends ConsumerState<EditPage> {
                   if (!value) {
                     ref.read(switchReservoirsBeton.notifier).state = false;
                     ref.read(switchReservoirsQoplamali.notifier).state = false;
-                    edit.reservoirsBetonliVolume.clear();
-                    edit.setReservoirBetonliVolume("");
-                    edit.reservoirsQoplamaliVolume.clear();
-                    edit.setReservoirQoplamaliVolume("");
+                    // Очищаем все контроллеры резервуаров
+                    for (final controller in edit.reservoirsBetonliVolumes) {
+                      controller.clear();
+                    }
+                    for (final controller in edit.reservoirsQoplamaliVolumes) {
+                      controller.clear();
+                    }
+                    // Оставляем только основные контроллеры
+                    edit.reservoirsBetonliVolumes.clear();
+                    edit.reservoirsQoplamaliVolumes.clear();
+                    edit.initializeReservoirs();
                   }
                 },
                 childWidgets: [
                   BorderWidget(children: [
-                    CustomSwitchCard(
-                      label: "Betonli suv xavzasi",
-                      switchValue: isReservoirsBeton,
-                      onChanged: (value) {
-                        ref.read(switchReservoirsBeton.notifier).state = value;
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final edit = ref.watch(editVm);
+                        final isReservoirsBeton = ref.watch(switchReservoirsBeton);
+                        return CustomSwitchCard(
+                          label: "Betonli suv xavzasi",
+                          switchValue: isReservoirsBeton,
+                          onChanged: (value) {
+                            ref.read(switchReservoirsBeton.notifier).state = value;
+                            if (value && edit.reservoirsBetonliVolumes.isEmpty) {
+                              edit.initializeReservoirs();
+                            }
+                          },
+                          childWidgets: [
+                            if (isReservoirsBeton) ...[
+                              ...List.generate(edit.reservoirsBetonliVolumes.length, (index) {
+                                return Padding(
+                                  padding: REdgeInsets.only(top: index == 0 ? 10 : 16),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: CustomTextFieldWithLabel(
+                                          controller: edit.reservoirsBetonliVolumes[index],
+                                          onTextChanged: (_) {},
+                                          hintText: "suv havzasi hajmi m³",
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ),
+                                      if (edit.reservoirsBetonliVolumes.length > 1)
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                          onPressed: () => edit.removeBetonReservoir(index),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                              Padding(
+                                padding: REdgeInsets.only(top: 10),
+                                child: TextButton.icon(
+                                  onPressed: edit.addBetonReservoir,
+                                  icon: const Icon(Icons.add),
+                                  label: const Text("Yana qo'shish"),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
                       },
-                      childWidgets: [
-                        Padding(
-                          padding: REdgeInsets.only(top: 10),
-                          child: CustomTextFieldWithLabel(
-                            controller: edit.reservoirsBetonliVolume,
-                            onTextChanged: edit.setReservoirBetonliVolume,
-                            hintText: "suv havzasi hajmi m³",
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
                     ),
                     SizedBox(height: 10.h),
-                    CustomSwitchCard(
-                      label: "Qoplamali suv xavzasi",
-                      switchValue: isReservoirsQoplamali,
-                      onChanged: (value) {
-                        ref.read(switchReservoirsQoplamali.notifier).state =
-                            value;
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final edit = ref.watch(editVm);
+                        final isReservoirsQoplamali = ref.watch(switchReservoirsQoplamali);
+                        return CustomSwitchCard(
+                          label: "Qoplamali suv xavzasi",
+                          switchValue: isReservoirsQoplamali,
+                          onChanged: (value) {
+                            ref.read(switchReservoirsQoplamali.notifier).state = value;
+                            if (value && edit.reservoirsQoplamaliVolumes.isEmpty) {
+                              edit.initializeReservoirs();
+                            }
+                          },
+                          childWidgets: [
+                            if (isReservoirsQoplamali) ...[
+                              ...List.generate(edit.reservoirsQoplamaliVolumes.length, (index) {
+                                return Padding(
+                                  padding: REdgeInsets.only(top: index == 0 ? 10 : 16),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: CustomTextFieldWithLabel(
+                                          controller: edit.reservoirsQoplamaliVolumes[index],
+                                          onTextChanged: (_) {},
+                                          hintText: "suv havzasi hajmi m³",
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ),
+                                      if (edit.reservoirsQoplamaliVolumes.length > 1)
+                                        Padding(
+                                          padding: REdgeInsets.only(left: 8),
+                                          child: IconButton(
+                                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                            onPressed: () => edit.removeQoplamaliReservoir(index),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                              Padding(
+                                padding: REdgeInsets.only(top: 10),
+                                child: TextButton.icon(
+                                  onPressed: edit.addQoplamaliReservoir,
+                                  icon: const Icon(Icons.add),
+                                  label: const Text("Yana qo'shish"),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
                       },
-                      childWidgets: [
-                        Padding(
-                          padding: REdgeInsets.only(top: 10),
-                          child: CustomTextFieldWithLabel(
-                            controller: edit.reservoirsQoplamaliVolume,
-                            onTextChanged: edit.setReservoirQoplamaliVolume,
-                            hintText: "suv havzasi hajmi m³",
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
                     ),
                   ])
                 ],
