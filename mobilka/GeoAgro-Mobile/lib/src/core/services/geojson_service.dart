@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 
 /// Сервис для работы с GeoJSON файлами
@@ -156,6 +155,7 @@ class GeoJsonService {
         debugPrint('❌ Error loading GeoJSON from android folder: $e');
       }
 
+      return null;
     } catch (e) {
       print('Error loading GeoJSON for region $regionId: $e');
       return null;

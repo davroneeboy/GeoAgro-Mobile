@@ -5,9 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../style/app_colors.dart';
 import '../../../../design_system/tokens/colors.dart' as DesignColors;
-import '../../../../design_system/tokens/typography.dart';
 
 /// A search bar widget with debounce functionality
 /// 

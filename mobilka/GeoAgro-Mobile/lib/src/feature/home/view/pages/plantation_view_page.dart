@@ -1277,7 +1277,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       context: context,
       builder: (context) => Consumer(
         builder: (context, ref, child) {
-          final vm = ref.watch(homePageVM.notifier);
           final isDeleting = ref.watch(homePageVM).isDeleting;
           
           return DeleteConfirmationDialog(

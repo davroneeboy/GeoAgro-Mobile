@@ -161,18 +161,14 @@ class HomePageVm extends ChangeNotifier {
         // Сначала пытаемся распарсить как JSON, чтобы проверить на наличие ошибок
         try {
           // Пытаемся распарсить строку как JSON
+          // data всегда String здесь, так как deletePlantationModel возвращает String?
+          final trimmedData = data.trim();
           Map<String, dynamic> jsonData;
-          if (data is String) {
-            // Если строка начинается с {, пытаемся распарсить
-            final trimmedData = data.trim();
-            if (trimmedData.startsWith('{') && trimmedData.endsWith('}')) {
-              jsonData = jsonDecode(trimmedData) as Map<String, dynamic>;
-            } else {
-              // Если это не JSON, но содержит error, все равно пытаемся распарсить
-              jsonData = jsonDecode(data) as Map<String, dynamic>;
-            }
+          if (trimmedData.startsWith('{') && trimmedData.endsWith('}')) {
+            jsonData = jsonDecode(trimmedData) as Map<String, dynamic>;
           } else {
-            jsonData = data as Map<String, dynamic>;
+            // Если это не JSON, но содержит error, все равно пытаемся распарсить
+            jsonData = jsonDecode(data) as Map<String, dynamic>;
           }
           
           // Проверяем на наличие поля "error" в ответе
@@ -355,12 +351,6 @@ class HomePageVm extends ChangeNotifier {
           _safeNotifyListeners();
           return true;
         }
-        
-        // Если дошли сюда, значит ответ не распознан
-        debugPrint("Delete: Unrecognized response: $data");
-        deletMessage = "Kutilmagan javob qaytdi";
-        _safeNotifyListeners();
-        return false;
       }
     } catch (e) {
       deletMessage = "Internet bilan bog'liq muammo yuzaga keldi.";

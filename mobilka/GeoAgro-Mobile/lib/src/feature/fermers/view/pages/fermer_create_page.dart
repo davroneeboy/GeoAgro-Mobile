@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
-import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/main_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
