@@ -23,9 +23,7 @@ class HomePageVm extends ChangeNotifier {
   bool canLoadNext = true;
   String? _searchQuery;
 
-  HomePageVm(this._appRepositoryImpl) {
-    getPlantationsModel();
-  }
+  HomePageVm(this._appRepositoryImpl);
 
   bool get isLoading => _isLoading;
   bool get isFetchingMore => _isFetchingMore;
@@ -33,7 +31,9 @@ class HomePageVm extends ChangeNotifier {
   bool get isSearching => (_searchQuery?.isNotEmpty ?? false);
 
   List<Result> get recheckPlantations => plantationsList
-      .where((e) => (e.isChecked == false) && ((e.moderationComments?.isNotEmpty ?? false)))
+      .where((e) =>
+          (e.isChecked == false) &&
+          ((e.moderationComments?.isNotEmpty ?? false)))
       .toList();
 
   void _setLoading(bool value) {
@@ -84,13 +84,14 @@ class HomePageVm extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> getPlantationsModel({bool isLoadMore = false, String? search}) async {
+  Future<void> getPlantationsModel(
+      {bool isLoadMore = false, String? search}) async {
     if ((!canLoadNext && isLoadMore) || (isLoadMore && isFetchingMore)) return;
 
     if (search != _searchQuery && !isLoadMore) {
       _searchQuery = search;
     }
-    
+
     try {
       errorMessage = null;
       if (!isLoadMore) {
@@ -103,7 +104,7 @@ class HomePageVm extends ChangeNotifier {
       }
 
       final data = await _appRepositoryImpl.getPlantationsList(
-        page: currentPage, 
+        page: currentPage,
         search: _searchQuery,
       );
 
@@ -114,7 +115,7 @@ class HomePageVm extends ChangeNotifier {
           log("Received data length: ${data.length}");
           final model = plantationsListModelFromJson(data);
           log("Parsed ${model.results?.length ?? 0} plantations for page $currentPage");
-          
+
           final incomingItems = model.results ?? [];
           plantationsList.addAll(incomingItems);
 
@@ -145,8 +146,10 @@ class HomePageVm extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      final data = await _appRepositoryImpl.deletePlantationModel(id: id, model: {});
-      debugPrint("Delete: Received data from repository: '$data' (type: ${data.runtimeType})");
+      final data =
+          await _appRepositoryImpl.deletePlantationModel(id: id, model: {});
+      debugPrint(
+          "Delete: Received data from repository: '$data' (type: ${data.runtimeType})");
       if (data == null) {
         deletMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
         _safeNotifyListeners();
@@ -157,7 +160,7 @@ class HomePageVm extends ChangeNotifier {
           deletMessage = "Sizga ruxsat berilmagan";
           return false;
         }
-        
+
         // Сначала пытаемся распарсить как JSON, чтобы проверить на наличие ошибок
         try {
           // Пытаемся распарсить строку как JSON
@@ -170,11 +173,11 @@ class HomePageVm extends ChangeNotifier {
             // Если это не JSON, но содержит error, все равно пытаемся распарсить
             jsonData = jsonDecode(data) as Map<String, dynamic>;
           }
-          
+
           // Проверяем на наличие поля "error" в ответе
           if (jsonData.containsKey("error")) {
-            final errorMessage = jsonData["error"] is String 
-                ? jsonData["error"] as String 
+            final errorMessage = jsonData["error"] is String
+                ? jsonData["error"] as String
                 : jsonData["error"].toString();
             debugPrint("Delete error detected: $errorMessage");
             deletMessage = errorMessage;
@@ -185,26 +188,31 @@ class HomePageVm extends ChangeNotifier {
           // Если не удалось распарсить как валидный JSON, пытаемся извлечь ошибку из строки
           debugPrint("Delete: Failed to parse as JSON: $parseError");
           final dataStr = data.toString();
-          
+
           // Проверяем, содержит ли строка формат {error: ...}
           if (dataStr.contains("error:") || dataStr.contains("{error")) {
             // Пытаемся извлечь сообщение об ошибке
             try {
               // Ищем паттерн error: <message>
-              final errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(dataStr);
+              final errorMatch =
+                  RegExp(r'error:\s*([^}]+)').firstMatch(dataStr);
               if (errorMatch != null) {
-                final errorMessage = errorMatch.group(1)?.trim() ?? "Xatolik yuz berdi";
+                final errorMessage =
+                    errorMatch.group(1)?.trim() ?? "Xatolik yuz berdi";
                 debugPrint("Delete: Extracted error message: $errorMessage");
                 deletMessage = errorMessage;
                 _safeNotifyListeners();
                 return false;
               }
-              
+
               // Альтернативный паттерн: {error: message}
-              final errorMatch2 = RegExp(r'\{error:\s*([^}]+)\}').firstMatch(dataStr);
+              final errorMatch2 =
+                  RegExp(r'\{error:\s*([^}]+)\}').firstMatch(dataStr);
               if (errorMatch2 != null) {
-                final errorMessage = errorMatch2.group(1)?.trim() ?? "Xatolik yuz berdi";
-                debugPrint("Delete: Extracted error message (pattern 2): $errorMessage");
+                final errorMessage =
+                    errorMatch2.group(1)?.trim() ?? "Xatolik yuz berdi";
+                debugPrint(
+                    "Delete: Extracted error message (pattern 2): $errorMessage");
                 deletMessage = errorMessage;
                 _safeNotifyListeners();
                 return false;
@@ -212,24 +220,25 @@ class HomePageVm extends ChangeNotifier {
             } catch (e) {
               debugPrint("Delete: Failed to extract error from string: $e");
             }
-            
+
             // Если не удалось извлечь, используем общее сообщение
             deletMessage = "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
             _safeNotifyListeners();
             return false;
           }
-          
+
           // Если это не ошибка, продолжаем обработку
           debugPrint("Delete: Not an error format, continuing...");
-          
+
           // Пытаемся распарсить еще раз
           try {
             final jsonData = jsonDecode(dataStr) as Map<String, dynamic>;
-            
+
             // Проверяем на ошибку 403 в JSON ответе
-            if (jsonData.containsKey("detail") && jsonData["detail"] is String) {
+            if (jsonData.containsKey("detail") &&
+                jsonData["detail"] is String) {
               final detail = jsonData["detail"] as String;
-              if (detail.toLowerCase().contains("forbidden") || 
+              if (detail.toLowerCase().contains("forbidden") ||
                   detail.toLowerCase().contains("ruxsat") ||
                   detail.toLowerCase().contains("доступ") ||
                   detail.toLowerCase().contains("permission")) {
@@ -238,10 +247,11 @@ class HomePageVm extends ChangeNotifier {
                 return false;
               }
             }
-            
+
             // Если есть id или detail без ошибки, считаем успехом
             if (jsonData.containsKey("id") || jsonData.containsKey("detail")) {
-              deletMessage = jsonData["detail"]?.toString() ?? "Plantatsiya muvaffaqiyatli o'chirildi";
+              deletMessage = jsonData["detail"]?.toString() ??
+                  "Plantatsiya muvaffaqiyatli o'chirildi";
               plantationsList.removeWhere((plantation) => plantation.id == id);
               approvedList.removeWhere((plantation) => plantation.id == id);
               pendingList.removeWhere((plantation) => plantation.id == id);
@@ -254,9 +264,10 @@ class HomePageVm extends ChangeNotifier {
             // Если не удалось распарсить как JSON, проверяем строку
           }
         }
-        
+
         // Проверяем строку на наличие "success"
-        if (data == "success" || data.toString().toLowerCase().contains("success")) {
+        if (data == "success" ||
+            data.toString().toLowerCase().contains("success")) {
           deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
           plantationsList.removeWhere((plantation) => plantation.id == id);
           approvedList.removeWhere((plantation) => plantation.id == id);
@@ -271,21 +282,23 @@ class HomePageVm extends ChangeNotifier {
             // Пытаемся распарсить как JSON еще раз для проверки на ошибки
             final jsonData = jsonDecode(data) as Map<String, dynamic>;
             if (jsonData.containsKey("error")) {
-              final errorMessage = jsonData["error"] is String 
-                  ? jsonData["error"] as String 
+              final errorMessage = jsonData["error"] is String
+                  ? jsonData["error"] as String
                   : jsonData["error"].toString();
-              debugPrint("Delete error detected in string parse: $errorMessage");
+              debugPrint(
+                  "Delete error detected in string parse: $errorMessage");
               deletMessage = errorMessage;
               _safeNotifyListeners();
               return false;
             }
           } catch (parseError) {
-            debugPrint("Delete: Failed to parse JSON in else block: $parseError, data: $data");
+            debugPrint(
+                "Delete: Failed to parse JSON in else block: $parseError, data: $data");
             // Если не удалось распарсить JSON, проверяем строку на наличие ключевых слов ошибки
             final dataStr = data.toString().toLowerCase();
-            
+
             // Проверяем на ошибку 403
-            if (dataStr.contains("forbidden") || 
+            if (dataStr.contains("forbidden") ||
                 dataStr.contains("ruxsat") ||
                 dataStr.contains("доступ") ||
                 dataStr.contains("403")) {
@@ -293,9 +306,9 @@ class HomePageVm extends ChangeNotifier {
               _safeNotifyListeners();
               return false;
             }
-            
+
             // Проверяем на другие ошибки (например, "error", "no plantation", "matches")
-            if (dataStr.contains("error") || 
+            if (dataStr.contains("error") ||
                 dataStr.contains("no plantation") ||
                 dataStr.contains("matches") ||
                 dataStr.contains("not found") ||
@@ -307,10 +320,11 @@ class HomePageVm extends ChangeNotifier {
                 if (originalData.contains("{") && originalData.contains("}")) {
                   // Пытаемся распарсить как валидный JSON
                   try {
-                    final jsonData = jsonDecode(originalData) as Map<String, dynamic>;
+                    final jsonData =
+                        jsonDecode(originalData) as Map<String, dynamic>;
                     if (jsonData.containsKey("error")) {
-                      deletMessage = jsonData["error"] is String 
-                          ? jsonData["error"] as String 
+                      deletMessage = jsonData["error"] is String
+                          ? jsonData["error"] as String
                           : jsonData["error"].toString();
                       _safeNotifyListeners();
                       return false;
@@ -318,17 +332,20 @@ class HomePageVm extends ChangeNotifier {
                   } catch (_) {
                     // Если не валидный JSON, извлекаем через регулярное выражение
                     // Формат: {error: No Plantation matches the given query.}
-                    final errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                    final errorMatch =
+                        RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
                     if (errorMatch != null) {
-                      final errorMessage = errorMatch.group(1)?.trim() ?? "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
-                      debugPrint("Delete: Extracted error message from invalid JSON: $errorMessage");
+                      final errorMessage = errorMatch.group(1)?.trim() ??
+                          "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
+                      debugPrint(
+                          "Delete: Extracted error message from invalid JSON: $errorMessage");
                       deletMessage = errorMessage;
                       _safeNotifyListeners();
                       return false;
                     }
                   }
                 }
-                
+
                 // Если не удалось извлечь, используем общее сообщение
                 deletMessage = "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
               } catch (e) {
@@ -339,7 +356,7 @@ class HomePageVm extends ChangeNotifier {
               return false;
             }
           }
-          
+
           // Если нет признаков ошибки, считаем успехом
           debugPrint("Delete: No error detected, treating as success");
           deletMessage = "Plantatsiya muvaffaqiyatli o'chirildi";
@@ -361,16 +378,18 @@ class HomePageVm extends ChangeNotifier {
     }
   }
 
-  Future<bool> deletePlantationPermanently({required int id, String? reason}) async {
+  Future<bool> deletePlantationPermanently(
+      {required int id, String? reason}) async {
     deletMessage = null;
     _setDeleting(true);
     _safeNotifyListeners();
 
     try {
-      final data = await _appRepositoryImpl.deletePlantation(id: id, reason: reason);
+      final data =
+          await _appRepositoryImpl.deletePlantation(id: id, reason: reason);
 
       debugPrint("Delete response: '$data' (type: ${data.runtimeType})");
-      
+
       if (data == null) {
         debugPrint("Delete failed: data is null");
         deletMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
@@ -381,7 +400,7 @@ class HomePageVm extends ChangeNotifier {
           deletMessage = "Sizga ruxsat berilmagan";
           return false;
         }
-        
+
         if (data == "success") {
           deletMessage = "O'chirish so'rovi moderatsiyaga yuborildi";
           plantationsList.removeWhere((plantation) => plantation.id == id);
@@ -392,10 +411,10 @@ class HomePageVm extends ChangeNotifier {
 
           _setLoading(false);
           _setFetchingMore(false);
-          
+
           return true;
         }
-        
+
         try {
           final jsonData = jsonDecode(data) as Map<String, dynamic>;
           debugPrint("Delete JSON parsed: $jsonData");
@@ -404,7 +423,7 @@ class HomePageVm extends ChangeNotifier {
           if (jsonData.containsKey("detail") && jsonData["detail"] is String) {
             final detail = jsonData["detail"] as String;
             final detailLower = detail.toLowerCase();
-            if (detailLower.contains("forbidden") || 
+            if (detailLower.contains("forbidden") ||
                 detailLower.contains("ruxsat") ||
                 detailLower.contains("доступ") ||
                 detailLower.contains("permission") ||
@@ -414,15 +433,15 @@ class HomePageVm extends ChangeNotifier {
               return false;
             }
           }
-          
+
           if (jsonData.containsKey("error")) {
-            final errorMessage = jsonData["error"] is String 
-                ? jsonData["error"] as String 
+            final errorMessage = jsonData["error"] is String
+                ? jsonData["error"] as String
                 : jsonData["error"].toString();
             debugPrint("Delete error: $errorMessage");
-            
+
             final errorLower = errorMessage.toLowerCase();
-            if (errorLower.contains("forbidden") || 
+            if (errorLower.contains("forbidden") ||
                 errorLower.contains("ruxsat") ||
                 errorLower.contains("доступ") ||
                 errorLower.contains("permission") ||
@@ -432,8 +451,10 @@ class HomePageVm extends ChangeNotifier {
               return false;
             }
 
-            if (errorMessage.contains("аллақачон юборилган") || errorMessage.contains("аллақачон ўчирилган") || 
-                errorMessage.contains("уже отправлена") || errorMessage.contains("уже удалена")) {
+            if (errorMessage.contains("аллақачон юборилган") ||
+                errorMessage.contains("аллақачон ўчирилган") ||
+                errorMessage.contains("уже отправлена") ||
+                errorMessage.contains("уже удалена")) {
               deletMessage = "Бу плантация аллақачон ўчириш учун юборилган";
             } else {
               deletMessage = "Xatolik: $errorMessage";
@@ -447,12 +468,12 @@ class HomePageVm extends ChangeNotifier {
                 : jsonData["detail"].toString();
             debugPrint("Delete detail message: $detailMessage");
 
-            if (detailMessage.contains("ўчирилди") || 
-                detailMessage.contains("ўчириш") || 
+            if (detailMessage.contains("ўчирилди") ||
+                detailMessage.contains("ўчириш") ||
                 detailMessage.contains("модерацияга") ||
                 detailMessage.contains("юборилди") ||
-                detailMessage.contains("удален") || 
-                detailMessage.contains("удаление") || 
+                detailMessage.contains("удален") ||
+                detailMessage.contains("удаление") ||
                 detailMessage.contains("модерацию") ||
                 detailMessage.contains("отправлен")) {
               debugPrint("Delete successful: detail message indicates success");
@@ -462,10 +483,10 @@ class HomePageVm extends ChangeNotifier {
               pendingList.removeWhere((plantation) => plantation.id == id);
               recheckList.removeWhere((plantation) => plantation.id == id);
               rejectedList.removeWhere((plantation) => plantation.id == id);
-              
+
               _setLoading(false);
               _setFetchingMore(false);
-              
+
               return true;
             } else {
               debugPrint("Delete failed: detail message indicates failure");
@@ -480,7 +501,7 @@ class HomePageVm extends ChangeNotifier {
         } catch (jsonError) {
           // Если не удалось распарсить JSON, проверяем строку на наличие ключевых слов ошибки 403
           final dataStr = data.toString().toLowerCase();
-          if (dataStr.contains("forbidden") || 
+          if (dataStr.contains("forbidden") ||
               dataStr.contains("ruxsat") ||
               dataStr.contains("доступ") ||
               dataStr.contains("403")) {
@@ -495,7 +516,7 @@ class HomePageVm extends ChangeNotifier {
             pendingList.removeWhere((plantation) => plantation.id == id);
             recheckList.removeWhere((plantation) => plantation.id == id);
             rejectedList.removeWhere((plantation) => plantation.id == id);
-            
+
             _setLoading(false);
             _setFetchingMore(false);
 

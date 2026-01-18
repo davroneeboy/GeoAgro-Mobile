@@ -2,11 +2,23 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:agro_employee_public/firebase_options.dart';
 import '../../data/model/fruits/fruit_model.dart';
 import '../storage/app_storage.dart';
 import '../../data/repository/app_repository_impl.dart';
+import '../services/fcm_service.dart' show FcmService;
 import '../../../localization/app_strings.dart' show AppLocalizedMaps;
+
+/// Обработчик фоновых сообщений (должен быть top-level функцией)
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  log('Handling background message: ${message.messageId}');
+  log('Title: ${message.notification?.title}');
+  log('Body: ${message.notification?.body}');
+  log('Data: ${message.data}');
+  // Здесь можно добавить логику обработки фоновых уведомлений
+}
 
 String? accessToken;
 bool isBloc = false;
@@ -21,6 +33,19 @@ Future<void> setup() async {
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     log("Firebase initialized successfully");
+    
+    // Инициализируем FCM для push-уведомлений
+    try {
+      // Регистрируем обработчик фоновых сообщений
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      
+      // Инициализируем FCM сервис
+      await FcmService().initialize();
+      log("FCM service initialized successfully");
+    } catch (e) {
+      log("FCM initialization failed: $e");
+      // Continue without FCM if it fails
+    }
   } catch (e) {
     log("Firebase initialization failed: $e");
     // Continue without Firebase if it fails

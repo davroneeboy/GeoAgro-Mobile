@@ -11,13 +11,16 @@ import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
-import '../../../fermers/view/pages/fermers_page.dart';
-import '../../../fermers/view/pages/farmers_statistics_page.dart';
+import '../../../fermers/view/pages/fermers_page.dart'
+    show FermersPage, fermerPageVM;
+import '../../../fermers/view/pages/farmers_statistics_page.dart'
+    show FarmersStatisticsPage, farmersStatisticsVM;
 import '../../../profile/view/pages/profile_settings_page.dart';
 import '../widgets/home_page_floataction_button_widget.dart';
 import '../widgets/home_drower.dart';
 import '../widgets/home_page_card_widget.dart';
 import '../../vm/home_page_vm.dart';
+import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
 
@@ -40,10 +43,44 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    // Загружаем данные только для главной вкладки при первой загрузке
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTabData(0); // Загружаем данные для главной вкладки
+    });
   }
 
   void refreshPlantationsList() {
     ref.read(homePageVM).getPlantationsModel(isLoadMore: false);
+  }
+
+  /// Загрузить данные для конкретной вкладки
+  void _loadTabData(int index) {
+    switch (index) {
+      case 0: // Главная страница
+        final vm = ref.read(homePageVM);
+        if (vm.plantationsList.isEmpty && !vm.isLoading) {
+          vm.getPlantationsModel(isLoadMore: false);
+        }
+        ref.read(notificationsVM).loadUnreadCount();
+        break;
+      case 1: // Фермеры
+        final fermerVm = ref.read(fermerPageVM);
+        if (fermerVm.fermersList.isEmpty &&
+            !fermerVm.isLoading &&
+            !fermerVm.isFetchingMore) {
+          fermerVm.getFermers(isLoadMore: false);
+        }
+        break;
+      case 2: // Статистика
+        final statsVm = ref.read(farmersStatisticsVM);
+        if (statsVm.statistics == null && !statsVm.isLoading) {
+          statsVm.initialize();
+        }
+        break;
+      case 3: // Профиль
+        // Профиль загружает данные при первом построении виджета
+        break;
+    }
   }
 
   @override
@@ -99,6 +136,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             setState(() {
               _selectedIndex = index;
             });
+            // Загружаем данные для вкладки при переключении
+            _loadTabData(index);
           },
           destinations: const [
             NavigationDestination(
@@ -196,16 +235,47 @@ class _HomePageState extends ConsumerState<HomePage> {
                   isLoadMore: false, search: query.isEmpty ? null : query);
             },
           ),
-          Stack(
-            children: [
-              IconButton(
-                onPressed: () {
-                  context.go(
-                      "${AppRouteNames.home}${AppRouteNames.natificationPage}");
-                },
-                icon: Icon(Icons.notifications_none),
-              ),
-            ],
+          Consumer(
+            builder: (context, ref, child) {
+              final notificationsVm = ref.watch(notificationsVM);
+              final unreadCount = notificationsVm.unreadCount;
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      context.go(
+                          "${AppRouteNames.home}${AppRouteNames.natificationPage}");
+                    },
+                    icon: Icon(Icons.notifications_none),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unreadCount > 99 ? '99+' : '$unreadCount',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -226,8 +296,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: SizedBox(
                     height: constraints.maxHeight,
                     child: const EmptyStateWidget(
-                      message: "Sizning hududingizga doir \n hech qanday Bog', Issiqxona, Uzumzor yoq",
-                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+                      message:
+                          "Sizning hududingizga doir \n hech qanday Bog', Issiqxona, Uzumzor yoq",
+                      subMessage:
+                          "Ma'lumotlarni yangilash uchun pastga torting",
                     ),
                   ),
                 ),
