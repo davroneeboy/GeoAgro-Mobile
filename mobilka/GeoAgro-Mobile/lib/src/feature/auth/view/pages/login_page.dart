@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../vm/login_vm.dart';
@@ -8,7 +9,6 @@ import '../../../../core/utils/utils.dart';
 import '../../../../core/tools/assets.dart';
 import '../widgets/modern_login_input_widget.dart';
 import '../widgets/modern_login_button.dart';
-import '../../../../core/routes/router_config.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../../../design_system/tokens/spacing.dart';
@@ -319,7 +319,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               design_colors.AppColors.success,
               context,
             );
-            RouterConfigService.router.go(AppRouteNames.home);
+            context.go(AppRouteNames.home);
           } else if (mounted) {
             Utils.fireTopSnackBar(
               vm.errorMessage ?? "Xatolik yuz berdi",

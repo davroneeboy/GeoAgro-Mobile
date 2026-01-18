@@ -32,7 +32,6 @@ class EditPlantationModel {
   List<Subsidy>? subsidies;
   double? notUsableArea;
   double? emptyArea;
-  double? chegaraArea; // Граничная площадь (Chegara maydon)
   List<String>? konturNumber;
   List<Comment>? comments;
   List<ModerationComment>? moderationComments;
@@ -59,7 +58,6 @@ class EditPlantationModel {
     this.subsidies,
     this.notUsableArea,
     this.emptyArea,
-    this.chegaraArea,
     this.konturNumber,
     this.comments,
     this.moderationComments,
@@ -87,7 +85,6 @@ class EditPlantationModel {
     List<Subsidy>? subsidies,
     double? notUsableArea,
     double? emptyArea,
-    double? chegaraArea,
     List<String>? konturNumber,
     List<Comment>? comments,
     List<ModerationComment>? moderationComments,
@@ -116,7 +113,6 @@ class EditPlantationModel {
         subsidies: subsidies ?? this.subsidies,
         notUsableArea: notUsableArea ?? this.notUsableArea,
         emptyArea: emptyArea ?? this.emptyArea,
-        chegaraArea: chegaraArea ?? this.chegaraArea,
         konturNumber: konturNumber ?? this.konturNumber,
         comments: comments ?? this.comments,
         moderationComments: moderationComments ?? this.moderationComments,
@@ -168,7 +164,9 @@ class EditPlantationModel {
                   }
                   final s = e?.toString();
                   if (s == null) return null;
-                  return s.startsWith('http://') ? s.replaceFirst('http://', 'https://') : s;
+                  return s.startsWith('http://')
+                      ? s.replaceFirst('http://', 'https://')
+                      : s;
                 })
                 .whereType<String>()
                 .toList();
@@ -181,23 +179,24 @@ class EditPlantationModel {
                 json["subsidies"]!.map((x) => Subsidy.fromJson(x))),
         notUsableArea: json["not_usable_area"]?.toDouble(),
         emptyArea: json["empty_area"]?.toDouble(),
-        chegaraArea: json["chegara_area"]?.toDouble(),
         konturNumber: json["kontur_number"] == null
             ? null
             : List<String>.from(json["kontur_number"].map((x) => x.toString())),
         comments: json["comments"] == null
             ? null
-            : List<Comment>.from(
-                (json["comments"] as List<dynamic>).map((x) => Comment.fromJson(x as Map<String, dynamic>))),
+            : List<Comment>.from((json["comments"] as List<dynamic>)
+                .map((x) => Comment.fromJson(x as Map<String, dynamic>))),
         moderationComments: (() {
           try {
-            if (json["moderation_comment"] != null && json["moderation_comment"] is List) {
+            if (json["moderation_comment"] != null &&
+                json["moderation_comment"] is List) {
               final list = json["moderation_comment"] as List<dynamic>;
               if (list.isNotEmpty) {
                 return list
                     .map((x) {
                       try {
-                        return ModerationComment.fromJson(x as Map<String, dynamic>);
+                        return ModerationComment.fromJson(
+                            x as Map<String, dynamic>);
                       } catch (e) {
                         return null;
                       }
@@ -246,7 +245,6 @@ class EditPlantationModel {
             : List<dynamic>.from(subsidies!.map((x) => x.toJson())),
         "not_usable_area": notUsableArea,
         "empty_area": emptyArea,
-        "chegara_area": chegaraArea,
         "kontur_number": konturNumber == null
             ? []
             : List<dynamic>.from(konturNumber!.map((x) => x)),
@@ -326,7 +324,8 @@ class FruitArea {
         hundredweight: hundredweight ?? this.hundredweight,
         kochatSoni: kochatSoni ?? this.kochatSoni,
         iqtisodiysamarasiz: iqtisodiysamarasiz ?? this.iqtisodiysamarasiz,
-        economicInefficientArea: economicInefficientArea ?? this.economicInefficientArea,
+        economicInefficientArea:
+            economicInefficientArea ?? this.economicInefficientArea,
       );
 
   factory FruitArea.fromJson(Map<String, dynamic> json) {
@@ -343,7 +342,9 @@ class FruitArea {
       fruitId = json["fruit"]["id"];
       fruitName = json["fruit"]["name"];
     } else {
-      fruitId = json["fruit"] is int ? json["fruit"] : int.tryParse(json["fruit"]?.toString() ?? "");
+      fruitId = json["fruit"] is int
+          ? json["fruit"]
+          : int.tryParse(json["fruit"]?.toString() ?? "");
       fruitName = json["fruit_name"] ?? json["fruit"]?.toString();
     }
 
@@ -352,7 +353,9 @@ class FruitArea {
       varietyId = json["variety"]["id"];
       varietyName = json["variety"]["name"];
     } else {
-      varietyId = json["variety"] is int ? json["variety"] : int.tryParse(json["variety"]?.toString() ?? "");
+      varietyId = json["variety"] is int
+          ? json["variety"]
+          : int.tryParse(json["variety"]?.toString() ?? "");
       varietyName = json["variety_name"] ?? json["variety"]?.toString();
     }
 
@@ -361,7 +364,9 @@ class FruitArea {
       rootstockId = json["rootstock"]["id"];
       rootstockName = json["rootstock"]["name"];
     } else {
-      rootstockId = json["rootstock"] is int ? json["rootstock"] : int.tryParse(json["rootstock"]?.toString() ?? "");
+      rootstockId = json["rootstock"] is int
+          ? json["rootstock"]
+          : int.tryParse(json["rootstock"]?.toString() ?? "");
       rootstockName = json["rootstock_name"] ?? json["rootstock"]?.toString();
     }
 
