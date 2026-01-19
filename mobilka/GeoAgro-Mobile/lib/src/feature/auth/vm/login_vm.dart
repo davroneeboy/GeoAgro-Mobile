@@ -50,16 +50,13 @@ class LoginVm extends ChangeNotifier {
         _tokenModel = tokenModelFromJson(jsonEncode(jsonData));
         await _putTokensToStorage();
 
-        username = trimmedUsername; // Сохраняем в глобальную переменную из setup.dart
+        username = trimmedUsername;
         accessToken = _tokenModel.access;
         debugPrint("🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
-
-        await Future.delayed(const Duration(milliseconds: 500));
-
         debugPrint("🚀 Login successful, now fetching user info...");
         await _fetchAndStoreUserInfo();
         debugPrint("✅ User info fetch completed");
-
+        debugPrint("🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
         errorMessage = null;
         return true;
       } else if (response.statusCode == 401) {

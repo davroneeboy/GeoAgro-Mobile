@@ -38,11 +38,17 @@ class _FarmersStatisticsPageState extends ConsumerState<FarmersStatisticsPage> {
   @override
   void initState() {
     super.initState();
+    debugPrint("📊 FarmersStatisticsPage: initState called");
     // Инициализируем данные только при открытии страницы
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint("📊 FarmersStatisticsPage: PostFrameCallback executing");
       final vm = ref.read(farmersStatisticsVM);
+      debugPrint("📊 FarmersStatisticsPage: statistics=${vm.statistics}, isLoading=${vm.isLoading}");
       if (vm.statistics == null && !vm.isLoading) {
+        debugPrint("📊 FarmersStatisticsPage: Calling initialize()");
         vm.initialize();
+      } else {
+        debugPrint("⚠️ FarmersStatisticsPage: Skipping initialize - statistics exists or is loading");
       }
     });
   }

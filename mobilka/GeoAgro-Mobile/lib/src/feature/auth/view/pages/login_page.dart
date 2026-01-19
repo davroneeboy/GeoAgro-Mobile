@@ -14,7 +14,7 @@ import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 
-final loginPageVM = ChangeNotifierProvider.autoDispose<LoginVm>((ref) {
+final loginPageVM = ChangeNotifierProvider<LoginVm>((ref) {
   return LoginVm();
 });
 
@@ -312,15 +312,33 @@ class _LoginPageState extends ConsumerState<LoginPage>
       onPressed: () async {
         FocusScope.of(context).unfocus();
         if (vm.formKey.currentState!.validate()) {
+          debugPrint("🔵 Login button pressed, starting login...");
           final isSuccess = await loginVmNotifier.login();
-          if (isSuccess && mounted) {
+          debugPrint("🔵 Login result: $isSuccess, mounted: $mounted");
+          if (!mounted) {
+            debugPrint("⚠️ Widget not mounted, aborting navigation");
+            return;
+          }
+          if (isSuccess) {
+            debugPrint("✅ Login successful, showing snackbar and navigating...");
             Utils.fireTopSnackBar(
               "Muvoffaqiyatli Tizimga Kirildi",
               design_colors.AppColors.success,
               context,
             );
-            context.go(AppRouteNames.home);
-          } else if (mounted) {
+            debugPrint("🚀 Navigating to home page immediately...");
+            if (mounted && context.mounted) {
+              try {
+                context.go(AppRouteNames.home);
+                debugPrint("✅ Navigation command sent");
+              } catch (e, stackTrace) {
+                debugPrint("❌ Navigation error: $e");
+                debugPrint("Stack trace: $stackTrace");
+              }
+            } else {
+              debugPrint("⚠️ Context not mounted, cannot navigate");
+            }
+          } else {
             Utils.fireTopSnackBar(
               vm.errorMessage ?? "Xatolik yuz berdi",
               design_colors.AppColors.error,

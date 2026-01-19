@@ -8,7 +8,7 @@ import '../../../data/model/farmer/farmer_list_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 
 class FarmersStatisticsVm extends ChangeNotifier {
-  bool isLoading = true;
+  bool isLoading = false;
   String? errorMessage;
   List<FarmerData>? statistics;
   int? districtId;
@@ -24,14 +24,20 @@ class FarmersStatisticsVm extends ChangeNotifier {
 
   /// Инициализация (вызывается вручную при открытии страницы)
   Future<void> initialize() async {
+    debugPrint("📊 FarmersStatisticsVM: initialize() called");
     if (districtId != null && statistics != null) {
-      // Уже инициализировано
+      debugPrint("📊 FarmersStatisticsVM: Already initialized, skipping");
       return;
     }
+    isLoading = true;
+    notifyListeners();
+    debugPrint("📊 FarmersStatisticsVM: Getting district ID...");
     await _getDistrictId();
     if (districtId != null) {
+      debugPrint("📊 FarmersStatisticsVM: District ID found: $districtId");
       await fetchStatistics();
     } else {
+      debugPrint("❌ FarmersStatisticsVM: District ID not found");
       errorMessage = "District ID topilmadi";
       isLoading = false;
       notifyListeners();
@@ -40,51 +46,64 @@ class FarmersStatisticsVm extends ChangeNotifier {
 
   Future<void> _getDistrictId() async {
     try {
+      debugPrint("📊 FarmersStatisticsVM: Calling getUserInfo API...");
       final userInfoData = await _appRepositoryImpl.getUserInfo();
       if (userInfoData != null) {
+        debugPrint("📊 FarmersStatisticsVM: getUserInfo response received");
         final userInfo = jsonDecode(userInfoData);
         districtId = userInfo['district_id'];
-        log("District ID: $districtId");
+        debugPrint("📊 FarmersStatisticsVM: District ID extracted: $districtId");
+      } else {
+        debugPrint("❌ FarmersStatisticsVM: getUserInfo returned null");
       }
     } catch (e) {
-      log("Error getting district ID: $e");
+      debugPrint("❌ FarmersStatisticsVM: Error getting district ID: $e");
     }
   }
 
   Future<void> fetchStatistics() async {
-    if (districtId == null) return;
+    if (districtId == null) {
+      debugPrint("❌ FarmersStatisticsVM: Cannot fetch statistics - districtId is null");
+      return;
+    }
 
     errorMessage = null;
     isLoading = true;
     notifyListeners();
 
     try {
+      debugPrint("📊 FarmersStatisticsVM: Fetching statistics for district: $districtId");
       final data = await _appRepositoryImpl.getFarmersStatistics(
           districtId: districtId!);
 
       if (data == null) {
+        debugPrint("❌ FarmersStatisticsVM: getFarmersStatistics returned null");
         errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
+        debugPrint("✅ FarmersStatisticsVM: Statistics data received");
         try {
           final jsonData = jsonDecode(data);
           if (jsonData is Map<String, dynamic> && jsonData['results'] != null) {
             final resultsJson = jsonEncode(jsonData['results']);
             statistics = farmerStatisticsModelFromJson(resultsJson);
+            debugPrint("✅ FarmersStatisticsVM: Parsed ${statistics?.length ?? 0} farmers");
           } else {
             statistics = farmerStatisticsModelFromJson(data);
+            debugPrint("✅ FarmersStatisticsVM: Parsed ${statistics?.length ?? 0} farmers (direct)");
           }
         } catch (jsonError) {
-          log("JSON Parsing Error: $jsonError");
-          log("Raw data: $data");
+          debugPrint("❌ FarmersStatisticsVM: JSON Parsing Error: $jsonError");
+          debugPrint("Raw data: $data");
           errorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
         }
       }
     } catch (e) {
-      log("Error fetching statistics: $e");
+      debugPrint("❌ FarmersStatisticsVM: Error fetching statistics: $e");
       errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
     } finally {
       isLoading = false;
       notifyListeners();
+      debugPrint("📊 FarmersStatisticsVM: fetchStatistics completed");
     }
   }
 
