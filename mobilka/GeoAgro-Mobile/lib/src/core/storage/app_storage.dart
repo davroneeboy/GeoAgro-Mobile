@@ -11,6 +11,7 @@ enum StorageKey {
   userId,
   isSpecialUser, // Специальный пользователь (может загружать фото с галереи)
   limitKm, // Лимит координат в км
+  fcmToken, // Firebase Cloud Messaging token
 }
 
 class AppStorage {

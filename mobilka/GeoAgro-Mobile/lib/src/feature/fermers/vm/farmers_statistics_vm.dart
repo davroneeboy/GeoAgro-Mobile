@@ -12,8 +12,6 @@ class FarmersStatisticsVm extends ChangeNotifier {
   String? errorMessage;
   List<FarmerData>? statistics;
   int? districtId;
-  
-
 
   final TextEditingController searchInnController = TextEditingController();
   bool isSearching = false;
@@ -22,11 +20,14 @@ class FarmersStatisticsVm extends ChangeNotifier {
 
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
 
-  FarmersStatisticsVm() {
-    _initialize();
-  }
+  FarmersStatisticsVm();
 
-  Future<void> _initialize() async {
+  /// Инициализация (вызывается вручную при открытии страницы)
+  Future<void> initialize() async {
+    if (districtId != null && statistics != null) {
+      // Уже инициализировано
+      return;
+    }
     await _getDistrictId();
     if (districtId != null) {
       await fetchStatistics();
@@ -52,14 +53,15 @@ class FarmersStatisticsVm extends ChangeNotifier {
 
   Future<void> fetchStatistics() async {
     if (districtId == null) return;
-    
+
     errorMessage = null;
     isLoading = true;
     notifyListeners();
 
     try {
-      final data = await _appRepositoryImpl.getFarmersStatistics(districtId: districtId!);
-      
+      final data = await _appRepositoryImpl.getFarmersStatistics(
+          districtId: districtId!);
+
       if (data == null) {
         errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
@@ -113,7 +115,7 @@ class FarmersStatisticsVm extends ChangeNotifier {
       notifyListeners();
 
       final data = await _appRepositoryImpl.searchFarmers(inn: inn);
-      
+
       if (data == null) {
         searchErrorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
         searchResults = null;
@@ -130,7 +132,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
         } catch (jsonError) {
           log("JSON Parsing Error: $jsonError");
           log("Raw data: $data");
-          searchErrorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
+          searchErrorMessage =
+              "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
           searchResults = null;
         }
       }

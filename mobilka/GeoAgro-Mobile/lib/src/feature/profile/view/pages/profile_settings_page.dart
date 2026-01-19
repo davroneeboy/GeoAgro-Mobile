@@ -15,6 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
+import 'package:agro_employee_public/src/core/services/permissions_service.dart';
 import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 
@@ -28,6 +29,15 @@ class ProfileSettingsPage extends StatefulWidget {
 class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   UserInfoModel? _userInfo;
   bool _isLoading = true;
+
+  // Статусы разрешений
+  bool _cameraPermission = false;
+  bool _galleryPermission = false;
+  bool _locationPermission = false;
+  bool _notificationPermission = false;
+  bool _isLoadingPermissions = false;
+
+  final _permissionsService = PermissionsService();
 
   static const _telegramBotUri = 'https://t.me/geoagro_bot';
 
@@ -49,10 +59,37 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
 
   final _repository = AppRepositoryImpl();
 
+  bool _hasLoaded = false;
+
   @override
   void initState() {
     super.initState();
-    _loadUserInfo();
+    // Не загружаем данные сразу, только при первом открытии вкладки
+  }
+
+  void _ensureDataLoaded() {
+    if (!_hasLoaded) {
+      _hasLoaded = true;
+      _loadUserInfo();
+      _loadPermissionsStatus();
+    }
+  }
+
+  /// Загрузить статусы всех разрешений
+  Future<void> _loadPermissionsStatus() async {
+    setState(() => _isLoadingPermissions = true);
+    try {
+      final statuses = await _permissionsService.getAllPermissionsStatus();
+      setState(() {
+        _cameraPermission = statuses['camera'] ?? false;
+        _galleryPermission = statuses['gallery'] ?? false;
+        _locationPermission = statuses['location'] ?? false;
+        _notificationPermission = statuses['notifications'] ?? false;
+        _isLoadingPermissions = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingPermissions = false);
+    }
   }
 
   Future<void> _loadUserInfo() async {
@@ -118,6 +155,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Загружаем данные только при первом построении виджета (когда вкладка становится видимой)
+    _ensureDataLoaded();
+
     final spacing = EdgeInsets.symmetric(
       horizontal: AppSpacing.lg,
       vertical: AppSpacing.lg,
@@ -215,54 +255,125 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     ),
                     SizedBox(height: AppSpacing.xl.h),
                     AppSectionHeader(
-                      title: "Ilova sozlamalari",
+                      title: "Ruxsatlar",
                       padding: EdgeInsets.zero,
                     ),
                     SizedBox(height: AppSpacing.sm.h),
                     AppCardFilled(
-                      padding: EdgeInsets.all(AppSpacing.lg),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: EdgeInsets.zero,
+                      child: Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.watch_later_outlined,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                            ),
+                          _PermissionTile(
+                            title: "Kamera",
+                            icon: Icons.camera_alt_outlined,
+                            isEnabled: _cameraPermission,
+                            isLoading: _isLoadingPermissions,
+                            onTap: () async {
+                              if (!_cameraPermission) {
+                                final granted = await _permissionsService
+                                    .requestCameraPermission();
+                                if (mounted) {
+                                  setState(() => _cameraPermission = granted);
+                                  if (!granted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text("Kamera ruxsati berilmadi"),
+                                        backgroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    );
+                                  } else {
+                                    await _loadPermissionsStatus();
+                                  }
+                                }
+                              }
+                            },
                           ),
-                          SizedBox(width: AppSpacing.lg),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Tez kunda",
-                                  style: AppTypography.headlineMedium(context)
-                                      .copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  "Ilova sozlamalari bo‘limi tez orada ishga tushiriladi.",
-                                  style: AppTypography.bodyMedium(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          const Divider(height: 1),
+                          _PermissionTile(
+                            title: "Galereya",
+                            icon: Icons.photo_library_outlined,
+                            isEnabled: _galleryPermission,
+                            isLoading: _isLoadingPermissions,
+                            onTap: () async {
+                              if (!_galleryPermission) {
+                                final granted = await _permissionsService
+                                    .requestGalleryPermission();
+                                if (mounted) {
+                                  setState(() => _galleryPermission = granted);
+                                  if (!granted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text("Galereya ruxsati berilmadi"),
+                                        backgroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    );
+                                  } else {
+                                    await _loadPermissionsStatus();
+                                  }
+                                }
+                              }
+                            },
+                          ),
+                          const Divider(height: 1),
+                          _PermissionTile(
+                            title: "Geolokatsiya",
+                            icon: Icons.location_on_outlined,
+                            isEnabled: _locationPermission,
+                            isLoading: _isLoadingPermissions,
+                            onTap: () async {
+                              if (!_locationPermission) {
+                                final granted = await _permissionsService
+                                    .requestLocationPermission();
+                                if (mounted) {
+                                  setState(() => _locationPermission = granted);
+                                  if (!granted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            "Geolokatsiya ruxsati berilmadi"),
+                                        backgroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    );
+                                  } else {
+                                    await _loadPermissionsStatus();
+                                  }
+                                }
+                              }
+                            },
+                          ),
+                          const Divider(height: 1),
+                          _PermissionTile(
+                            title: "Bildirishnomalar",
+                            icon: Icons.notifications_outlined,
+                            isEnabled: _notificationPermission,
+                            isLoading: _isLoadingPermissions,
+                            onTap: () async {
+                              if (!_notificationPermission) {
+                                final granted = await _permissionsService
+                                    .requestNotificationPermission();
+                                if (mounted) {
+                                  setState(
+                                      () => _notificationPermission = granted);
+                                  if (!granted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            "Bildirishnomalar ruxsati berilmadi"),
+                                        backgroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    );
+                                  } else {
+                                    await _loadPermissionsStatus();
+                                  }
+                                }
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -380,5 +491,40 @@ class _ProfileHeader extends StatelessWidget {
     }
     return (parts.first.characters.first + parts.last.characters.first)
         .toUpperCase();
+  }
+}
+
+class _PermissionTile extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool isEnabled;
+  final bool isLoading;
+  final VoidCallback onTap;
+
+  const _PermissionTile({
+    required this.title,
+    required this.icon,
+    required this.isEnabled,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppListTile(
+      leading: Icon(icon),
+      title: title,
+      trailing: isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Switch(
+              value: isEnabled,
+              onChanged: isEnabled ? null : (_) => onTap(),
+            ),
+      onTap: isEnabled ? null : onTap,
+    );
   }
 }

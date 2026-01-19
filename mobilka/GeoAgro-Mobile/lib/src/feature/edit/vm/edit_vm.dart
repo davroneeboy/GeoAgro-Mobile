@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:agro_employee_public/src/data/model/plantation/edit_plantation.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,6 +18,7 @@ import '../../../data/model/fruits/fruit_verity_modell.dart';
 import '../../../core/utils/thousands_separator_input_formatter.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/utils/sanitization_utils.dart';
+import '../../../core/utils/utils.dart';
 
 
 final editVm = ChangeNotifierProvider.autoDispose<EditVM>((ref) {
@@ -84,8 +83,80 @@ class EditVM extends ChangeNotifier {
   TextEditingController trellisTemirCount = TextEditingController();
   TextEditingController trellisBetonInstalledArea = TextEditingController();
   TextEditingController trellisBetonCount = TextEditingController();
-  TextEditingController reservoirsQoplamaliVolume = TextEditingController();
-  TextEditingController reservoirsBetonliVolume = TextEditingController();
+  // Списки для хранения нескольких резервуаров каждого типа
+  final List<TextEditingController> reservoirsBetonliVolumes = [];
+  final List<TextEditingController> reservoirsQoplamaliVolumes = [];
+  
+  // Старые контроллеры для обратной совместимости
+  late final TextEditingController reservoirsBetonliVolume = TextEditingController();
+  late final TextEditingController reservoirsQoplamaliVolume = TextEditingController();
+  
+  // Инициализация: добавляем один контроллер по умолчанию
+  void initializeReservoirs() {
+    if (reservoirsBetonliVolumes.isEmpty) {
+      reservoirsBetonliVolumes.add(reservoirsBetonliVolume);
+    }
+    if (reservoirsQoplamaliVolumes.isEmpty) {
+      reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
+    }
+  }
+  
+  // Методы для управления списками резервуаров
+  void addBetonReservoir() {
+    reservoirsBetonliVolumes.add(TextEditingController());
+    notifyListeners();
+  }
+  
+  void removeBetonReservoir(int index) {
+    // Всегда оставляем хотя бы один контроллер
+    if (index >= 0 && index < reservoirsBetonliVolumes.length && reservoirsBetonliVolumes.length > 1) {
+      final controller = reservoirsBetonliVolumes[index];
+      // Если это основной контроллер, заменяем его на следующий
+      if (controller == reservoirsBetonliVolume) {
+        if (reservoirsBetonliVolumes.length > 1) {
+          final nextController = reservoirsBetonliVolumes[1];
+          // Копируем значение из следующего контроллера
+          reservoirsBetonliVolume.text = nextController.text;
+          // Удаляем следующий контроллер вместо основного
+          nextController.dispose();
+          reservoirsBetonliVolumes.removeAt(1);
+        }
+      } else {
+        // Удаляем дополнительный контроллер
+        controller.dispose();
+        reservoirsBetonliVolumes.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
+  
+  void addQoplamaliReservoir() {
+    reservoirsQoplamaliVolumes.add(TextEditingController());
+    notifyListeners();
+  }
+  
+  void removeQoplamaliReservoir(int index) {
+    // Всегда оставляем хотя бы один контроллер
+    if (index >= 0 && index < reservoirsQoplamaliVolumes.length && reservoirsQoplamaliVolumes.length > 1) {
+      final controller = reservoirsQoplamaliVolumes[index];
+      // Если это основной контроллер, заменяем его на следующий
+      if (controller == reservoirsQoplamaliVolume) {
+        if (reservoirsQoplamaliVolumes.length > 1) {
+          final nextController = reservoirsQoplamaliVolumes[1];
+          // Копируем значение из следующего контроллера
+          reservoirsQoplamaliVolume.text = nextController.text;
+          // Удаляем следующий контроллер вместо основного
+          nextController.dispose();
+          reservoirsQoplamaliVolumes.removeAt(1);
+        }
+      } else {
+        // Удаляем дополнительный контроллер
+        controller.dispose();
+        reservoirsQoplamaliVolumes.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
   TextEditingController cultivatedArea = TextEditingController();
   TextEditingController sxema1 = TextEditingController();
   TextEditingController sxema2 = TextEditingController();
@@ -215,17 +286,29 @@ class EditVM extends ChangeNotifier {
 
     final List<Map<String, dynamic>> res = [];
 
+    // Бетонные резервуары (тип 1) - может быть несколько элементов
     if (ref.read(switchReservoirsBeton)) {
-      final beton = double.tryParse(reservoirsBetonliVolume.text) ?? 0.0;
-      if (beton > 0) {
-        res.add({"reservoir_type": 1, "reservoir_volume": beton});
+      for (final controller in reservoirsBetonliVolumes) {
+        final beton = double.tryParse(controller.text) ?? 0.0;
+        if (beton > 0) {
+          res.add({
+            "reservoir_type": 1,
+            "reservoir_volume": beton.toStringAsFixed(1), // Строка, как ожидает бэкенд
+          });
+        }
       }
     }
 
+    // Копламали резервуары (тип 2) - может быть несколько элементов
     if (ref.read(switchReservoirsQoplamali)) {
-      final qop = double.tryParse(reservoirsQoplamaliVolume.text) ?? 0.0;
-      if (qop > 0) {
-        res.add({"reservoir_type": 2, "reservoir_volume": qop});
+      for (final controller in reservoirsQoplamaliVolumes) {
+        final qop = double.tryParse(controller.text) ?? 0.0;
+        if (qop > 0) {
+          res.add({
+            "reservoir_type": 2,
+            "reservoir_volume": qop.toStringAsFixed(1), // Строка, как ожидает бэкенд
+          });
+        }
       }
     }
 
@@ -306,9 +389,24 @@ class EditVM extends ChangeNotifier {
     final curTrellis = _currentTrellises(ref);
     if (curTrellis.isNotEmpty) body["trellises"] = curTrellis;
 
-    // reservoirs
+    // reservoirs - всегда отправляем текущее состояние
     final curRes = _currentReservoirs(ref);
-    if (curRes.isNotEmpty) body["reservoirs"] = curRes;
+    final origRes = (originalPlantationModel.reservoirs ?? [])
+        .map((r) => {
+              "reservoir_type": r.reservoirType,
+              "reservoir_volume": r.reservoirVolume != null 
+                  ? r.reservoirVolume.toString() 
+                  : "0.0",
+            })
+        .toList();
+    
+    // Отправляем резервуары, если:
+    // 1. Переключатель включен (даже если список пустой - для очистки на сервере)
+    // 2. Или текущие резервуары отличаются от оригинальных
+    final reservoirsChanged = jsonEncode(curRes) != jsonEncode(origRes);
+    if (ref.read(switchReservoirs) || reservoirsChanged) {
+      body["reservoirs"] = curRes;
+    }
 
     // kontur numbers
     if (konturNumbers.isNotEmpty) {
@@ -440,22 +538,63 @@ class EditVM extends ChangeNotifier {
         }
         ref.read(switchTrellis.notifier).state = hasAnyTrellis;
 
-        // Prefill reservoirs
-        double betonVol = 0.0, qopVol = 0.0;
+        // Prefill reservoirs - загружаем все резервуары каждого типа
+        initializeReservoirs();
+        reservoirsBetonliVolumes.clear();
+        reservoirsQoplamaliVolumes.clear();
+        
+        // Группируем резервуары по типам
+        final List<double> betonVolumes = [];
+        final List<double> qopVolumes = [];
+        
         for (final r in plantationModel.reservoirs ?? []) {
           if (r.reservoirType == 1) {
             final v = r.reservoirVolume;
-            if (v != null) betonVol = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+            if (v != null) {
+              final vol = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+              if (vol > 0) betonVolumes.add(vol);
+            }
           } else if (r.reservoirType == 2) {
             final v = r.reservoirVolume;
-            if (v != null) qopVol = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+            if (v != null) {
+              final vol = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+              if (vol > 0) qopVolumes.add(vol);
+            }
           }
         }
-        ref.read(switchReservoirsBeton.notifier).state = betonVol > 0;
-        ref.read(switchReservoirsQoplamali.notifier).state = qopVol > 0;
-        reservoirsBetonliVolume.text = betonVol > 0 ? betonVol.toStringAsFixed(0) : '';
-        reservoirsQoplamaliVolume.text = qopVol > 0 ? qopVol.toStringAsFixed(0) : '';
-        ref.read(switchReservoirs.notifier).state = (betonVol > 0 || qopVol > 0);
+        
+        // Заполняем списки контроллеров
+        if (betonVolumes.isEmpty) {
+          reservoirsBetonliVolumes.add(reservoirsBetonliVolume);
+        } else {
+          for (int i = 0; i < betonVolumes.length; i++) {
+            if (i == 0) {
+              reservoirsBetonliVolume.text = betonVolumes[i].toStringAsFixed(0);
+              reservoirsBetonliVolumes.add(reservoirsBetonliVolume);
+            } else {
+              final controller = TextEditingController(text: betonVolumes[i].toStringAsFixed(0));
+              reservoirsBetonliVolumes.add(controller);
+            }
+          }
+        }
+        
+        if (qopVolumes.isEmpty) {
+          reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
+        } else {
+          for (int i = 0; i < qopVolumes.length; i++) {
+            if (i == 0) {
+              reservoirsQoplamaliVolume.text = qopVolumes[i].toStringAsFixed(0);
+              reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
+            } else {
+              final controller = TextEditingController(text: qopVolumes[i].toStringAsFixed(0));
+              reservoirsQoplamaliVolumes.add(controller);
+            }
+          }
+        }
+        
+        ref.read(switchReservoirsBeton.notifier).state = betonVolumes.isNotEmpty;
+        ref.read(switchReservoirsQoplamali.notifier).state = qopVolumes.isNotEmpty;
+        ref.read(switchReservoirs.notifier).state = (betonVolumes.isNotEmpty || qopVolumes.isNotEmpty);
 
         // Prefill kontur numbers
         try {
@@ -736,9 +875,8 @@ class EditVM extends ChangeNotifier {
     if (ref.read(switchTrellis) && _currentTrellises(ref).isEmpty) {
       ref.read(switchTrellis.notifier).state = false;
     }
-    if (ref.read(switchReservoirs) && _currentReservoirs(ref).isEmpty) {
-      ref.read(switchReservoirs.notifier).state = false;
-    }
+    // НЕ выключаем переключатель резервуаров здесь, чтобы не потерять данные при сохранении
+    // Переключатель будет выключен только если пользователь явно его выключит
 
     // Сначала обновляем данные плантации
     bool plantationSuccess = await editPlantation(ref, id);
@@ -975,14 +1113,31 @@ class EditVM extends ChangeNotifier {
     );
 
     if (source != null) {
-      await pickImage(cardId: cardId, source: source);
+      await pickImage(cardId: cardId, source: source, context: context);
     }
   }
 
   /// Основной метод для загрузки изображения (используется после выбора source)
-  Future<String?> pickImage({required int cardId, required ImageSource source}) async {
+  Future<String?> pickImage({
+    required int cardId,
+    required ImageSource source,
+    BuildContext? context,
+  }) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile == null) return null;
+    
+    // Валидация формата изображения
+    if (!Utils.isValidImageFormat(pickedFile.path)) {
+      final mountedContext = context;
+      if (mountedContext != null && mountedContext.mounted) {
+        Utils.fireTopSnackBar(
+          "Faqat JPEG yoki JPG formatidagi rasmlar qabul qilinadi",
+          DesignColors.AppColors.error,
+          mountedContext,
+        );
+      }
+      return null;
+    }
     // Set loader state for this slot
     _uploadingIndex = cardId;
     _isUploadingImage = true;
@@ -1028,8 +1183,8 @@ class EditVM extends ChangeNotifier {
   }
 
   /// Старый метод для обратной совместимости
-  Future<String?> pickImageFromCamera(int cardId) async {
-    return await pickImage(cardId: cardId, source: ImageSource.camera);
+  Future<String?> pickImageFromCamera(int cardId, {BuildContext? context}) async {
+    return await pickImage(cardId: cardId, source: ImageSource.camera, context: context);
   }
 
   Future<void> getFruit() async {

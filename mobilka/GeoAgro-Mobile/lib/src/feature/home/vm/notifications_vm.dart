@@ -117,5 +117,19 @@ class NotificationsVm extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Загрузить счетчик непрочитанных уведомлений
+  Future<void> loadUnreadCount() async {
+    try {
+      final data = await _repo.getUnreadNotificationsCount();
+      if (data != null) {
+        final jsonData = jsonDecode(data) as Map<String, dynamic>;
+        unreadCount = jsonData['unread_count'] as int? ?? 0;
+        notifyListeners();
+      }
+    } catch (e) {
+      // Игнорируем ошибки при загрузке счетчика
+    }
+  }
 }
 

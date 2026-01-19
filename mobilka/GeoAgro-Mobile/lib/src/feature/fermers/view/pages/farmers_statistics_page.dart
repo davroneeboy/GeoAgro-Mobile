@@ -9,25 +9,46 @@ import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
-import 'package:agro_employee_public/src/core/widgets/loading_widget.dart' hide EmptyStateWidget;
+import 'package:agro_employee_public/src/core/widgets/loading_widget.dart'
+    hide EmptyStateWidget;
 import 'package:agro_employee_public/src/data/model/farmer/farmer_statistics_model.dart';
 import 'package:agro_employee_public/src/core/widgets/empty_state_widget.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import '../../vm/farmers_statistics_vm.dart';
 
-final farmersStatisticsVM = ChangeNotifierProvider.autoDispose<FarmersStatisticsVm>((ref) {
+final farmersStatisticsVM =
+    ChangeNotifierProvider.autoDispose<FarmersStatisticsVm>((ref) {
   return FarmersStatisticsVm();
 });
 
-class FarmersStatisticsPage extends ConsumerWidget {
+class FarmersStatisticsPage extends ConsumerStatefulWidget {
   const FarmersStatisticsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FarmersStatisticsPage> createState() =>
+      _FarmersStatisticsPageState();
+}
+
+class _FarmersStatisticsPageState extends ConsumerState<FarmersStatisticsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Инициализируем данные только при открытии страницы
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = ref.read(farmersStatisticsVM);
+      if (vm.statistics == null && !vm.isLoading) {
+        vm.initialize();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final vm = ref.watch(farmersStatisticsVM);
 
     return Scaffold(
@@ -111,7 +132,7 @@ class _SearchSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.watch(farmersStatisticsVM);
-    
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -149,7 +170,9 @@ class _SearchSection extends ConsumerWidget {
                         )
                       : null,
                   onChanged: (value) {
-                    ref.read(farmersStatisticsVM.notifier).onSearchChanged(value);
+                    ref
+                        .read(farmersStatisticsVM.notifier)
+                        .onSearchChanged(value);
                   },
                 ),
               ),
@@ -387,6 +410,27 @@ class _SearchResultCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                if (farmer.createdBy != null) ...[
+                  SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 16.sp,
+                        color: DesignColors.AppColors.darkTextSecondary,
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          "Yaratgan: ${farmer.createdBy!.fullName} (${farmer.createdBy!.username})",
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: DesignColors.AppColors.darkTextSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ],
           ),
@@ -397,7 +441,6 @@ class _SearchResultCard extends StatelessWidget {
 }
 
 // _EmptyState removed
-
 
 class _OverviewHeader extends StatelessWidget {
   final List<FarmerData> statistics;
@@ -675,7 +718,8 @@ class _FarmersList extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: statistics.length,
           separatorBuilder: (_, __) => SizedBox(height: AppSpacing.md),
-          itemBuilder: (context, index) => _FarmerCard(farmer: statistics[index]),
+          itemBuilder: (context, index) =>
+              _FarmerCard(farmer: statistics[index]),
         ),
       ],
     );
@@ -697,8 +741,10 @@ class _FarmerCard extends StatelessWidget {
         final route =
             "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
 
-        debugPrint('FarmersStatisticsPage: Navigating to farmer plantations: $route');
-        debugPrint('FarmersStatisticsPage: farmerId=$farmerId, farmerInn=$farmerInn');
+        debugPrint(
+            'FarmersStatisticsPage: Navigating to farmer plantations: $route');
+        debugPrint(
+            'FarmersStatisticsPage: farmerId=$farmerId, farmerInn=$farmerInn');
         context.push(route);
       },
       child: Container(
@@ -754,10 +800,10 @@ class _FarmerCard extends StatelessWidget {
                 builder: (context, constraints) {
                   final spacing = AppSpacing.lg;
                   final availableWidth = constraints.maxWidth;
-                  
+
                   // Минимальная ширина для одного элемента (примерно 140-160px)
                   final minTileWidth = 140.0;
-                  
+
                   // Список всех метрик
                   final metrics = [
                     _MetricPill(
@@ -782,7 +828,8 @@ class _FarmerCard extends StatelessWidget {
                     ),
                     _MetricPill(
                       label: "Uzumzor maydoni",
-                      value: "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
+                      value:
+                          "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
                       icon: Icons.landscape_outlined,
                     ),
                     _MetricPill(
@@ -791,17 +838,19 @@ class _FarmerCard extends StatelessWidget {
                       icon: Icons.park_outlined,
                     ),
                   ];
-                  
+
                   // Вычисляем, помещаются ли все элементы в одну строку
                   // Если ширина каждого элемента при размещении в одну строку >= minTileWidth, используем один столбец
                   // Если нет - используем два столбца
                   final singleRowWidth = availableWidth / metrics.length;
-                  final useTwoColumns = singleRowWidth < minTileWidth && metrics.length > 1;
-                  
+                  final useTwoColumns =
+                      singleRowWidth < minTileWidth && metrics.length > 1;
+
                   // Вычисляем ширину элемента
                   final tileWidth = useTwoColumns
                       ? (availableWidth - spacing) / 2
-                      : (availableWidth - (spacing * (metrics.length - 1))) / metrics.length;
+                      : (availableWidth - (spacing * (metrics.length - 1))) /
+                          metrics.length;
 
                   return Wrap(
                     spacing: spacing,

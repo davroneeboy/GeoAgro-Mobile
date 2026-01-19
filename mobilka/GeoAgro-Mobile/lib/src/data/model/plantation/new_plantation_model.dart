@@ -1,5 +1,3 @@
-import 'comment_model.dart';
-
 class Coordinate {
   final double? latitude;
   final double? longitude;

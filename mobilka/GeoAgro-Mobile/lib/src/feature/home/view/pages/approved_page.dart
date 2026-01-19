@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/style/app_colors.dart';
 import '../../../../../design_system/theme/colors.dart' as DesignColors;
-import '../../../../../design_system/tokens/typography.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';

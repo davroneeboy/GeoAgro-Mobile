@@ -1,7 +1,6 @@
 // create_map_page_vm.dart
 import 'dart:math';
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -321,7 +320,6 @@ class CreateMapPageVm extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<void> _loadPlantationsAlternative() async {
     try {

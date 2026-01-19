@@ -10,7 +10,6 @@ import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
 import 'package:agro_employee_public/src/feature/fermers/view/widgets/edit_farmer_name_dialog.dart';
 import 'package:agro_employee_public/src/feature/fermers/view/pages/fermers_page.dart';
-import 'package:agro_employee_public/src/feature/fermers/vm/fermer_vm.dart';
 
 class FermerPageCardWidget extends ConsumerWidget {
   final FarmerModel fermerModel;
@@ -150,6 +149,12 @@ class FermerPageCardWidget extends ConsumerWidget {
                     icon: Icons.calendar_month_outlined,
                     title: "Tashkil topgan yil",
                     value: fermerModel.establishedYear.toString(),
+                  ),
+                if (fermerModel.createdBy != null)
+                  _InfoPill(
+                    icon: Icons.person_outline,
+                    title: "Yaratgan",
+                    value: "${fermerModel.createdBy!.fullName} (${fermerModel.createdBy!.username})",
                   ),
               ],
             ),

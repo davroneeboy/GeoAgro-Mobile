@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 sealed class Utils {
+  /// Проверить, является ли файл изображением формата JPEG/JPG
+  static bool isValidImageFormat(String filePath) {
+    final extension = filePath.toLowerCase().split('.').last;
+    return extension == 'jpg' || extension == 'jpeg';
+  }
   // // FireSnackBar
   // static void fireSnackBar(String msg, Color bgColor, BuildContext context) {
   //   final scaffoldMessenger = ScaffoldMessenger.of(context);

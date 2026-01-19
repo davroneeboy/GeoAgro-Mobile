@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/style/app_colors.dart';
 import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../vm/create_map_page_vm.dart';
 
