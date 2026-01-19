@@ -627,10 +627,13 @@ class DetailVM extends ChangeNotifier {
     if (selectedDetails.isEmpty) {
       return 'Meva maydoni tanlanmagan, tanlovni bajaring';
     }
-    // Проверяем, что загружено минимум 2 фотографии
+    
+    // Динамическая проверка количества фотографий
+    final minPhotosRequired = calculateMinimumPhotosRequired();
     final uploadedImagesCount = _imageFiles.values.where((file) => file != null).length;
-    if (uploadedImagesCount < 2) {
-      return 'Rasm yuklash majburiy, kamida 2 ta rasm yuklang';
+    
+    if (uploadedImagesCount < minPhotosRequired) {
+      return 'Kamida $minPhotosRequired ta rasm yuklash kerak. Hozir: $uploadedImagesCount ta.\n${getPhotoRequirementDetails()}';
     }
     
     return null;
@@ -788,6 +791,45 @@ class DetailVM extends ChangeNotifier {
     }
   }
 
+  /// Calculates minimum required photos based on plantation type, fruits count, and land type
+  /// 
+  /// Logic:
+  /// - Base: 1 photo for any plantation
+  /// - +1 photo for each added fruit
+  /// - +1 photo if land type is Lalmi (unirrigated/yaroqsiz)
+  int calculateMinimumPhotosRequired() {
+    int minPhotos = 1; // Base photo for plantation
+    
+    // Add 1 photo for each fruit
+    minPhotos += selectedDetails.length;
+    
+    // Add 1 photo if land type is Lalmi (1 = yaroqsiz/unirrigated)
+    if (selectedYerType == 1) {
+      minPhotos += 1;
+    }
+    
+    debugPrint("📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0})");
+    
+    return minPhotos;
+  }
+  
+  /// Returns detailed explanation of photo requirements
+  String getPhotoRequirementDetails() {
+    final details = <String>[];
+    
+    details.add("• Asosiy plantatsiya: 1 ta rasm");
+    
+    if (selectedDetails.isNotEmpty) {
+      details.add("• Mevalar (${selectedDetails.length} ta): ${selectedDetails.length} ta rasm");
+    }
+    
+    if (selectedYerType == 1) {
+      details.add("• Lalmi (yaroqsiz) maydon: 1 ta rasm");
+    }
+    
+    return details.join('\n');
+  }
+  
   /// Старый метод для обратной совместимости (используется в некоторых местах)
   Future<void> pickImageFromCamera(int cardId, {BuildContext? context}) =>
       pickImage(cardId: cardId, source: ImageSource.camera, context: context);

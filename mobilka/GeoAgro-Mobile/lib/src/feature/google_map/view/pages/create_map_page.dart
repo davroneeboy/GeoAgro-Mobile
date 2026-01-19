@@ -136,12 +136,12 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
           // Boundary loading indicator
           if (vm.isLoadingBoundaries)
             Positioned(
-              top: 80.h,
-              right: 16.w,
+              top: 80,
+              right: 16,
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.95),
@@ -157,19 +157,19 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(
-                      width: 16.w,
-                      height: 16.h,
-                      child: const CircularProgressIndicator(
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation(DesignColors.AppColors.primary),
                       ),
                     ),
-                    SizedBox(width: 8.w),
-                    Text(
+                    const SizedBox(width: 8),
+                    const Text(
                       "Chegara yuklanmoqda...",
                       style: TextStyle(
-                        fontSize: 12.sp,
+                        fontSize: 12,
                         color: Colors.black87,
                         fontWeight: FontWeight.w500,
                       ),
@@ -182,12 +182,12 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
           // Boundary loaded indicator (shows for 3 seconds)
           if (vm.boundariesLoaded && !vm.isLoadingBoundaries)
             Positioned(
-              top: 80.h,
-              right: 16.w,
+              top: 80,
+              right: 16,
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
                   color: DesignColors.AppColors.success.withValues(alpha: 0.95),
@@ -200,19 +200,19 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                     ),
                   ],
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.check_circle,
                       color: Colors.white,
-                      size: 16.sp,
+                      size: 16,
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: 8),
                     Text(
                       "Chegara yuklandi",
                       style: TextStyle(
-                        fontSize: 12.sp,
+                        fontSize: 12,
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),

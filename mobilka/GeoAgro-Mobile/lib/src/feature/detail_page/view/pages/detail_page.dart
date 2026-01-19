@@ -609,6 +609,62 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   selectedDetails2: detailVm.selectedFruitVerityRoot,
                 ),
                 MainText(text: "Bog`ning rasmlarini yuklang"),
+                SizedBox(height: 8.h),
+                // Photo requirements indicator
+                Consumer(
+                  builder: (context, ref, child) {
+                    final requiredPhotos = detailVm.calculateMinimumPhotosRequired();
+                    final uploadedPhotos = [0, 1, 2, 3]
+                        .where((i) => detailVm.getImageFile(i) != null)
+                        .length;
+                    final isComplete = uploadedPhotos >= requiredPhotos;
+                    
+                    return Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isComplete
+                            ? DesignColors.AppColors.success.withValues(alpha: 0.1)
+                            : DesignColors.AppColors.warning.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isComplete
+                              ? DesignColors.AppColors.success
+                              : DesignColors.AppColors.warning,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isComplete ? Icons.check_circle : Icons.info_outline,
+                            size: 20.sp,
+                            color: isComplete
+                                ? DesignColors.AppColors.success
+                                : DesignColors.AppColors.warning,
+                          ),
+                          SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              isComplete
+                                  ? 'Barcha rasmlar yuklandi ($uploadedPhotos/$requiredPhotos)'
+                                  : 'Kamida $requiredPhotos ta rasm yuklang ($uploadedPhotos/$requiredPhotos)',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: isComplete
+                                    ? DesignColors.AppColors.success
+                                    : DesignColors.AppColors.warning,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 12.h),
                 ImageUploadListWidget(
                   showImagePicker: detailVm.showImagePicker,
                   getImageFile: detailVm.getImageFile,

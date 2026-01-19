@@ -45,10 +45,14 @@ class PlantationMapViewVm extends ChangeNotifier {
   }
   
   Future<void> loadOblastBoundaries() async {
+    if (_isDisposed) return;
+    
     try {
       debugPrint('🗺️ PlantationMapView: Loading oblast boundaries...');
       
       final geoJsonData = await _geoJsonService.loadCurrentUserBoundaries();
+      
+      if (_isDisposed) return;
       
       if (geoJsonData == null) {
         debugPrint('❌ Failed to load oblast boundaries');

@@ -48,15 +48,14 @@ class _FermersPageState extends ConsumerState<FermersPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    debugPrint("🌾 FermersPage: didChangeDependencies called");
     // Убеждаемся, что данные загружаются при открытии страницы
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint("🌾 FermersPage: PostFrameCallback executing");
       final vm = ref.read(fermerPageVM);
-      // Инициализируем ViewModel, если еще не инициализирован
+      debugPrint("🌾 FermersPage: fermersList.length=${vm.fermersList.length}, isLoading=${vm.isLoading}");
+      // Инициализируем ViewModel (автоматически вызовет getFermers() если нужно)
       vm.initialize();
-      // Загружаем данные, если список пуст и не идет загрузка
-      if (vm.fermersList.isEmpty && !vm.isLoading && !vm.isFetchingMore && vm.errorMessage == null) {
-        vm.getFermers(isLoadMore: false);
-      }
     });
   }
 

@@ -241,8 +241,11 @@ class CreateMapPageVm extends ChangeNotifier {
     );
   }
 
+  bool _isDisposed = false;
+
   @override
   void dispose() {
+    _isDisposed = true;
     _positionStreamSub?.cancel();
     super.dispose();
   }
@@ -348,6 +351,8 @@ class CreateMapPageVm extends ChangeNotifier {
   
   /// Loads oblast boundaries from GeoJSON and displays them on the map
   Future<void> loadOblastBoundaries() async {
+    if (_isDisposed) return;
+    
     isLoadingBoundaries = true;
     boundariesLoaded = false;
     notifyListeners();
@@ -357,10 +362,12 @@ class CreateMapPageVm extends ChangeNotifier {
       
       final geoJsonData = await _geoJsonService.loadCurrentUserBoundaries();
       
+      if (_isDisposed) return;
+      
       if (geoJsonData == null) {
         debugPrint('❌ Failed to load oblast boundaries');
         isLoadingBoundaries = false;
-        notifyListeners();
+        if (!_isDisposed) notifyListeners();
         return;
       }
       
@@ -370,7 +377,7 @@ class CreateMapPageVm extends ChangeNotifier {
       if (features == null || features.isEmpty) {
         debugPrint('⚠️ No features found in GeoJSON');
         isLoadingBoundaries = false;
-        notifyListeners();
+        if (!_isDisposed) notifyListeners();
         return;
       }
       
@@ -392,17 +399,19 @@ class CreateMapPageVm extends ChangeNotifier {
       debugPrint('✅ Added ${boundaryPolygons.length} boundary polygons to map');
       boundariesLoaded = true;
       isLoadingBoundaries = false;
-      notifyListeners();
+      if (!_isDisposed) notifyListeners();
       
       // Скрываем индикатор успеха через 3 секунды
       Future.delayed(const Duration(seconds: 3), () {
-        boundariesLoaded = false;
-        notifyListeners();
+        if (!_isDisposed) {
+          boundariesLoaded = false;
+          notifyListeners();
+        }
       });
     } catch (e) {
       debugPrint('❌ Error loading oblast boundaries: $e');
       isLoadingBoundaries = false;
-      notifyListeners();
+      if (!_isDisposed) notifyListeners();
     }
   }
   
@@ -479,22 +488,10 @@ class CreateMapPageVm extends ChangeNotifier {
         'Updating user plantations polygons for ${userPlantations.length} plantations');
 
     for (final plantation in userPlantations) {
-      debugPrint(
-          'Processing plantation ${plantation.id}: ${plantation.farmerName}');
-      debugPrint(
-          'Plantation coordinates count: ${plantation.coordinates.length}');
-
       if (plantation.coordinates.isNotEmpty) {
         final coordinates = plantation.coordinates
             .map((coord) => LatLng(coord.latitude, coord.longitude))
             .toList();
-
-        debugPrint(
-            'Adding polygon for plantation ${plantation.id} with ${coordinates.length} coordinates');
-        debugPrint(
-            'First coordinate: ${coordinates.first.latitude}, ${coordinates.first.longitude}');
-        debugPrint(
-            'Last coordinate: ${coordinates.last.latitude}, ${coordinates.last.longitude}');
 
         // Проверяем, что полигон замкнут
         if (coordinates.length >= 3) {
@@ -502,7 +499,6 @@ class CreateMapPageVm extends ChangeNotifier {
           if (coordinates.first.latitude != coordinates.last.latitude ||
               coordinates.first.longitude != coordinates.last.longitude) {
             coordinates.add(coordinates.first);
-            debugPrint('Closed polygon for plantation ${plantation.id}');
           }
 
           // Определяем цвет в зависимости от статуса проверки
@@ -526,23 +522,9 @@ class CreateMapPageVm extends ChangeNotifier {
             plantation: plantation,
             coordinates: coordinates,
           );
-
-          debugPrint(
-              'Successfully added polygon for plantation ${plantation.id}');
-          debugPrint(
-              'Polygon color: ${plantation.isChecked ? 'Green (Checked)' : 'Orange (Not Checked)'}');
-        } else {
-          debugPrint(
-              'Plantation ${plantation.id} has insufficient coordinates (${coordinates.length})');
         }
-      } else {
-        debugPrint('Plantation ${plantation.id} has no coordinates');
       }
     }
-
-    debugPrint('Created ${nearbyPolygons.length} user plantation polygons');
-    debugPrint(
-        'Total polygons on map: ${polygons.length + nearbyPolygons.length}');
 
     // Уведомляем UI об обновлении
     notifyListeners();

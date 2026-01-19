@@ -923,24 +923,29 @@ class _MetricPill extends StatelessWidget {
             color: DesignColors.AppColors.accentGreen,
           ),
           SizedBox(width: AppSpacing.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: AppTypography.bodySmall(context).copyWith(
-                  color: DesignColors.AppColors.darkTextPrimary,
-                  fontWeight: FontWeight.w600,
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: DesignColors.AppColors.darkTextPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                label,
-                style: AppTypography.caption(context).copyWith(
-                  color: DesignColors.AppColors.darkTextTertiary,
+                Text(
+                  label,
+                  style: AppTypography.caption(context).copyWith(
+                    color: DesignColors.AppColors.darkTextTertiary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
