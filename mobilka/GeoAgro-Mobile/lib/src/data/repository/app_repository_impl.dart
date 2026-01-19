@@ -717,4 +717,30 @@ class AppRepositoryImpl implements AppRepo {
       );
     }
   }
+  
+  // ===== GeoJSON API =====
+  @override
+  Future<String?> getOblastGeoJson({required String oblastSlug}) async {
+    try {
+      debugPrint("🗺️ Repository: Fetching GeoJSON for oblast: $oblastSlug");
+      final data = await ApiService.getGeoJson(oblastSlug);
+      if (data != null) {
+        debugPrint("✅ Repository: GeoJSON data received");
+      } else {
+        debugPrint("❌ Repository: GeoJSON data is null");
+      }
+      return data;
+    } on DioException catch (e) {
+      debugPrint("❌ Repository: DioException - ${e.response?.statusCode}: ${e.response?.data ?? e.message}");
+      if (e.response?.statusCode == 403) {
+        debugPrint("❌ Repository: Access denied to GeoJSON file");
+      } else if (e.response?.statusCode == 404) {
+        debugPrint("❌ Repository: GeoJSON file not found");
+      }
+      return null;
+    } catch (e) {
+      debugPrint("❌ Repository: Unexpected error: $e");
+      return null;
+    }
+  }
 }

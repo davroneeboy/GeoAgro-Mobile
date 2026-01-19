@@ -398,6 +398,40 @@ class ApiService {
     }
   }
 
+  /// [Get GeoJSON Method]
+  /// Downloads GeoJSON file for a specific oblast
+  /// Requires JWT authentication in headers
+  /// Returns GeoJSON string on success, null on failure
+  static Future<String?> getGeoJson(String oblastSlug) async {
+    try {
+      final url = ApiConst.apiGeoJson(oblastSlug);
+      debugPrint("🗺️ API: Fetching GeoJSON for oblast: $oblastSlug");
+      debugPrint("🗺️ API: URL: $url");
+      final response = await (await initDio()).get<dynamic>(url);
+      if (response.statusCode == 200) {
+        debugPrint("✅ API: GeoJSON downloaded successfully");
+        return jsonEncode(response.data);
+      } else {
+        debugPrint("❌ API: GeoJSON request failed with status: ${response.statusCode}");
+        return null;
+      }
+    } on TimeoutException catch (_) {
+      l.e("The connection has timed out, Please try again!");
+      rethrow;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        l.e("Access denied to GeoJSON file. User may not have permission for this oblast.");
+      } else if (e.response?.statusCode == 404) {
+        l.e("GeoJSON file not found for oblast: $oblastSlug");
+      }
+      l.e(e.response.toString());
+      rethrow;
+    } on Object catch (e) {
+      l.e(e.toString());
+      rethrow;
+    }
+  }
+
   /// [Delete Method]
   static Future<String?> delete(String api, [Map<String, dynamic>? params]) async {
     try {

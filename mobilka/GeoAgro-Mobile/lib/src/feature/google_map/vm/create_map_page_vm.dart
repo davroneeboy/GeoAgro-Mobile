@@ -13,11 +13,13 @@ import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/setting/setup.dart';
+import '../../../core/services/geojson_service.dart';
 
 List<LatLng> polygoneCoordinates = [];
 
 class CreateMapPageVm extends ChangeNotifier {
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
+  final GeoJsonService _geoJsonService = GeoJsonService();
 
   GoogleMapController? mapController;
   final List<LatLng> polylineCoordinates = [];
@@ -32,6 +34,7 @@ class CreateMapPageVm extends ChangeNotifier {
   final Set<Polygon> polygons = {};
   final Set<Marker> markers = {};
   final Set<Polygon> nearbyPolygons = {}; // Polygons for nearby plantations
+  final Set<Polygon> boundaryPolygons = {}; // Polygons for oblast boundaries
 
   BitmapDescriptor? userArrowIcon;
   double userHeading = 0.0;
@@ -40,6 +43,8 @@ class CreateMapPageVm extends ChangeNotifier {
   List<NearbyPlantation> nearbyPlantations = [];
   List<FormeMapPlantation> userPlantations = [];
   bool isLoadingNearby = false;
+  bool isLoadingBoundaries = false;
+  bool boundariesLoaded = false;
 
   // Лимит координат в метрах (дефолт 1000м = 1км)
   double _limitKm = 1.0;
@@ -265,6 +270,9 @@ class CreateMapPageVm extends ChangeNotifier {
 
     // Загружаем плантации пользователя
     loadNearbyPlantations();
+    
+    // Загружаем границы области
+    loadOblastBoundaries();
 
     notifyListeners();
   }
@@ -335,6 +343,129 @@ class CreateMapPageVm extends ChangeNotifier {
     } catch (e) {
       debugPrint('Alternative loading method also failed: $e');
       userPlantations = [];
+    }
+  }
+  
+  /// Loads oblast boundaries from GeoJSON and displays them on the map
+  Future<void> loadOblastBoundaries() async {
+    isLoadingBoundaries = true;
+    boundariesLoaded = false;
+    notifyListeners();
+    
+    try {
+      debugPrint('🗺️ Loading oblast boundaries...');
+      
+      final geoJsonData = await _geoJsonService.loadCurrentUserBoundaries();
+      
+      if (geoJsonData == null) {
+        debugPrint('❌ Failed to load oblast boundaries');
+        isLoadingBoundaries = false;
+        notifyListeners();
+        return;
+      }
+      
+      debugPrint('✅ Oblast boundaries loaded, parsing features...');
+      
+      final features = geoJsonData['features'] as List?;
+      if (features == null || features.isEmpty) {
+        debugPrint('⚠️ No features found in GeoJSON');
+        isLoadingBoundaries = false;
+        notifyListeners();
+        return;
+      }
+      
+      boundaryPolygons.clear();
+      
+      for (var i = 0; i < features.length; i++) {
+        final feature = features[i] as Map<String, dynamic>;
+        final geometry = feature['geometry'] as Map<String, dynamic>?;
+        
+        if (geometry == null) continue;
+        
+        if (geometry['type'] == 'Polygon') {
+          _addPolygonBoundary(geometry, i);
+        } else if (geometry['type'] == 'MultiPolygon') {
+          _addMultiPolygonBoundary(geometry, i);
+        }
+      }
+      
+      debugPrint('✅ Added ${boundaryPolygons.length} boundary polygons to map');
+      boundariesLoaded = true;
+      isLoadingBoundaries = false;
+      notifyListeners();
+      
+      // Скрываем индикатор успеха через 3 секунды
+      Future.delayed(const Duration(seconds: 3), () {
+        boundariesLoaded = false;
+        notifyListeners();
+      });
+    } catch (e) {
+      debugPrint('❌ Error loading oblast boundaries: $e');
+      isLoadingBoundaries = false;
+      notifyListeners();
+    }
+  }
+  
+  void _addPolygonBoundary(Map<String, dynamic> geometry, int index) {
+    try {
+      final coordinates = geometry['coordinates'] as List;
+      if (coordinates.isEmpty) return;
+      
+      // First ring is the outer boundary
+      final outerRing = coordinates[0] as List;
+      final points = outerRing.map((coord) {
+        final lng = (coord[0] as num).toDouble();
+        final lat = (coord[1] as num).toDouble();
+        return LatLng(lat, lng);
+      }).toList();
+      
+      if (points.length < 3) return; // Need at least 3 points for a polygon
+      
+      boundaryPolygons.add(
+        Polygon(
+          polygonId: PolygonId('oblast_boundary_$index'),
+          points: points,
+          strokeColor: Colors.white, // Белый - отлично виден на спутниковой карте
+          strokeWidth: 3, // Увеличена толщина для лучшей видимости
+          fillColor: Colors.white.withOpacity(0.05), // Легкая белая заливка
+          geodesic: true,
+        ),
+      );
+    } catch (e) {
+      debugPrint('⚠️ Error adding polygon boundary: $e');
+    }
+  }
+  
+  void _addMultiPolygonBoundary(Map<String, dynamic> geometry, int index) {
+    try {
+      final coordinates = geometry['coordinates'] as List;
+      
+      for (var polyIndex = 0; polyIndex < coordinates.length; polyIndex++) {
+        final polygonCoords = coordinates[polyIndex] as List;
+        if (polygonCoords.isEmpty) continue;
+        
+        final outerRing = polygonCoords[0] as List;
+        final points = outerRing.map((coord) {
+          final lng = (coord[0] as num).toDouble();
+          final lat = (coord[1] as num).toDouble();
+          return LatLng(lat, lng);
+        }).toList();
+        
+        if (points.length < 3) continue;
+        
+        boundaryPolygons.add(
+          Polygon(
+            polygonId: PolygonId('oblast_boundary_${index}_$polyIndex'),
+            points: points,
+            strokeColor: Colors.white, // Белый - отлично виден на спутниковой карте
+            strokeWidth: 3, // Увеличена толщина для лучшей видимости
+            fillColor: Colors.white.withOpacity(0.05), // Легкая белая заливка
+            geodesic: true,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error adding multi-polygon boundary: $e');
     }
   }
 

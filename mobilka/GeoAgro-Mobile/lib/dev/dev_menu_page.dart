@@ -145,6 +145,18 @@ class DevMenuPage extends StatelessWidget {
           
           _buildSection(
             context,
+            'Тестлаш',
+            [
+              _DevMenuItem(
+                title: 'GeoJSON Test',
+                route: '/dev-geojson-test',
+                icon: Icons.map_outlined,
+              ),
+            ],
+          ),
+          
+          _buildSection(
+            context,
             'Бошқа',
             [
               _DevMenuItem(
