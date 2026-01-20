@@ -193,26 +193,43 @@ class HomePageVm extends ChangeNotifier {
           if (dataStr.contains("error:") || dataStr.contains("{error")) {
             // Пытаемся извлечь сообщение об ошибке
             try {
-              // Ищем паттерн error: <message>
-              final errorMatch =
-                  RegExp(r'error:\s*([^}]+)').firstMatch(dataStr);
+              final originalData = data.toString();
+              String? errorMessage;
+              
+              // Вариант 1: {error: message} - с фигурными скобками
+              var errorMatch = RegExp(r'\{error:\s*([^}]+)\}').firstMatch(originalData);
               if (errorMatch != null) {
-                final errorMessage =
-                    errorMatch.group(1)?.trim() ?? "Xatolik yuz berdi";
-                debugPrint("Delete: Extracted error message: $errorMessage");
-                deletMessage = errorMessage;
-                _safeNotifyListeners();
-                return false;
+                errorMessage = errorMatch.group(1)?.trim();
               }
-
-              // Альтернативный паттерн: {error: message}
-              final errorMatch2 =
-                  RegExp(r'\{error:\s*([^}]+)\}').firstMatch(dataStr);
-              if (errorMatch2 != null) {
-                final errorMessage =
-                    errorMatch2.group(1)?.trim() ?? "Xatolik yuz berdi";
-                debugPrint(
-                    "Delete: Extracted error message (pattern 2): $errorMessage");
+              
+              // Вариант 2: error: message - без фигурных скобок в начале
+              if (errorMessage == null || errorMessage.isEmpty) {
+                errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                if (errorMatch != null) {
+                  errorMessage = errorMatch.group(1)?.trim();
+                  // Убираем закрывающую скобку, если она есть в конце
+                  if (errorMessage != null && errorMessage.endsWith('}')) {
+                    errorMessage = errorMessage.substring(0, errorMessage.length - 1).trim();
+                  }
+                }
+              }
+              
+              // Вариант 3: просто ищем текст после "error:" до конца строки или до закрывающей скобки
+              if (errorMessage == null || errorMessage.isEmpty) {
+                final errorIndex = originalData.toLowerCase().indexOf('error:');
+                if (errorIndex != -1) {
+                  final startIndex = errorIndex + 6; // длина "error:"
+                  final endIndex = originalData.indexOf('}', startIndex);
+                  if (endIndex != -1) {
+                    errorMessage = originalData.substring(startIndex, endIndex).trim();
+                  } else {
+                    errorMessage = originalData.substring(startIndex).trim();
+                  }
+                }
+              }
+              
+              if (errorMessage != null && errorMessage.isNotEmpty) {
+                debugPrint("Delete: Extracted error message: $errorMessage");
                 deletMessage = errorMessage;
                 _safeNotifyListeners();
                 return false;
@@ -332,11 +349,39 @@ class HomePageVm extends ChangeNotifier {
                   } catch (_) {
                     // Если не валидный JSON, извлекаем через регулярное выражение
                     // Формат: {error: No Plantation matches the given query.}
-                    final errorMatch =
-                        RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                    // Пробуем разные варианты регулярных выражений
+                    RegExp? errorMatch;
+                    String? errorMessage;
+                    
+                    // Вариант 1: {error: message}
+                    errorMatch = RegExp(r'\{error:\s*([^}]+)\}').firstMatch(originalData);
                     if (errorMatch != null) {
-                      final errorMessage = errorMatch.group(1)?.trim() ??
-                          "Plantatsiya topilmadi yoki o'chirib bo'lmaydi";
+                      errorMessage = errorMatch.group(1)?.trim();
+                    }
+                    
+                    // Вариант 2: error: message (без фигурных скобок)
+                    if (errorMessage == null) {
+                      errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                      if (errorMatch != null) {
+                        errorMessage = errorMatch.group(1)?.trim();
+                      }
+                    }
+                    
+                    // Вариант 3: просто ищем текст после "error:"
+                    if (errorMessage == null) {
+                      final errorIndex = originalData.toLowerCase().indexOf('error:');
+                      if (errorIndex != -1) {
+                        final startIndex = errorIndex + 6; // длина "error:"
+                        final endIndex = originalData.indexOf('}', startIndex);
+                        if (endIndex != -1) {
+                          errorMessage = originalData.substring(startIndex, endIndex).trim();
+                        } else {
+                          errorMessage = originalData.substring(startIndex).trim();
+                        }
+                      }
+                    }
+                    
+                    if (errorMessage != null && errorMessage.isNotEmpty) {
                       debugPrint(
                           "Delete: Extracted error message from invalid JSON: $errorMessage");
                       deletMessage = errorMessage;

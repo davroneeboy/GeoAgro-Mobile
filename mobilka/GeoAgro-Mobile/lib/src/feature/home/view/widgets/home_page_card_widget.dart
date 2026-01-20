@@ -333,12 +333,19 @@ class HomePageCardWidget extends StatelessWidget {
   Widget _StatusBadge({required BuildContext context, required Result plantation}) {
     Color statusColor;
     
-    if (plantation.isChecked == true) {
-      statusColor = DesignColors.AppColors.success;
-    } else if (plantation.isRejected == true) {
+    // Отладочная информация
+    debugPrint('_StatusBadge for plantation ${plantation.id}: isChecked=${plantation.isChecked} (type: ${plantation.isChecked.runtimeType}), isRejected=${plantation.isRejected} (type: ${plantation.isRejected.runtimeType})');
+    
+    // Проверяем сначала isRejected, потом isChecked
+    if (plantation.isRejected == true) {
       statusColor = DesignColors.AppColors.error;
+      debugPrint('  -> Status: Rad etilgan (red)');
+    } else if (plantation.isChecked == true) {
+      statusColor = DesignColors.AppColors.success;
+      debugPrint('  -> Status: Tasdiqlangan (green)');
     } else {
       statusColor = DesignColors.AppColors.warning;
+      debugPrint('  -> Status: Ko\'rib chiqilmoqda (yellow)');
     }
 
     return Container(

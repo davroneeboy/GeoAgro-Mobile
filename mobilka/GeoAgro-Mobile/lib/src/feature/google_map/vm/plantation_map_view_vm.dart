@@ -74,11 +74,40 @@ class PlantationMapViewVm extends ChangeNotifier {
           return;
         }
 
+        // Парсим is_checked и is_rejected с поддержкой разных типов
+        final rawIsChecked = jsonData['is_checked'];
+        final rawIsRejected = jsonData['is_rejected'];
+        
+        bool isChecked = false;
+        bool isRejected = false;
+        
+        if (rawIsChecked != null) {
+          if (rawIsChecked is bool) {
+            isChecked = rawIsChecked;
+          } else if (rawIsChecked is String) {
+            isChecked = rawIsChecked.toLowerCase() == 'true';
+          } else if (rawIsChecked is int) {
+            isChecked = rawIsChecked != 0;
+          }
+        }
+        
+        if (rawIsRejected != null) {
+          if (rawIsRejected is bool) {
+            isRejected = rawIsRejected;
+          } else if (rawIsRejected is String) {
+            isRejected = rawIsRejected.toLowerCase() == 'true';
+          } else if (rawIsRejected is int) {
+            isRejected = rawIsRejected != 0;
+          }
+        }
+        
+        debugPrint('[PlantationMapViewVm] Parsed plantation ${jsonData['id']}: isChecked=$rawIsChecked (parsed: $isChecked), isRejected=$rawIsRejected (parsed: $isRejected)');
+
         final plantation = RelatedPlantation(
           id: jsonData['id'] as int? ?? plantationId,
           name: jsonData['name'] as String?,
-          isChecked: jsonData['is_checked'] as bool? ?? false,
-          isRejected: jsonData['is_rejected'] as bool? ?? false,
+          isChecked: isChecked,
+          isRejected: isRejected,
           coordinates: coords,
           fertilityScore: (jsonData['fertility_score'] as num?)?.toDouble() ?? 0.0,
           totalArea: (jsonData['total_area'] as num?)?.toDouble() ?? 0.0,

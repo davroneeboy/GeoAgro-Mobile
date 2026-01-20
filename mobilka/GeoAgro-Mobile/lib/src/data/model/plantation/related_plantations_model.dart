@@ -49,19 +49,47 @@ class RelatedPlantation {
     required this.totalArea,
   });
 
-  factory RelatedPlantation.fromJson(Map<String, dynamic> json) =>
-      RelatedPlantation(
-        id: json["id"] ?? 0,
-        name: json["name"],
-        isChecked: json["is_checked"] ?? false,
-        isRejected: json["is_rejected"] as bool? ?? false,
-        coordinates: json["coordinates"] == null
-            ? []
-            : List<PlantationCoordinate>.from(
-                json["coordinates"].map((x) => PlantationCoordinate.fromJson(x))),
-        fertilityScore: (json["fertility_score"] ?? 0.0).toDouble(),
-        totalArea: (json["total_area"] ?? 0.0).toDouble(),
-      );
+  factory RelatedPlantation.fromJson(Map<String, dynamic> json) {
+    // Парсим is_checked и is_rejected с поддержкой разных типов
+    final rawIsChecked = json["is_checked"];
+    final rawIsRejected = json["is_rejected"];
+    
+    bool isChecked = false;
+    bool isRejected = false;
+    
+    if (rawIsChecked != null) {
+      if (rawIsChecked is bool) {
+        isChecked = rawIsChecked;
+      } else if (rawIsChecked is String) {
+        isChecked = rawIsChecked.toLowerCase() == 'true';
+      } else if (rawIsChecked is int) {
+        isChecked = rawIsChecked != 0;
+      }
+    }
+    
+    if (rawIsRejected != null) {
+      if (rawIsRejected is bool) {
+        isRejected = rawIsRejected;
+      } else if (rawIsRejected is String) {
+        isRejected = rawIsRejected.toLowerCase() == 'true';
+      } else if (rawIsRejected is int) {
+        isRejected = rawIsRejected != 0;
+      }
+    }
+    
+    return RelatedPlantation(
+      id: json["id"] ?? 0,
+      name: json["name"],
+      isChecked: isChecked,
+      isRejected: isRejected,
+      coordinates: json["coordinates"] == null
+          ? []
+          : List<PlantationCoordinate>.from(
+              json["coordinates"].map((x) => PlantationCoordinate.fromJson(x))),
+      fertilityScore: (json["fertility_score"] ?? 0.0).toDouble(),
+      totalArea: (json["total_area"] ?? 0.0).toDouble(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "id": id,

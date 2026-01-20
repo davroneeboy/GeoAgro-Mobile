@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 PlantationsListModel plantationsListModelFromJson(String str) => PlantationsListModel.fromJson(json.decode(str));
 
@@ -136,6 +137,43 @@ class Result {
       moderationComments = null;
     }
 
+    // Отладочная информация для is_rejected и is_checked
+    final rawIsRejected = json["is_rejected"];
+    final rawIsChecked = json["is_checked"];
+    bool? isRejected;
+    bool? isChecked;
+    
+    // Парсим is_rejected
+    if (rawIsRejected == null) {
+      isRejected = false;
+    } else if (rawIsRejected is bool) {
+      isRejected = rawIsRejected;
+    } else if (rawIsRejected is String) {
+      isRejected = rawIsRejected.toLowerCase() == 'true';
+    } else if (rawIsRejected is int) {
+      isRejected = rawIsRejected != 0;
+    } else {
+      isRejected = false;
+    }
+    
+    // Парсим is_checked
+    if (rawIsChecked == null) {
+      isChecked = false;
+    } else if (rawIsChecked is bool) {
+      isChecked = rawIsChecked;
+    } else if (rawIsChecked is String) {
+      isChecked = rawIsChecked.toLowerCase() == 'true';
+    } else if (rawIsChecked is int) {
+      isChecked = rawIsChecked != 0;
+    } else {
+      isChecked = false;
+    }
+    
+    // Логируем для отладки
+    if (json["id"] != null) {
+      debugPrint('Result ${json["id"]}: is_checked=$rawIsChecked (parsed: $isChecked), is_rejected=$rawIsRejected (parsed: $isRejected)');
+    }
+
     return Result(
       id: json["id"],
       district: json["district"] == null ? null : District.fromJson(json["district"]),
@@ -148,8 +186,8 @@ class Result {
       landType: json["land_type"],
       isFertile: json["is_fertile"],
       createdAt: json["created_at"],
-      isChecked: json["is_checked"],
-      isRejected: json["is_rejected"] as bool? ?? false,
+      isChecked: isChecked,
+      isRejected: isRejected,
       moderationComments: moderationComments,
       createdById: (json["created_by"] is Map<String, dynamic>) ? json["created_by"]["id"] as int? : null,
       createdByUsername: (json["created_by"] is Map<String, dynamic>) ? json["created_by"]["username"] as String? : null,

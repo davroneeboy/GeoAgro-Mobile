@@ -999,23 +999,25 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     EditPlantationModel? editPlantation,
     ColorScheme scheme,
   ) {
-    // Сначала проверяем relatedPlantation, если доступен
-    if (relatedPlantation != null) {
-      if (relatedPlantation.isRejected == true) {
+    // Приоритет у editPlantation, так как это данные из детальной страницы (загружаются первыми)
+    if (editPlantation != null) {
+      debugPrint('_resolveStatus: Using editPlantation - isChecked=${editPlantation.isChecked}, isRejected=${editPlantation.isRejected}');
+      if (editPlantation.isRejected == true) {
         return MapEntry("Rad etilgan", DesignColors.AppColors.error);
       }
-      if (relatedPlantation.isChecked == true) {
+      if (editPlantation.isChecked == true) {
         return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
       }
       return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
     }
     
-    // Если relatedPlantation недоступен, используем editPlantation
-    if (editPlantation != null) {
-      if (editPlantation.isRejected == true) {
+    // Если editPlantation недоступен, используем relatedPlantation (данные с карты)
+    if (relatedPlantation != null) {
+      debugPrint('_resolveStatus: Using relatedPlantation - isChecked=${relatedPlantation.isChecked}, isRejected=${relatedPlantation.isRejected}');
+      if (relatedPlantation.isRejected == true) {
         return MapEntry("Rad etilgan", DesignColors.AppColors.error);
       }
-      if (editPlantation.isChecked == true) {
+      if (relatedPlantation.isChecked == true) {
         return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
       }
       return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
