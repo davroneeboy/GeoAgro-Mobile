@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/style/app_colors.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
+import '../../../core/services/district_boundary_service.dart';
 class PlantationMapViewVm extends ChangeNotifier {
   final AppRepositoryImpl _repo = AppRepositoryImpl();
   final int plantationId;
@@ -21,6 +22,7 @@ class PlantationMapViewVm extends ChangeNotifier {
   final Set<Polyline> polylines = {};
   final Set<Marker> markers = {};
   final Set<Circle> circles = {};
+  final Set<Polygon> regionBoundaries = {}; // Границы области пользователя
 
   LatLng initialPosition = const LatLng(41.311081, 69.240562);
   
@@ -36,7 +38,53 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    
+    // Загружаем границы области пользователя
+    loadRegionBoundaries();
+    
     _safeNotifyListeners();
+  }
+
+  /// Загружает границы области пользователя на основе его region_id
+  Future<void> loadRegionBoundaries() async {
+    if (_isDisposed) return;
+    
+    try {
+      // Получаем region_id из API
+      final userInfoData = await _repo.getUserInfo();
+      if (userInfoData == null) {
+        debugPrint('❌ PlantationMapViewVm: getUserInfo returned null');
+        return;
+      }
+
+      final userInfo = jsonDecode(userInfoData);
+      final regionId = userInfo['region_id'] as int?;
+
+      if (regionId == null || regionId <= 0) {
+        debugPrint('❌ PlantationMapViewVm: Invalid region_id: $regionId');
+        return;
+      }
+
+      if (_isDisposed) return;
+
+      debugPrint('📊 PlantationMapViewVm: Loading boundaries for region_id: $regionId');
+      
+      // Загружаем границы области
+      final boundaries = await DistrictBoundaryService.loadRegionBoundaries(regionId);
+      
+      if (_isDisposed) return;
+      
+      if (boundaries.isNotEmpty) {
+        regionBoundaries.clear();
+        regionBoundaries.addAll(boundaries);
+        debugPrint('✅ PlantationMapViewVm: Loaded ${boundaries.length} boundary polygons');
+        _safeNotifyListeners();
+      } else {
+        debugPrint('⚠️ PlantationMapViewVm: No boundaries loaded for region_id: $regionId');
+      }
+    } catch (e) {
+      debugPrint('❌ PlantationMapViewVm: Error loading region boundaries: $e');
+    }
   }
 
   /// Инициализирует карту с координатами из детальной информации о плантации

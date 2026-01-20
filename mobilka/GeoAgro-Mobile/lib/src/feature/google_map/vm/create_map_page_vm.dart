@@ -13,6 +13,8 @@ import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/setting/setup.dart';
+import '../../../core/services/district_boundary_service.dart';
+import 'dart:convert';
 List<LatLng> polygoneCoordinates = [];
 
 class CreateMapPageVm extends ChangeNotifier {
@@ -31,6 +33,7 @@ class CreateMapPageVm extends ChangeNotifier {
   final Set<Polygon> polygons = {};
   final Set<Marker> markers = {};
   final Set<Polygon> nearbyPolygons = {}; // Polygons for nearby plantations
+  final Set<Polygon> regionBoundaries = {}; // Границы области пользователя
 
   BitmapDescriptor? userArrowIcon;
   double userHeading = 0.0;
@@ -268,7 +271,46 @@ class CreateMapPageVm extends ChangeNotifier {
     // Загружаем плантации пользователя
     loadNearbyPlantations();
 
+    // Загружаем границы области пользователя
+    loadRegionBoundaries();
+
     notifyListeners();
+  }
+
+  /// Загружает границы области пользователя на основе его region_id
+  Future<void> loadRegionBoundaries() async {
+    try {
+      // Получаем region_id из API
+      final userInfoData = await _appRepositoryImpl.getUserInfo();
+      if (userInfoData == null) {
+        debugPrint('❌ CreateMapPageVm: getUserInfo returned null');
+        return;
+      }
+
+      final userInfo = jsonDecode(userInfoData);
+      final regionId = userInfo['region_id'] as int?;
+
+      if (regionId == null || regionId <= 0) {
+        debugPrint('❌ CreateMapPageVm: Invalid region_id: $regionId');
+        return;
+      }
+
+      debugPrint('📊 CreateMapPageVm: Loading boundaries for region_id: $regionId');
+      
+      // Загружаем границы области
+      final boundaries = await DistrictBoundaryService.loadRegionBoundaries(regionId);
+      
+      if (boundaries.isNotEmpty) {
+        regionBoundaries.clear();
+        regionBoundaries.addAll(boundaries);
+        debugPrint('✅ CreateMapPageVm: Loaded ${boundaries.length} boundary polygons');
+        notifyListeners();
+      } else {
+        debugPrint('⚠️ CreateMapPageVm: No boundaries loaded for region_id: $regionId');
+      }
+    } catch (e) {
+      debugPrint('❌ CreateMapPageVm: Error loading region boundaries: $e');
+    }
   }
 
   Future<void> loadNearbyPlantations() async {
