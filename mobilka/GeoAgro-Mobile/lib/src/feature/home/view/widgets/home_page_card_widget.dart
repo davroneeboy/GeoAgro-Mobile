@@ -270,24 +270,27 @@ class HomePageCardWidget extends StatelessWidget {
                     child: const Text("Tahrirlash"),
                   ),
                 ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: plantation.id == null
-                        ? null
-                        : () => _handleDelete(
-                              context,
-                              plantation.id!,
-                              plantation.isChecked ?? false,
-                            ),
-                    style: FilledButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      backgroundColor: AppColors.cE60C0C,
-                      foregroundColor: Colors.white,
+                // Показываем кнопку удаления только для неподтвержденных плантаций
+                if (!isChecked) ...[
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: plantation.id == null
+                          ? null
+                          : () => _handleDelete(
+                                context,
+                                plantation.id!,
+                                plantation.isChecked ?? false,
+                              ),
+                      style: FilledButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        backgroundColor: AppColors.cE60C0C,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text("O'chirish"),
                     ),
-                    child: const Text("O'chirish"),
                   ),
-                ),
+                ],
               ],
             ],
           ),
@@ -522,14 +525,20 @@ class HomePageCardWidget extends StatelessWidget {
   }
 
   void _handleDelete(BuildContext context, int plantationId, bool isChecked) {
-    // Показываем диалог подтверждения для всех плантаций
-    if (!isChecked) {
-      // Для неподтвержденных плантаций - простой диалог подтверждения
-      _showSimpleDeleteConfirmation(context, plantationId);
-    } else {
-      // Если плантация подтверждена, показываем диалог с запросом на удаление и причиной
-      _showDeleteConfirmation(context, plantationId);
+    // Если плантация подтверждена, нельзя удалять
+    if (isChecked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
+          backgroundColor: AppColors.cE60C0C,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
     }
+    
+    // Для неподтвержденных плантаций - простой диалог подтверждения
+    _showSimpleDeleteConfirmation(context, plantationId);
   }
 
   void _showSimpleDeleteConfirmation(BuildContext context, int plantationId) {

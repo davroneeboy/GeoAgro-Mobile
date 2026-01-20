@@ -19,28 +19,48 @@ class FarmersStatisticsVm extends ChangeNotifier {
   String? searchErrorMessage;
 
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
+  bool _isDisposed = false;
 
   FarmersStatisticsVm();
+  
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   /// Инициализация (вызывается вручную при открытии страницы)
   Future<void> initialize() async {
+    if (_isDisposed) {
+      debugPrint("📊 FarmersStatisticsVM: initialize() called but already disposed");
+      return;
+    }
+    
     debugPrint("📊 FarmersStatisticsVM: initialize() called");
     if (districtId != null && statistics != null) {
       debugPrint("📊 FarmersStatisticsVM: Already initialized, skipping");
       return;
     }
     isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     debugPrint("📊 FarmersStatisticsVM: Getting district ID...");
     await _getDistrictId();
+    
+    if (_isDisposed) {
+      debugPrint("📊 FarmersStatisticsVM: Disposed after _getDistrictId, aborting");
+      return;
+    }
+    
     if (districtId != null) {
       debugPrint("📊 FarmersStatisticsVM: District ID found: $districtId");
       await fetchStatistics();
     } else {
       debugPrint("❌ FarmersStatisticsVM: District ID not found");
-      errorMessage = "District ID topilmadi";
-      isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        errorMessage = "District ID topilmadi";
+        isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -62,6 +82,11 @@ class FarmersStatisticsVm extends ChangeNotifier {
   }
 
   Future<void> fetchStatistics() async {
+    if (_isDisposed) {
+      debugPrint("📊 FarmersStatisticsVM: fetchStatistics() called but already disposed");
+      return;
+    }
+    
     if (districtId == null) {
       debugPrint("❌ FarmersStatisticsVM: Cannot fetch statistics - districtId is null");
       return;
@@ -69,16 +94,23 @@ class FarmersStatisticsVm extends ChangeNotifier {
 
     errorMessage = null;
     isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       debugPrint("📊 FarmersStatisticsVM: Fetching statistics for district: $districtId");
       final data = await _appRepositoryImpl.getFarmersStatistics(
           districtId: districtId!);
 
+      if (_isDisposed) {
+        debugPrint("📊 FarmersStatisticsVM: Disposed after getFarmersStatistics, aborting");
+        return;
+      }
+
       if (data == null) {
         debugPrint("❌ FarmersStatisticsVM: getFarmersStatistics returned null");
-        errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+        if (!_isDisposed) {
+          errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+        }
       } else {
         debugPrint("✅ FarmersStatisticsVM: Statistics data received");
         try {
@@ -94,16 +126,22 @@ class FarmersStatisticsVm extends ChangeNotifier {
         } catch (jsonError) {
           debugPrint("❌ FarmersStatisticsVM: JSON Parsing Error: $jsonError");
           debugPrint("Raw data: $data");
-          errorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
+          if (!_isDisposed) {
+            errorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
+          }
         }
       }
     } catch (e) {
       debugPrint("❌ FarmersStatisticsVM: Error fetching statistics: $e");
-      errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      if (!_isDisposed) {
+        errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      }
     } finally {
-      isLoading = false;
-      notifyListeners();
-      debugPrint("📊 FarmersStatisticsVM: fetchStatistics completed");
+      if (!_isDisposed) {
+        isLoading = false;
+        _safeNotifyListeners();
+        debugPrint("📊 FarmersStatisticsVM: fetchStatistics completed");
+      }
     }
   }
 
@@ -112,11 +150,13 @@ class FarmersStatisticsVm extends ChangeNotifier {
   }
 
   Future<void> searchByInn() async {
+    if (_isDisposed) return;
+    
     final innText = searchInnController.text.trim();
     if (innText.isEmpty) {
       searchErrorMessage = "INN kiriting";
       searchResults = null;
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
 
@@ -125,15 +165,17 @@ class FarmersStatisticsVm extends ChangeNotifier {
       if (inn == null) {
         searchErrorMessage = "Noto'g'ri INN formati";
         searchResults = null;
-        notifyListeners();
+        _safeNotifyListeners();
         return;
       }
 
       isSearching = true;
       searchErrorMessage = null;
-      notifyListeners();
+      _safeNotifyListeners();
 
       final data = await _appRepositoryImpl.searchFarmers(inn: inn);
+
+      if (_isDisposed) return;
 
       if (data == null) {
         searchErrorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
@@ -158,27 +200,33 @@ class FarmersStatisticsVm extends ChangeNotifier {
       }
     } catch (e) {
       log("Error searching by INN: $e");
-      searchErrorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
-      searchResults = null;
+      if (!_isDisposed) {
+        searchErrorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+        searchResults = null;
+      }
     } finally {
-      isSearching = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        isSearching = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
   void onSearchChanged(String value) {
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void clearSearch() {
+    if (_isDisposed) return;
     searchInnController.clear();
     searchResults = null;
     searchErrorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     searchInnController.dispose();
     super.dispose();
   }
