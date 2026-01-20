@@ -89,6 +89,7 @@ class Result {
   bool? isFertile;
   String? createdAt;
   bool? isChecked;
+  bool? isRejected;
   List<ModerationComment>? moderationComments;
   int? createdById;
   String? createdByUsername;
@@ -106,6 +107,7 @@ class Result {
     this.isFertile,
     this.createdAt,
     this.isChecked,
+    this.isRejected,
     this.moderationComments,
     this.createdById,
     this.createdByUsername,
@@ -147,6 +149,7 @@ class Result {
       isFertile: json["is_fertile"],
       createdAt: json["created_at"],
       isChecked: json["is_checked"],
+      isRejected: json["is_rejected"] as bool? ?? false,
       moderationComments: moderationComments,
       createdById: (json["created_by"] is Map<String, dynamic>) ? json["created_by"]["id"] as int? : null,
       createdByUsername: (json["created_by"] is Map<String, dynamic>) ? json["created_by"]["username"] as String? : null,
@@ -166,6 +169,7 @@ class Result {
         "is_fertile": isFertile,
         "created_at": createdAt,
         "is_checked": isChecked,
+        "is_rejected": isRejected,
         "moderation_comment": moderationComments == null
             ? null
             : List<dynamic>.from(moderationComments!.map((x) => x.toJson())),

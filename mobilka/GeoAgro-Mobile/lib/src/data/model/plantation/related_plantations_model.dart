@@ -34,6 +34,7 @@ class RelatedPlantation {
   final int id;
   final String? name;
   final bool isChecked;
+  final bool? isRejected;
   final List<PlantationCoordinate> coordinates;
   final double fertilityScore;
   final double totalArea;
@@ -42,6 +43,7 @@ class RelatedPlantation {
     required this.id,
     this.name,
     required this.isChecked,
+    this.isRejected,
     required this.coordinates,
     required this.fertilityScore,
     required this.totalArea,
@@ -52,6 +54,7 @@ class RelatedPlantation {
         id: json["id"] ?? 0,
         name: json["name"],
         isChecked: json["is_checked"] ?? false,
+        isRejected: json["is_rejected"] as bool? ?? false,
         coordinates: json["coordinates"] == null
             ? []
             : List<PlantationCoordinate>.from(
@@ -64,6 +67,7 @@ class RelatedPlantation {
         "id": id,
         "name": name,
         "is_checked": isChecked,
+        "is_rejected": isRejected,
         "coordinates": List<dynamic>.from(coordinates.map((x) => x.toJson())),
         "fertility_score": fertilityScore,
         "total_area": totalArea,
@@ -71,7 +75,9 @@ class RelatedPlantation {
 
   // Получить цвет статуса для отображения на карте
   int getStatusColor() {
-    if (isChecked) {
+    if (isRejected == true) {
+      return 0xFFFF3B30; // Красный - отклонено
+    } else if (isChecked) {
       return 0xFF28a745; // Зеленый - проверено
     } else {
       return 0xFFffc107; // Желтый - ожидает проверки
@@ -80,7 +86,9 @@ class RelatedPlantation {
 
   // Получить название статуса
   String getStatusName() {
-    if (isChecked) {
+    if (isRejected == true) {
+      return 'Rad etilgan';
+    } else if (isChecked) {
       return 'Tasdiqlangan';
     } else {
       return 'Ko\'rib chiqilmoqda';

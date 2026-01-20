@@ -57,6 +57,78 @@ class DetailVM extends ChangeNotifier {
   TextEditingController trellisBetonCount = TextEditingController();
   TextEditingController reservoirsQoplamaliVolume = TextEditingController();
   TextEditingController reservoirsBetonliVolume = TextEditingController();
+  
+  // Списки для хранения нескольких резервуаров каждого типа
+  final List<TextEditingController> reservoirsBetonliVolumes = [];
+  final List<TextEditingController> reservoirsQoplamaliVolumes = [];
+  
+  // Инициализация: добавляем один контроллер по умолчанию
+  void initializeReservoirs() {
+    if (reservoirsBetonliVolumes.isEmpty) {
+      reservoirsBetonliVolumes.add(reservoirsBetonliVolume);
+    }
+    if (reservoirsQoplamaliVolumes.isEmpty) {
+      reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
+    }
+  }
+  
+  // Методы для управления списками резервуаров
+  void addBetonReservoir() {
+    reservoirsBetonliVolumes.add(TextEditingController());
+    notifyListeners();
+  }
+  
+  void removeBetonReservoir(int index) {
+    // Всегда оставляем хотя бы один контроллер
+    if (index >= 0 && index < reservoirsBetonliVolumes.length && reservoirsBetonliVolumes.length > 1) {
+      final controller = reservoirsBetonliVolumes[index];
+      // Если это основной контроллер, заменяем его на следующий
+      if (controller == reservoirsBetonliVolume) {
+        if (reservoirsBetonliVolumes.length > 1) {
+          final nextController = reservoirsBetonliVolumes[1];
+          // Копируем значение из следующего контроллера
+          reservoirsBetonliVolume.text = nextController.text;
+          // Удаляем следующий контроллер вместо основного
+          nextController.dispose();
+          reservoirsBetonliVolumes.removeAt(1);
+        }
+      } else {
+        // Удаляем дополнительный контроллер
+        controller.dispose();
+        reservoirsBetonliVolumes.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
+  
+  void addQoplamaliReservoir() {
+    reservoirsQoplamaliVolumes.add(TextEditingController());
+    notifyListeners();
+  }
+  
+  void removeQoplamaliReservoir(int index) {
+    // Всегда оставляем хотя бы один контроллер
+    if (index >= 0 && index < reservoirsQoplamaliVolumes.length && reservoirsQoplamaliVolumes.length > 1) {
+      final controller = reservoirsQoplamaliVolumes[index];
+      // Если это основной контроллер, заменяем его на следующий
+      if (controller == reservoirsQoplamaliVolume) {
+        if (reservoirsQoplamaliVolumes.length > 1) {
+          final nextController = reservoirsQoplamaliVolumes[1];
+          // Копируем значение из следующего контроллера
+          reservoirsQoplamaliVolume.text = nextController.text;
+          // Удаляем следующий контроллер вместо основного
+          nextController.dispose();
+          reservoirsQoplamaliVolumes.removeAt(1);
+        }
+      } else {
+        // Удаляем дополнительный контроллер
+        controller.dispose();
+        reservoirsQoplamaliVolumes.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
+  
   TextEditingController cultivatedArea = TextEditingController();
   TextEditingController sxema1 = TextEditingController();
   TextEditingController sxema2 = TextEditingController();
@@ -202,23 +274,41 @@ class DetailVM extends ChangeNotifier {
         );
       }
     }
-    // Hovuz logikasi
+    // Hovuz logikasi - используем списки для поддержки нескольких резервуаров
     if (hovuz) {
       if (hovuzBeton) {
-        mockReservoir.add(Reservoir(
-          reservoirType: "1",
-          reservoirVolume:
-              int.tryParse(reservoirsBetonliVolume.text.trim()) ?? 0,
-        ));
+        // Инициализируем список, если он пуст
+        if (reservoirsBetonliVolumes.isEmpty) {
+          initializeReservoirs();
+        }
+        // Добавляем все бетонные резервуары
+        for (final controller in reservoirsBetonliVolumes) {
+          final volume = int.tryParse(controller.text.trim()) ?? 0;
+          if (volume > 0) {
+            mockReservoir.add(Reservoir(
+              reservoirType: "1",
+              reservoirVolume: volume,
+            ));
+          }
+        }
       }
       if (hovuzQoplamali) {
-        mockReservoir.add(
-          Reservoir(
-            reservoirType: "2",
-            reservoirVolume:
-                int.tryParse(reservoirsQoplamaliVolume.text.trim()) ?? 0,
-          ),
-        );
+        // Инициализируем список, если он пуст
+        if (reservoirsQoplamaliVolumes.isEmpty) {
+          initializeReservoirs();
+        }
+        // Добавляем все покрытые резервуары
+        for (final controller in reservoirsQoplamaliVolumes) {
+          final volume = int.tryParse(controller.text.trim()) ?? 0;
+          if (volume > 0) {
+            mockReservoir.add(
+              Reservoir(
+                reservoirType: "2",
+                reservoirVolume: volume,
+              ),
+            );
+          }
+        }
       }
     }
 
@@ -612,15 +702,31 @@ class DetailVM extends ChangeNotifier {
         return 'Suv havzasining turi tanlanmagan, tanlovni bajaring';
       }
       if (isReservoirBeton) {
-        if (reservoirsBetonliVolume.text.trim().isEmpty ||
-            double.tryParse(reservoirsBetonliVolume.text.trim()) == null) {
-          return 'Beton suv havzasi hajmi noto‘g‘ri yoki bo‘sh, to‘ldiring';
+        // Инициализируем список, если он пуст
+        if (reservoirsBetonliVolumes.isEmpty) {
+          initializeReservoirs();
+        }
+        // Проверяем все бетонные резервуары
+        for (int i = 0; i < reservoirsBetonliVolumes.length; i++) {
+          final controller = reservoirsBetonliVolumes[i];
+          if (controller.text.trim().isEmpty ||
+              double.tryParse(controller.text.trim()) == null) {
+            return "Beton suv havzasi hajmi (${i + 1}) noto'g'ri yoki bo'sh, to'ldiring";
+          }
         }
       }
       if (isReservoirQoplamali) {
-        if (reservoirsQoplamaliVolume.text.trim().isEmpty ||
-            double.tryParse(reservoirsQoplamaliVolume.text.trim()) == null) {
-          return 'Qoplamali suv havzasi hajmi noto‘g‘ri yoki bo‘sh, to‘ldiring';
+        // Инициализируем список, если он пуст
+        if (reservoirsQoplamaliVolumes.isEmpty) {
+          initializeReservoirs();
+        }
+        // Проверяем все покрытые резервуары
+        for (int i = 0; i < reservoirsQoplamaliVolumes.length; i++) {
+          final controller = reservoirsQoplamaliVolumes[i];
+          if (controller.text.trim().isEmpty ||
+              double.tryParse(controller.text.trim()) == null) {
+            return "Qoplamali suv havzasi hajmi (${i + 1}) noto'g'ri yoki bo'sh, to'ldiring";
+          }
         }
       }
     }
@@ -629,11 +735,11 @@ class DetailVM extends ChangeNotifier {
     }
     
     // Динамическая проверка количества фотографий
-    final minPhotosRequired = calculateMinimumPhotosRequired();
+    final minPhotosRequired = calculateMinimumPhotosRequired(ref);
     final uploadedImagesCount = _imageFiles.values.where((file) => file != null).length;
     
     if (uploadedImagesCount < minPhotosRequired) {
-      return 'Kamida $minPhotosRequired ta rasm yuklash kerak. Hozir: $uploadedImagesCount ta.\n${getPhotoRequirementDetails()}';
+      return 'Kamida $minPhotosRequired ta rasm yuklash kerak. Hozir: $uploadedImagesCount ta.\n${getPhotoRequirementDetails(ref)}';
     }
     
     return null;
@@ -797,7 +903,7 @@ class DetailVM extends ChangeNotifier {
   /// - Base: 1 photo for any plantation
   /// - +1 photo for each added fruit
   /// - +1 photo if land type is Lalmi (unirrigated/yaroqsiz)
-  int calculateMinimumPhotosRequired() {
+  int calculateMinimumPhotosRequired([WidgetRef? ref]) {
     int minPhotos = 1; // Base photo for plantation
     
     // Add 1 photo for each fruit
@@ -808,13 +914,42 @@ class DetailVM extends ChangeNotifier {
       minPhotos += 1;
     }
     
-    debugPrint("📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0})");
+    // Add 1 photo if ochiq maydon (empty field) is greater than 0
+    // If value is 0, no photo required. If value >= 0.1, photo is required
+    final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
+    if (emptyAreaValue > 0) {
+      minPhotos += 1;
+    }
+    
+    // Add 1 photo if tomchilab sug'orish (drip irrigation) is enabled
+    if (ref != null) {
+      final isTomchiEnabled = ref.read(switchTomchi);
+      if (isTomchiEnabled) {
+        minPhotos += 1;
+      }
+      
+      // Add 1 photo if shpaller (trellis) is enabled
+      final isShpaller = ref.read(switchTrellis);
+      if (isShpaller) {
+        minPhotos += 1;
+      }
+      
+      // Add 1 photo if suv havzasi (reservoir) is enabled
+      final isReservoir = ref.read(switchReservoir);
+      if (isReservoir) {
+        minPhotos += 1;
+      }
+      
+      debugPrint("📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0}, tomchi: ${isTomchiEnabled ? 1 : 0}, shpaller: ${isShpaller ? 1 : 0}, suv havzasi: ${isReservoir ? 1 : 0})");
+    } else {
+      debugPrint("📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0})");
+    }
     
     return minPhotos;
   }
   
   /// Returns detailed explanation of photo requirements
-  String getPhotoRequirementDetails() {
+  String getPhotoRequirementDetails([WidgetRef? ref]) {
     final details = <String>[];
     
     details.add("• Asosiy plantatsiya: 1 ta rasm");
@@ -825,6 +960,28 @@ class DetailVM extends ChangeNotifier {
     
     if (selectedYerType == 1) {
       details.add("• Lalmi (yaroqsiz) maydon: 1 ta rasm");
+    }
+    
+    final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
+    if (emptyAreaValue > 0) {
+      details.add("• Ochiq maydon: 1 ta rasm");
+    }
+    
+    if (ref != null) {
+      final isTomchiEnabled = ref.read(switchTomchi);
+      if (isTomchiEnabled) {
+        details.add("• Tomchilab sug'orish: 1 ta rasm");
+      }
+      
+      final isShpaller = ref.read(switchTrellis);
+      if (isShpaller) {
+        details.add("• Shpaller: 1 ta rasm");
+      }
+      
+      final isReservoir = ref.read(switchReservoir);
+      if (isReservoir) {
+        details.add("• Suv havzasi: 1 ta rasm");
+      }
     }
     
     return details.join('\n');

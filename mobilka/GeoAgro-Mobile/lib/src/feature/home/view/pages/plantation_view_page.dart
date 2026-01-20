@@ -400,8 +400,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     final isLoading = detailVm.isLoading;
     final hasError = detailVm.errorMessage != null;
     final plantation = detailVm.plantation;
+    // Используем статус из currentPlantation, если доступен, иначе из plantation
     final statusData = _resolveStatus(
       mapVm.currentPlantation,
+      plantation,
       Theme.of(context).colorScheme,
     );
 
@@ -993,19 +995,33 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   }
 
   MapEntry<String, Color> _resolveStatus(
-    RelatedPlantation? plantation,
+    RelatedPlantation? relatedPlantation,
+    EditPlantationModel? editPlantation,
     ColorScheme scheme,
   ) {
-    if (plantation == null) {
-      return MapEntry("Ma'lumot yo'q", scheme.onSurfaceVariant);
+    // Сначала проверяем relatedPlantation, если доступен
+    if (relatedPlantation != null) {
+      if (relatedPlantation.isRejected == true) {
+        return MapEntry("Rad etilgan", DesignColors.AppColors.error);
+      }
+      if (relatedPlantation.isChecked == true) {
+        return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
+      }
+      return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
     }
-    if (plantation.isRejected == true) {
-      return MapEntry("Rad etilgan", DesignColors.AppColors.error);
+    
+    // Если relatedPlantation недоступен, используем editPlantation
+    if (editPlantation != null) {
+      if (editPlantation.isRejected == true) {
+        return MapEntry("Rad etilgan", DesignColors.AppColors.error);
+      }
+      if (editPlantation.isChecked == true) {
+        return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
+      }
+      return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
     }
-    if (plantation.isChecked == true) {
-      return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
-    }
-    return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
+    
+    return MapEntry("Ma'lumot yo'q", scheme.onSurfaceVariant);
   }
 
   Widget _buildMapCard({

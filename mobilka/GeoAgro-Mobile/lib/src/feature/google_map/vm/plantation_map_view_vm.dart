@@ -6,11 +6,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/style/app_colors.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
-import '../../../core/services/geojson_service.dart';
-
 class PlantationMapViewVm extends ChangeNotifier {
   final AppRepositoryImpl _repo = AppRepositoryImpl();
-  final GeoJsonService _geoJsonService = GeoJsonService();
   final int plantationId;
 
   GoogleMapController? mapController;
@@ -24,7 +21,6 @@ class PlantationMapViewVm extends ChangeNotifier {
   final Set<Polyline> polylines = {};
   final Set<Marker> markers = {};
   final Set<Circle> circles = {};
-  final Set<Polygon> boundaryPolygons = {};
 
   LatLng initialPosition = const LatLng(41.311081, 69.240562);
   
@@ -40,112 +36,7 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    loadOblastBoundaries();
     _safeNotifyListeners();
-  }
-  
-  Future<void> loadOblastBoundaries() async {
-    if (_isDisposed) return;
-    
-    try {
-      debugPrint('🗺️ PlantationMapView: Loading oblast boundaries...');
-      
-      final geoJsonData = await _geoJsonService.loadCurrentUserBoundaries();
-      
-      if (_isDisposed) return;
-      
-      if (geoJsonData == null) {
-        debugPrint('❌ Failed to load oblast boundaries');
-        return;
-      }
-      
-      final features = geoJsonData['features'] as List?;
-      if (features == null || features.isEmpty) {
-        return;
-      }
-      
-      boundaryPolygons.clear();
-      
-      for (var i = 0; i < features.length; i++) {
-        final feature = features[i] as Map<String, dynamic>;
-        final geometry = feature['geometry'] as Map<String, dynamic>?;
-        
-        if (geometry == null) continue;
-        
-        if (geometry['type'] == 'Polygon') {
-          _addPolygonBoundary(geometry, i);
-        } else if (geometry['type'] == 'MultiPolygon') {
-          _addMultiPolygonBoundary(geometry, i);
-        }
-      }
-      
-      debugPrint('✅ Added ${boundaryPolygons.length} boundary polygons');
-      _safeNotifyListeners();
-    } catch (e) {
-      debugPrint('❌ Error loading boundaries: $e');
-    }
-  }
-  
-  void _addPolygonBoundary(Map<String, dynamic> geometry, int index) {
-    try {
-      final coordinates = geometry['coordinates'] as List;
-      if (coordinates.isEmpty) return;
-      
-      final outerRing = coordinates[0] as List;
-      final points = outerRing.map((coord) {
-        final lng = (coord[0] as num).toDouble();
-        final lat = (coord[1] as num).toDouble();
-        return LatLng(lat, lng);
-      }).toList();
-      
-      if (points.length < 3) return;
-      
-      boundaryPolygons.add(
-        Polygon(
-          polygonId: PolygonId('boundary_$index'),
-          points: points,
-          strokeColor: Colors.white, // Белый - отлично виден
-          strokeWidth: 3, // Увеличена толщина
-          fillColor: Colors.white.withOpacity(0.05), // Легкая заливка
-          geodesic: true,
-        ),
-      );
-    } catch (e) {
-      debugPrint('⚠️ Error adding polygon: $e');
-    }
-  }
-  
-  void _addMultiPolygonBoundary(Map<String, dynamic> geometry, int index) {
-    try {
-      final coordinates = geometry['coordinates'] as List;
-      
-      for (var polyIndex = 0; polyIndex < coordinates.length; polyIndex++) {
-        final polygonCoords = coordinates[polyIndex] as List;
-        if (polygonCoords.isEmpty) continue;
-        
-        final outerRing = polygonCoords[0] as List;
-        final points = outerRing.map((coord) {
-          final lng = (coord[0] as num).toDouble();
-          final lat = (coord[1] as num).toDouble();
-          return LatLng(lat, lng);
-        }).toList();
-        
-        if (points.length < 3) continue;
-        
-        boundaryPolygons.add(
-          Polygon(
-            polygonId: PolygonId('boundary_${index}_$polyIndex'),
-            points: points,
-            strokeColor: Colors.white, // Белый - отлично виден
-            strokeWidth: 3, // Увеличена толщина
-            fillColor: Colors.white.withOpacity(0.05), // Легкая заливка
-            geodesic: true,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('⚠️ Error adding multi-polygon: $e');
-    }
   }
 
   /// Инициализирует карту с координатами из детальной информации о плантации

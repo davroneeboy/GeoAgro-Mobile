@@ -81,7 +81,7 @@ class FarmerPlantation {
       id: json['id'] ?? 0,
       name: json['name'] ?? json['farmer_name'] ?? 'Plantatsiya',
       isChecked: json['is_checked'] ?? false,
-      isRejected: json['is_rejected'] ?? false,
+      isRejected: json['is_rejected'] as bool? ?? false,
       coordinates: (json['coordinates'] as List<dynamic>?)
           ?.map((item) => Coordinate.fromJson(item))
           .toList() ?? [],

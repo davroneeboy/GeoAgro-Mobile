@@ -539,6 +539,21 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       ref
                           .read(detailVm.switchReservoirsQoplamali.notifier)
                           .state = false;
+                      // Очищаем дополнительные контроллеры (кроме основных)
+                      for (int i = detailVm.reservoirsBetonliVolumes.length - 1; i >= 0; i--) {
+                        final controller = detailVm.reservoirsBetonliVolumes[i];
+                        if (controller != detailVm.reservoirsBetonliVolume) {
+                          controller.dispose();
+                          detailVm.reservoirsBetonliVolumes.removeAt(i);
+                        }
+                      }
+                      for (int i = detailVm.reservoirsQoplamaliVolumes.length - 1; i >= 0; i--) {
+                        final controller = detailVm.reservoirsQoplamaliVolumes[i];
+                        if (controller != detailVm.reservoirsQoplamaliVolume) {
+                          controller.dispose();
+                          detailVm.reservoirsQoplamaliVolumes.removeAt(i);
+                        }
+                      }
                       detailVm.reservoirsBetonliVolume.clear();
                       detailVm.setReservoirsBetonliVolume("");
                       detailVm.reservoirsQoplamaliVolume.clear();
@@ -554,18 +569,43 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ref
                               .read(detailVm.switchReservoirsBeton.notifier)
                               .state = value;
+                          if (value && detailVm.reservoirsBetonliVolumes.isEmpty) {
+                            detailVm.initializeReservoirs();
+                          }
                         },
                         childWidgets: [
-                          Padding(
-                            padding: REdgeInsets.only(top: 10),
-                            child: CustomTextFieldWithLabel(
-                              controller: detailVm.reservoirsBetonliVolume,
-                              onTextChanged:
-                                  detailVm.setReservoirsBetonliVolume,
-                              hintText: "suv havzasi hajmi m³",
-                              keyboardType: TextInputType.number,
+                          if (isReservoirsBeton) ...[
+                            ...List.generate(detailVm.reservoirsBetonliVolumes.length, (index) {
+                              return Padding(
+                                padding: REdgeInsets.only(top: index == 0 ? 10 : 16),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomTextFieldWithLabel(
+                                        controller: detailVm.reservoirsBetonliVolumes[index],
+                                        onTextChanged: (_) {},
+                                        hintText: "suv havzasi hajmi m³",
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    if (detailVm.reservoirsBetonliVolumes.length > 1)
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                        onPressed: () => detailVm.removeBetonReservoir(index),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }),
+                            Padding(
+                              padding: REdgeInsets.only(top: 10),
+                              child: TextButton.icon(
+                                onPressed: detailVm.addBetonReservoir,
+                                icon: const Icon(Icons.add),
+                                label: const Text("Yana qo'shish"),
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                       SizedBox(height: 10.h),
@@ -576,18 +616,46 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ref
                               .read(detailVm.switchReservoirsQoplamali.notifier)
                               .state = value;
+                          if (value && detailVm.reservoirsQoplamaliVolumes.isEmpty) {
+                            detailVm.initializeReservoirs();
+                          }
                         },
                         childWidgets: [
-                          Padding(
-                            padding: REdgeInsets.only(top: 10),
-                            child: CustomTextFieldWithLabel(
-                              controller: detailVm.reservoirsQoplamaliVolume,
-                              onTextChanged:
-                                  detailVm.setReservoirQoplamaliVolume,
-                              hintText: "suv havzasi hajmi m³",
-                              keyboardType: TextInputType.number,
+                          if (isReservoirsQoplamali) ...[
+                            ...List.generate(detailVm.reservoirsQoplamaliVolumes.length, (index) {
+                              return Padding(
+                                padding: REdgeInsets.only(top: index == 0 ? 10 : 16),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomTextFieldWithLabel(
+                                        controller: detailVm.reservoirsQoplamaliVolumes[index],
+                                        onTextChanged: (_) {},
+                                        hintText: "suv havzasi hajmi m³",
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    if (detailVm.reservoirsQoplamaliVolumes.length > 1)
+                                      Padding(
+                                        padding: REdgeInsets.only(left: 8),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                          onPressed: () => detailVm.removeQoplamaliReservoir(index),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }),
+                            Padding(
+                              padding: REdgeInsets.only(top: 10),
+                              child: TextButton.icon(
+                                onPressed: detailVm.addQoplamaliReservoir,
+                                icon: const Icon(Icons.add),
+                                label: const Text("Yana qo'shish"),
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ])
@@ -613,7 +681,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 // Photo requirements indicator
                 Consumer(
                   builder: (context, ref, child) {
-                    final requiredPhotos = detailVm.calculateMinimumPhotosRequired();
+                    final requiredPhotos = detailVm.calculateMinimumPhotosRequired(ref);
                     final uploadedPhotos = [0, 1, 2, 3]
                         .where((i) => detailVm.getImageFile(i) != null)
                         .length;

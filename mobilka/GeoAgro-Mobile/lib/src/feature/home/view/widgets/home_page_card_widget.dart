@@ -180,7 +180,14 @@ class HomePageCardWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              _IdBadge(context: context, id: plantationId),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _IdBadge(context: context, id: plantationId),
+                  SizedBox(height: AppSpacing.xs),
+                  _StatusBadge(context: context, plantation: plantation),
+                ],
+              ),
             ],
           ),
           SizedBox(height: AppSpacing.md),
@@ -319,6 +326,31 @@ class HomePageCardWidget extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _StatusBadge({required BuildContext context, required Result plantation}) {
+    Color statusColor;
+    
+    if (plantation.isChecked == true) {
+      statusColor = DesignColors.AppColors.success;
+    } else if (plantation.isRejected == true) {
+      statusColor = DesignColors.AppColors.error;
+    } else {
+      statusColor = DesignColors.AppColors.warning;
+    }
+
+    return Container(
+      width: 12.w,
+      height: 12.w,
+      decoration: BoxDecoration(
+        color: statusColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: DesignColors.AppColors.darkBorder,
+          width: 1,
+        ),
       ),
     );
   }

@@ -20,7 +20,6 @@ import '../../feature/fermers/view/pages/fermer_create_page.dart';
 import '../../feature/google_map/view/pages/create_map_page.dart';
 import '../../feature/google_map/view/pages/plantation_map_view_page.dart';
 import '../../feature/fermers/view/pages/farmers_statistics_page.dart';
-import '../../feature/dev/geojson_test_page.dart';
 import 'app_route_names.dart';
 import '../../../dev/dev_menu_page.dart';
 
@@ -78,10 +77,6 @@ final class RouterConfigService {
       ),
       
       // Dev Tools (only in debug mode)
-      GoRoute(
-        path: '/dev-geojson-test',
-        builder: (context, state) => const GeoJsonTestPage(),
-      ),
       
       // Login
       GoRoute(

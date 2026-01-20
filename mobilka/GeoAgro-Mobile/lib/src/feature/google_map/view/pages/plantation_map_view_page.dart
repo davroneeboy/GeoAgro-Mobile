@@ -80,10 +80,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                       onMapCreated: vm.onMapCreated,
                       mapType: MapType.satellite,
                       zoomControlsEnabled: false,
-                      polygons: {
-                        ...vm.boundaryPolygons, // Границы области
-                        ...vm.polygons, // Полигоны плантаций
-                      },
+                      polygons: vm.polygons, // Полигоны плантаций
                       polylines: vm.polylines,
                       markers: vm.markers,
                     ),

@@ -21,6 +21,8 @@ class EditPlantationModel {
   double? fertilityScore;
   int? landType;
   bool? isFertile;
+  bool? isChecked;
+  bool? isRejected;
   int? irrigationSystemsCount;
   String? qarorRaqami;
   int? qarorType;
@@ -47,6 +49,8 @@ class EditPlantationModel {
     this.fertilityScore,
     this.landType,
     this.isFertile,
+    this.isChecked,
+    this.isRejected,
     this.irrigationSystemsCount,
     this.qarorRaqami,
     this.qarorType,
@@ -74,6 +78,8 @@ class EditPlantationModel {
     double? fertilityScore,
     int? landType,
     bool? isFertile,
+    bool? isChecked,
+    bool? isRejected,
     int? irrigationSystemsCount,
     String? qarorRaqami,
     int? qarorType,
@@ -101,6 +107,8 @@ class EditPlantationModel {
         fertilityScore: fertilityScore ?? this.fertilityScore,
         landType: landType ?? this.landType,
         isFertile: isFertile ?? this.isFertile,
+        isChecked: isChecked ?? this.isChecked,
+        isRejected: isRejected ?? this.isRejected,
         irrigationSystemsCount:
             irrigationSystemsCount ?? this.irrigationSystemsCount,
         qarorRaqami: qarorRaqami ?? this.qarorRaqami,
@@ -130,6 +138,8 @@ class EditPlantationModel {
         fertilityScore: json["fertility_score"]?.toDouble(),
         landType: json["land_type"],
         isFertile: json["is_fertile"],
+        isChecked: json["is_checked"] as bool?,
+        isRejected: json["is_rejected"] as bool? ?? false,
         irrigationSystemsCount: json["irrigation_systems_count"],
         qarorRaqami: json["qaror_raqami"],
         qarorType: json["qaror_type"],
@@ -223,6 +233,8 @@ class EditPlantationModel {
         "fertility_score": fertilityScore,
         "land_type": landType,
         "is_fertile": isFertile,
+        "is_checked": isChecked,
+        "is_rejected": isRejected,
         "irrigation_systems_count": irrigationSystemsCount,
         "qaror_raqami": qarorRaqami,
         "qaror_type": qarorType,

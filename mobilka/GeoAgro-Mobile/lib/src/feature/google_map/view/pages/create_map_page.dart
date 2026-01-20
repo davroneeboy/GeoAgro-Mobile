@@ -125,7 +125,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             zoomControlsEnabled: false,
             polylines: vm.polylines,
             polygons: {
-              ...vm.boundaryPolygons, // Границы области (внизу)
               ...vm.nearbyPolygons, // Соседние плантации (посередине)
               ...vm.polygons, // Текущие полигоны пользователя (сверху)
             },
@@ -133,95 +132,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             onTap: vm.onTap,
           ),
 
-          // Boundary loading indicator
-          if (vm.isLoadingBoundaries)
-            Positioned(
-              top: 80,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(DesignColors.AppColors.primary),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Chegara yuklanmoqda...",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          
-          // Boundary loaded indicator (shows for 3 seconds)
-          if (vm.boundariesLoaded && !vm.isLoadingBoundaries)
-            Positioned(
-              top: 80,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: DesignColors.AppColors.success.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      "Chegara yuklandi",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          
           // Legend for plantation statuses - moved to bottom left
           Positioned(
             bottom: 100,

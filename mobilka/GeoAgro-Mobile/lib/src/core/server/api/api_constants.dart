@@ -37,13 +37,6 @@ final class ApiConst {
   
   // Comments
   static String apiPlantationComments(int plantationId) => '/api/plantations/$plantationId/comments/';
-  
-  // GeoJSON
-  // TODO: Уточните правильный путь на бэкенде:
-  // Вариант 1: /geojson/oblast.geojson
-  // Вариант 2: /api/geojson/oblast.geojson
-  // Вариант 3: /static/geojson/oblast.geojson
-  static String apiGeoJson(String oblastSlug) => '/api/geojson/$oblastSlug.geojson'; // Попробуем с /api/
 }
 
 final class ApiParams {
@@ -82,25 +75,5 @@ final class ApiParams {
     if (unreadOnly != null) params["unread_only"] = unreadOnly;
     if (type != null && type.isNotEmpty) params["type"] = type;
     return params;
-  }
-  
-  /// Converts region_id to oblast slug for GeoJSON files
-  static String getOblastSlug(int regionId) {
-    const regionIdToSlug = {
-      1: 'tashkent',
-      2: 'andijan',
-      3: 'bukhara',
-      4: 'fergana',
-      5: 'jizzakh',
-      6: 'kashkadarya',
-      7: 'navoi',
-      8: 'namangan',
-      9: 'samarkand',
-      10: 'sirdarya',
-      11: 'surkhandarya',
-      12: 'karakalpakstan',
-      13: 'khorezm',
-    };
-    return regionIdToSlug[regionId] ?? 'tashkent';
   }
 }

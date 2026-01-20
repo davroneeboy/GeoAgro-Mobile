@@ -609,6 +609,81 @@ class _EditPageState extends ConsumerState<EditPage> {
                 editDetailAt: (index, ref, context) => edit.editDetailAt(index, ref, context),
               ),
               MainText(text: "Bog`ning rasmlarini qayta yuklang"),
+              SizedBox(height: 8.h),
+              // Photo requirements indicator
+              Consumer(
+                builder: (context, ref, child) {
+                  final requiredPhotos = edit.calculateMinimumPhotosRequired(ref);
+                  // Считаем все изображения: существующие + новые
+                  final existingCount = edit.existingImages.length;
+                  final newCount = [0, 1, 2, 3]
+                      .where((i) => edit.getImageFile(i) != null)
+                      .length;
+                  final uploadedPhotos = existingCount + newCount;
+                  final isComplete = uploadedPhotos >= requiredPhotos;
+                  
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isComplete
+                          ? DesignColors.AppColors.success.withValues(alpha: 0.1)
+                          : DesignColors.AppColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isComplete
+                            ? DesignColors.AppColors.success
+                            : DesignColors.AppColors.warning,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              isComplete ? Icons.check_circle : Icons.info_outline,
+                              size: 20.sp,
+                              color: isComplete
+                                  ? DesignColors.AppColors.success
+                                  : DesignColors.AppColors.warning,
+                            ),
+                            SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                isComplete
+                                    ? 'Barcha rasmlar yuklandi ($uploadedPhotos/$requiredPhotos)'
+                                    : 'Kamida $requiredPhotos ta rasm yuklash kerak. Hozir: $uploadedPhotos ta.',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: isComplete
+                                      ? DesignColors.AppColors.success
+                                      : DesignColors.AppColors.warning,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isComplete) ...[
+                          SizedBox(height: 8.h),
+                          Text(
+                            edit.getPhotoRequirementDetails(ref),
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: DesignColors.AppColors.warning,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 12.h),
               EditImageUploadListWidget(
                 existingImages: edit.existingImages,
                 showImagePicker: edit.showImagePicker,

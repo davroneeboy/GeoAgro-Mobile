@@ -68,52 +68,22 @@ class FarmerPlantationCard extends StatelessWidget {
                   ),
                 ),
                 // Показываем статус в зависимости от isChecked и isRejected
-                if (plantation.isChecked)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: DesignColors.AppColors.primary,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Text(
-                      "Tasdiqlangan",
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )
-                else if (plantation.isRejected == true)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: DesignColors.AppColors.error,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Text(
-                      "Rad etilgan",
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )
-                else
-                  // Если оба false - значит на модерации
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: DesignColors.AppColors.warning,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Text(
-                      "Ko'rib chiqilmoqda",
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                Container(
+                  width: 12.w,
+                  height: 12.w,
+                  decoration: BoxDecoration(
+                    color: plantation.isChecked
+                        ? DesignColors.AppColors.success
+                        : (plantation.isRejected == true
+                            ? DesignColors.AppColors.error
+                            : DesignColors.AppColors.warning),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: DesignColors.AppColors.darkBorder,
+                      width: 1,
                     ),
                   ),
+                ),
               ],
             ),
             
@@ -274,39 +244,25 @@ class FarmerPlantationCard extends StatelessWidget {
               padding: EdgeInsets.only(top: AppSpacing.xs),
               child: Row(
                 children: [
-                  Icon(
-                    plantation.isChecked 
-                        ? Icons.check_circle 
-                        : (plantation.isRejected == true 
-                            ? Icons.cancel 
-                            : Icons.schedule),
-                    size: 14.sp,
-                    color: plantation.isChecked 
-                        ? DesignColors.AppColors.primary 
-                        : (plantation.isRejected == true 
-                            ? DesignColors.AppColors.error 
-                            : DesignColors.AppColors.warning),
-                  ),
-                  SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      plantation.isChecked 
-                          ? "Tasdiqlangan" 
+                  Container(
+                    width: 10.w,
+                    height: 10.w,
+                    decoration: BoxDecoration(
+                      color: plantation.isChecked 
+                          ? DesignColors.AppColors.success 
                           : (plantation.isRejected == true 
-                              ? "Rad etilgan" 
-                              : "Ko'rib chiqilmoqda"),
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: plantation.isChecked 
-                            ? DesignColors.AppColors.primary 
-                            : (plantation.isRejected == true 
-                                ? DesignColors.AppColors.error 
-                                : DesignColors.AppColors.warning),
-                      ),
+                              ? DesignColors.AppColors.error 
+                              : DesignColors.AppColors.warning),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: DesignColors.AppColors.darkBorder,
+                        width: 1,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       ),
