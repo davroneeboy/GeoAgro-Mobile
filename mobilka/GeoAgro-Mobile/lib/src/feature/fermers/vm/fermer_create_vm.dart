@@ -29,6 +29,9 @@ class FermerCreateVm extends ChangeNotifier {
   bool isLoading = false;
 
   FermerCreateVm() {
+    // Инициализируем поле телефона с префиксом +998
+    phoneNumber.text = '+998';
+    
     // Добавляем слушатели для валидации в реальном времени
     name.addListener(_validateName);
     founderName.addListener(_validateFounderName);
@@ -54,17 +57,19 @@ class FermerCreateVm extends ChangeNotifier {
         .trim();
   }
 
-  // Валидация имени организации (только латиница)
+  // Валидация имени организации (только латиница, цифры и пробелы)
   void _validateName() {
     final value = _sanitizeInput(name.text);
     if (value.isEmpty) {
       nameError = "Tashkilot nomi bo'sh bo'lmasligi zarur";
     } else if (value.length < 2) {
       nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else if (value.length > 100) {
+      nameError = "Tashkilot nomi 100 ta belgidan oshmasligi kerak";
     } else if (RegExp(r'[а-яА-ЯёЁ]').hasMatch(value)) {
       nameError = "Tashkilot nomi faqat lotin harflaridan iborat bo'lishi kerak (kirill harflari qabul qilinmaydi)";
-    } else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-      nameError = "Tashkilot nomi faqat lotin harflari va probellaridan iborat bo'lishi kerak";
+    } else if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(value)) {
+      nameError = "Tashkilot nomi faqat lotin harflari, raqamlar va probellaridan iborat bo'lishi kerak";
     } else {
       nameError = null;
     }
@@ -76,10 +81,12 @@ class FermerCreateVm extends ChangeNotifier {
     final value = _sanitizeInput(founderName.text);
     if (value.isEmpty) {
       founderNameError = "Asoschi ismi bo'sh bo'lmasligi zarur";
-    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
-      founderNameError = "Asoschi ismi faqat harflardan iborat bo'lishi kerak";
     } else if (value.length < 2) {
       founderNameError = "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else if (value.length > 100) {
+      founderNameError = "Asoschi ismi 100 ta belgidan oshmasligi kerak";
+    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
+      founderNameError = "Asoschi ismi faqat harflardan iborat bo'lishi kerak";
     } else {
       founderNameError = null;
     }
@@ -91,10 +98,12 @@ class FermerCreateVm extends ChangeNotifier {
     final value = _sanitizeInput(directorName.text);
     if (value.isEmpty) {
       directorNameError = "Rahbar ismi bo'sh bo'lmasligi zarur";
-    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
-      directorNameError = "Rahbar ismi faqat harflardan iborat bo'lishi kerak";
     } else if (value.length < 2) {
       directorNameError = "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
+    } else if (value.length > 100) {
+      directorNameError = "Rahbar ismi 100 ta belgidan oshmasligi kerak";
+    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
+      directorNameError = "Rahbar ismi faqat harflardan iborat bo'lishi kerak";
     } else {
       directorNameError = null;
     }
@@ -106,21 +115,37 @@ class FermerCreateVm extends ChangeNotifier {
     final value = phoneNumber.text.trim();
     if (value.isEmpty) {
       phoneNumberError = "Telefon raqam bo'sh bo'lmasligi zarur";
-    } else if (!RegExp(r'^\d{9}$').hasMatch(value)) {
-      phoneNumberError = "Telefon raqam 9 ta raqamdan iborat bo'lishi zarur (masalan: 997777777)";
+    } else if (!value.startsWith('+998')) {
+      phoneNumberError = "Telefon raqam +998 bilan boshlanishi kerak";
     } else {
-      phoneNumberError = null;
+      // Извлекаем только цифры после +998
+      final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
+      final phoneDigits = digitsOnly.startsWith('998') 
+          ? digitsOnly.substring(3) 
+          : digitsOnly;
+      
+      if (phoneDigits.length != 9) {
+        phoneNumberError = "Telefon raqam +998 xx xxx-xx-xx formatida bo'lishi kerak";
+      } else if (!RegExp(r'^[0-9]{9}$').hasMatch(phoneDigits)) {
+        phoneNumberError = "Telefon raqam faqat raqamlardan iborat bo'lishi kerak";
+      } else {
+        phoneNumberError = null;
+      }
     }
     notifyListeners();
   }
 
-  // Валидация адреса
+  // Валидация адреса (буквы, цифры, пробелы, запятые, точки, дефисы)
   void _validateAddress() {
     final value = _sanitizeInput(address.text);
     if (value.isEmpty) {
       addressError = "Manzil bo'sh bo'lmasligi zarur";
     } else if (value.length < 5) {
       addressError = "Manzil kamida 5 ta belgidan iborat bo'lishi kerak";
+    } else if (value.length > 200) {
+      addressError = "Manzil 200 ta belgidan oshmasligi kerak";
+    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s,.-]+$').hasMatch(value)) {
+      addressError = "Manzil faqat harflar, raqamlar va belgilardan iborat bo'lishi kerak";
     } else {
       addressError = null;
     }
@@ -134,10 +159,8 @@ class FermerCreateVm extends ChangeNotifier {
       innError = "INN bo'sh bo'lmasligi zarur";
     } else if (!RegExp(r'^\d+$').hasMatch(value)) {
       innError = "INN faqat raqamlardan iborat bo'lishi kerak";
-    } else if (value.length < 9) {
-      innError = "INN kamida 9 ta raqamdan iborat bo'lishi kerak";
-    } else if (value.length > 12) {
-      innError = "INN 12 ta raqamdan oshmasligi kerak";
+    } else if (value.length != 9) {
+      innError = "INN 9 ta raqamdan iborat bo'lishi kerak";
     } else {
       innError = null;
     }
@@ -197,12 +220,18 @@ class FermerCreateVm extends ChangeNotifier {
       final sanitizedDirectorName = _sanitizeInput(directorName.text);
       final sanitizedAddress = _sanitizeInput(address.text);
 
+      // Извлекаем только цифры из номера телефона (без +998 и форматирования)
+      final phoneDigits = phoneNumber.text.replaceAll(RegExp(r'[^\d]'), '');
+      final cleanPhone = phoneDigits.startsWith('998') 
+          ? phoneDigits.substring(3) 
+          : phoneDigits;
+
       // Farmer Model ni yaratish
       CreateFermerModel fermerModel = CreateFermerModel(
         name: sanitizedName,
         founderName: sanitizedFounderName,
         directorName: sanitizedDirectorName,
-        phoneNumber: phoneNumber.text.trim(),
+        phoneNumber: cleanPhone,
         address: sanitizedAddress,
         inn: inn.text.trim(),
         establishedYear: int.parse(establishedYear.text.trim()),

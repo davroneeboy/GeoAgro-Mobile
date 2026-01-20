@@ -11,6 +11,7 @@ import '../../../../core/widgets/main_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../vm/fermer_create_vm.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
+import '../../../../core/tools/uzbek_phone_formatter.dart';
 
 final fermerCreatePageVM =
     ChangeNotifierProvider.autoDispose<FermerCreateVm>((ref) {
@@ -55,8 +56,10 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   hintText: "Firma nomi",
                   isRequired: true,
                   errorText: vm.nameError,
+                  maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s]')),
+                    LengthLimitingTextInputFormatter(100),
                   ],
                 ),
                 SizedBox(height: AppSpacing.md),
@@ -66,8 +69,10 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   hintText: "Eshmatov Toshmat",
                   isRequired: true,
                   errorText: vm.founderNameError,
+                  maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                    LengthLimitingTextInputFormatter(100),
                   ],
                 ),
                 SizedBox(height: AppSpacing.md),
@@ -77,21 +82,22 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   hintText: "Eshmatov Toshmet 2",
                   isRequired: true,
                   errorText: vm.directorNameError,
+                  maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                    LengthLimitingTextInputFormatter(100),
                   ],
                 ),
                 SizedBox(height: AppSpacing.md),
                 CustomTextField(
                   label: "Telefon raqam",
                   controller: vm.phoneNumber,
-                  hintText: "997777777",
+                  hintText: "+998 90 123-45-67",
                   isRequired: true,
                   errorText: vm.phoneNumberError,
                   keyboardType: TextInputType.phone,
                   inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(9),
+                    UzbekPhoneFormatter(),
                   ],
                 ),
                 SizedBox(height: AppSpacing.md),
@@ -101,6 +107,11 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   hintText: "Orientir, manzil",
                   isRequired: true,
                   errorText: vm.addressError,
+                  maxLength: 200,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s,.-]')),
+                    LengthLimitingTextInputFormatter(200),
+                  ],
                 ),
                 SizedBox(height: AppSpacing.md),
                 CustomTextField(
@@ -125,7 +136,7 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(12),
+                    LengthLimitingTextInputFormatter(9),
                   ],
                 ),
                 SizedBox(height: AppSpacing.xxl),

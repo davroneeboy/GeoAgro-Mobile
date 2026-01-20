@@ -151,10 +151,7 @@ class CustomTextField extends StatelessWidget {
               horizontal: AppSpacing.md,
               vertical: AppSpacing.md,
             ),
-            counterStyle: TextStyle(
-              color: DesignColors.AppColors.darkTextSecondary,
-              fontSize: 12.sp,
-            ),
+            counterText: '',
           ),
           onChanged: onChanged,
         ),

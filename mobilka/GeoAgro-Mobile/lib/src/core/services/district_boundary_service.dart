@@ -24,7 +24,29 @@ class DistrictBoundaryService {
     13: 'xorazm',
   };
 
-  /// Загружает GeoJSON границы области по region_id
+  /// Загружает GeoJSON границы района по district_id из assets
+  /// Использует region_id для определения области, затем загружает границы области
+  /// Примечание: В assets есть только файлы областей, поэтому загружаются границы области
+  static Future<List<Polygon>> loadDistrictBoundaries(int districtId, {int? regionId}) async {
+    try {
+      debugPrint('📊 DistrictBoundaryService: Loading boundaries for district_id: $districtId, region_id: $regionId');
+      
+      // Используем region_id для загрузки границ области из assets
+      // В assets есть только файлы областей, поэтому загружаем границы области
+      if (regionId != null) {
+        debugPrint('📁 DistrictBoundaryService: Loading region boundaries from assets for region_id: $regionId');
+        return await loadRegionBoundaries(regionId);
+      }
+
+      debugPrint('❌ DistrictBoundaryService: Cannot load boundaries - no regionId provided');
+      return [];
+    } catch (e) {
+      debugPrint('❌ DistrictBoundaryService: Error loading district boundaries: $e');
+      return [];
+    }
+  }
+
+  /// Загружает GeoJSON границы области по region_id (fallback метод)
   /// Возвращает список полигонов для отображения на карте
   static Future<List<Polygon>> loadRegionBoundaries(int regionId) async {
     try {

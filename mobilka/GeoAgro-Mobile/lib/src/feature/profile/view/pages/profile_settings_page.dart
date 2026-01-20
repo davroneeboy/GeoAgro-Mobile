@@ -520,10 +520,17 @@ class _PermissionTile extends StatelessWidget {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Switch(
-              value: isEnabled,
-              onChanged: isEnabled ? null : (_) => onTap(),
-            ),
+          : isEnabled
+              ? Icon(
+                  Icons.check_circle,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 24,
+                )
+              : Icon(
+                  Icons.circle_outlined,
+                  color: DesignTokens.AppColors.darkTextSecondary,
+                  size: 24,
+                ),
       onTap: isEnabled ? null : onTap,
     );
   }

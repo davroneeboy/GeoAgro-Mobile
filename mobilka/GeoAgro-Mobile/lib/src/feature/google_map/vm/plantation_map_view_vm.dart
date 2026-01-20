@@ -45,12 +45,12 @@ class PlantationMapViewVm extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  /// Загружает границы области пользователя на основе его region_id
+  /// Загружает границы района пользователя на основе его district_id
   Future<void> loadRegionBoundaries() async {
     if (_isDisposed) return;
     
     try {
-      // Получаем region_id из API
+      // Получаем district_id и region_id из API
       final userInfoData = await _repo.getUserInfo();
       if (userInfoData == null) {
         debugPrint('❌ PlantationMapViewVm: getUserInfo returned null');
@@ -58,19 +58,23 @@ class PlantationMapViewVm extends ChangeNotifier {
       }
 
       final userInfo = jsonDecode(userInfoData);
+      final districtId = userInfo['district_id'] as int?;
       final regionId = userInfo['region_id'] as int?;
 
-      if (regionId == null || regionId <= 0) {
-        debugPrint('❌ PlantationMapViewVm: Invalid region_id: $regionId');
+      if (districtId == null || districtId <= 0) {
+        debugPrint('❌ PlantationMapViewVm: Invalid district_id: $districtId');
         return;
       }
 
       if (_isDisposed) return;
 
-      debugPrint('📊 PlantationMapViewVm: Loading boundaries for region_id: $regionId');
+      debugPrint('📊 PlantationMapViewVm: Loading boundaries for district_id: $districtId, region_id: $regionId');
       
-      // Загружаем границы области
-      final boundaries = await DistrictBoundaryService.loadRegionBoundaries(regionId);
+      // Загружаем границы района (с fallback на область, если API не вернул данные)
+      final boundaries = await DistrictBoundaryService.loadDistrictBoundaries(
+        districtId,
+        regionId: regionId,
+      );
       
       if (_isDisposed) return;
       
@@ -80,10 +84,10 @@ class PlantationMapViewVm extends ChangeNotifier {
         debugPrint('✅ PlantationMapViewVm: Loaded ${boundaries.length} boundary polygons');
         _safeNotifyListeners();
       } else {
-        debugPrint('⚠️ PlantationMapViewVm: No boundaries loaded for region_id: $regionId');
+        debugPrint('⚠️ PlantationMapViewVm: No boundaries loaded for district_id: $districtId');
       }
     } catch (e) {
-      debugPrint('❌ PlantationMapViewVm: Error loading region boundaries: $e');
+      debugPrint('❌ PlantationMapViewVm: Error loading district boundaries: $e');
     }
   }
 

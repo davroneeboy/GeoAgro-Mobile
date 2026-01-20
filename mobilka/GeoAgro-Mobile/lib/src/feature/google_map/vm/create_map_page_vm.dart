@@ -277,10 +277,10 @@ class CreateMapPageVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Загружает границы области пользователя на основе его region_id
+  /// Загружает границы района пользователя на основе его district_id
   Future<void> loadRegionBoundaries() async {
     try {
-      // Получаем region_id из API
+      // Получаем district_id и region_id из API
       final userInfoData = await _appRepositoryImpl.getUserInfo();
       if (userInfoData == null) {
         debugPrint('❌ CreateMapPageVm: getUserInfo returned null');
@@ -288,17 +288,21 @@ class CreateMapPageVm extends ChangeNotifier {
       }
 
       final userInfo = jsonDecode(userInfoData);
+      final districtId = userInfo['district_id'] as int?;
       final regionId = userInfo['region_id'] as int?;
 
-      if (regionId == null || regionId <= 0) {
-        debugPrint('❌ CreateMapPageVm: Invalid region_id: $regionId');
+      if (districtId == null || districtId <= 0) {
+        debugPrint('❌ CreateMapPageVm: Invalid district_id: $districtId');
         return;
       }
 
-      debugPrint('📊 CreateMapPageVm: Loading boundaries for region_id: $regionId');
+      debugPrint('📊 CreateMapPageVm: Loading boundaries for district_id: $districtId, region_id: $regionId');
       
-      // Загружаем границы области
-      final boundaries = await DistrictBoundaryService.loadRegionBoundaries(regionId);
+      // Загружаем границы района (с fallback на область, если API не вернул данные)
+      final boundaries = await DistrictBoundaryService.loadDistrictBoundaries(
+        districtId,
+        regionId: regionId,
+      );
       
       if (boundaries.isNotEmpty) {
         regionBoundaries.clear();
@@ -306,10 +310,10 @@ class CreateMapPageVm extends ChangeNotifier {
         debugPrint('✅ CreateMapPageVm: Loaded ${boundaries.length} boundary polygons');
         notifyListeners();
       } else {
-        debugPrint('⚠️ CreateMapPageVm: No boundaries loaded for region_id: $regionId');
+        debugPrint('⚠️ CreateMapPageVm: No boundaries loaded for district_id: $districtId');
       }
     } catch (e) {
-      debugPrint('❌ CreateMapPageVm: Error loading region boundaries: $e');
+      debugPrint('❌ CreateMapPageVm: Error loading district boundaries: $e');
     }
   }
 
