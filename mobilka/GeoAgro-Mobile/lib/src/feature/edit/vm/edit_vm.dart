@@ -694,6 +694,21 @@ class EditVM extends ChangeNotifier {
       return "Kamida bitta meva maydoni qo'shing";
     }
     
+    // 10) Проверка разницы между площадью полигона (chegaraArea) и общей площадью плантации (не более 15%)
+    final polygonArea = plantationModel.chegaraArea ?? originalPlantationModel.chegaraArea;
+    if (polygonArea != null && polygonArea > 0) {
+      final totalArea = getTotalArea(ref);
+      if (totalArea > 0) {
+        // Вычисляем разницу в процентах
+        final difference = ((polygonArea - totalArea).abs() / polygonArea) * 100;
+        debugPrint('[edit] validateFields: polygonArea (chegaraArea) = $polygonArea, totalArea = $totalArea, difference = ${difference.toStringAsFixed(2)}%');
+        
+        if (difference > 15.0) {
+          return 'Poligon maydoni va kiritilgan maydon o\'rtasidagi farq 15% dan oshib ketdi. Farq: ${difference.toStringAsFixed(1)}%. Iltimos, ma\'lumotlarni tekshiring.';
+        }
+      }
+    }
+    
     return null;
   }
 

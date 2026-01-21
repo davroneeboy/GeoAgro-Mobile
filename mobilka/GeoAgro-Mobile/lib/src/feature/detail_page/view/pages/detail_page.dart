@@ -69,10 +69,13 @@ class DetailPageState extends ConsumerState<DetailPage> {
     
     debugPrint("📤 DetailPage: Calling setValue with userLocation: $userLocation");
     final vm = ref.read(detailVM);
+    final polygonArea = widget.model["polygonArea"] as double?;
+    debugPrint("📤 DetailPage: polygonArea from model: $polygonArea");
     vm.setValue(
         id: widget.model["farmerId"] as int,
         coordinate: widget.model["coordinates"] as List<Coordinate>,
-        userLocation: userLocation);
+        userLocation: userLocation,
+        polygonArea: polygonArea);
     // Загружаем информацию о пользователе (isSpecialUser)
     vm.loadUserInfo();
     debugPrint("✅ DetailPage: setValue called successfully");

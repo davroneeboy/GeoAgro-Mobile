@@ -184,9 +184,9 @@ class ApiService {
               formData.fields.add(MapEntry('$key[$i]', v.toString()));
             }
           } else if (value is List && key == 'user_location') {
-            // Handle user_location as array with one element (аналогично coordinates)
+            // Handle user_location as array для multipart/form-data
             // Формат: user_location[0][latitude] и user_location[0][longitude]
-            // Django должен автоматически распарсить это в объект user_location
+            // Согласно документации: user_location передается как массив с одним элементом
             l.d("📤 API: Processing user_location as array with ${value.length} items");
             for (var i = 0; i < value.length; i++) {
               if (value[i] is Map) {
@@ -198,13 +198,11 @@ class ApiService {
                     formData.fields.add(
                       MapEntry(fieldKey, fieldValue),
                     );
-                  } else {
-                    l.d("⚠️ API: user_location[$i][$nestedKey] is null, skipping");
                   }
                 });
               }
             }
-            l.d("✅ API: user_location processed, total fields added: ${value.length > 0 ? value[0].length : 0}");
+            l.d("✅ API: user_location processed");
           } else {
             // Handle simple string fields (including comments)
             final fieldValue = value.toString();

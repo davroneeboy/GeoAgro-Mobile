@@ -181,6 +181,7 @@ class DetailVM extends ChangeNotifier {
   int farmerId = 0;
   int direction = 0;
   List<Coordinate> coordinates = [];
+  double? polygonArea; // Площадь полигона в гектарах
   Map<String, double> userLocation = {
     'latitude': 41.311081,
     'longitude': 69.240562,
@@ -387,8 +388,7 @@ class DetailVM extends ChangeNotifier {
         
         // Валидация координат
         if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-          // Django REST Framework может не парсить одиночные вложенные объекты из multipart/form-data
-          // Отправляем как массив с одним элементом, аналогично coordinates
+          // Отправляем user_location как массив с одним элементом, согласно документации API
           // Формат: user_location[0][latitude] и user_location[0][longitude]
           jsonData['user_location'] = [
             {
@@ -396,7 +396,7 @@ class DetailVM extends ChangeNotifier {
               'longitude': lng,
             }
           ];
-          p.log("✅ DetailVM: user_location added as array with one element: ${jsonData['user_location']}");
+          p.log("✅ DetailVM: user_location added as array: ${jsonData['user_location']}");
           p.log("✅ DetailVM: user_location in jsonData type: ${jsonData['user_location'].runtimeType}");
         } else {
           p.log("❌ DetailVM: Invalid coordinates: lat=$lat, lng=$lng, not adding user_location");
@@ -740,6 +740,20 @@ class DetailVM extends ChangeNotifier {
     }
     if (selectedDetails.isEmpty) {
       return 'Meva maydoni tanlanmagan, tanlovni bajaring';
+    }
+    
+    // Проверка разницы между площадью полигона и общей площадью плантации (не более 15%)
+    if (polygonArea != null && polygonArea! > 0) {
+      final totalArea = getTotalArea(ref);
+      if (totalArea > 0) {
+        // Вычисляем разницу в процентах
+        final difference = ((polygonArea! - totalArea).abs() / polygonArea!) * 100;
+        p.log("🔍 DetailVM validateFields: polygonArea = $polygonArea, totalArea = $totalArea, difference = ${difference.toStringAsFixed(2)}%");
+        
+        if (difference > 15.0) {
+          return 'Poligon maydoni va kiritilgan maydon o\'rtasidagi farq 15% dan oshib ketdi. Farq: ${difference.toStringAsFixed(1)}%. Iltimos, ma\'lumotlarni tekshiring.';
+        }
+      }
     }
     
     // Динамическая проверка количества фотографий
@@ -1229,13 +1243,16 @@ class DetailVM extends ChangeNotifier {
     required int id,
     required List<Coordinate> coordinate,
     required Map<String, double> userLocation,
+    double? polygonArea,
   }) {
     farmerId = id;
     coordinates = coordinate;
     this.userLocation = userLocation;
+    this.polygonArea = polygonArea;
     p.log("✅ DetailVM setValue: userLocation received: $userLocation");
     p.log("✅ DetailVM setValue: userLocation stored: ${this.userLocation}");
     p.log("✅ DetailVM setValue: userLocation type: ${this.userLocation.runtimeType}");
+    p.log("✅ DetailVM setValue: polygonArea received: $polygonArea");
   }
 
   
