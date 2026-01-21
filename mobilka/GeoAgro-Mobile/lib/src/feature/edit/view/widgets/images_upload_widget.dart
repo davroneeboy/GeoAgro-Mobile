@@ -9,6 +9,7 @@ class EditImageUploadListWidget extends StatelessWidget {
   final List<String>? existingImages;
   final Future<String?> Function(int)? removeExistingImage;
   final bool Function(int)? isUploadingAt;
+  final int itemCount; // Количество полей для отображения
 
   const EditImageUploadListWidget({
     super.key,
@@ -17,12 +18,13 @@ class EditImageUploadListWidget extends StatelessWidget {
     this.existingImages,
     this.removeExistingImage,
     this.isUploadingAt,
+    this.itemCount = 4, // По умолчанию 4 поля
   });
 
   @override
   Widget build(BuildContext context) {
-    // Общее количество слотов для изображений
-    final totalSlots = 4;
+    // Используем переданное количество слотов
+    final totalSlots = itemCount;
     
     return SizedBox(
       height: 122.h,

@@ -315,30 +315,45 @@ class _LoginPageState extends ConsumerState<LoginPage>
           debugPrint("🔵 Login button pressed, starting login...");
           final isSuccess = await loginVmNotifier.login();
           debugPrint("🔵 Login result: $isSuccess, mounted: $mounted");
+          
           if (!mounted) {
             debugPrint("⚠️ Widget not mounted, aborting navigation");
             return;
           }
+          
           if (isSuccess) {
             debugPrint("✅ Login successful, showing snackbar and navigating...");
+            
+            // Ждем, пока isLoading станет false
+            while (vm.isLoading) {
+              await Future.delayed(const Duration(milliseconds: 50));
+              if (!mounted) return;
+            }
+            
             Utils.fireTopSnackBar(
               "Muvoffaqiyatli Tizimga Kirildi",
               design_colors.AppColors.success,
               context,
             );
-            debugPrint("🚀 Navigating to home page immediately...");
-            if (mounted && context.mounted) {
-              try {
-                context.go(AppRouteNames.home);
-                debugPrint("✅ Navigation command sent");
-              } catch (e, stackTrace) {
-                debugPrint("❌ Navigation error: $e");
-                debugPrint("Stack trace: $stackTrace");
-              }
-            } else {
-              debugPrint("⚠️ Context not mounted, cannot navigate");
+            
+            // Небольшая задержка для отображения snackbar перед навигацией
+            await Future.delayed(const Duration(milliseconds: 300));
+            
+            if (!mounted || !context.mounted) {
+              debugPrint("⚠️ Context not mounted after delay, cannot navigate");
+              return;
+            }
+            
+            debugPrint("🚀 Navigating to home page...");
+            try {
+              context.go(AppRouteNames.home);
+              debugPrint("✅ Navigation command sent successfully");
+            } catch (e, stackTrace) {
+              debugPrint("❌ Navigation error: $e");
+              debugPrint("Stack trace: $stackTrace");
             }
           } else {
+            debugPrint("❌ Login failed: ${vm.errorMessage}");
             Utils.fireTopSnackBar(
               vm.errorMessage ?? "Xatolik yuz berdi",
               design_colors.AppColors.error,

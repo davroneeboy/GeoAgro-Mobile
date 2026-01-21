@@ -54,10 +54,16 @@ class LoginVm extends ChangeNotifier {
         accessToken = _tokenModel.access;
         debugPrint("🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
         debugPrint("🚀 Login successful, now fetching user info...");
-        await _fetchAndStoreUserInfo();
-        debugPrint("✅ User info fetch completed");
+        try {
+          await _fetchAndStoreUserInfo();
+          debugPrint("✅ User info fetch completed");
+        } catch (e) {
+          debugPrint("⚠️ Error in _fetchAndStoreUserInfo, but login was successful: $e");
+          // Не прерываем логин, если получение информации о пользователе не удалось
+        }
         debugPrint("🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
         errorMessage = null;
+        debugPrint("✅ LoginVM: Returning true from login()");
         return true;
       } else if (response.statusCode == 401) {
         errorMessage = "Noto'g'ri foydalanuvchi nomi yoki parol";
@@ -66,8 +72,9 @@ class LoginVm extends ChangeNotifier {
         errorMessage = "Server ochib qolgan bo'lishi mumkin.";
         return false;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("❌ Login unexpected error: $e");
+      debugPrint("❌ Stack trace: $stackTrace");
       errorMessage = "Internet yoki server bilan muammo yuz berdi.";
       return false;
     } finally {

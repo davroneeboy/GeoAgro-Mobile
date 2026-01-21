@@ -86,6 +86,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
         appBar: CustomAppBarWidget(
         title: "Fermerlar",
         canPop: true,
+        onBackPressed: () => context.go('/'), // Переход на главную страницу
         actions: [
           IconButton(
             onPressed: () async {
@@ -123,6 +124,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
         appBar: CustomAppBarWidget(
           title: "Fermerlar",
           canPop: true,
+          onBackPressed: () => context.go('/'), // Переход на главную страницу
           actions: [
             IconButton(
               onPressed: () async {
@@ -154,6 +156,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
       appBar: CustomAppBarWidget(
         title: "Fermerni tanlang",
         canPop: true,
+        onBackPressed: () => context.go('/'), // Переход на главную страницу
         actions: [
         IconButton(
             onPressed: () async {
@@ -244,15 +247,10 @@ class _SearchSection extends ConsumerWidget {
                   builder: (context, value, child) {
                     return CustomTextField(
                       controller: vm.searchInnController,
-                      hintText: "INN bo'yicha qidirish",
+                      hintText: "INN",
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       textInputAction: TextInputAction.search,
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: DesignColors.AppColors.darkTextSecondary,
-                        size: 20.sp,
-                      ),
                       suffixIcon: value.text.isNotEmpty
                           ? IconButton(
                               icon: Icon(
@@ -278,12 +276,21 @@ class _SearchSection extends ConsumerWidget {
                 ),
               ),
               SizedBox(width: AppSpacing.md),
-              FilledButton.icon(
+              FilledButton(
                 onPressed: vm.isSearching ? null : vm.searchByInn,
-                icon: vm.isSearching
+                style: FilledButton.styleFrom(
+                  backgroundColor: DesignColors.AppColors.accentGreen,
+                  foregroundColor: DesignColors.AppColors.darkTextPrimary,
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  minimumSize: Size(48.w, 48.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                child: vm.isSearching
                     ? SizedBox(
-                        width: 16.sp,
-                        height: 16.sp,
+                        width: 20.sp,
+                        height: 20.sp,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -293,20 +300,8 @@ class _SearchSection extends ConsumerWidget {
                       )
                     : Icon(
                         Icons.search,
-                        size: 18.sp,
+                        size: 20.sp,
                       ),
-                label: Text(
-                  "Qidirish",
-                  style: AppTypography.bodySmall(context),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: DesignColors.AppColors.accentGreen,
-                  foregroundColor: DesignColors.AppColors.darkTextPrimary,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.md,
-                  ),
-                ),
               ),
             ],
           ),

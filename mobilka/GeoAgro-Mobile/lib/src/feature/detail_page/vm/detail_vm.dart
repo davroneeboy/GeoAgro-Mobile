@@ -145,6 +145,7 @@ class DetailVM extends ChangeNotifier {
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
   bool _isSpecialUser = false; // Флаг специального пользователя
+  bool get isSpecialUser => _isSpecialUser; // Геттер для проверки специального пользователя
   final switchTomchi = StateProvider<bool>((ref) => false);
   final switchFenced = StateProvider<bool>((ref) => false);
   final switchIsFertile = StateProvider<bool>((ref) => false);
@@ -164,6 +165,13 @@ class DetailVM extends ChangeNotifier {
   DateTime? get selectedDate2 => _selectedDate2;
   DateTime? get selectedDate3 => _selectedDate3;
   File? getImageFile(int cardId) => _imageFiles[cardId];
+  
+  /// Удаляет изображение по индексу
+  void removeImage(int cardId) {
+    _imageFiles.remove(cardId);
+    notifyListeners();
+  }
+  
   bool isLoading = false;
   bool isLoading2 = false;
   List<FruitArea> selectedDetails = [];
@@ -867,6 +875,8 @@ class DetailVM extends ChangeNotifier {
 
   /// Показать диалог выбора источника изображения (Camera/Gallery)
   Future<void> showImagePicker(BuildContext context, int cardId) async {
+    // Загружаем информацию о пользователе перед показом диалога
+    await loadUserInfo();
     
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -880,12 +890,15 @@ class DetailVM extends ChangeNotifier {
                 title: const Text('Camera'),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Gallery'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
+              // Показываем опцию Gallery только для специальных пользователей
+              if (_isSpecialUser) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
             ],
           ),
         );
@@ -895,6 +908,16 @@ class DetailVM extends ChangeNotifier {
     if (source != null) {
       await pickImage(cardId: cardId, source: source, context: context);
     }
+  }
+  
+  /// Выбрать изображение из галереи
+  Future<void> pickImageFromGallery(int cardId, {BuildContext? context}) async {
+    await pickImage(cardId: cardId, source: ImageSource.gallery, context: context);
+  }
+  
+  /// Сфотографировать изображение
+  Future<void> pickImageFromCamera(int cardId, {BuildContext? context}) async {
+    await pickImage(cardId: cardId, source: ImageSource.camera, context: context);
   }
 
   /// Calculates minimum required photos based on plantation type, fruits count, and land type
@@ -987,9 +1010,75 @@ class DetailVM extends ChangeNotifier {
     return details.join('\n');
   }
   
-  /// Старый метод для обратной совместимости (используется в некоторых местах)
-  Future<void> pickImageFromCamera(int cardId, {BuildContext? context}) =>
-      pickImage(cardId: cardId, source: ImageSource.camera, context: context);
+  /// Возвращает описание того, что нужно сфотографировать для указанного индекса фото
+  String getPhotoDescription(int index, [WidgetRef? ref]) {
+    int currentIndex = 0;
+    
+    // Фото 0: Asosiy plantatsiya
+    if (index == currentIndex) {
+      return "Asosiy plantatsiya";
+    }
+    currentIndex++;
+    
+    // Фото 1, 2, 3...: Фрукты
+    for (int i = 0; i < selectedDetails.length; i++) {
+      if (index == currentIndex) {
+        final fruitName = selectedDetails[i].fruitName ?? "Meva";
+        return fruitName;
+      }
+      currentIndex++;
+    }
+    
+    // Фото для Lalmi (если применимо)
+    if (selectedYerType == 1) {
+      if (index == currentIndex) {
+        return "Lalmi maydon";
+      }
+      currentIndex++;
+    }
+    
+    // Фото для Ochiq maydon (если применимо)
+    final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
+    if (emptyAreaValue > 0) {
+      if (index == currentIndex) {
+        return "Ochiq maydon";
+      }
+      currentIndex++;
+    }
+    
+    // Фото для Tomchi (если применимо)
+    if (ref != null) {
+      final isTomchiEnabled = ref.read(switchTomchi);
+      if (isTomchiEnabled) {
+        if (index == currentIndex) {
+          return "Tomchilab sug'orish";
+        }
+        currentIndex++;
+      }
+      
+      // Фото для Shpaller (если применимо)
+      final isShpaller = ref.read(switchTrellis);
+      if (isShpaller) {
+        if (index == currentIndex) {
+          return "Shpaller";
+        }
+        currentIndex++;
+      }
+      
+      // Фото для Suv havzasi (если применимо)
+      final isReservoir = ref.read(switchReservoir);
+      if (isReservoir) {
+        if (index == currentIndex) {
+          return "Suv havzasi";
+        }
+        currentIndex++;
+      }
+    }
+    
+    // Если индекс выходит за пределы требуемых фото, возвращаем общее описание
+    return "Qo'shimcha rasm";
+  }
+  
       
   /// Основной метод для выбора изображения
   Future<void> pickImage({

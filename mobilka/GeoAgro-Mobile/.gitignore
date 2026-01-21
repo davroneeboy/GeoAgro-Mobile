@@ -58,3 +58,6 @@ app.*.map.json
 
 # Large GeoJSON files
 **/tuman_chegara.geojson
+
+# Auto Claude data directory
+.auto-claude/

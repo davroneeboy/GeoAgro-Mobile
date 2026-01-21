@@ -171,6 +171,7 @@ class EditVM extends ChangeNotifier {
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
   bool _isSpecialUser = false; // Флаг специального пользователя
+  bool get isSpecialUser => _isSpecialUser; // Геттер для проверки специального пользователя
   File? getImageFile(int cardId) => _imageFiles[cardId];
   int? _uploadingIndex;
   bool _isUploadingImage = false;
@@ -186,6 +187,9 @@ class EditVM extends ChangeNotifier {
   String? errorMessage;
   List<String> images = [];
   List<int> imageIds = [];
+  List<String> _originalImages = []; // Оригинальный список изображений для отмены изменений
+  List<int> _originalImageIds = []; // Оригинальный список ID изображений для отмены изменений
+  List<int> _imagesToDelete = []; // ID изображений, помеченных для удаления
   late EditPlantationModel plantationModel;
   bool isSaving = false;
   late EditPlantationModel originalPlantationModel;
@@ -470,6 +474,12 @@ class EditVM extends ChangeNotifier {
         );
         selectedDetails = plantationModel.fruitAreas ?? [];
         images = plantationModel.images ?? images;
+        // Сохраняем оригинальный список изображений для отмены изменений
+        _originalImages = List<String>.from(images);
+        _imagesToDelete.clear();
+        // Загружаем imageIds при первоначальной загрузке
+        await refreshDetailImages();
+        _originalImageIds = List<int>.from(imageIds);
         // Prefill year
         if (plantationModel.gardenEstablishedYear != null) {
           _selectedDate = DateTime(plantationModel.gardenEstablishedYear!);
@@ -976,8 +986,23 @@ class EditVM extends ChangeNotifier {
       return false;
     }
     
+    // Удаляем помеченные изображения
+    for (final imageId in _imagesToDelete) {
+      try {
+        await _appRepositoryImpl.deletePlantationImage(
+            plantationId: id, imageId: imageId);
+      } catch (_) {
+        // Игнорируем ошибки удаления отдельных изображений
+      }
+    }
+    _imagesToDelete.clear();
+    
     // Затем загружаем новые изображения
     bool imagesSuccess = await uploadImage();
+    
+    // Обновляем оригинальный список изображений после успешного сохранения
+    _originalImages = List<String>.from(images);
+    _originalImageIds = List<int>.from(imageIds);
     
     // Если был введен комментарий, добавляем его после успешного обновления плантации
     final rawCommentsText = commentsController.text.trim();
@@ -1179,6 +1204,8 @@ class EditVM extends ChangeNotifier {
 
   /// Показать диалог выбора источника изображения (Camera/Gallery)
   Future<void> showImagePicker(BuildContext context, int cardId) async {
+    // Загружаем информацию о пользователе перед показом диалога
+    await loadUserInfo();
     
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -1192,12 +1219,15 @@ class EditVM extends ChangeNotifier {
                 title: const Text('Camera'),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Gallery'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
+              // Показываем опцию Gallery только для специальных пользователей
+              if (_isSpecialUser) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
             ],
           ),
         );
@@ -1841,25 +1871,29 @@ class EditVM extends ChangeNotifier {
 
   Future<String?> removeExistingImage(int index) async {
     if (index >= images.length) return null;
-    try {
-      // попробуем удалить на бэке по id, если знаем
-      if (plantationModel.id != null) {
-        // если id отсутствуют или их длина не совпадает, попробуем рефреш
-        if (imageIds.length != images.length) {
-          await refreshDetailImages();
-        }
-        if (index < imageIds.length) {
-          await _appRepositoryImpl.deletePlantationImage(
-              plantationId: plantationModel.id!, imageId: imageIds[index]);
-          // resp == "success" при удаче
-        }
-      }
-    } catch (_) {}
-
-    // локально убрать из списка
+    
+    // Не удаляем сразу на сервере, только помечаем для удаления
+    // Удаление произойдет только при сохранении
+    if (index < imageIds.length) {
+      // Сохраняем ID изображения для удаления при сохранении
+      _imagesToDelete.add(imageIds[index]);
+    }
+    
+    // Локально убираем из списка (только для отображения)
     images.removeAt(index);
+    if (index < imageIds.length) {
+      imageIds.removeAt(index);
+    }
     notifyListeners();
     return "Rasm o'chirildi";
+  }
+  
+  /// Восстановить оригинальный список изображений (при отмене изменений)
+  void restoreOriginalImages() {
+    images = List<String>.from(_originalImages);
+    imageIds = List<int>.from(_originalImageIds);
+    _imagesToDelete.clear();
+    notifyListeners();
   }
 }
 

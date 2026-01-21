@@ -99,6 +99,7 @@ class ApprovedPage extends ConsumerStatefulWidget {
 
 class _ApprovedPageState extends ConsumerState<ApprovedPage> {
   late ScrollController _controller;
+  bool _isSearchExpanded = false;
 
   @override
   void initState() {
@@ -119,13 +120,18 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
     if (vm.isLoading) {
       return Scaffold(
         appBar: CustomAppBarWidget(
-          title: "Tasdiqlangan",
+          title: _isSearchExpanded ? "" : "Tasdiqlangan",
           canPop: true,
           actions: [
             SearchBarWidget(
               key: const ValueKey('approved_search'),
               onSearchChanged: (query) {
                 vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+              },
+              onExpansionChanged: (isExpanded) {
+                setState(() {
+                  _isSearchExpanded = isExpanded;
+                });
               },
             ),
           ],
@@ -136,13 +142,18 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
     if (vm.errorMessage != null) {
       return Scaffold(
         appBar: CustomAppBarWidget(
-          title: "Tasdiqlangan",
+          title: _isSearchExpanded ? "" : "Tasdiqlangan",
           canPop: true,
           actions: [
             SearchBarWidget(
               key: const ValueKey('approved_search'),
               onSearchChanged: (query) {
                 vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+              },
+              onExpansionChanged: (isExpanded) {
+                setState(() {
+                  _isSearchExpanded = isExpanded;
+                });
               },
             ),
           ],
@@ -155,13 +166,18 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
     }
     return Scaffold(
       appBar: CustomAppBarWidget(
-        title: "Tasdiqlangan",
+        title: _isSearchExpanded ? "" : "Tasdiqlangan",
         canPop: true,
         actions: [
           SearchBarWidget(
             key: const ValueKey('approved_search'),
             onSearchChanged: (query) {
               vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+            },
+            onExpansionChanged: (isExpanded) {
+              setState(() {
+                _isSearchExpanded = isExpanded;
+              });
             },
           ),
         ],

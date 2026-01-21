@@ -68,10 +68,13 @@ class DetailPageState extends ConsumerState<DetailPage> {
     }
     
     debugPrint("📤 DetailPage: Calling setValue with userLocation: $userLocation");
-    ref.read(detailVM).setValue(
+    final vm = ref.read(detailVM);
+    vm.setValue(
         id: widget.model["farmerId"] as int,
         coordinate: widget.model["coordinates"] as List<Coordinate>,
         userLocation: userLocation);
+    // Загружаем информацию о пользователе (isSpecialUser)
+    vm.loadUserInfo();
     debugPrint("✅ DetailPage: setValue called successfully");
     super.didChangeDependencies();
   }
@@ -682,7 +685,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 Consumer(
                   builder: (context, ref, child) {
                     final requiredPhotos = detailVm.calculateMinimumPhotosRequired(ref);
-                    final uploadedPhotos = [0, 1, 2, 3]
+                    final itemCount = requiredPhotos > 4 ? requiredPhotos : 4; // Минимум 4 поля
+                    // Подсчитываем все загруженные фотографии (проверяем все поля до itemCount)
+                    final uploadedPhotos = List.generate(itemCount, (i) => i)
                         .where((i) => detailVm.getImageFile(i) != null)
                         .length;
                     final isComplete = uploadedPhotos >= requiredPhotos;
@@ -716,7 +721,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           Expanded(
                             child: Text(
                               isComplete
-                                  ? 'Barcha rasmlar yuklandi ($uploadedPhotos/$requiredPhotos)'
+                                  ? 'Barcha rasmlar yuklandi'
                                   : 'Kamida $requiredPhotos ta rasm yuklang ($uploadedPhotos/$requiredPhotos)',
                               style: TextStyle(
                                 fontSize: 12.sp,
@@ -733,9 +738,21 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   },
                 ),
                 SizedBox(height: 12.h),
-                ImageUploadListWidget(
-                  showImagePicker: detailVm.showImagePicker,
-                  getImageFile: detailVm.getImageFile,
+                Consumer(
+                  builder: (context, ref, child) {
+                    final requiredPhotos = detailVm.calculateMinimumPhotosRequired(ref);
+                    final itemCount = requiredPhotos > 4 ? requiredPhotos : 4; // Минимум 4 поля
+                    return ImageUploadListWidget(
+                      showImagePicker: detailVm.showImagePicker,
+                      getImageFile: detailVm.getImageFile,
+                      removeImage: detailVm.removeImage,
+                      getPhotoDescription: (index) => detailVm.getPhotoDescription(index, ref),
+                      pickImageFromGallery: detailVm.pickImageFromGallery,
+                      pickImageFromCamera: detailVm.pickImageFromCamera,
+                      itemCount: itemCount,
+                      isSpecialUser: detailVm.isSpecialUser,
+                    );
+                  },
                 ),
                 SizedBox(height: 16.h),
                 // Отображение общей площади после загрузки изображений
@@ -762,20 +779,29 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Umumiy maydon:",
-                            style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                          Flexible(
+                            child: Text(
+                              "Umumiy maydon:",
+                              style: TextStyle(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          Text(
-                            "${detailVm.getTotalArea(ref).toStringAsFixed(1)} GA",
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                          SizedBox(width: 8.w),
+                          Flexible(
+                            flex: 2,
+                            child: Text(
+                              "${detailVm.getTotalArea(ref).toStringAsFixed(1)} GA",
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ],
@@ -792,8 +818,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 inputFormatters: [
-                  // Разрешаем все Unicode символы, включая кириллицу, латиницу, цифры и знаки препинания
-                  FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
+                  // Разрешаем буквы (латиница, кириллица, узбекские символы), цифры, пробелы и основные знаки препинания
+                  // Запрещаем специальные символы: < > { } [ ] | \ / & % $ # @ * ^ ~ ` и другие
+                  FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s.,!?:;\-''""()]")),
                 ],
                 style: AppTypography.input(context).copyWith(
                   fontSize: 14.sp,

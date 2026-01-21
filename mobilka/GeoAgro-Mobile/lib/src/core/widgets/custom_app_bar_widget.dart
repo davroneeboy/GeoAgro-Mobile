@@ -9,12 +9,14 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
   final String title;
   final bool canPop;
   final List<Widget>? actions;
+  final VoidCallback? onBackPressed; // Кастомный обработчик для кнопки назад
   
   const CustomAppBarWidget({
     super.key,
     required this.title,
     required this.canPop,
     this.actions,
+    this.onBackPressed, // Опциональный параметр
   });
 
   @override
@@ -26,7 +28,7 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
       elevation: 0,
       leading: canPop
           ? IconButton(
-              onPressed: () => context.pop(),
+              onPressed: onBackPressed ?? () => context.pop(), // Используем кастомный обработчик или стандартный pop
               icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
                 color: DesignColors.AppColors.darkTextPrimary,

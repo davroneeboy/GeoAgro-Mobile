@@ -53,7 +53,10 @@ class _EditPageState extends ConsumerState<EditPage> {
     if (!_hasLoadedData) {
       _hasLoadedData = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(editVm).getPlantationDetail(ref, widget.id);
+        final vm = ref.read(editVm);
+        vm.getPlantationDetail(ref, widget.id);
+        // Загружаем информацию о пользователе (isSpecialUser)
+        vm.loadUserInfo();
       });
     }
   }
@@ -100,11 +103,19 @@ class _EditPageState extends ConsumerState<EditPage> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
-      resizeToAvoidBottomInset: true,
-      appBar: CustomAppBarWidget(title: "Tahrirlash", canPop: true),
-      body: SingleChildScrollView(
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          // Восстанавливаем оригинальный список изображений при выходе
+          edit.restoreOriginalImages();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: DesignColors.AppColors.darkBackground,
+        resizeToAvoidBottomInset: true,
+        appBar: CustomAppBarWidget(title: "Tahrirlash", canPop: true),
+        body: SingleChildScrollView(
         padding: EdgeInsets.only(
           left: 18.w,
           right: 18.w,
@@ -616,7 +627,9 @@ class _EditPageState extends ConsumerState<EditPage> {
                   final requiredPhotos = edit.calculateMinimumPhotosRequired(ref);
                   // Считаем все изображения: существующие + новые
                   final existingCount = edit.existingImages.length;
-                  final newCount = [0, 1, 2, 3]
+                  // Вычисляем itemCount для проверки новых фото
+                  final itemCount = [4, requiredPhotos, existingCount].reduce((a, b) => a > b ? a : b);
+                  final newCount = List.generate(itemCount, (i) => i)
                       .where((i) => edit.getImageFile(i) != null)
                       .length;
                   final uploadedPhotos = existingCount + newCount;
@@ -654,7 +667,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                             Expanded(
                               child: Text(
                                 isComplete
-                                    ? 'Barcha rasmlar yuklandi ($uploadedPhotos/$requiredPhotos)'
+                                    ? 'Barcha rasmlar yuklandi'
                                     : 'Kamida $requiredPhotos ta rasm yuklash kerak. Hozir: $uploadedPhotos ta.',
                                 style: TextStyle(
                                   fontSize: 12.sp,
@@ -684,12 +697,21 @@ class _EditPageState extends ConsumerState<EditPage> {
                 },
               ),
               SizedBox(height: 12.h),
-              EditImageUploadListWidget(
-                existingImages: edit.existingImages,
-                showImagePicker: edit.showImagePicker,
-                getImageFile: edit.getImageFile,
-                removeExistingImage: edit.removeExistingImage,
-                isUploadingAt: edit.isUploadingAt,
+              Consumer(
+                builder: (context, ref, child) {
+                  final requiredPhotos = edit.calculateMinimumPhotosRequired(ref);
+                  final existingCount = edit.existingImages.length;
+                  // Вычисляем itemCount: максимум из минимума 4, требуемого количества и существующих фото
+                  final itemCount = [4, requiredPhotos, existingCount].reduce((a, b) => a > b ? a : b);
+                  return EditImageUploadListWidget(
+                    existingImages: edit.existingImages,
+                    showImagePicker: edit.showImagePicker,
+                    getImageFile: edit.getImageFile,
+                    removeExistingImage: edit.removeExistingImage,
+                    isUploadingAt: edit.isUploadingAt,
+                    itemCount: itemCount,
+                  );
+                },
               ),
               SizedBox(height: 16.h),
               // Отображение общей площади после загрузки изображений
@@ -735,8 +757,9 @@ class _EditPageState extends ConsumerState<EditPage> {
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 inputFormatters: [
-                  // Разрешаем все Unicode символы, включая кириллицу, латиницу, цифры и знаки препинания
-                  FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
+                  // Разрешаем буквы (латиница, кириллица, узбекские символы), цифры, пробелы и основные знаки препинания
+                  // Запрещаем специальные символы: < > { } [ ] | \ / & % $ # @ * ^ ~ ` и другие
+                  FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s.,!?:;\-''""()]")),
                 ],
                 style: AppTypography.input(context).copyWith(
                   fontSize: 14.sp,
@@ -819,6 +842,7 @@ class _EditPageState extends ConsumerState<EditPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

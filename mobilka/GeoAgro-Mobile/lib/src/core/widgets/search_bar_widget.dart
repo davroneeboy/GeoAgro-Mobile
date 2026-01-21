@@ -15,6 +15,9 @@ class SearchBarWidget extends StatefulWidget {
   /// Callback when search query changes (after debounce)
   final Function(String) onSearchChanged;
   
+  /// Callback when search form is expanded or collapsed
+  final Function(bool isExpanded)? onExpansionChanged;
+  
   /// Debounce duration in milliseconds (default: 500ms)
   final int debounceDuration;
   
@@ -24,6 +27,7 @@ class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({
     super.key,
     required this.onSearchChanged,
+    this.onExpansionChanged,
     this.debounceDuration = 500,
     this.placeholder = "Faqat raqam kiriting...",
   });
@@ -85,6 +89,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
         // Immediately call onSearchChanged when closing to clear search
         widget.onSearchChanged('');
       }
+      // Notify parent about expansion state change
+      widget.onExpansionChanged?.call(_isExpanded);
     });
   }
 

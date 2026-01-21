@@ -10,6 +10,29 @@ import 'created_time_widget.dart';
 import 'detail_text_fild_widget.dart';
 import 'switch_card_widget.dart';
 
+/// Форматтер, ограничивающий количество цифр (не считая точку/запятую)
+class _MaxDigitsFormatter extends TextInputFormatter {
+  final int maxDigits;
+
+  _MaxDigitsFormatter({required this.maxDigits});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Подсчитываем количество цифр в новом значении
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    
+    // Если количество цифр превышает максимум, возвращаем старое значение
+    if (digitsOnly.length > maxDigits) {
+      return oldValue;
+    }
+    
+    return newValue;
+  }
+}
+
 class FruitBottomShitWidget extends ConsumerWidget {
   final DetailVM detailVm;
   const FruitBottomShitWidget({super.key, required this.detailVm});
@@ -56,7 +79,10 @@ class FruitBottomShitWidget extends ConsumerWidget {
                   hintText: "iqtisodiy samarasiz maydon",
                   label: "Iqtisodiy samarasiz maydon: GA",
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                    _MaxDigitsFormatter(maxDigits: 8),
+                  ],
                 ),
               ],
             ),
@@ -109,7 +135,10 @@ class FruitBottomShitWidget extends ConsumerWidget {
               hintText: "Ekilgan yer maydoni",
               label: "Ekilgan yer maydoni : GA",
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                _MaxDigitsFormatter(maxDigits: 8),
+              ],
             ),
             SizedBox(height: 10.h),
             CustomTextFieldWithLabel(
