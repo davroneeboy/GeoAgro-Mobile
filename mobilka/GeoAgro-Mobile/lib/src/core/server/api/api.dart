@@ -183,26 +183,22 @@ class ApiService {
               if (v == null) continue;
               formData.fields.add(MapEntry('$key[$i]', v.toString()));
             }
-          } else if (value is List && key == 'user_location') {
-            // Handle user_location as array для multipart/form-data
-            // Формат: user_location[0][latitude] и user_location[0][longitude]
-            // Согласно документации: user_location передается как массив с одним элементом
-            l.d("📤 API: Processing user_location as array with ${value.length} items");
-            for (var i = 0; i < value.length; i++) {
-              if (value[i] is Map) {
-                value[i].forEach((nestedKey, nestedValue) {
-                  if (nestedValue != null) {
-                    final fieldKey = '$key[$i][$nestedKey]';
-                    final fieldValue = nestedValue.toString();
-                    l.d("📤 API: Adding user_location field: $fieldKey = $fieldValue");
-                    formData.fields.add(
-                      MapEntry(fieldKey, fieldValue),
-                    );
-                  }
-                });
+          } else if (value is Map && key == 'user_location') {
+            // Handle user_location as object для multipart/form-data
+            // Формат: user_location[latitude] и user_location[longitude]
+            // Как в Postman: отправляется как объект, не массив
+            l.d("📤 API: Processing user_location as object");
+            value.forEach((nestedKey, nestedValue) {
+              if (nestedValue != null) {
+                final fieldKey = '$key[$nestedKey]';
+                final fieldValue = nestedValue.toString();
+                l.d("📤 API: Adding user_location field: $fieldKey = $fieldValue");
+                formData.fields.add(
+                  MapEntry(fieldKey, fieldValue),
+                );
               }
-            }
-            l.d("✅ API: user_location processed");
+            });
+            l.d("✅ API: user_location processed, total fields added: ${value.keys.length}");
           } else {
             // Handle simple string fields (including comments)
             final fieldValue = value.toString();

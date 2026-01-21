@@ -388,15 +388,13 @@ class DetailVM extends ChangeNotifier {
         
         // Валидация координат
         if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-          // Отправляем user_location как массив с одним элементом, согласно документации API
-          // Формат: user_location[0][latitude] и user_location[0][longitude]
-          jsonData['user_location'] = [
-            {
-              'latitude': lat,
-              'longitude': lng,
-            }
-          ];
-          p.log("✅ DetailVM: user_location added as array: ${jsonData['user_location']}");
+          // Отправляем user_location как объект (Map), как в Postman
+          // Формат: user_location[latitude] и user_location[longitude]
+          jsonData['user_location'] = {
+            'latitude': lat,
+            'longitude': lng,
+          };
+          p.log("✅ DetailVM: user_location added as object: ${jsonData['user_location']}");
           p.log("✅ DetailVM: user_location in jsonData type: ${jsonData['user_location'].runtimeType}");
         } else {
           p.log("❌ DetailVM: Invalid coordinates: lat=$lat, lng=$lng, not adding user_location");
