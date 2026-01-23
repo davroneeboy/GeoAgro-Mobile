@@ -9,6 +9,7 @@ import "package:dio/dio.dart";
 import "package:flutter/foundation.dart";
 import "package:connectivity_plus/connectivity_plus.dart";
 import "package:pretty_dio_logger/pretty_dio_logger.dart";
+import "package:package_info_plus/package_info_plus.dart";
 
 import "api_constants.dart";
 import "api_connection.dart";
@@ -84,6 +85,17 @@ class ApiService {
       headers.putIfAbsent("Authorization", () => "Bearer $token");
     } else {
       l.w("⚠️ API: No token found for headers!");
+    }
+
+    // Добавляем версию приложения в заголовки
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      headers.putIfAbsent("flutter-version", () => packageInfo.version);
+      l.d("📱 API: Added flutter-version header: ${packageInfo.version}");
+    } catch (e) {
+      l.w("⚠️ API: Failed to get app version: $e");
+      // Если не удалось получить версию, используем fallback
+      headers.putIfAbsent("flutter-version", () => "3.3.0");
     }
 
     return headers;

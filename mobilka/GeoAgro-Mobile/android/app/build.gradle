@@ -42,6 +42,22 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
+
+    // Настройка имени APK файла
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def buildType = variant.buildType.name
+            def versionName = variant.versionName
+            def versionCode = variant.versionCode
+            def date = new Date().format('yyyy-MM-dd')
+            
+            if (buildType == "release") {
+                outputFileName = "GeoAgro-v${versionName}-${versionCode}-${date}-release.apk"
+            } else {
+                outputFileName = "GeoAgro-v${versionName}-${versionCode}-${date}-debug.apk"
+            }
+        }
+    }
 }
 
 flutter {

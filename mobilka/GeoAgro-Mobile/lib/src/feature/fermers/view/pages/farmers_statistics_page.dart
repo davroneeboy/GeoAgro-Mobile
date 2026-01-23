@@ -151,7 +151,7 @@ class _SearchSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
+            children: [ 
               Expanded(
                 child: CustomTextField(
                   controller: vm.searchInnController,
