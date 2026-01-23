@@ -2,11 +2,14 @@ import "dart:developer";
 import "package:dio/dio.dart";
 import "package:flutter/foundation.dart";
 import "package:go_router/go_router.dart";
+import "package:package_info_plus/package_info_plus.dart";
 
 import "../../storage/app_storage.dart";
 import "../../routes/router_config.dart";
 import "../../routes/app_route_names.dart";
 import "../../setting/setup.dart";
+import "../../version/version_check_service.dart";
+import "../../widgets/update_required_dialog.dart";
 
 class TokenInterceptor extends Interceptor {
   TokenInterceptor._();
@@ -112,6 +115,42 @@ class TokenInterceptor extends Interceptor {
     final responseData = err.response?.data;
     final statusCode = err.response?.statusCode;
     
+    // Check for version mismatch error (400 with "Мобил иловани янгилаш керак")
+    if (statusCode == 400) {
+      String? errorMessage;
+      
+      if (responseData is Map<String, dynamic>) {
+        errorMessage = responseData['detail']?.toString() ??
+            responseData['message']?.toString() ??
+            responseData['error']?.toString();
+      } else if (responseData is String) {
+        errorMessage = responseData;
+      }
+      
+      if (errorMessage != null) {
+        final lower = errorMessage.toLowerCase();
+        // Проверяем различные варианты сообщения об обновлении
+        if (lower.contains('мобил иловани янгилаш керак') ||
+            lower.contains('мобил иловани янгилаш') ||
+            lower.contains('янгилаш керак') ||
+            lower.contains('update required') ||
+            lower.contains('version mismatch') ||
+            lower.contains('app update required')) {
+          log("Version mismatch detected (400): $errorMessage");
+          
+          // Показываем диалог обновления
+          if (parentNavigatorKey.currentContext != null) {
+            _showUpdateDialog(parentNavigatorKey.currentContext!);
+          } else {
+            log("Warning: parentNavigatorKey.currentContext is null, cannot show update dialog");
+          }
+          
+          // Не пробрасываем ошибку дальше
+          return;
+        }
+      }
+    }
+    
     // Check if it's an authentication error (401 or specific error messages)
     bool isAuthError = false;
     bool shouldRedirectToLogin = false;
@@ -190,5 +229,30 @@ class TokenInterceptor extends Interceptor {
     }
 
     super.onError(err, handler);
+  }
+
+  /// Показывает диалог обновления приложения
+  Future<void> _showUpdateDialog(BuildContext context) async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+      
+      // Пытаемся получить требуемую версию из ответа сервера или используем текущую
+      // В реальности сервер может вернуть требуемую версию в ответе
+      final requiredVersion = currentVersion; // Можно улучшить, если сервер возвращает требуемую версию
+      
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Нельзя закрыть диалог
+          builder: (context) => UpdateRequiredDialog(
+            currentVersion: currentVersion,
+            requiredVersion: requiredVersion,
+          ),
+        );
+      }
+    } catch (e) {
+      log("Error showing update dialog: $e");
+    }
   }
 } 
