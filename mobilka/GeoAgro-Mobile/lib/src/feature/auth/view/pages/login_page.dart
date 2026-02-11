@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../vm/login_vm.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/tools/assets.dart';
+import '../../../../core/setting/setup.dart' as app_setup;
 import '../widgets/modern_login_input_widget.dart';
 import '../widgets/modern_login_button.dart';
 import '../../../../core/routes/app_route_names.dart';
@@ -336,6 +337,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
               context,
             );
             
+            // Устанавливаем флаг для показа предложения биометрии на главной
+            app_setup.shouldOfferBiometric = true;
+            
             // Небольшая задержка для отображения snackbar перед навигацией
             await Future.delayed(const Duration(milliseconds: 300));
             
@@ -345,13 +349,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             }
             
             debugPrint("🚀 Navigating to home page...");
-            try {
-              context.go(AppRouteNames.home);
-              debugPrint("✅ Navigation command sent successfully");
-            } catch (e, stackTrace) {
-              debugPrint("❌ Navigation error: $e");
-              debugPrint("Stack trace: $stackTrace");
-            }
+            context.go(AppRouteNames.home);
           } else {
             debugPrint("❌ Login failed: ${vm.errorMessage}");
             Utils.fireTopSnackBar(

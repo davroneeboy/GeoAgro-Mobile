@@ -13,6 +13,7 @@ import '../../feature/home/view/pages/approved_page.dart';
 import '../../feature/home/view/pages/plantation_view_page.dart';
 import '../../feature/home/view/pages/pending_page.dart';
 import '../../feature/auth/view/pages/login_page.dart';
+import '../../feature/auth/view/pages/biometric_lock_page.dart';
 import '../../feature/fermers/view/pages/fermers_page.dart';
 // import '../../feature/home/view/pages/description_page.dart';
 import '../../feature/detail_page/view/pages/detail_page.dart';
@@ -63,12 +64,20 @@ final class RouterConfigService {
     ],
   );
 
+  /// Определяет начальный маршрут:
+  /// - Нет токена → логин
+  /// - Есть токен + биометрия включена → экран блокировки
+  /// - Есть токен + биометрия выключена → домой
+  static String get _initialLocation {
+    if (accessToken == null) return AppRouteNames.login;
+    if (biometricEnabled) return AppRouteNames.biometricLock;
+    return AppRouteNames.home;
+  }
+
   static final GoRouter router = GoRouter(
     // debugLogDiagnostics: true,
     navigatorKey: parentNavigatorKey,
-    initialLocation:
-        accessToken == null ? AppRouteNames.login : AppRouteNames.home,
-    // initialLocation: AppRouteNames.login,
+    initialLocation: _initialLocation,
     routes: <RouteBase>[
       // Dev Menu (only in debug mode)
       GoRoute(
@@ -76,8 +85,12 @@ final class RouterConfigService {
         builder: (context, state) => const DevMenuPage(),
       ),
       
-      // Dev Tools (only in debug mode)
-      
+      // Biometric Lock
+      GoRoute(
+        path: AppRouteNames.biometricLock,
+        builder: (context, state) => const BiometricLockPage(),
+      ),
+
       // Login
       GoRoute(
         path: AppRouteNames.login,

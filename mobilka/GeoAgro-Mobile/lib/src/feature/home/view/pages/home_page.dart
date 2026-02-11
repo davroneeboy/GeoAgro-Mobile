@@ -23,6 +23,8 @@ import '../../vm/home_page_vm.dart';
 import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import '../../../../core/services/biometric_service.dart';
+import '../../../../core/setting/setup.dart' as app_setup;
 
 final homePageVM = ChangeNotifierProvider.autoDispose<HomePageVm>((ref) {
   return HomePageVm(AppRepositoryImpl());
@@ -46,7 +48,33 @@ class _HomePageState extends ConsumerState<HomePage> {
     // Загружаем данные только для главной вкладки при первой загрузке
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTabData(0); // Загружаем данные для главной вкладки
+      _checkBiometricOffer(); // Предлагаем биометрию после логина
     });
+  }
+
+  /// Автоматически включает блокировку устройства после логина.
+  /// Функция обязательна — если устройство поддерживает, включается автоматически.
+  Future<void> _checkBiometricOffer() async {
+    if (!app_setup.shouldOfferBiometric) return;
+    app_setup.shouldOfferBiometric = false;
+
+    final biometricService = BiometricService.instance;
+
+    // Уже включена — пропускаем
+    final alreadyEnabled = await biometricService.isBiometricEnabled();
+    if (alreadyEnabled) return;
+
+    // Проверяем поддержку устройства
+    final isAvailable = await biometricService.isBiometricAvailable();
+    if (!isAvailable) {
+      debugPrint("🔐 Устройство не поддерживает блокировку");
+      return;
+    }
+
+    // Включаем автоматически — это обязательная функция
+    await biometricService.setBiometricEnabled(true);
+    app_setup.biometricEnabled = true;
+    debugPrint("✅ Блокировка устройства включена автоматически");
   }
 
   void refreshPlantationsList() {

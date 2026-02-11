@@ -25,6 +25,8 @@ bool isBloc = false;
 int districtId = 1;
 int userId = 0;
 String? username;
+bool biometricEnabled = false;
+bool shouldOfferBiometric = false; // Флаг: показать предложение биометрии после логина
 List<FruitModel> fruitList = [];
 
 Future<void> setup() async {
@@ -58,6 +60,7 @@ Future<void> setup() async {
     accessToken = await AppStorage.$read(key: StorageKey.accessToken);
     isBloc = await AppStorage.$readBool(key: StorageKey.isBlocked) ?? false;
     username = await AppStorage.$read(key: StorageKey.username);
+    biometricEnabled = await AppStorage.$readBool(key: StorageKey.biometricEnabled) ?? false;
     final storedDistrict = await AppStorage.$readInt(key: StorageKey.districtId);
     if (storedDistrict != null && storedDistrict > 0) {
       districtId = storedDistrict;
