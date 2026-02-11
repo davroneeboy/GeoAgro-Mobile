@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/radii.dart';
 
 /// Modern card widget with dark theme
@@ -24,10 +24,10 @@ class CustomCardWidget extends StatelessWidget {
     return Container(
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
-        color: backgroundColor ?? DesignColors.AppColors.darkSurface,
+        color: backgroundColor ?? context.colors.surface,
         borderRadius: BorderRadius.circular(borderRadius ?? AppRadii.card),
         border: Border.all(
-          color: DesignColors.AppColors.darkBorder,
+          color: context.colors.border,
           width: 1,
         ),
         boxShadow: [

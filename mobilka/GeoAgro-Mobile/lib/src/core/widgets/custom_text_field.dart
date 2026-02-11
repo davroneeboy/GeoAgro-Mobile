@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -58,7 +59,7 @@ class CustomTextField extends StatelessWidget {
                 style: AppTypography.body(context).copyWith(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: DesignColors.AppColors.darkTextPrimary,
+                  color: context.colors.textPrimary,
                   letterSpacing: 0.2,
                 ),
               ),
@@ -91,19 +92,19 @@ class CustomTextField extends StatelessWidget {
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,
             color: enabled
-                ? DesignColors.AppColors.darkTextPrimary
-                : DesignColors.AppColors.darkTextSecondary,
+                ? context.colors.textPrimary
+                : context.colors.textSecondary,
           ),
           cursorColor: DesignColors.AppColors.accentGreen,
           decoration: InputDecoration(
             fillColor: enabled
-                ? DesignColors.AppColors.darkSurface
-                : DesignColors.AppColors.darkSurfaceVariant,
+                ? context.colors.surface
+                : context.colors.surfaceVariant,
             filled: true,
             hintText: hintText,
             hintStyle: TextStyle(
               fontSize: 16.sp,
-              color: DesignColors.AppColors.darkTextTertiary,
+              color: context.colors.textTertiary,
               fontWeight: FontWeight.w400,
             ),
             suffixIcon: suffixIcon,
@@ -112,7 +113,7 @@ class CustomTextField extends StatelessWidget {
               borderSide: BorderSide(
                 color: errorText != null
                     ? DesignColors.AppColors.error
-                    : DesignColors.AppColors.darkBorder,
+                    : context.colors.border,
                 width: 1.5,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),
@@ -128,7 +129,7 @@ class CustomTextField extends StatelessWidget {
             ),
             disabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: DesignColors.AppColors.darkBorder,
+                color: context.colors.border,
                 width: 1.0,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),
@@ -199,7 +200,7 @@ class DecisionNumberField extends StatelessWidget {
       maxLength: 50,
       suffixIcon: Icon(
         Icons.description,
-        color: DesignColors.AppColors.darkTextSecondary,
+        color: context.colors.textSecondary,
         size: 20.sp,
       ),
     );
@@ -234,7 +235,7 @@ class ContractNumberField extends StatelessWidget {
       maxLength: 50,
       suffixIcon: Icon(
         Icons.assignment,
-        color: DesignColors.AppColors.darkTextSecondary,
+        color: context.colors.textSecondary,
         size: 20.sp,
       ),
     );
@@ -288,7 +289,7 @@ class NumberField extends StatelessWidget {
                   suffix!,
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: DesignColors.AppColors.darkTextSecondary,
+                  color: context.colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

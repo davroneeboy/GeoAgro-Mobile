@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../design_system/tokens/colors.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/typography.dart';
 
 class EmptyStateWidget extends StatelessWidget {
@@ -33,7 +33,7 @@ class EmptyStateWidget extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: AppTypography.body(context).copyWith(
-              color: AppColors.darkTextSecondary,
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w600,
               fontSize: 18.sp,
             ),
@@ -44,7 +44,7 @@ class EmptyStateWidget extends StatelessWidget {
               subMessage!,
               textAlign: TextAlign.center,
               style: AppTypography.caption(context).copyWith(
-                color: AppColors.darkTextTertiary,
+                color: context.colors.textTertiary,
                 fontSize: 14.sp,
               ),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import '../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/typography.dart';
 
 /// Modern app bar with dark theme
@@ -24,14 +24,14 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
     return AppBar(
       toolbarHeight: 68.h,
       centerTitle: true,
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       elevation: 0,
       leading: canPop
           ? IconButton(
               onPressed: onBackPressed ?? () => context.pop(), // Используем кастомный обработчик или стандартный pop
               icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: DesignColors.AppColors.darkTextPrimary,
+                color: context.colors.textPrimary,
                 size: 18.sp,
               ),
             )
@@ -39,7 +39,7 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
       title: Text(
         title,
         style: AppTypography.headline3(context).copyWith(
-          color: DesignColors.AppColors.darkTextPrimary,
+          color: context.colors.textPrimary,
           fontSize: 18.sp,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -51,7 +51,7 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
         preferredSize: const Size.fromHeight(1),
         child: Container(
           height: 1,
-          color: DesignColors.AppColors.darkBorder,
+          color: context.colors.border,
         ),
       ),
     );

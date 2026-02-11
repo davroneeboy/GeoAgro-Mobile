@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -90,7 +91,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                       ],
                     ),
               color: isDisabled
-                  ? DesignColors.AppColors.darkSurfaceVariant
+                  ? context.colors.surfaceVariant
                   : null,
               borderRadius: BorderRadius.circular(AppRadii.button),
               boxShadow: isDisabled
@@ -113,7 +114,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           isDisabled
-                              ? DesignColors.AppColors.darkTextSecondary
+                              ? context.colors.textSecondary
                               : Colors.white,
                         ),
                       ),
@@ -124,7 +125,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
                         color: isDisabled
-                            ? DesignColors.AppColors.darkTextSecondary
+                            ? context.colors.textSecondary
                             : Colors.white,
                         letterSpacing: 0.2,
                       ),
@@ -168,12 +169,12 @@ class MainButton2 extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: isDisabled
-                  ? DesignColors.AppColors.darkSurface
+                  ? context.colors.surface
                   : DesignColors.AppColors.accentGreen,
               borderRadius: BorderRadius.circular(AppRadii.button),
               border: Border.all(
                 color: isDisabled
-                    ? DesignColors.AppColors.darkBorder
+                    ? context.colors.border
                     : DesignColors.AppColors.accentGreen,
                 width: 1.5,
               ),

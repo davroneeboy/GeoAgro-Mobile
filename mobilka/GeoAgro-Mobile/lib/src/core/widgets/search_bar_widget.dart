@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 /// A search bar widget with debounce functionality
 /// 
@@ -115,7 +116,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                     autofocus: true,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: DesignColors.AppColors.darkTextPrimary,
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                     keyboardType: TextInputType.number,
@@ -126,22 +127,22 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                       hintText: widget.placeholder,
                       hintStyle: TextStyle(
                         fontSize: 14.sp,
-                        color: DesignColors.AppColors.darkTextTertiary,
+                        color: context.colors.textTertiary,
                       ),
                       filled: true,
-                      fillColor: DesignColors.AppColors.darkSurfaceVariant,
+                      fillColor: context.colors.surfaceVariant,
                       contentPadding: REdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
                         borderSide: BorderSide(
-                          color: DesignColors.AppColors.darkBorder,
+                          color: context.colors.border,
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
                         borderSide: BorderSide(
-                          color: DesignColors.AppColors.darkBorder,
+                          color: context.colors.border,
                           width: 1,
                         ),
                       ),
