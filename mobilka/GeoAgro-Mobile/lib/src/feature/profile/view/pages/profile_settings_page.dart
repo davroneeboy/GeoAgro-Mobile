@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -15,19 +17,21 @@ import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart
 import 'package:agro_employee_public/src/core/services/permissions_service.dart';
 import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
+import 'package:agro_employee_public/src/core/widgets/app_material_context.dart'
+    show themeProvider;
 
-class ProfileSettingsPage extends StatefulWidget {
+class ProfileSettingsPage extends ConsumerStatefulWidget {
   const ProfileSettingsPage({super.key});
 
   @override
-  State<ProfileSettingsPage> createState() => _ProfileSettingsPageState();
+  ConsumerState<ProfileSettingsPage> createState() =>
+      _ProfileSettingsPageState();
 }
 
-class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
+class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
   UserInfoModel? _userInfo;
   bool _isLoading = true;
 
-  // Статусы разрешений
   bool _cameraPermission = false;
   bool _galleryPermission = false;
   bool _locationPermission = false;
@@ -35,6 +39,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   bool _isLoadingPermissions = false;
 
   final _permissionsService = PermissionsService();
+  final _repository = AppRepositoryImpl();
+  bool _hasLoaded = false;
 
   static const _telegramBotUri = 'https://t.me/geoagro_bot';
 
@@ -42,7 +48,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     1: 'Toshkent',
     2: 'Andijon',
     3: 'Buxoro',
-    4: 'Fargʻona',
+    4: 'Farg\u02BBona',
     5: 'Jizzax',
     6: 'Qashqadaryo',
     7: 'Navoiy',
@@ -50,13 +56,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     9: 'Samarqand',
     10: 'Sirdaryo',
     11: 'Surxondaryo',
-    12: 'Qoraqalpogʻiston',
+    12: 'Qoraqalpog\u02BBiston',
     13: 'Xorazm',
   };
-
-  final _repository = AppRepositoryImpl();
-
-  bool _hasLoaded = false;
 
   @override
   void initState() {
@@ -132,7 +134,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         content: Text(
           "Telegram bot ochilmadi. Ilovani o'rnatib, @geoagro_bot manzilini kiriting.",
           style: AppTypography.caption(context).copyWith(
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         backgroundColor: DesignColors.AppColors.error,
@@ -165,9 +167,10 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   @override
   Widget build(BuildContext context) {
     _ensureDataLoaded();
+    final colors = context.colors;
 
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: colors.background,
       appBar: CustomAppBarWidget(
         title: "Profil",
         canPop: false,
@@ -198,7 +201,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           : RefreshIndicator(
               onRefresh: _loadUserInfo,
               color: DesignColors.AppColors.accentGreen,
-              backgroundColor: DesignColors.AppColors.darkSurface,
+              backgroundColor: colors.surface,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.symmetric(
@@ -208,19 +211,23 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProfileHeader(),
+                    _buildProfileHeader(colors),
                     SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Shaxsiy ma'lumotlar"),
+                    _buildSectionTitle("Shaxsiy ma'lumotlar", colors),
                     SizedBox(height: AppSpacing.sm.h),
-                    _buildPersonalInfoCard(),
+                    _buildPersonalInfoCard(colors),
                     SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Ruxsatlar"),
+                    _buildSectionTitle("Mavzu", colors),
                     SizedBox(height: AppSpacing.sm.h),
-                    _buildPermissionsCard(),
+                    _buildThemeCard(colors),
                     SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Qo'llab-quvvatlash"),
+                    _buildSectionTitle("Ruxsatlar", colors),
                     SizedBox(height: AppSpacing.sm.h),
-                    _buildSupportCard(),
+                    _buildPermissionsCard(colors),
+                    SizedBox(height: AppSpacing.xl.h),
+                    _buildSectionTitle("Qo'llab-quvvatlash", colors),
+                    SizedBox(height: AppSpacing.sm.h),
+                    _buildSupportCard(colors),
                     SizedBox(height: AppSpacing.xl.h),
                   ],
                 ),
@@ -230,12 +237,101 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // THEME TOGGLE
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildThemeCard(AdaptiveColors colors) {
+    final themeNotifier = ref.watch(themeProvider);
+    final currentMode = themeNotifier.themeMode;
+
+    return _buildCard(
+      colors,
+      child: Column(
+        children: [
+          _buildThemeOption(
+            colors: colors,
+            icon: Icons.dark_mode_outlined,
+            title: "Tungi",
+            isSelected: currentMode == ThemeMode.dark,
+            onTap: () =>
+                ref.read(themeProvider.notifier).setThemeMode(ThemeMode.dark),
+          ),
+          _buildDivider(colors),
+          _buildThemeOption(
+            colors: colors,
+            icon: Icons.light_mode_outlined,
+            title: "Kunduzgi",
+            isSelected: currentMode == ThemeMode.light,
+            onTap: () =>
+                ref.read(themeProvider.notifier).setThemeMode(ThemeMode.light),
+          ),
+          _buildDivider(colors),
+          _buildThemeOption(
+            colors: colors,
+            icon: Icons.settings_brightness_outlined,
+            title: "Tizim",
+            isSelected: currentMode == ThemeMode.system,
+            onTap: () =>
+                ref.read(themeProvider.notifier).setThemeMode(ThemeMode.system),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeOption({
+    required AdaptiveColors colors,
+    required IconData icon,
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20.sp,
+              color: isSelected
+                  ? DesignColors.AppColors.accentGreen
+                  : colors.textSecondary,
+            ),
+            SizedBox(width: AppSpacing.md.w),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTypography.body(context).copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: DesignColors.AppColors.accentGreen,
+                size: 24.sp,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // PROFILE HEADER
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(AdaptiveColors colors) {
     if (_userInfo == null) {
       return _buildCard(
+        colors,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xl),
@@ -244,13 +340,13 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                 Icon(
                   Icons.person_outline,
                   size: 48.sp,
-                  color: DesignColors.AppColors.darkTextSecondary,
+                  color: colors.textSecondary,
                 ),
                 SizedBox(height: AppSpacing.md.h),
                 Text(
                   "Ma'lumot topilmadi",
                   style: AppTypography.title(context).copyWith(
-                    color: DesignColors.AppColors.darkTextPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 SizedBox(height: AppSpacing.xs.h),
@@ -258,7 +354,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   "Profil ma'lumotlari yuklanmadi. Qayta urinib ko'ring.",
                   textAlign: TextAlign.center,
                   style: AppTypography.caption(context).copyWith(
-                    color: DesignColors.AppColors.darkTextSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -267,10 +363,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         ),
       );
     }
-
     final initials = _initialsFromName(_userInfo!.displayName);
-
     return _buildCard(
+      colors,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
@@ -296,7 +391,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w700,
-                  color: DesignColors.AppColors.darkTextPrimary,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -310,7 +405,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                         ? _userInfo!.displayName
                         : _userInfo!.username,
                     style: AppTypography.title(context).copyWith(
-                      color: DesignColors.AppColors.darkTextPrimary,
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -319,7 +414,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     Text(
                       _userInfo!.districtName,
                       style: AppTypography.caption(context).copyWith(
-                        color: DesignColors.AppColors.darkTextSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -328,7 +423,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     Text(
                       _userInfo!.phoneNumber,
                       style: AppTypography.body(context).copyWith(
-                        color: DesignColors.AppColors.darkTextPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ],
@@ -345,24 +440,26 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   // PERSONAL INFO
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Widget _buildPersonalInfoCard() {
+  Widget _buildPersonalInfoCard(AdaptiveColors colors) {
     return _buildCard(
+      colors,
       child: Column(
         children: [
-          _buildInfoRow(Icons.person_outline, "F.I.Sh",
+          _buildInfoRow(colors, Icons.person_outline, "F.I.Sh",
               _userInfo?.displayName ?? "Ko'rsatilmagan"),
-          _buildDivider(),
+          _buildDivider(colors),
           _buildInfoRow(
+              colors,
               Icons.place_outlined,
               "Viloyat",
               _userInfo != null
                   ? (_regionNames[_userInfo!.regionId] ?? "Ko'rsatilmagan")
                   : "Ko'rsatilmagan"),
-          _buildDivider(),
-          _buildInfoRow(Icons.map_outlined, "Tuman",
+          _buildDivider(colors),
+          _buildInfoRow(colors, Icons.map_outlined, "Tuman",
               _userInfo?.districtName ?? "Ko'rsatilmagan"),
-          _buildDivider(),
-          _buildInfoRow(Icons.phone_outlined, "Telefon",
+          _buildDivider(colors),
+          _buildInfoRow(colors, Icons.phone_outlined, "Telefon",
               _userInfo?.phoneNumber ?? "Ko'rsatilmagan"),
         ],
       ),
@@ -373,11 +470,13 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   // PERMISSIONS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Widget _buildPermissionsCard() {
+  Widget _buildPermissionsCard(AdaptiveColors colors) {
     return _buildCard(
+      colors,
       child: Column(
         children: [
           _buildPermissionRow(
+            colors: colors,
             icon: Icons.camera_alt_outlined,
             title: "Kamera",
             isEnabled: _cameraPermission,
@@ -388,8 +487,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               permissionName: "Kamera",
             ),
           ),
-          _buildDivider(),
+          _buildDivider(colors),
           _buildPermissionRow(
+            colors: colors,
             icon: Icons.photo_library_outlined,
             title: "Galereya",
             isEnabled: _galleryPermission,
@@ -400,8 +500,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               permissionName: "Galereya",
             ),
           ),
-          _buildDivider(),
+          _buildDivider(colors),
           _buildPermissionRow(
+            colors: colors,
             icon: Icons.location_on_outlined,
             title: "Geolokatsiya",
             isEnabled: _locationPermission,
@@ -412,8 +513,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               permissionName: "Geolokatsiya",
             ),
           ),
-          _buildDivider(),
+          _buildDivider(colors),
           _buildPermissionRow(
+            colors: colors,
             icon: Icons.notifications_outlined,
             title: "Bildirishnomalar",
             isEnabled: _notificationPermission,
@@ -433,8 +535,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   // SUPPORT
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Widget _buildSupportCard() {
+  Widget _buildSupportCard(AdaptiveColors colors) {
     return _buildCard(
+      colors,
       onTap: _openTelegramBot,
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -456,7 +559,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   Text(
                     "Telegram bot",
                     style: AppTypography.body(context).copyWith(
-                      color: DesignColors.AppColors.darkTextPrimary,
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -464,7 +567,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   Text(
                     "Taklif va shikoyatlar uchun @geoagro_bot",
                     style: AppTypography.caption(context).copyWith(
-                      color: DesignColors.AppColors.darkTextSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -472,7 +575,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
             ),
             Icon(
               Icons.north_east,
-              color: DesignColors.AppColors.darkTextSecondary,
+              color: colors.textSecondary,
               size: 18.sp,
             ),
           ],
@@ -485,22 +588,23 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   // REUSABLE BUILDERS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, AdaptiveColors colors) {
     return Text(
       title,
       style: AppTypography.title(context).copyWith(
-        color: DesignColors.AppColors.darkTextPrimary,
+        color: colors.textPrimary,
         fontWeight: FontWeight.w600,
       ),
     );
   }
 
-  Widget _buildCard({required Widget child, VoidCallback? onTap}) {
+  Widget _buildCard(AdaptiveColors colors,
+      {required Widget child, VoidCallback? onTap}) {
     final container = Container(
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: colors.border),
       ),
       child: child,
     );
@@ -517,15 +621,12 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     return container;
   }
 
-  Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: DesignColors.AppColors.darkBorder,
-    );
+  Widget _buildDivider(AdaptiveColors colors) {
+    return Divider(height: 1, thickness: 1, color: colors.border);
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+      AdaptiveColors colors, IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -540,7 +641,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
             child: Text(
               label,
               style: AppTypography.caption(context).copyWith(
-                color: DesignColors.AppColors.darkTextSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ),
@@ -551,7 +652,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               value,
               textAlign: TextAlign.right,
               style: AppTypography.body(context).copyWith(
-                color: DesignColors.AppColors.darkTextPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -562,6 +663,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   }
 
   Widget _buildPermissionRow({
+    required AdaptiveColors colors,
     required IconData icon,
     required String title,
     required bool isEnabled,
@@ -582,7 +684,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               child: Text(
                 title,
                 style: AppTypography.body(context).copyWith(
-                  color: DesignColors.AppColors.darkTextPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
             ),
@@ -600,7 +702,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                 isEnabled ? Icons.check_circle : Icons.circle_outlined,
                 color: isEnabled
                     ? DesignColors.AppColors.accentGreen
-                    : DesignColors.AppColors.darkTextSecondary,
+                    : colors.textSecondary,
                 size: 24.sp,
               ),
           ],
