@@ -1,6 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import '../storage/app_storage.dart';
+
+/// Результат проверки доступности биометрии / блокировки устройства.
+enum BiometricAvailability {
+  /// Устройство поддерживает и готово к аутентификации.
+  available,
+  /// На устройстве нет ни пароля, ни биометрии.
+  noSecuritySetup,
+  /// Ранее было включено, но пользователь убрал блокировку с устройства.
+  securityRemoved,
+}
 
 /// Сервис биометрической аутентификации.
 ///
@@ -19,7 +30,7 @@ class BiometricService {
     try {
       return await _auth.isDeviceSupported();
     } catch (e) {
-      debugPrint('❌ BiometricService.isDeviceSupported error: $e');
+      debugPrint('BiometricService.isDeviceSupported error: $e');
       return false;
     }
   }
@@ -29,7 +40,7 @@ class BiometricService {
     try {
       return await _auth.canCheckBiometrics;
     } catch (e) {
-      debugPrint('❌ BiometricService.canCheckBiometrics error: $e');
+      debugPrint('BiometricService.canCheckBiometrics error: $e');
       return false;
     }
   }
@@ -39,7 +50,7 @@ class BiometricService {
     try {
       return await _auth.getAvailableBiometrics();
     } catch (e) {
-      debugPrint('❌ BiometricService.getAvailableBiometrics error: $e');
+      debugPrint('BiometricService.getAvailableBiometrics error: $e');
       return [];
     }
   }
@@ -49,8 +60,20 @@ class BiometricService {
   Future<bool> isBiometricAvailable() async {
     final deviceSupported = await isDeviceSupported();
     final canCheck = await canCheckBiometrics();
-    debugPrint('🔐 BiometricService: deviceSupported=$deviceSupported, canCheck=$canCheck');
+    debugPrint('BiometricService: deviceSupported=$deviceSupported, canCheck=$canCheck');
     return deviceSupported || canCheck;
+  }
+
+  /// Расширенная проверка доступности с учётом текущего состояния.
+  ///
+  /// Возвращает [BiometricAvailability] — позволяет отличить
+  /// «не поддерживается» от «поддержка была, но пользователь убрал блокировку».
+  Future<BiometricAvailability> checkAvailability() async {
+    final isAvailable = await isBiometricAvailable();
+    if (isAvailable) return BiometricAvailability.available;
+    final wasEnabled = await isBiometricEnabled();
+    if (wasEnabled) return BiometricAvailability.securityRemoved;
+    return BiometricAvailability.noSecuritySetup;
   }
 
   // ─── Аутентификация ───────────────────────────────────────
@@ -71,10 +94,10 @@ class BiometricService {
           useErrorDialogs: true,
         ),
       );
-      debugPrint('🔐 BiometricService.authenticate result: $result');
+      debugPrint('BiometricService.authenticate result: $result');
       return result;
     } catch (e) {
-      debugPrint('❌ BiometricService.authenticate error: $e');
+      debugPrint('BiometricService.authenticate error: $e');
       return false;
     }
   }
@@ -96,17 +119,101 @@ class BiometricService {
   /// Запрашивает аутентификацию перед критическим действием
   /// (удаление, сохранение изменений и т.д.).
   ///
-  /// Если блокировка не включена — пропускает проверку и возвращает `true`.
-  /// Возвращает `true` если пользователь прошёл аутентификацию.
+  /// [context] — нужен для показа предупреждения, если блокировка недоступна.
+  /// Возвращает `true` если пользователь прошёл аутентификацию
+  /// или подтвердил действие через диалог-предупреждение.
   Future<bool> confirmCriticalAction({
+    required BuildContext context,
     String reason = 'Amalni tasdiqlash uchun qurilma qulfini ishlating',
   }) async {
-    final enabled = await isBiometricEnabled();
-    if (!enabled) return true; // Блокировка не включена — пропускаем
+    final availability = await checkAvailability();
+    switch (availability) {
+      case BiometricAvailability.available:
+        return await authenticate(reason: reason);
+      case BiometricAvailability.securityRemoved:
+        // Блокировка была включена, но пользователь убрал PIN/пароль
+        // Показываем предупреждение и требуем подтверждение
+        return await _showSecurityWarningDialog(context);
+      case BiometricAvailability.noSecuritySetup:
+        // Устройство не защищено — показываем предупреждение
+        return await _showNoSecurityDialog(context);
+    }
+  }
 
-    final available = await isBiometricAvailable();
-    if (!available) return true; // Устройство не поддерживает — пропускаем
+  /// Диалог-предупреждение: блокировка убрана с устройства.
+  Future<bool> _showSecurityWarningDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Xavfsizlik ogohlantirishi"),
+        content: const Text(
+          "Qurilmangizdan qulf (PIN/parol/barmoq izi) olib tashlangan. "
+          "Iltimos, qurilma sozlamalarida qulfni qayta o'rnating.\n\n"
+          "Amalni bajarishni davom ettirasizmi?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Bekor qilish"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Davom etish"),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 
-    return await authenticate(reason: reason);
+  /// Диалог-предупреждение: на устройстве нет защиты.
+  Future<bool> _showNoSecurityDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Qurilma himoyalanmagan"),
+        content: const Text(
+          "Qurilmangizda qulf o'rnatilmagan (PIN, parol yoki barmoq izi). "
+          "Xavfsizlik uchun qurilma sozlamalarida qulf o'rnating.\n\n"
+          "Amalni bajarishni davom ettirasizmi?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Bekor qilish"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Davom etish"),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  /// Показывает диалог о необходимости установить блокировку экрана.
+  /// Используется на главном экране после логина.
+  Future<void> showSetupSecurityDialog(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Qurilma himoyasi talab qilinadi"),
+        content: const Text(
+          "Ilova xavfsiz ishlashi uchun qurilmangizda qulf o'rnatilishi kerak "
+          "(PIN, parol, grafik kalit yoki barmoq izi).\n\n"
+          "Iltimos, qurilma sozlamalariga o'ting va qulfni o'rnating.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Tushundim"),
+          ),
+        ],
+      ),
+    );
   }
 }

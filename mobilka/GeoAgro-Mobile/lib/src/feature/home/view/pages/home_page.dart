@@ -53,28 +53,46 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   /// Автоматически включает блокировку устройства после логина.
-  /// Функция обязательна — если устройство поддерживает, включается автоматически.
+  ///
+  /// Если устройство поддерживает — делает пробную аутентификацию
+  /// и только при успехе включает блокировку.
+  /// Если устройство не защищено — показывает предупреждение.
   Future<void> _checkBiometricOffer() async {
     if (!app_setup.shouldOfferBiometric) return;
     app_setup.shouldOfferBiometric = false;
-
     final biometricService = BiometricService.instance;
-
     // Уже включена — пропускаем
     final alreadyEnabled = await biometricService.isBiometricEnabled();
     if (alreadyEnabled) return;
-
     // Проверяем поддержку устройства
-    final isAvailable = await biometricService.isBiometricAvailable();
-    if (!isAvailable) {
-      debugPrint("🔐 Устройство не поддерживает блокировку");
-      return;
+    final availability = await biometricService.checkAvailability();
+    if (!mounted) return;
+    switch (availability) {
+      case BiometricAvailability.available:
+        // Пробная аутентификация — убеждаемся, что пользователь может пройти
+        final testResult = await biometricService.authenticate(
+          reason: "Qurilma qulfini tekshirish",
+        );
+        if (testResult) {
+          await biometricService.setBiometricEnabled(true);
+          app_setup.biometricEnabled = true;
+          debugPrint("Блокировка устройства включена после пробной аутентификации");
+        } else {
+          debugPrint("Пробная аутентификация не пройдена, блокировка не включена");
+        }
+        break;
+      case BiometricAvailability.noSecuritySetup:
+        // Устройство не защищено — показываем предупреждение
+        debugPrint("Устройство не защищено, показываем предупреждение");
+        if (mounted) {
+          await biometricService.showSetupSecurityDialog(context);
+        }
+        break;
+      case BiometricAvailability.securityRemoved:
+        // Маловероятно после логина, но обрабатываем
+        debugPrint("Блокировка была убрана с устройства");
+        break;
     }
-
-    // Включаем автоматически — это обязательная функция
-    await biometricService.setBiometricEnabled(true);
-    app_setup.biometricEnabled = true;
-    debugPrint("✅ Блокировка устройства включена автоматически");
   }
 
   void refreshPlantationsList() {

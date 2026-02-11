@@ -311,56 +311,33 @@ class _LoginPageState extends ConsumerState<LoginPage>
       isLoading: vm.isLoading,
       isEnabled: !vm.isLoading,
       onPressed: () async {
-        FocusScope.of(context).unfocus();
-        if (vm.formKey.currentState!.validate()) {
-          debugPrint("🔵 Login button pressed, starting login...");
-          final isSuccess = await loginVmNotifier.login();
-          debugPrint("🔵 Login result: $isSuccess, mounted: $mounted");
-          
-          if (!mounted) {
-            debugPrint("⚠️ Widget not mounted, aborting navigation");
-            return;
-          }
-          
-          if (isSuccess) {
-            debugPrint("✅ Login successful, showing snackbar and navigating...");
-            
-            // Ждем, пока isLoading станет false
-            while (vm.isLoading) {
-              await Future.delayed(const Duration(milliseconds: 50));
-              if (!mounted) return;
-            }
-            
-            Utils.fireTopSnackBar(
-              "Muvoffaqiyatli Tizimga Kirildi",
-              design_colors.AppColors.success,
-              context,
-            );
-            
-            // Устанавливаем флаг для показа предложения биометрии на главной
-            app_setup.shouldOfferBiometric = true;
-            
-            // Небольшая задержка для отображения snackbar перед навигацией
-            await Future.delayed(const Duration(milliseconds: 300));
-            
-            if (!mounted || !context.mounted) {
-              debugPrint("⚠️ Context not mounted after delay, cannot navigate");
-              return;
-            }
-            
-            debugPrint("🚀 Navigating to home page...");
-            context.go(AppRouteNames.home);
-          } else {
-            debugPrint("❌ Login failed: ${vm.errorMessage}");
-            Utils.fireTopSnackBar(
-              vm.errorMessage ?? "Xatolik yuz berdi",
-              design_colors.AppColors.error,
-              context,
-            );
-          }
-        } else {
+        // Скрываем клавиатуру ДО обработки нажатия,
+        // чтобы первый тап не «проглатывался» при скрытии клавиатуры
+        FocusManager.instance.primaryFocus?.unfocus();
+        if (!vm.formKey.currentState!.validate()) {
           Utils.fireTopSnackBar(
             "Iltimos, ma'lumotlarni to'g'ri kiriting.",
+            design_colors.AppColors.error,
+            context,
+          );
+          return;
+        }
+        final isSuccess = await loginVmNotifier.login();
+        if (!mounted) return;
+        if (isSuccess) {
+          Utils.fireTopSnackBar(
+            "Muvoffaqiyatli Tizimga Kirildi",
+            design_colors.AppColors.success,
+            context,
+          );
+          app_setup.shouldOfferBiometric = true;
+          // Даём snackbar отобразиться перед навигацией
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (!mounted || !context.mounted) return;
+          context.go(AppRouteNames.home);
+        } else {
+          Utils.fireTopSnackBar(
+            vm.errorMessage ?? "Xatolik yuz berdi",
             design_colors.AppColors.error,
             context,
           );

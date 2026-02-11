@@ -733,7 +733,9 @@ class _EditPageState extends ConsumerState<EditPage> {
                   }
 
                   // Подтверждение через блокировку устройства
+                  if (!context.mounted) return;
                   final confirmed = await BiometricService.instance.confirmCriticalAction(
+                    context: context,
                     reason: "O'zgarishlarni saqlash uchun tasdiqlang",
                   );
                   if (!confirmed) return;

@@ -552,7 +552,9 @@ class HomePageCardWidget extends StatelessWidget {
               onPressed: () async {
                 Navigator.of(context).pop();
                 // Подтверждение через блокировку устройства
+                if (!context.mounted) return;
                 final confirmed = await BiometricService.instance.confirmCriticalAction(
+                  context: context,
                   reason: "Plantatsiyani o'chirish uchun tasdiqlang",
                 );
                 if (!confirmed) return;
