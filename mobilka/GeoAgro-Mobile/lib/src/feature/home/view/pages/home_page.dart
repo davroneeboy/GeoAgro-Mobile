@@ -153,61 +153,87 @@ class _HomePageState extends ConsumerState<HomePage> {
         index: _selectedIndex,
         children: tabs,
       ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          backgroundColor: context.colors.surfaceVariant,
-          indicatorColor: DesignColors.AppColors.accentGreen.withOpacity(0.16),
-          labelTextStyle: MaterialStateProperty.resolveWith(
-            (states) => TextStyle(
-              fontWeight: states.contains(MaterialState.selected)
-                  ? FontWeight.w600
-                  : FontWeight.w500,
-              color: states.contains(MaterialState.selected)
-                  ? context.colors.textPrimary
-                  : context.colors.textTertiary,
-            ),
+      bottomNavigationBar: Container(
+        margin: EdgeInsets.only(left: 12.w, right: 12.w, bottom: 12.h),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(24.r),
+          border: Border.all(
+            color: context.colors.border,
+            width: 0.5,
           ),
-          iconTheme: MaterialStateProperty.resolveWith(
-            (states) => IconThemeData(
-              color: states.contains(MaterialState.selected)
-                  ? DesignColors.AppColors.accentGreen
-                  : context.colors.textSecondary.withOpacity(0.7),
-            ),
-          ),
-          elevation: 12,
-        ),
-        child: NavigationBar(
-          height: 70,
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-            // Загружаем данные для вкладки при переключении
-            _loadTabData(index);
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded),
-              label: "Uy",
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.agriculture_outlined),
-              selectedIcon: Icon(Icons.agriculture),
-              label: "Fermerlar",
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart),
-              label: "Statistika",
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: "Profil",
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 4),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24.r),
+          child: NavigationBarTheme(
+            data: NavigationBarThemeData(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              indicatorColor: DesignColors.AppColors.accentGreen.withValues(alpha: 0.12),
+              indicatorShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              labelTextStyle: WidgetStateProperty.resolveWith(
+                (states) => TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: states.contains(WidgetState.selected)
+                      ? FontWeight.w600
+                      : FontWeight.w500,
+                  color: states.contains(WidgetState.selected)
+                      ? DesignColors.AppColors.accentGreen
+                      : context.colors.textTertiary,
+                ),
+              ),
+              iconTheme: WidgetStateProperty.resolveWith(
+                (states) => IconThemeData(
+                  size: 22.sp,
+                  color: states.contains(WidgetState.selected)
+                      ? DesignColors.AppColors.accentGreen
+                      : context.colors.textTertiary,
+                ),
+              ),
+              elevation: 0,
+            ),
+            child: NavigationBar(
+              height: 64,
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+                _loadTabData(index);
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: "Uy",
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.agriculture_outlined),
+                  selectedIcon: Icon(Icons.agriculture),
+                  label: "Fermerlar",
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.bar_chart_outlined),
+                  selectedIcon: Icon(Icons.bar_chart),
+                  label: "Statistika",
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person),
+                  label: "Profil",
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -381,7 +407,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           padding: REdgeInsets.symmetric(
                               vertical: 16, horizontal: 32),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         child: vm.isFetchingMore

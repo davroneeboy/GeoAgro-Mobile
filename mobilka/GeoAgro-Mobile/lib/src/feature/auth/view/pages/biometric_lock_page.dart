@@ -85,7 +85,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
         backgroundColor: design_colors.AppColors.error,
         duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

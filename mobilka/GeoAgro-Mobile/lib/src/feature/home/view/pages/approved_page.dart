@@ -219,7 +219,7 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
                           foregroundColor: Colors.white,
                           padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         child: vm.isFetchingMore

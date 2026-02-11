@@ -113,7 +113,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           backgroundColor: design_colors.AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       );

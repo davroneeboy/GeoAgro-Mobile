@@ -743,7 +743,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       padding: EdgeInsets.all(16.h),
                       decoration: BoxDecoration(
                         color: DesignColors.AppColors.accentGreen,
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
                           color: DesignColors.AppColors.accentGreenLight.withOpacity(0.5),
                           width: 2,

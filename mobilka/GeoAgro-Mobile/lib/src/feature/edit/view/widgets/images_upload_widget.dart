@@ -88,12 +88,12 @@ class EditImageUploadListWidget extends StatelessWidget {
                 }
               },
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(16.r),
               ),
               padding: EdgeInsets.zero,
               child: DottedBorder(
                 borderType: BorderType.RRect,
-                radius: Radius.circular(12.r),
+                radius: Radius.circular(16.r),
                 color: Colors.grey,
                 strokeWidth: 2,
                 dashPattern: const [8, 4],
@@ -102,7 +102,7 @@ class EditImageUploadListWidget extends StatelessWidget {
                   height: 120.h,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -111,7 +111,7 @@ class EditImageUploadListWidget extends StatelessWidget {
                       if (uploadedImage != null)
                         Positioned.fill(
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12.r),
+                            borderRadius: BorderRadius.circular(16.r),
                             child: Image.file(
                               uploadedImage,
                               fit: BoxFit.cover,
@@ -121,7 +121,7 @@ class EditImageUploadListWidget extends StatelessWidget {
                       else if (networkImage != null)
                         Positioned.fill(
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12.r),
+                            borderRadius: BorderRadius.circular(16.r),
                             child: Image.network(
                               networkImage,
                               fit: BoxFit.cover,
@@ -179,7 +179,7 @@ class EditImageUploadListWidget extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.black45,
-                              borderRadius: BorderRadius.circular(12.r),
+                              borderRadius: BorderRadius.circular(16.r),
                             ),
                             child: const Center(
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),

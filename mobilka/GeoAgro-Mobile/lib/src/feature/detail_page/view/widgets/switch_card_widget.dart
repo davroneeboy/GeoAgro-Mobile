@@ -30,7 +30,7 @@ class CustomSwitchCard extends StatelessWidget {
               color: context.colors.border,
               width: 1,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             children: [

@@ -142,7 +142,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
                   ? context.colors.surface
                   : context.colors.surfaceVariant,
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
                   color: _isFocused
                       ? DesignColors.AppColors.accentGreen
@@ -151,21 +151,21 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
                 ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
                   color: DesignColors.AppColors.accentGreen,
                   width: 2.0,
                 ),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
                   color: DesignColors.AppColors.error,
                   width: 1.5,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
                   color: DesignColors.AppColors.error,
                   width: 2.0,

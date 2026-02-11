@@ -44,7 +44,7 @@ sealed class Utils {
               padding: REdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(16.r),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
