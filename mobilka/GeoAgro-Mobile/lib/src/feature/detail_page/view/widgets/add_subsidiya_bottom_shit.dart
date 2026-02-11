@@ -6,9 +6,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/setting/setup.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
-import 'package:agro_employee_public/design_system/theme/spacing.dart';
-import 'package:agro_employee_public/design_system/theme/typography.dart';
-import 'package:agro_employee_public/design_system/theme/radius.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
 
 import '../../vm/detail_vm.dart';
 import 'detail_dropdown_widget.dart';
@@ -24,11 +24,10 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detailVm = ref.watch(detailVM);
     final isEfficiency = ref.watch(detailVm.switchEfficiency);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final textStyle = AppTypography.headlineMedium(context).copyWith(
       fontSize: 16.sp,
       fontWeight: FontWeight.w600,
+      color: DesignColors.AppColors.darkTextPrimary,
     );
 
     return Container(
@@ -44,8 +43,8 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
       decoration: BoxDecoration(
         color: DesignColors.AppColors.darkSurface,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppRadius.modal),
-          topRight: Radius.circular(AppRadius.modal),
+          topLeft: Radius.circular(AppRadii.modal),
+          topRight: Radius.circular(AppRadii.modal),
         ),
       ),
       child: Column(
@@ -102,12 +101,14 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.md,
                     ),
-                    backgroundColor: colorScheme.errorContainer,
-                    foregroundColor: colorScheme.onErrorContainer,
+                    backgroundColor: Colors.red.withOpacity(0.15),
+                    foregroundColor: Colors.red,
                   ),
                   child: Text(
                     "Bekor qilish",
-                    style: AppTypography.labelLarge(context),
+                    style: AppTypography.labelLarge(context).copyWith(
+                      color: Colors.red,
+                    ),
                   ),
                 ),
               ),
@@ -134,11 +135,15 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                               DesignColors.AppColors.darkSurfaceVariant,
                           title: Text(
                             "Xatolik",
-                            style: AppTypography.headlineMedium(context),
+                            style: AppTypography.headlineMedium(context).copyWith(
+                              color: DesignColors.AppColors.darkTextPrimary,
+                            ),
                           ),
                           content: Text(
                             errorMessage!,
-                            style: AppTypography.bodyMedium(context),
+                            style: AppTypography.bodyMedium(context).copyWith(
+                              color: DesignColors.AppColors.darkTextSecondary,
+                            ),
                           ),
                           actions: [
                             TextButton(
@@ -163,8 +168,10 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                     foregroundColor: Colors.white,
                   ),
                   child: Text(
-                    "Qo‘shish",
-                    style: AppTypography.labelLarge(context),
+                    "Qo'shish",
+                    style: AppTypography.labelLarge(context).copyWith(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

@@ -213,7 +213,7 @@ class CreateMapPageVm extends ChangeNotifier {
   /// Безопасный вызов notifyListeners — не вызывает после dispose
   void _safeNotifyListeners() {
     if (!_isDisposed) {
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 

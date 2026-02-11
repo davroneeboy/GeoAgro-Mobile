@@ -4,9 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
-import 'package:agro_employee_public/design_system/theme/radius.dart';
-import 'package:agro_employee_public/design_system/theme/spacing.dart';
-import 'package:agro_employee_public/design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class CustomTextFieldWithLabel extends StatelessWidget {
   final String? label;
@@ -28,18 +28,6 @@ class CustomTextFieldWithLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final fillColor = isDark
-        ? DesignColors.AppColors.darkSurfaceVariant
-        : colorScheme.surfaceVariant;
-    final outlineColor = isDark
-        ? DesignColors.AppColors.darkBorder
-        : colorScheme.outlineVariant;
-    final hintColor = isDark
-        ? DesignColors.AppColors.darkTextTertiary
-        : colorScheme.onSurfaceVariant;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,6 +38,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
               label!,
               style: AppTypography.headlineSmall(context).copyWith(
                 fontSize: 16.sp,
+                color: DesignColors.AppColors.darkTextPrimary,
               ),
             ),
           ),
@@ -57,34 +46,35 @@ class CustomTextFieldWithLabel extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
-          style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+          style: AppTypography.input(context).copyWith(
+            fontSize: 14.sp,
+            color: DesignColors.AppColors.darkTextPrimary,
+          ),
           decoration: InputDecoration(
             hintText: hintText,
             filled: true,
-            fillColor: fillColor,
+            fillColor: DesignColors.AppColors.darkSurfaceVariant,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.inputPaddingHorizontal,
               vertical: AppSpacing.inputPaddingVertical,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: outlineColor,
+                color: DesignColors.AppColors.darkBorder,
                 width: 1.2,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: isDark
-                    ? DesignColors.AppColors.accentGreen
-                    : colorScheme.primary,
+                color: DesignColors.AppColors.accentGreen,
                 width: 1.6,
               ),
             ),
-            hintStyle: AppTypography.bodyMedium(context).copyWith(
+            hintStyle: AppTypography.bodySmall(context).copyWith(
               fontSize: 14.sp,
-              color: hintColor,
+              color: DesignColors.AppColors.darkTextTertiary,
             ),
           ),
           onChanged: onTextChanged,

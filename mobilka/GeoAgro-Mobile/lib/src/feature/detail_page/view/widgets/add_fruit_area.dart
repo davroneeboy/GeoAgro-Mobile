@@ -1,8 +1,8 @@
 import '../../../../data/model/plantation/new_plantation_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
-import '../../../../../design_system/theme/typography.dart';
+import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/typography.dart';
 
 class AddFruitArea extends StatelessWidget {
   final List<FruitArea> selectedDetails;
@@ -19,23 +19,11 @@ class AddFruitArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark
-        ? DesignColors.AppColors.darkSurface
-        : Colors.white;
-    final borderColor = isDark
-        ? DesignColors.AppColors.darkOutline
-        : Colors.grey.shade300;
-    final textColor = isDark
-        ? DesignColors.AppColors.darkOnSurface
-        : Colors.black;
-    
     return Column(
       children: [
         SizedBox(height: 10.h),
         selectedDetails.isEmpty
-            ? SizedBox.shrink()
+            ? const SizedBox.shrink()
             : SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -55,10 +43,10 @@ class AddFruitArea extends StatelessWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: backgroundColor,
+                            color: DesignColors.AppColors.darkSurface,
                             borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
-                              color: borderColor,
+                              color: DesignColors.AppColors.darkBorder,
                               width: 1,
                             ),
                           ),
@@ -72,14 +60,12 @@ class AddFruitArea extends StatelessWidget {
                                 context,
                                 "Meva turi:",
                                 detail2?.fruitName ?? detail2?.fruit?.toString() ?? "",
-                                textColor,
                               ),
                               SizedBox(height: 6.h),
                               _buildRow(
                                 context,
                                 "Meva navi:",
                                 detail2?.varietyName ?? detail2?.variety?.toString() ?? "",
-                                textColor,
                               ),
                               if (detail.iqtisodiysamarasiz == true) ...[
                                 SizedBox(height: 6.h),
@@ -87,7 +73,6 @@ class AddFruitArea extends StatelessWidget {
                                   context,
                                   "Iqtisodiy samarasiz maydon:",
                                   detail.economicInefficientArea?.toString() ?? "0.0",
-                                  textColor,
                                 ),
                               ] else ...[
                                 SizedBox(height: 6.h),
@@ -95,35 +80,30 @@ class AddFruitArea extends StatelessWidget {
                                   context,
                                   "Payvand turi:",
                                   detail2?.rootstockName ?? detail2?.rootstock?.toString() ?? "",
-                                  textColor,
                                 ),
                                 SizedBox(height: 6.h),
                                 _buildRow(
                                   context,
                                   "Ekinlagan yil:",
                                   detail.plantedYear ?? "",
-                                  textColor,
                                 ),
                                 SizedBox(height: 6.h),
                                 _buildRow(
                                   context,
                                   "Maydon:",
                                   detail.area.toString(),
-                                  textColor,
                                 ),
                                 SizedBox(height: 6.h),
                                 _buildRow(
                                   context,
                                   "Ko'chat sxemasi:",
                                   detail.schema ?? "",
-                                  textColor,
                                 ),
                                 SizedBox(height: 6.h),
                                 _buildRow(
                                   context,
                                   "Meva maydoni ximoya to`siq bilan o`ralganmi:",
                                   detail.fenced == true ? 'Ha' : 'Yoq',
-                                  textColor,
                                 ),
                                 SizedBox(height: 6.h),
                                 _buildRow(
@@ -132,7 +112,6 @@ class AddFruitArea extends StatelessWidget {
                                   detail.weight == null
                                       ? '—'
                                       : detail.weight.toString(),
-                                  textColor,
                                 ),
                               ],
                               SizedBox(height: 8.h),
@@ -174,7 +153,7 @@ class AddFruitArea extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(BuildContext context, String label, String? value, Color textColor) {
+  Widget _buildRow(BuildContext context, String label, String? value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -185,7 +164,7 @@ class AddFruitArea extends StatelessWidget {
             style: AppTypography.bodyMedium(context).copyWith(
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
-              color: textColor,
+              color: DesignColors.AppColors.darkTextPrimary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -199,7 +178,7 @@ class AddFruitArea extends StatelessWidget {
             textAlign: TextAlign.end,
             style: AppTypography.bodyMedium(context).copyWith(
               fontSize: 12.sp,
-              color: textColor.withOpacity(0.8),
+              color: DesignColors.AppColors.darkTextSecondary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

@@ -17,5 +17,10 @@ class AppSpacing {
   static const double screenPadding = md;
   static const double sectionSpacing = lg;
   static const double itemSpacing = sm;
+
+  // Input field spacing
+  static const double inputPaddingHorizontal = md; // 16
+  static const double inputPaddingVertical = 12.0;
+  static const double formFieldGap = md; // 16
 }
 

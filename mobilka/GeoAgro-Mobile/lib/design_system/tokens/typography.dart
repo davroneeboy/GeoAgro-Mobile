@@ -95,5 +95,39 @@ class AppTypography {
         height: lineHeightNormal,
         color: Theme.of(context).colorScheme.onPrimary,
       );
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ALIASES (compatibility with theme/typography names)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  /// Input field text (16px, Regular)
+  static TextStyle input(BuildContext context) => TextStyle(
+        fontSize: fontSizeBase,
+        fontWeight: regular,
+        height: lineHeightNormal,
+        color: Theme.of(context).colorScheme.onSurface,
+      );
+
+  /// Headline Medium (18px, Semibold)
+  static TextStyle headlineMedium(BuildContext context) => TextStyle(
+        fontSize: fontSizeLg,
+        fontWeight: semibold,
+        height: lineHeightNormal,
+        color: Theme.of(context).colorScheme.onBackground,
+      );
+
+  /// Headline Small (16px, Semibold) — emphasized text
+  static TextStyle headlineSmall(BuildContext context) => TextStyle(
+        fontSize: fontSizeBase,
+        fontWeight: semibold,
+        height: lineHeightNormal,
+        color: Theme.of(context).colorScheme.onBackground,
+      );
+
+  /// Body Medium (14px, Regular) — alias for bodySmall
+  static TextStyle bodyMedium(BuildContext context) => bodySmall(context);
+
+  /// Label Large (16px, Medium) — alias for button
+  static TextStyle labelLarge(BuildContext context) => button(context);
 }
 

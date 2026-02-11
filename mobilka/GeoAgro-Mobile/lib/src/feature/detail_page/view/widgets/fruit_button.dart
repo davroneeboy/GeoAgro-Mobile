@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../vm/detail_vm.dart';
 import 'fruit_bottom_shit_widget.dart.dart';
 
@@ -11,7 +11,10 @@ class FruitButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var textStyle = TextStyle(fontSize: 16.sp, color: Colors.black);
+    var textStyle = TextStyle(
+      fontSize: 16.sp,
+      color: DesignColors.AppColors.darkTextPrimary,
+    );
     var text = Text(
       "Maydon haqida ma'lumotlar",
       style: textStyle,
@@ -19,11 +22,11 @@ class FruitButton extends ConsumerWidget {
     return MaterialButton(
       height: 56.h,
       minWidth: MediaQuery.of(context).size.width,
-      color: Colors.white,
+      color: DesignColors.AppColors.darkSurfaceVariant,
       padding: REdgeInsets.symmetric(horizontal: 20.w),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.r),
-        side: BorderSide(color: Colors.grey, width: 1),
+        side: BorderSide(color: DesignColors.AppColors.darkBorder, width: 1),
       ),
       onPressed: () async {
         final detailVm = ref.read(detailVM);

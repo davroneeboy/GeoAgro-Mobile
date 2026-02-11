@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:agro_employee_public/design_system/theme/colors.dart'
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
-import 'package:agro_employee_public/design_system/theme/spacing.dart';
-import 'package:agro_employee_public/design_system/theme/typography.dart';
-import 'package:agro_employee_public/design_system/theme/radius.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
 
 class DropdownWithLabel extends StatelessWidget {
   final String? label;
@@ -25,8 +25,6 @@ class DropdownWithLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,42 +34,46 @@ class DropdownWithLabel extends StatelessWidget {
             label!,
             style: AppTypography.headlineSmall(context).copyWith(
               fontSize: 16.sp,
+              color: DesignColors.AppColors.darkTextPrimary,
             ),
           ),
           SizedBox(height: 10.h),
         ],
         DropdownButtonFormField<int>(
           value: selectedValue,
-          style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+          style: AppTypography.input(context).copyWith(
+            fontSize: 14.sp,
+            color: DesignColors.AppColors.darkTextPrimary,
+          ),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             size: 24.sp,
-            color: colorScheme.onSurfaceVariant,
+            color: DesignColors.AppColors.darkTextSecondary,
           ),
           decoration: InputDecoration(
             hintText: hint ?? "Turni tanlang",
             filled: true,
-            fillColor: colorScheme.surfaceVariant,
+            fillColor: DesignColors.AppColors.darkSurfaceVariant,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.inputPaddingHorizontal,
               vertical: AppSpacing.inputPaddingVertical,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: colorScheme.outlineVariant,
+                color: DesignColors.AppColors.darkBorder,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.input),
-              borderSide: const BorderSide(
-                color: DesignColors.AppColors.primary,
+              borderRadius: BorderRadius.circular(AppRadii.input),
+              borderSide: BorderSide(
+                color: DesignColors.AppColors.accentGreen,
                 width: 1.6,
               ),
             ),
           ),
-          dropdownColor: colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadius.input),
+          dropdownColor: DesignColors.AppColors.darkSurface,
+          borderRadius: BorderRadius.circular(AppRadii.input),
           onChanged: onChanged,
           items: items.entries
               .map(
@@ -81,7 +83,7 @@ class DropdownWithLabel extends StatelessWidget {
                     entry.value,
                     style: AppTypography.bodyLarge(context).copyWith(
                       fontSize: 14.sp,
-                      color: colorScheme.onSurface,
+                      color: DesignColors.AppColors.darkTextPrimary,
                     ),
                   ),
                 ),

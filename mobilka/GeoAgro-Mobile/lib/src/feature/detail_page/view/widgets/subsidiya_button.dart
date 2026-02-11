@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:agro_employee_public/design_system/theme/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 
 class SubsidiyaButton<T> extends StatelessWidget {
   final T viewModel;
@@ -10,7 +10,10 @@ class SubsidiyaButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var textStyle = TextStyle(fontSize: 16.sp, color: Colors.black);
+    var textStyle = TextStyle(
+      fontSize: 16.sp,
+      color: DesignColors.AppColors.darkTextPrimary,
+    );
     var text = Text("Subsidiya qo`shish va to`ldirish", style: textStyle);
     return Column(
       children: [
@@ -18,11 +21,14 @@ class SubsidiyaButton<T> extends StatelessWidget {
         MaterialButton(
           height: 56.h,
           minWidth: MediaQuery.of(context).size.width,
-          color: Colors.white,
+          color: DesignColors.AppColors.darkSurfaceVariant,
           padding: REdgeInsets.symmetric(horizontal: 20.w),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.r),
-            side: BorderSide(color: Colors.grey, width: 1),
+            side: BorderSide(
+              color: DesignColors.AppColors.darkBorder,
+              width: 1,
+            ),
           ),
           onPressed: () {
             showModalBottomSheet(

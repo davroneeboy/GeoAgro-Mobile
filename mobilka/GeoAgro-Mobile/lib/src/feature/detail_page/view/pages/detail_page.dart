@@ -14,10 +14,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
-import '../../../../../design_system/theme/radius.dart';
-import '../../../../../design_system/theme/spacing.dart';
-import '../../../../../design_system/theme/typography.dart';
+import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/radii.dart';
+import '../../../../../design_system/tokens/spacing.dart';
+import '../../../../../design_system/tokens/typography.dart';
 
 import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/utils.dart';
@@ -96,18 +96,10 @@ class DetailPageState extends ConsumerState<DetailPage> {
     final isInvestmentXorijiy = ref.watch(detailVm.switchInvestmentXorjiy);
     final isInvestmentMahalliy = ref.watch(detailVm.switchInvestmentMahhalliy);
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = theme.colorScheme.background;
-    final sectionColor = isDark
-        ? DesignColors.AppColors.darkSurface
-        : DesignColors.AppColors.lightSurface;
-    final outlineColor = isDark
-        ? DesignColors.AppColors.darkOutline
-        : DesignColors.AppColors.lightOutline;
-    final shadowColor = isDark
-        ? Colors.black.withOpacity(0.25)
-        : Colors.black.withOpacity(0.08);
+    final backgroundColor = DesignColors.AppColors.darkBackground;
+    final sectionColor = DesignColors.AppColors.darkSurface;
+    final outlineColor = DesignColors.AppColors.darkBorder;
+    final shadowColor = Colors.black.withOpacity(0.25);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -124,7 +116,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
         child: Container(
           decoration: BoxDecoration(
             color: sectionColor,
-            borderRadius: BorderRadius.circular(AppRadius.card),
+            borderRadius: BorderRadius.circular(AppRadii.card),
             border: Border.all(color: outlineColor),
             boxShadow: [
               BoxShadow(
@@ -244,41 +236,33 @@ class DetailPageState extends ConsumerState<DetailPage> {
                         ],
                         style: AppTypography.input(context).copyWith(
                           fontSize: 14.sp,
-                          color: isDark
-                              ? DesignColors.AppColors.darkOnBackground
-                              : DesignColors.AppColors.lightOnBackground,
+                          color: DesignColors.AppColors.darkTextPrimary,
                         ),
                         decoration: InputDecoration(
                           hintText: "kontur raqamini kiriting",
                           filled: true,
-                          fillColor: isDark
-                              ? DesignColors.AppColors.darkSurfaceVariant
-                              : sectionColor,
+                          fillColor: DesignColors.AppColors.darkSurfaceVariant,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.inputPaddingHorizontal,
                             vertical: AppSpacing.inputPaddingVertical,
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.input),
+                            borderRadius: BorderRadius.circular(AppRadii.input),
                             borderSide: BorderSide(
                               color: outlineColor,
                               width: 1.2,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.input),
+                            borderRadius: BorderRadius.circular(AppRadii.input),
                             borderSide: BorderSide(
-                              color: isDark
-                                  ? DesignColors.AppColors.primary
-                                  : theme.colorScheme.primary,
+                              color: DesignColors.AppColors.accentGreen,
                               width: 1.6,
                             ),
                           ),
-                          hintStyle: AppTypography.bodyMedium(context).copyWith(
+                          hintStyle: AppTypography.bodySmall(context).copyWith(
                             fontSize: 14.sp,
-                            color: isDark
-                                ? DesignColors.AppColors.darkOnSurfaceVariant
-                                : theme.colorScheme.onSurfaceVariant,
+                            color: DesignColors.AppColors.darkTextSecondary,
                           ),
                           isDense: true,
                         ),
@@ -291,11 +275,11 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       child: ElevatedButton(
                         onPressed: detailVm.addKonturNumber,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: DesignColors.AppColors.primary,
+                          backgroundColor: DesignColors.AppColors.accentGreen,
                           foregroundColor: Colors.white,
                           elevation: 4,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.input),
+                            borderRadius: BorderRadius.circular(AppRadii.input),
                           ),
                         ),
                         child: const Text("Qo'shish"),
@@ -313,26 +297,20 @@ class DetailPageState extends ConsumerState<DetailPage> {
                         label: Text(
                           detailVm.konturNumbers[i],
                           style: TextStyle(
-                            color: isDark
-                                ? DesignColors.AppColors.darkOnBackground
-                                : DesignColors.AppColors.lightOnBackground,
+                            color: DesignColors.AppColors.darkTextPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         onDeleted: () => detailVm.removeKonturAt(i),
-                        backgroundColor: isDark
-                            ? DesignColors.AppColors.primaryContainerDark
-                            : DesignColors.AppColors.primaryContainer,
+                        backgroundColor: DesignColors.AppColors.accentGreenDark,
                         side: BorderSide(
-                          color: DesignColors.AppColors.primary.withOpacity(0.5),
+                          color: DesignColors.AppColors.accentGreen.withOpacity(0.5),
                           width: 1.5,
                         ),
                         deleteIcon: Icon(
                           Icons.close,
                           size: 18,
-                          color: isDark
-                              ? DesignColors.AppColors.darkOnBackground
-                              : DesignColors.AppColors.lightOnBackground,
+                          color: DesignColors.AppColors.darkTextPrimary,
                         ),
                       ),
                   ],
@@ -763,15 +741,15 @@ class DetailPageState extends ConsumerState<DetailPage> {
                     return Container(
                       padding: EdgeInsets.all(16.h),
                       decoration: BoxDecoration(
-                        color: DesignColors.AppColors.primary,
+                        color: DesignColors.AppColors.accentGreen,
                         borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
-                          color: DesignColors.AppColors.primaryLight.withOpacity(0.5),
+                          color: DesignColors.AppColors.accentGreenLight.withOpacity(0.5),
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: DesignColors.AppColors.primary.withOpacity(0.3),
+                            color: DesignColors.AppColors.accentGreen.withOpacity(0.3),
                             blurRadius: 8,
                             spreadRadius: 0,
                             offset: const Offset(0, 4),
@@ -826,41 +804,33 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 ],
                 style: AppTypography.input(context).copyWith(
                   fontSize: 14.sp,
-                  color: isDark
-                      ? DesignColors.AppColors.darkOnBackground
-                      : DesignColors.AppColors.lightOnBackground,
+                  color: DesignColors.AppColors.darkTextPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: "Izoh kiriting (qo'shiladi yaratilgandan keyin)",
                   filled: true,
-                  fillColor: isDark
-                      ? DesignColors.AppColors.darkSurfaceVariant
-                      : sectionColor,
+                  fillColor: DesignColors.AppColors.darkSurfaceVariant,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.inputPaddingHorizontal,
                     vertical: AppSpacing.inputPaddingVertical,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
                       color: outlineColor,
                       width: 1.2,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: isDark
-                          ? DesignColors.AppColors.primary
-                          : theme.colorScheme.primary,
+                      color: DesignColors.AppColors.accentGreen,
                       width: 1.6,
                     ),
                   ),
-                  hintStyle: AppTypography.bodyMedium(context).copyWith(
+                  hintStyle: AppTypography.bodySmall(context).copyWith(
                     fontSize: 14.sp,
-                    color: isDark
-                        ? DesignColors.AppColors.darkOnSurfaceVariant
-                        : theme.colorScheme.onSurfaceVariant,
+                    color: DesignColors.AppColors.darkTextSecondary,
                   ),
                   isDense: true,
                 ),
@@ -923,7 +893,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       padding: const EdgeInsets.symmetric(
                         vertical: AppSpacing.lg,
                       ),
-                      backgroundColor: DesignColors.AppColors.primary,
+                      backgroundColor: DesignColors.AppColors.accentGreen,
                     ),
                   ),
                 ),

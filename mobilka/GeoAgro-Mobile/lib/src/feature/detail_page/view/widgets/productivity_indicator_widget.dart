@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:agro_employee_public/design_system/theme/colors.dart'
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
-import 'package:agro_employee_public/design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class ProductivityIndicator extends StatelessWidget {
   final double value;
@@ -17,7 +17,6 @@ class ProductivityIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -25,6 +24,7 @@ class ProductivityIndicator extends StatelessWidget {
           "Banitet bali: ${value.toStringAsFixed(0)}",
           style: AppTypography.headlineSmall(context).copyWith(
             fontSize: 16.sp,
+            color: DesignColors.AppColors.darkTextPrimary,
           ),
         ),
         Row(
@@ -32,11 +32,11 @@ class ProductivityIndicator extends StatelessWidget {
             Expanded(
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: DesignColors.AppColors.primary,
-                  inactiveTrackColor: theme.colorScheme.outlineVariant,
-                  thumbColor: DesignColors.AppColors.primary,
+                  activeTrackColor: DesignColors.AppColors.accentGreen,
+                  inactiveTrackColor: DesignColors.AppColors.darkBorder,
+                  thumbColor: DesignColors.AppColors.accentGreen,
                   overlayColor:
-                      DesignColors.AppColors.primary.withOpacity(0.12),
+                      DesignColors.AppColors.accentGreen.withOpacity(0.12),
                   trackHeight: 4,
                 ),
                 child: Slider(
