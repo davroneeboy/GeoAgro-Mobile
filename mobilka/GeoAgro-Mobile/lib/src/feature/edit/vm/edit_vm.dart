@@ -11,7 +11,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../view/widget/edit_fruit_bottom_shit.dart';
 
 import '../../../core/setting/setup.dart';
-import '../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../../data/model/fruits/fruit_model.dart';
 import '../../../data/model/fruits/fruit_rootstocks_model.dart';
 import '../../../data/model/fruits/fruit_verity_modell.dart';

@@ -18,10 +18,10 @@ import '../../../../core/setting/setup.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/style/app_colors.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
-import '../../../../../design_system/theme/spacing.dart';
-import '../../../../../design_system/theme/radius.dart';
-import '../../../../../design_system/theme/typography.dart';
+import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/spacing.dart';
+import '../../../../../design_system/tokens/radii.dart';
+import '../../../../../design_system/tokens/typography.dart';
 import '../../../detail_page/view/widgets/border_widget.dart';
 import '../../../detail_page/view/widgets/detail_text_fild_widget.dart';
 import '../../../detail_page/view/widgets/productivity_indicator_widget.dart';
@@ -73,9 +73,7 @@ class _EditPageState extends ConsumerState<EditPage> {
     final isInvestmentXorijiy = ref.watch(switchInvestmentXorjiy);
     final isInvestmentMahhalliy = ref.watch(switchInvestmentMahhalliy);
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    // Всегда тёмная тема
 
     if (edit.isLoading) {
       return Scaffold(
@@ -224,40 +222,35 @@ class _EditPageState extends ConsumerState<EditPage> {
                   Expanded(
                     child: TextField(
                       controller: edit.konturInputController,
-                      style: AppTypography.input(context).copyWith(fontSize: 14.sp),
+                      style: AppTypography.input(context).copyWith(
+                        fontSize: 14.sp,
+                        color: DesignColors.AppColors.darkTextPrimary,
+                      ),
                       decoration: InputDecoration(
                         hintText: "kontur raqamini kiriting",
                         filled: true,
-                        fillColor: isDark
-                            ? DesignColors.AppColors.darkSurfaceVariant
-                            : colorScheme.surfaceVariant,
+                        fillColor: DesignColors.AppColors.darkSurfaceVariant,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.inputPaddingHorizontal,
                           vertical: AppSpacing.inputPaddingVertical,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.input),
+                          borderRadius: BorderRadius.circular(AppRadii.input),
                           borderSide: BorderSide(
-                            color: isDark
-                                ? DesignColors.AppColors.darkOutline
-                                : colorScheme.outline,
+                            color: DesignColors.AppColors.darkBorder,
                             width: 1.2,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.input),
+                          borderRadius: BorderRadius.circular(AppRadii.input),
                           borderSide: BorderSide(
-                            color: isDark
-                                ? DesignColors.AppColors.primary
-                                : colorScheme.primary,
+                            color: DesignColors.AppColors.accentGreen,
                             width: 1.6,
                           ),
                         ),
-                        hintStyle: AppTypography.bodyMedium(context).copyWith(
+                        hintStyle: AppTypography.bodySmall(context).copyWith(
                           fontSize: 14.sp,
-                            color: isDark
-                              ? DesignColors.AppColors.darkOnSurfaceVariant
-                              : colorScheme.onSurfaceVariant,
+                          color: DesignColors.AppColors.darkTextSecondary,
                         ),
                         isDense: true,
                       ),
@@ -689,43 +682,33 @@ class _EditPageState extends ConsumerState<EditPage> {
                 ],
                 style: AppTypography.input(context).copyWith(
                   fontSize: 14.sp,
-                  color: isDark
-                      ? DesignColors.AppColors.darkOnBackground
-                      : colorScheme.onBackground,
+                  color: DesignColors.AppColors.darkTextPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: "Izoh kiriting (qo'shiladi yangilangandan keyin)",
                   filled: true,
-                  fillColor: isDark
-                      ? DesignColors.AppColors.darkSurfaceVariant
-                      : colorScheme.surfaceVariant,
+                  fillColor: DesignColors.AppColors.darkSurfaceVariant,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.inputPaddingHorizontal,
                     vertical: AppSpacing.inputPaddingVertical,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: isDark
-                          ? DesignColors.AppColors.darkOutline
-                          : colorScheme.outline,
+                      color: DesignColors.AppColors.darkBorder,
                       width: 1.2,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.input),
+                    borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: isDark
-                          ? DesignColors.AppColors.primary
-                          : colorScheme.primary,
+                      color: DesignColors.AppColors.accentGreen,
                       width: 1.6,
                     ),
                   ),
-                  hintStyle: AppTypography.bodyMedium(context).copyWith(
+                  hintStyle: AppTypography.bodySmall(context).copyWith(
                     fontSize: 14.sp,
-                    color: isDark
-                        ? DesignColors.AppColors.darkOnSurfaceVariant
-                        : colorScheme.onSurfaceVariant,
+                    color: DesignColors.AppColors.darkTextSecondary,
                   ),
                   isDense: true,
                 ),
