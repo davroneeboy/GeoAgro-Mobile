@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -38,7 +39,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
               label!,
               style: AppTypography.headlineSmall(context).copyWith(
                 fontSize: 16.sp,
-                color: DesignColors.AppColors.darkTextPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -48,12 +49,12 @@ class CustomTextFieldWithLabel extends StatelessWidget {
           inputFormatters: inputFormatters,
           style: AppTypography.input(context).copyWith(
             fontSize: 14.sp,
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: hintText,
             filled: true,
-            fillColor: DesignColors.AppColors.darkSurfaceVariant,
+            fillColor: context.colors.surfaceVariant,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.inputPaddingHorizontal,
               vertical: AppSpacing.inputPaddingVertical,
@@ -61,7 +62,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: DesignColors.AppColors.darkBorder,
+                color: context.colors.border,
                 width: 1.2,
               ),
             ),
@@ -74,7 +75,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             ),
             hintStyle: AppTypography.bodySmall(context).copyWith(
               fontSize: 14.sp,
-              color: DesignColors.AppColors.darkTextTertiary,
+              color: context.colors.textTertiary,
             ),
           ),
           onChanged: onTextChanged,

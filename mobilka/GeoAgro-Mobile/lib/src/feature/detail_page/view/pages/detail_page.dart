@@ -15,6 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
@@ -96,9 +97,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
     final isInvestmentXorijiy = ref.watch(detailVm.switchInvestmentXorjiy);
     final isInvestmentMahalliy = ref.watch(detailVm.switchInvestmentMahhalliy);
 
-    final backgroundColor = DesignColors.AppColors.darkBackground;
-    final sectionColor = DesignColors.AppColors.darkSurface;
-    final outlineColor = DesignColors.AppColors.darkBorder;
+    final backgroundColor = context.colors.background;
+    final sectionColor = context.colors.surface;
+    final outlineColor = context.colors.border;
     final shadowColor = Colors.black.withOpacity(0.25);
 
     return Scaffold(
@@ -236,12 +237,12 @@ class DetailPageState extends ConsumerState<DetailPage> {
                         ],
                         style: AppTypography.input(context).copyWith(
                           fontSize: 14.sp,
-                          color: DesignColors.AppColors.darkTextPrimary,
+                          color: context.colors.textPrimary,
                         ),
                         decoration: InputDecoration(
                           hintText: "kontur raqamini kiriting",
                           filled: true,
-                          fillColor: DesignColors.AppColors.darkSurfaceVariant,
+                          fillColor: context.colors.surfaceVariant,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.inputPaddingHorizontal,
                             vertical: AppSpacing.inputPaddingVertical,
@@ -262,7 +263,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ),
                           hintStyle: AppTypography.bodySmall(context).copyWith(
                             fontSize: 14.sp,
-                            color: DesignColors.AppColors.darkTextSecondary,
+                            color: context.colors.textSecondary,
                           ),
                           isDense: true,
                         ),
@@ -297,7 +298,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                         label: Text(
                           detailVm.konturNumbers[i],
                           style: TextStyle(
-                            color: DesignColors.AppColors.darkTextPrimary,
+                            color: context.colors.textPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -310,7 +311,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                         deleteIcon: Icon(
                           Icons.close,
                           size: 18,
-                          color: DesignColors.AppColors.darkTextPrimary,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                   ],
@@ -804,12 +805,12 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 ],
                 style: AppTypography.input(context).copyWith(
                   fontSize: 14.sp,
-                  color: DesignColors.AppColors.darkTextPrimary,
+                  color: context.colors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: "Izoh kiriting (qo'shiladi yaratilgandan keyin)",
                   filled: true,
-                  fillColor: DesignColors.AppColors.darkSurfaceVariant,
+                  fillColor: context.colors.surfaceVariant,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.inputPaddingHorizontal,
                     vertical: AppSpacing.inputPaddingVertical,
@@ -830,7 +831,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   ),
                   hintStyle: AppTypography.bodySmall(context).copyWith(
                     fontSize: 14.sp,
-                    color: DesignColors.AppColors.darkTextSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   isDense: true,
                 ),

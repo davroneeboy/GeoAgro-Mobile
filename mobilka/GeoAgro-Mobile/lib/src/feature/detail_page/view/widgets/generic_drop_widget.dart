@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class GenericDropWidget<T> extends StatelessWidget {
@@ -31,7 +32,7 @@ class GenericDropWidget<T> extends StatelessWidget {
           style: AppTypography.bodyLarge(context).copyWith(
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         Container(
@@ -39,9 +40,9 @@ class GenericDropWidget<T> extends StatelessWidget {
           width: MediaQuery.of(context).size.width * 0.3,
           padding: REdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: DesignColors.AppColors.darkSurface,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: DesignColors.AppColors.darkBorder),
+            border: Border.all(color: context.colors.border),
           ),
           child: Stack(
             alignment: Alignment.center,
@@ -50,21 +51,21 @@ class GenericDropWidget<T> extends StatelessWidget {
                 child: DropdownButton<T>(
                   isExpanded: true,
                   value: selectedItem,
-                  dropdownColor: DesignColors.AppColors.darkSurface,
+                  dropdownColor: context.colors.surface,
                   style: AppTypography.bodyLarge(context).copyWith(
                     fontSize: 14.sp,
-                    color: DesignColors.AppColors.darkTextPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   hint: Text(
                     "Tanlang:",
                     style: AppTypography.bodyMedium(context).copyWith(
-                      color: DesignColors.AppColors.darkTextSecondary,
+                      color: context.colors.textSecondary,
                       fontSize: 12.sp,
                     ),
                   ),
                   icon: Icon(
                     Icons.keyboard_arrow_down,
-                    color: DesignColors.AppColors.darkTextPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   items: items.map((T item) {
                     return DropdownMenuItem<T>(
@@ -73,7 +74,7 @@ class GenericDropWidget<T> extends StatelessWidget {
                         itemLabel(item),
                         style: AppTypography.bodyLarge(context).copyWith(
                           fontSize: 14.sp,
-                          color: DesignColors.AppColors.darkTextPrimary,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     );

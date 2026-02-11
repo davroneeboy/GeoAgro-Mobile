@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class UpdetaCreateTime extends StatelessWidget {
@@ -37,8 +37,8 @@ class UpdetaCreateTime extends StatelessWidget {
       child: Container(
         padding: REdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: DesignColors.AppColors.darkSurface,
-          border: Border.all(color: DesignColors.AppColors.darkBorder),
+          color: context.colors.surface,
+          border: Border.all(color: context.colors.border),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: ValueListenableBuilder<DateTime?>(
@@ -54,13 +54,13 @@ class UpdetaCreateTime extends StatelessWidget {
                   style: AppTypography.bodyLarge(context).copyWith(
                     fontSize: 16.sp,
                     color: selectedDate != null
-                        ? DesignColors.AppColors.darkTextPrimary
-                        : DesignColors.AppColors.darkTextSecondary,
+                        ? context.colors.textPrimary
+                        : context.colors.textSecondary,
                   ),
                 ),
                 Icon(
                   Icons.calendar_today,
-                  color: DesignColors.AppColors.darkTextSecondary,
+                  color: context.colors.textSecondary,
                   size: 24.sp,
                 ),
               ],

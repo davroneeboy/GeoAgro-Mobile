@@ -5,6 +5,7 @@ import 'package:agro_employee_public/design_system/tokens/colors.dart' as Design
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 class EditFarmerNameDialog extends StatefulWidget {
   final String currentName;
@@ -82,14 +83,14 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: DesignColors.AppColors.darkSurface,
+      backgroundColor: context.colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.r),
       ),
       title: Text(
         "Fermer nomini o'zgartirish",
         style: AppTypography.title(context).copyWith(
-          color: DesignColors.AppColors.darkTextPrimary,
+          color: context.colors.textPrimary,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -126,7 +127,7 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
           child: Text(
             "Bekor qilish",
             style: AppTypography.body(context).copyWith(
-              color: DesignColors.AppColors.darkTextSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ),

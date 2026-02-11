@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import '../theme/colors.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../theme/spacing.dart';
 import '../theme/radius.dart';
 
@@ -32,17 +32,15 @@ class AppSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Shimmer.fromColors(
-      baseColor: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
-      highlightColor: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+      baseColor: context.colors.surfaceVariant,
+      highlightColor: context.colors.surfaceElevated,
       child: Container(
         width: width,
         height: height ?? 16,
         margin: margin,
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.sm),
         ),
       ),
@@ -93,17 +91,15 @@ class AppSkeletonCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Shimmer.fromColors(
-      baseColor: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
-      highlightColor: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+      baseColor: context.colors.surfaceVariant,
+      highlightColor: context.colors.surfaceElevated,
       child: Container(
         width: size,
         height: size,
         margin: margin,
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+          color: context.colors.surfaceVariant,
           shape: BoxShape.circle,
         ),
       ),

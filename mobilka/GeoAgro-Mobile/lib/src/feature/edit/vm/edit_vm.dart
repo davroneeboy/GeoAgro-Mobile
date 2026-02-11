@@ -12,6 +12,7 @@ import '../view/widget/edit_fruit_bottom_shit.dart';
 
 import '../../../core/setting/setup.dart';
 import '../../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../data/model/fruits/fruit_model.dart';
 import '../../../data/model/fruits/fruit_rootstocks_model.dart';
 import '../../../data/model/fruits/fruit_verity_modell.dart';
@@ -1425,7 +1426,7 @@ class EditVM extends ChangeNotifier {
               top: Radius.circular(16.r),
             ),
           ),
-          backgroundColor: DesignColors.AppColors.darkSurface,
+          backgroundColor: context.colors.surface,
           context: context,
           isScrollControlled: true,
           builder: (context) {

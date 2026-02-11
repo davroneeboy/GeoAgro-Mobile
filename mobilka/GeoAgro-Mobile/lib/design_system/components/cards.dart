@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../theme/radius.dart';
@@ -117,10 +118,8 @@ class AppCardElevated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveRadius = borderRadius ?? AppRadius.card;
-    final effectiveColor = color ??
-        (isDark ? AppColors.darkSurface : AppColors.lightSurface);
+    final effectiveColor = color ?? context.colors.surface;
 
     final cardChild = Container(
       padding: padding ?? const EdgeInsets.all(AppSpacing.cardPadding),
@@ -179,10 +178,7 @@ class AppCardFilled extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveColor = isDark
-        ? AppColors.darkSurfaceVariant
-        : AppColors.lightSurfaceVariant;
+    final effectiveColor = context.colors.surfaceVariant;
     final effectiveRadius = borderRadius ?? AppRadius.card;
 
     final cardChild = Container(
@@ -309,7 +305,7 @@ class AppInfoCard extends StatelessWidget {
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border(
           left: BorderSide(

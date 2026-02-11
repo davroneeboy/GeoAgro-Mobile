@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../theme/radius.dart';
@@ -39,8 +40,6 @@ class AppChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (onTap != null) {
       // Filter chip (selectable)
       return FilterChip(
@@ -48,8 +47,7 @@ class AppChip extends StatelessWidget {
         avatar: icon != null ? Icon(icon, size: 18) : null,
         selected: selected,
         onSelected: (_) => onTap?.call(),
-        backgroundColor: backgroundColor ??
-            (isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant),
+        backgroundColor: backgroundColor ?? context.colors.surfaceVariant,
         selectedColor: selectedColor ?? AppColors.primaryContainer,
         labelStyle: AppTypography.labelMedium(context).copyWith(
           color: labelColor,
@@ -70,8 +68,7 @@ class AppChip extends StatelessWidget {
         label: Text(label),
         avatar: icon != null ? Icon(icon, size: 18) : null,
         onDeleted: onDelete,
-        backgroundColor: backgroundColor ??
-            (isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant),
+        backgroundColor: backgroundColor ?? context.colors.surfaceVariant,
         labelStyle: AppTypography.labelMedium(context).copyWith(
           color: labelColor,
         ),
@@ -89,8 +86,7 @@ class AppChip extends StatelessWidget {
     return Chip(
       label: Text(label),
       avatar: icon != null ? Icon(icon, size: 18) : null,
-      backgroundColor: backgroundColor ??
-          (isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant),
+      backgroundColor: backgroundColor ?? context.colors.surfaceVariant,
       labelStyle: AppTypography.labelMedium(context).copyWith(
         color: labelColor,
       ),

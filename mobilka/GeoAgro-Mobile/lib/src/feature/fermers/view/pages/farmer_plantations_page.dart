@@ -12,6 +12,7 @@ import '../../../../../design_system/theme/radius.dart';
 import '../../../../../design_system/theme/typography.dart';
 import '../widgets/farmer_plantation_card.dart';
 import '../../vm/farmer_plantations_vm.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 final farmerPlantationsVm = ChangeNotifierProvider.autoDispose<FarmerPlantationsVm>((ref) {
   return FarmerPlantationsVm();
@@ -50,7 +51,7 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     final vm = ref.watch(farmerPlantationsVm);
 
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: CustomAppBarWidget(
         title: "Fermer plantatsiyalari",
         canPop: true,

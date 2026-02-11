@@ -19,6 +19,7 @@ import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 import '../../vm/farmers_statistics_vm.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 final farmersStatisticsVM =
     ChangeNotifierProvider.autoDispose<FarmersStatisticsVm>((ref) {
@@ -63,11 +64,11 @@ class _FarmersStatisticsPageState extends ConsumerState<FarmersStatisticsPage> {
         onBackPressed: () => context.go('/farmers'), // Переход на страницу фермеров
       ),
       body: Container(
-        color: DesignColors.AppColors.darkBackground,
+        color: context.colors.background,
         child: RefreshIndicator(
           onRefresh: () => vm.refresh(),
           color: DesignColors.AppColors.accentGreen,
-          backgroundColor: DesignColors.AppColors.darkSurface,
+          backgroundColor: context.colors.surface,
           child: _BodyContent(vm: vm),
         ),
       ),
@@ -142,9 +143,9 @@ class _SearchSection extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,7 +163,7 @@ class _SearchSection extends ConsumerWidget {
                       ? IconButton(
                           icon: Icon(
                             Icons.clear,
-                            color: DesignColors.AppColors.darkTextSecondary,
+                            color: context.colors.textSecondary,
                             size: 20.sp,
                           ),
                           onPressed: () {
@@ -182,7 +183,7 @@ class _SearchSection extends ConsumerWidget {
                 onPressed: vm.isSearching ? null : vm.searchByInn,
                 style: FilledButton.styleFrom(
                   backgroundColor: DesignColors.AppColors.accentGreen,
-                  foregroundColor: DesignColors.AppColors.darkTextPrimary,
+                  foregroundColor: context.colors.textPrimary,
                   padding: EdgeInsets.all(AppSpacing.md),
                   minimumSize: Size(48.w, 48.h),
                   shape: RoundedRectangleBorder(
@@ -196,7 +197,7 @@ class _SearchSection extends ConsumerWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            DesignColors.AppColors.darkTextPrimary,
+                            context.colors.textPrimary,
                           ),
                         ),
                       )
@@ -233,9 +234,9 @@ class _SearchResultsList extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: DesignColors.AppColors.darkSurfaceVariant,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(color: DesignColors.AppColors.darkBorder),
+          border: Border.all(color: context.colors.border),
         ),
         child: Center(
           child: Column(
@@ -243,13 +244,13 @@ class _SearchResultsList extends StatelessWidget {
               Icon(
                 Icons.search_off,
                 size: 48.sp,
-                color: DesignColors.AppColors.darkTextSecondary,
+                color: context.colors.textSecondary,
               ),
               SizedBox(height: AppSpacing.md),
               Text(
                 "Fermer topilmadi",
                 style: AppTypography.body(context).copyWith(
-                  color: DesignColors.AppColors.darkTextSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ],
@@ -267,7 +268,7 @@ class _SearchResultsList extends StatelessWidget {
             Text(
               "Qidiruv natijalari",
               style: AppTypography.title(context).copyWith(
-                color: DesignColors.AppColors.darkTextPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -276,12 +277,12 @@ class _SearchResultsList extends StatelessWidget {
               icon: Icon(
                 Icons.close,
                 size: 18.sp,
-                color: DesignColors.AppColors.darkTextSecondary,
+                color: context.colors.textSecondary,
               ),
               label: Text(
                 "Tozalash",
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: DesignColors.AppColors.darkTextSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
@@ -321,9 +322,9 @@ class _SearchResultCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: DesignColors.AppColors.darkSurfaceVariant,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(color: DesignColors.AppColors.darkBorder),
+          border: Border.all(color: context.colors.border),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -348,7 +349,7 @@ class _SearchResultCard extends StatelessWidget {
                           Text(
                             "INN: ${farmer.inn}",
                             style: AppTypography.caption(context).copyWith(
-                              color: DesignColors.AppColors.darkTextTertiary,
+                              color: context.colors.textTertiary,
                             ),
                           ),
                         ],
@@ -358,14 +359,14 @@ class _SearchResultCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 16.sp,
-                    color: DesignColors.AppColors.darkTextTertiary,
+                    color: context.colors.textTertiary,
                   ),
                 ],
               ),
               if (farmer.phoneNumber != null || farmer.address != null) ...[
                 SizedBox(height: AppSpacing.md),
                 Divider(
-                  color: DesignColors.AppColors.darkDivider.withOpacity(0.6),
+                  color: context.colors.divider.withOpacity(0.6),
                   height: 1,
                 ),
                 SizedBox(height: AppSpacing.md),
@@ -377,13 +378,13 @@ class _SearchResultCard extends StatelessWidget {
                         Icon(
                           Icons.phone,
                           size: 16.sp,
-                          color: DesignColors.AppColors.darkTextSecondary,
+                        color: context.colors.textSecondary,
                         ),
                         SizedBox(width: AppSpacing.sm),
                         Text(
                           farmer.phoneNumber!,
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: DesignColors.AppColors.darkTextSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ],
@@ -395,14 +396,14 @@ class _SearchResultCard extends StatelessWidget {
                       Icon(
                         Icons.location_on,
                         size: 16.sp,
-                        color: DesignColors.AppColors.darkTextSecondary,
+                        color: context.colors.textSecondary,
                       ),
                       SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           farmer.address!,
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: DesignColors.AppColors.darkTextSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ),
@@ -415,14 +416,14 @@ class _SearchResultCard extends StatelessWidget {
                       Icon(
                         Icons.person_outline,
                         size: 16.sp,
-                        color: DesignColors.AppColors.darkTextSecondary,
+                        color: context.colors.textSecondary,
                       ),
                       SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           "Yaratgan: ${farmer.createdBy!.fullName} (${farmer.createdBy!.username})",
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: DesignColors.AppColors.darkTextSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ),
@@ -463,14 +464,14 @@ class _OverviewHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            DesignColors.AppColors.darkHighlight,
-            DesignColors.AppColors.darkSurfaceVariant,
+            context.colors.highlight,
+            context.colors.surfaceVariant,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.35),
@@ -486,7 +487,7 @@ class _OverviewHeader extends StatelessWidget {
           Text(
             "Fermerlar kesimida statistika",
             style: AppTypography.headline3(context).copyWith(
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -494,14 +495,14 @@ class _OverviewHeader extends StatelessWidget {
           Text(
             "Fermerlar soni: $totalFarmers",
             style: AppTypography.bodySmall(context).copyWith(
-              color: DesignColors.AppColors.darkTextSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           SizedBox(height: AppSpacing.xs),
           Text(
             "Uzumzor maydoni: ${uzumzorArea.toStringAsFixed(1)} ga • Bog maydoni: ${bogArea.toStringAsFixed(1)} ga",
             style: AppTypography.bodySmall(context).copyWith(
-              color: DesignColors.AppColors.darkTextSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],
@@ -630,9 +631,9 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -679,7 +680,7 @@ class _SummaryCard extends StatelessWidget {
                     Text(
                       item.title,
                       style: AppTypography.caption(context).copyWith(
-                        color: DesignColors.AppColors.darkTextTertiary,
+                color: context.colors.textTertiary,
                       ),
                     ),
                   ],
@@ -706,7 +707,7 @@ class _FarmersList extends StatelessWidget {
         Text(
           "Fermerlar ro'yxati",
           style: AppTypography.title(context).copyWith(
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -747,9 +748,9 @@ class _FarmerCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: DesignColors.AppColors.darkSurfaceVariant,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(color: DesignColors.AppColors.darkBorder),
+          border: Border.all(color: context.colors.border),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -775,7 +776,7 @@ class _FarmerCard extends StatelessWidget {
                               ? "Oxirgi qo'shilgan: ${_formatDate(farmer.lastAddedPlantations!)}"
                               : "Yangilangan ma'lumot mavjud emas",
                           style: AppTypography.caption(context).copyWith(
-                            color: DesignColors.AppColors.darkTextTertiary,
+                  color: context.colors.textTertiary,
                           ),
                         ),
                       ],
@@ -784,13 +785,13 @@ class _FarmerCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 16.sp,
-                    color: DesignColors.AppColors.darkTextTertiary,
+                    color: context.colors.textTertiary,
                   ),
                 ],
               ),
               SizedBox(height: AppSpacing.md),
               Divider(
-                color: DesignColors.AppColors.darkDivider.withOpacity(0.6),
+            color: context.colors.divider.withOpacity(0.6),
                 height: 1,
               ),
               SizedBox(height: AppSpacing.md),
@@ -902,9 +903,9 @@ class _MetricPill extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -923,7 +924,7 @@ class _MetricPill extends StatelessWidget {
                 Text(
                   value,
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: DesignColors.AppColors.darkTextPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -931,7 +932,7 @@ class _MetricPill extends StatelessWidget {
                 Text(
                   label,
                   style: AppTypography.caption(context).copyWith(
-                    color: DesignColors.AppColors.darkTextTertiary,
+                    color: context.colors.textTertiary,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

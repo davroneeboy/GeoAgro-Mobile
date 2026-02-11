@@ -12,6 +12,7 @@ import '../../vm/create_map_page_vm.dart';
 import '../../../../core/style/app_colors.dart';
 import '../widgets/create_map_page_button_widgets.dart';
 import '../widgets/center_ruler_widget.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/theme/colors.dart'
     as DesignColors;
 import 'package:agro_employee_public/design_system/theme/radius.dart';
@@ -45,7 +46,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
   Widget build(BuildContext context) {
     final vm = ref.watch(mapPageVM);
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: CustomAppBarWidget(
         title: "Xarita",
         canPop: true,

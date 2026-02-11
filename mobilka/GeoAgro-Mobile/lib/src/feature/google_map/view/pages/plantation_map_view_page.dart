@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/style/app_colors.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../vm/plantation_map_view_vm.dart';
 
 final plantationMapViewVM = ChangeNotifierProvider.autoDispose.family<PlantationMapViewVm, int>((ref, id) {
@@ -35,7 +35,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
     final vm = ref.watch(plantationMapViewVM(widget.plantationId));
     
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: const CustomAppBarWidget(
         title: "Xarita",
         canPop: true,

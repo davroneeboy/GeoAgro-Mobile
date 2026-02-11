@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class CustomSwitchCard extends StatelessWidget {
@@ -24,9 +25,9 @@ class CustomSwitchCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: DesignColors.AppColors.darkSurface,
+            color: context.colors.surface,
             border: Border.all(
-              color: DesignColors.AppColors.darkBorder,
+              color: context.colors.border,
               width: 1,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -39,7 +40,7 @@ class CustomSwitchCard extends StatelessWidget {
                   style: AppTypography.bodyLarge(context).copyWith(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w500,
-                    color: DesignColors.AppColors.darkTextPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
@@ -51,8 +52,8 @@ class CustomSwitchCard extends StatelessWidget {
                 activeColor: DesignColors.AppColors.accentGreen,
                 activeTrackColor:
                     DesignColors.AppColors.accentGreen.withOpacity(0.5),
-                inactiveThumbColor: DesignColors.AppColors.darkTextSecondary,
-                inactiveTrackColor: DesignColors.AppColors.darkSurfaceVariant,
+                inactiveThumbColor: context.colors.textSecondary,
+                inactiveTrackColor: context.colors.surfaceVariant,
               ),
             ],
           ),

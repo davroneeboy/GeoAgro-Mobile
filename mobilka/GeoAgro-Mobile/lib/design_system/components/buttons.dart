@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 
@@ -138,9 +139,7 @@ class AppButtonTonal extends StatelessWidget {
     final button = FilledButton.tonal(
       onPressed: isLoading ? null : onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: isDark 
-            ? AppColors.darkSurfaceVariant 
-            : AppColors.lightSurfaceVariant,
+        backgroundColor: context.colors.surfaceVariant,
         foregroundColor: isDark 
             ? AppColors.darkOnSurface 
             : AppColors.lightOnSurface,

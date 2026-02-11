@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../../../core/widgets/custom_app_bar_widget.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 class TestPlantationsPage extends StatelessWidget {
   final int farmerInn;
@@ -16,7 +16,7 @@ class TestPlantationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: CustomAppBarWidget(
         title: "Test Plantations",
         canPop: true,

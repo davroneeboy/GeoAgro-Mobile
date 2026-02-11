@@ -7,6 +7,7 @@ import 'package:agro_employee_public/design_system/tokens/colors.dart' as Design
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 class FermerCreatePageInputWidget extends StatelessWidget {
   final String hintText;
@@ -33,7 +34,7 @@ class FermerCreatePageInputWidget extends StatelessWidget {
         FocusScope.of(context).nextFocus();
       },
       style: AppTypography.body(context).copyWith(
-        color: DesignColors.AppColors.darkTextPrimary,
+        color: context.colors.textPrimary,
         fontSize: 14.sp,
         fontWeight: FontWeight.w500,
       ),
@@ -42,18 +43,18 @@ class FermerCreatePageInputWidget extends StatelessWidget {
       maxLength: maxLength,
       decoration: InputDecoration(
         filled: true,
-        fillColor: DesignColors.AppColors.darkSurface,
+        fillColor: context.colors.surface,
         counterText: '',
         contentPadding: EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: DesignColors.AppColors.darkBorder),
+          borderSide: BorderSide(color: context.colors.border),
           borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         disabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: DesignColors.AppColors.darkBorder),
+          borderSide: BorderSide(color: context.colors.border),
           borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         focusedBorder: OutlineInputBorder(
@@ -64,12 +65,12 @@ class FermerCreatePageInputWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         border: OutlineInputBorder(
-          borderSide: BorderSide(color: DesignColors.AppColors.darkBorder),
+          borderSide: BorderSide(color: context.colors.border),
           borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         hintText: hintText,
         hintStyle: AppTypography.bodySmall(context).copyWith(
-          color: DesignColors.AppColors.darkTextTertiary,
+          color: context.colors.textTertiary,
           fontSize: 14.sp,
         ),
       ),

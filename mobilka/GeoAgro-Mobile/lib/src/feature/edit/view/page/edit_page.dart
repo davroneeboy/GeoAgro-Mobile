@@ -19,6 +19,7 @@ import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/style/app_colors.dart';
 import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/typography.dart';
@@ -78,7 +79,7 @@ class _EditPageState extends ConsumerState<EditPage> {
 
     if (edit.isLoading) {
       return Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(
             title: "Malumotlar yuklanmoqda...", canPop: true),
         body: Center(
@@ -93,7 +94,7 @@ class _EditPageState extends ConsumerState<EditPage> {
     }
     if (edit.errorMessage != null) {
       return Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(title: "Xatolik !!!", canPop: true),
         body: ErrorStateWidget(
           errorMessage: edit.errorMessage ?? "Kutilmagan Javob qaytdi",
@@ -111,7 +112,7 @@ class _EditPageState extends ConsumerState<EditPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         resizeToAvoidBottomInset: true,
         appBar: CustomAppBarWidget(title: "Tahrirlash", canPop: true),
         body: SingleChildScrollView(
@@ -225,12 +226,12 @@ class _EditPageState extends ConsumerState<EditPage> {
                       controller: edit.konturInputController,
                       style: AppTypography.input(context).copyWith(
                         fontSize: 14.sp,
-                        color: DesignColors.AppColors.darkTextPrimary,
+                        color: context.colors.textPrimary,
                       ),
                       decoration: InputDecoration(
                         hintText: "kontur raqamini kiriting",
                         filled: true,
-                        fillColor: DesignColors.AppColors.darkSurfaceVariant,
+                        fillColor: context.colors.surfaceVariant,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.inputPaddingHorizontal,
                           vertical: AppSpacing.inputPaddingVertical,
@@ -238,7 +239,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadii.input),
                           borderSide: BorderSide(
-                            color: DesignColors.AppColors.darkBorder,
+                            color: context.colors.border,
                             width: 1.2,
                           ),
                         ),
@@ -251,7 +252,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                         ),
                         hintStyle: AppTypography.bodySmall(context).copyWith(
                           fontSize: 14.sp,
-                          color: DesignColors.AppColors.darkTextSecondary,
+                          color: context.colors.textSecondary,
                         ),
                         isDense: true,
                       ),
@@ -683,12 +684,12 @@ class _EditPageState extends ConsumerState<EditPage> {
                 ],
                 style: AppTypography.input(context).copyWith(
                   fontSize: 14.sp,
-                  color: DesignColors.AppColors.darkTextPrimary,
+                  color: context.colors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: "Izoh kiriting (qo'shiladi yangilangandan keyin)",
                   filled: true,
-                  fillColor: DesignColors.AppColors.darkSurfaceVariant,
+                  fillColor: context.colors.surfaceVariant,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.inputPaddingHorizontal,
                     vertical: AppSpacing.inputPaddingVertical,
@@ -696,7 +697,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: DesignColors.AppColors.darkBorder,
+                      color: context.colors.border,
                       width: 1.2,
                     ),
                   ),
@@ -709,7 +710,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                   ),
                   hintStyle: AppTypography.bodySmall(context).copyWith(
                     fontSize: 14.sp,
-                    color: DesignColors.AppColors.darkTextSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   isDense: true,
                 ),

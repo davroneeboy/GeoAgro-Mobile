@@ -10,6 +10,7 @@ import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -82,7 +83,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     // loading state
     if (vm.isLoading) {
       return Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(
         title: "Fermerlar",
         canPop: true,
@@ -120,7 +121,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     // error state
     if (vm.errorMessage != null) {
       return Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(
           title: "Fermerlar",
           canPop: true,
@@ -152,7 +153,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
 
     // Loaded state
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: CustomAppBarWidget(
         title: "Fermerni tanlang",
         canPop: true,
@@ -183,7 +184,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
                   await vm.getFermers(isLoadMore: false);
                 },
                 color: DesignColors.AppColors.accentGreen,
-                backgroundColor: DesignColors.AppColors.darkSurface,
+                backgroundColor: context.colors.surface,
           child: SingleChildScrollView(
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
@@ -205,7 +206,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
                               "Sizning hududingizga doir hech qanday fermer yoq",
                               style: TextStyle(
                                 fontSize: 18.sp,
-                                color: DesignColors.AppColors.darkTextPrimary,
+                                color: context.colors.textPrimary,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -232,9 +233,9 @@ class _SearchSection extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +256,7 @@ class _SearchSection extends ConsumerWidget {
                           ? IconButton(
                               icon: Icon(
                                 Icons.clear,
-                                color: DesignColors.AppColors.darkTextSecondary,
+                                color: context.colors.textSecondary,
                                 size: 20.sp,
                               ),
                               onPressed: () {
@@ -280,7 +281,7 @@ class _SearchSection extends ConsumerWidget {
                 onPressed: vm.isSearching ? null : vm.searchByInn,
                 style: FilledButton.styleFrom(
                   backgroundColor: DesignColors.AppColors.accentGreen,
-                  foregroundColor: DesignColors.AppColors.darkTextPrimary,
+                  foregroundColor: context.colors.textPrimary,
                   padding: EdgeInsets.all(AppSpacing.md),
                   minimumSize: Size(48.w, 48.h),
                   shape: RoundedRectangleBorder(
@@ -294,7 +295,7 @@ class _SearchSection extends ConsumerWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            DesignColors.AppColors.darkTextPrimary,
+                            context.colors.textPrimary,
                           ),
                         ),
                       )

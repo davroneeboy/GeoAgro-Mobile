@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
@@ -34,7 +35,7 @@ class DropdownWithLabel extends StatelessWidget {
             label!,
             style: AppTypography.headlineSmall(context).copyWith(
               fontSize: 16.sp,
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           SizedBox(height: 10.h),
@@ -43,17 +44,17 @@ class DropdownWithLabel extends StatelessWidget {
           value: selectedValue,
           style: AppTypography.input(context).copyWith(
             fontSize: 14.sp,
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
           ),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             size: 24.sp,
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
           ),
           decoration: InputDecoration(
             hintText: hint ?? "Turni tanlang",
             filled: true,
-            fillColor: DesignColors.AppColors.darkSurfaceVariant,
+            fillColor: context.colors.surfaceVariant,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.inputPaddingHorizontal,
               vertical: AppSpacing.inputPaddingVertical,
@@ -61,7 +62,7 @@ class DropdownWithLabel extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: DesignColors.AppColors.darkBorder,
+                color: context.colors.border,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -72,18 +73,18 @@ class DropdownWithLabel extends StatelessWidget {
               ),
             ),
           ),
-          dropdownColor: DesignColors.AppColors.darkSurface,
+          dropdownColor: context.colors.surface,
           borderRadius: BorderRadius.circular(AppRadii.input),
           onChanged: onChanged,
           items: items.entries
               .map(
                 (entry) => DropdownMenuItem<int>(
                   value: entry.key,
-                  child: Text(
+                    child: Text(
                     entry.value,
                     style: AppTypography.bodyLarge(context).copyWith(
                       fontSize: 14.sp,
-                      color: DesignColors.AppColors.darkTextPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ),

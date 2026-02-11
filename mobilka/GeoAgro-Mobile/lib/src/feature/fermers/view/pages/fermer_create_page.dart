@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/main_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -30,7 +31,7 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
   Widget build(BuildContext context) {
     final vm = ref.watch(fermerCreatePageVM);
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: const CustomAppBarWidget(title: "Fermer Qo'shish", canPop: true),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -43,9 +44,9 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
             width: double.infinity,
             padding: EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              color: DesignColors.AppColors.darkSurfaceVariant,
+              color: context.colors.surfaceVariant,
               borderRadius: BorderRadius.circular(AppRadii.card),
-              border: Border.all(color: DesignColors.AppColors.darkBorder),
+              border: Border.all(color: context.colors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

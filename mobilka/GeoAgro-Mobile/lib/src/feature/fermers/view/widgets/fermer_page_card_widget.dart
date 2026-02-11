@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -30,10 +31,10 @@ class FermerPageCardWidget extends ConsumerWidget {
         width: double.infinity,
         padding: EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: DesignColors.AppColors.darkSurfaceVariant,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
           border: Border.all(
-            color: DesignColors.AppColors.darkBorder,
+            color: context.colors.border,
             width: 1,
           ),
           boxShadow: [
@@ -67,7 +68,7 @@ class FermerPageCardWidget extends ConsumerWidget {
                                 style: AppTypography.title(context).copyWith(
                                   fontSize: 20.sp,
                                   fontWeight: FontWeight.w700,
-                                  color: DesignColors.AppColors.darkTextPrimary,
+                                  color: context.colors.textPrimary,
                                   height: 1.25,
                                 ),
                               ),
@@ -106,7 +107,7 @@ class FermerPageCardWidget extends ConsumerWidget {
                             ? fermerModel.address!
                             : "Manzil ma'lum emas",
                         style: AppTypography.bodySmall(context).copyWith(
-                          color: DesignColors.AppColors.darkTextTertiary,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                     ],
@@ -117,7 +118,7 @@ class FermerPageCardWidget extends ConsumerWidget {
             SizedBox(height: AppSpacing.md.h),
             Divider(
               height: 1,
-              color: DesignColors.AppColors.darkDivider.withOpacity(0.6),
+              color: context.colors.divider.withOpacity(0.6),
             ),
             SizedBox(height: AppSpacing.sm.h),
             Wrap(
@@ -225,9 +226,9 @@ class _InfoPill extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -245,7 +246,7 @@ class _InfoPill extends StatelessWidget {
               Text(
                 title,
                 style: AppTypography.caption(context).copyWith(
-                  color: DesignColors.AppColors.darkTextTertiary,
+                  color: context.colors.textTertiary,
                   letterSpacing: 0.3,
                 ),
               ),
@@ -253,7 +254,7 @@ class _InfoPill extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: DesignColors.AppColors.darkTextSecondary,
+                  color: context.colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -300,7 +301,7 @@ class _InnChip extends StatelessWidget {
           Text(
             inn,
             style: AppTypography.bodySmall(context).copyWith(
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -320,7 +321,7 @@ class _IdLabel extends StatelessWidget {
     return Text(
       "ID $id",
       style: AppTypography.bodySmall(context).copyWith(
-        color: DesignColors.AppColors.darkTextTertiary,
+        color: context.colors.textTertiary,
         fontWeight: FontWeight.w500,
       ),
     );

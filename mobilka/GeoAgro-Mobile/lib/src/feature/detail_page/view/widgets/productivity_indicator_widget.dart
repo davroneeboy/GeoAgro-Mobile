@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
 class ProductivityIndicator extends StatelessWidget {
@@ -24,7 +25,7 @@ class ProductivityIndicator extends StatelessWidget {
           "Banitet bali: ${value.toStringAsFixed(0)}",
           style: AppTypography.headlineSmall(context).copyWith(
             fontSize: 16.sp,
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         Row(
@@ -33,7 +34,7 @@ class ProductivityIndicator extends StatelessWidget {
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: DesignColors.AppColors.accentGreen,
-                  inactiveTrackColor: DesignColors.AppColors.darkBorder,
+                  inactiveTrackColor: context.colors.border,
                   thumbColor: DesignColors.AppColors.accentGreen,
                   overlayColor:
                       DesignColors.AppColors.accentGreen.withOpacity(0.12),

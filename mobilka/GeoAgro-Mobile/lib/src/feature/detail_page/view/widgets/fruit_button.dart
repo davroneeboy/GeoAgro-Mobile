@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../vm/detail_vm.dart';
 import 'fruit_bottom_shit_widget.dart.dart';
 
@@ -13,7 +12,7 @@ class FruitButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var textStyle = TextStyle(
       fontSize: 16.sp,
-      color: DesignColors.AppColors.darkTextPrimary,
+      color: context.colors.textPrimary,
     );
     var text = Text(
       "Maydon haqida ma'lumotlar",
@@ -22,11 +21,11 @@ class FruitButton extends ConsumerWidget {
     return MaterialButton(
       height: 56.h,
       minWidth: MediaQuery.of(context).size.width,
-      color: DesignColors.AppColors.darkSurfaceVariant,
+      color: context.colors.surfaceVariant,
       padding: REdgeInsets.symmetric(horizontal: 20.w),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.r),
-        side: BorderSide(color: DesignColors.AppColors.darkBorder, width: 1),
+        side: BorderSide(color: context.colors.border, width: 1),
       ),
       onPressed: () async {
         final detailVm = ref.read(detailVM);
@@ -42,7 +41,7 @@ class FruitButton extends ConsumerWidget {
               top: Radius.circular(16.r),
             ),
           ),
-          backgroundColor: DesignColors.AppColors.darkSurface,
+          backgroundColor: context.colors.surface,
           context: context,
           isScrollControlled: true,
           builder: (context) {

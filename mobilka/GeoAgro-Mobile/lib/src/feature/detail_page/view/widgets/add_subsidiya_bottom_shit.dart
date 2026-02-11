@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/setting/setup.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
@@ -27,7 +28,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
     final textStyle = AppTypography.headlineMedium(context).copyWith(
       fontSize: 16.sp,
       fontWeight: FontWeight.w600,
-      color: DesignColors.AppColors.darkTextPrimary,
+      color: context.colors.textPrimary,
     );
 
     return Container(
@@ -41,7 +42,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
             AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(AppRadii.modal),
           topRight: Radius.circular(AppRadii.modal),
@@ -132,17 +133,17 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                         context: context,
                         builder: (context) => AlertDialog(
                           backgroundColor:
-                              DesignColors.AppColors.darkSurfaceVariant,
+                              context.colors.surfaceVariant,
                           title: Text(
                             "Xatolik",
                             style: AppTypography.headlineMedium(context).copyWith(
-                              color: DesignColors.AppColors.darkTextPrimary,
+                              color: context.colors.textPrimary,
                             ),
                           ),
                           content: Text(
                             errorMessage!,
                             style: AppTypography.bodyMedium(context).copyWith(
-                              color: DesignColors.AppColors.darkTextSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                           actions: [

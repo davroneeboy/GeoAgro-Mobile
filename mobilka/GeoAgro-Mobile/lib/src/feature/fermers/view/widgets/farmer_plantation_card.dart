@@ -7,6 +7,7 @@ import '../../../../../design_system/theme/colors.dart' as DesignColors;
 import '../../../../../design_system/theme/spacing.dart';
 import '../../../../../design_system/theme/radius.dart';
 import '../../../../../design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 class FarmerPlantationCard extends StatelessWidget {
   final FarmerPlantation plantation;
@@ -25,7 +26,7 @@ class FarmerPlantationCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: DesignColors.AppColors.darkSurface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
             color: plantation.isChecked 
@@ -79,7 +80,7 @@ class FarmerPlantationCard extends StatelessWidget {
                             : DesignColors.AppColors.warning),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: DesignColors.AppColors.darkBorder,
+                      color: context.colors.border,
                       width: 1,
                     ),
                   ),
@@ -255,7 +256,7 @@ class FarmerPlantationCard extends StatelessWidget {
                               : DesignColors.AppColors.warning),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: DesignColors.AppColors.darkBorder,
+                        color: context.colors.border,
                         width: 1,
                       ),
                     ),

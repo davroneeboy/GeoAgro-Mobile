@@ -1,7 +1,7 @@
 import '../../../../data/model/plantation/new_plantation_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/typography.dart';
 
 class AddFruitArea extends StatelessWidget {
@@ -43,10 +43,10 @@ class AddFruitArea extends StatelessWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: DesignColors.AppColors.darkSurface,
+                            color: context.colors.surface,
                             borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
-                              color: DesignColors.AppColors.darkBorder,
+                              color: context.colors.border,
                               width: 1,
                             ),
                           ),
@@ -164,7 +164,7 @@ class AddFruitArea extends StatelessWidget {
             style: AppTypography.bodyMedium(context).copyWith(
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -178,7 +178,7 @@ class AddFruitArea extends StatelessWidget {
             textAlign: TextAlign.end,
             style: AppTypography.bodyMedium(context).copyWith(
               fontSize: 12.sp,
-              color: DesignColors.AppColors.darkTextSecondary,
+              color: context.colors.textSecondary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

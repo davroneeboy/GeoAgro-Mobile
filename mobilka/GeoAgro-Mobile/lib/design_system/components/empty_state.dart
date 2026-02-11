@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../theme/typography.dart';
@@ -53,9 +54,7 @@ class AppEmptyState extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkSurfaceVariant
-                        : AppColors.lightSurfaceVariant,
+                    color: context.colors.surfaceVariant,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

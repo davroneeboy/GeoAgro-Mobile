@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../theme/colors.dart';
 import '../theme/spacing.dart';
 import '../theme/radius.dart';
@@ -370,7 +371,7 @@ class _FormSectionWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
