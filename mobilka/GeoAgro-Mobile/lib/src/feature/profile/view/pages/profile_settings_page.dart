@@ -3,15 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:agro_employee_public/design_system/components/cards.dart';
-import 'package:agro_employee_public/design_system/components/list_tiles.dart';
-import 'package:agro_employee_public/design_system/components/empty_state.dart';
-import 'package:agro_employee_public/design_system/theme/spacing.dart';
-import 'package:agro_employee_public/design_system/theme/typography.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignTokens;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
@@ -64,7 +61,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   @override
   void initState() {
     super.initState();
-    // Не загружаем данные сразу, только при первом открытии вкладки
   }
 
   void _ensureDataLoaded() {
@@ -75,7 +71,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     }
   }
 
-  /// Загрузить статусы всех разрешений
   Future<void> _loadPermissionsStatus() async {
     setState(() => _isLoadingPermissions = true);
     try {
@@ -94,11 +89,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
 
   Future<void> _loadUserInfo() async {
     setState(() => _isLoading = true);
-
     try {
       final response = await _repository.getUserInfo();
       if (!mounted) return;
-
       if (response != null) {
         final decoded = jsonDecode(response);
         if (decoded is Map<String, dynamic>) {
@@ -109,7 +102,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           return;
         }
       }
-
       setState(() {
         _userInfo = null;
         _isLoading = false;
@@ -128,43 +120,54 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       Uri.parse('tg://resolve?domain=geoagro_bot'),
       Uri.parse(_telegramBotUri),
     ];
-
     for (final uri in uriCandidates) {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
         return;
       }
     }
-
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           "Telegram bot ochilmadi. Ilovani o'rnatib, @geoagro_bot manzilini kiriting.",
-          style: AppTypography.bodySmall(context).copyWith(
-            color: Theme.of(context).colorScheme.onError,
+          style: AppTypography.caption(context).copyWith(
+            color: DesignColors.AppColors.darkTextPrimary,
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.error,
+        backgroundColor: DesignColors.AppColors.error,
       ),
     );
   }
 
+  Future<void> _requestPermission({
+    required bool currentStatus,
+    required Future<bool> Function() requestFn,
+    required void Function(bool) onResult,
+    required String permissionName,
+  }) async {
+    if (currentStatus) return;
+    final granted = await requestFn();
+    if (!mounted) return;
+    onResult(granted);
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$permissionName ruxsati berilmadi"),
+          backgroundColor: DesignColors.AppColors.error,
+        ),
+      );
+    } else {
+      await _loadPermissionsStatus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Загружаем данные только при первом построении виджета (когда вкладка становится видимой)
     _ensureDataLoaded();
 
-    final spacing = EdgeInsets.symmetric(
-      horizontal: AppSpacing.lg,
-      vertical: AppSpacing.lg,
-    );
-
     return Scaffold(
-      backgroundColor: DesignTokens.AppColors.darkBackground,
+      backgroundColor: DesignColors.AppColors.darkBackground,
       appBar: CustomAppBarWidget(
         title: "Profil",
         canPop: false,
@@ -178,8 +181,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
             },
             child: Text(
               "Chiqish",
-              style: AppTypography.bodyMedium(context).copyWith(
-                color: Theme.of(context).colorScheme.error,
+              style: AppTypography.body(context).copyWith(
+                color: DesignColors.AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -187,298 +190,421 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: DesignColors.AppColors.accentGreen,
+              ),
+            )
           : RefreshIndicator(
               onRefresh: _loadUserInfo,
-              color: Theme.of(context).colorScheme.primary,
+              color: DesignColors.AppColors.accentGreen,
+              backgroundColor: DesignColors.AppColors.darkSurface,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: spacing,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.lg,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ProfileHeader(userInfo: _userInfo),
+                    _buildProfileHeader(),
                     SizedBox(height: AppSpacing.xl.h),
-                    AppSectionHeader(
-                      title: "Shaxsiy ma'lumotlar",
-                      padding: EdgeInsets.zero,
-                    ),
+                    _buildSectionTitle("Shaxsiy ma'lumotlar"),
                     SizedBox(height: AppSpacing.sm.h),
-                    AppCardFilled(
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          AppKeyValueTile(
-                            label: "F.I.Sh",
-                            value: _userInfo?.displayName ?? "Ko'rsatilmagan",
-                            icon: Icons.person_outline,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                              vertical: AppSpacing.md,
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          AppKeyValueTile(
-                            label: "Viloyat",
-                            value: _userInfo != null
-                                ? (_regionNames[_userInfo!.regionId] ??
-                                    "Ko'rsatilmagan")
-                                : "Ko'rsatilmagan",
-                            icon: Icons.place_outlined,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                              vertical: AppSpacing.md,
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          AppKeyValueTile(
-                            label: "Tuman",
-                            value: _userInfo?.districtName ?? "Ko'rsatilmagan",
-                            icon: Icons.map_outlined,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                              vertical: AppSpacing.md,
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          AppKeyValueTile(
-                            label: "Telefon",
-                            value: _userInfo?.phoneNumber ?? "Ko'rsatilmagan",
-                            icon: Icons.phone_outlined,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                              vertical: AppSpacing.md,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildPersonalInfoCard(),
                     SizedBox(height: AppSpacing.xl.h),
-                    AppSectionHeader(
-                      title: "Ruxsatlar",
-                      padding: EdgeInsets.zero,
-                    ),
+                    _buildSectionTitle("Ruxsatlar"),
                     SizedBox(height: AppSpacing.sm.h),
-                    AppCardFilled(
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          _PermissionTile(
-                            title: "Kamera",
-                            icon: Icons.camera_alt_outlined,
-                            isEnabled: _cameraPermission,
-                            isLoading: _isLoadingPermissions,
-                            onTap: () async {
-                              if (!_cameraPermission) {
-                                final granted = await _permissionsService
-                                    .requestCameraPermission();
-                                if (mounted) {
-                                  setState(() => _cameraPermission = granted);
-                                  if (!granted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content:
-                                            Text("Kamera ruxsati berilmadi"),
-                                        backgroundColor:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                    );
-                                  } else {
-                                    await _loadPermissionsStatus();
-                                  }
-                                }
-                              }
-                            },
-                          ),
-                          const Divider(height: 1),
-                          _PermissionTile(
-                            title: "Galereya",
-                            icon: Icons.photo_library_outlined,
-                            isEnabled: _galleryPermission,
-                            isLoading: _isLoadingPermissions,
-                            onTap: () async {
-                              if (!_galleryPermission) {
-                                final granted = await _permissionsService
-                                    .requestGalleryPermission();
-                                if (mounted) {
-                                  setState(() => _galleryPermission = granted);
-                                  if (!granted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content:
-                                            Text("Galereya ruxsati berilmadi"),
-                                        backgroundColor:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                    );
-                                  } else {
-                                    await _loadPermissionsStatus();
-                                  }
-                                }
-                              }
-                            },
-                          ),
-                          const Divider(height: 1),
-                          _PermissionTile(
-                            title: "Geolokatsiya",
-                            icon: Icons.location_on_outlined,
-                            isEnabled: _locationPermission,
-                            isLoading: _isLoadingPermissions,
-                            onTap: () async {
-                              if (!_locationPermission) {
-                                final granted = await _permissionsService
-                                    .requestLocationPermission();
-                                if (mounted) {
-                                  setState(() => _locationPermission = granted);
-                                  if (!granted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            "Geolokatsiya ruxsati berilmadi"),
-                                        backgroundColor:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                    );
-                                  } else {
-                                    await _loadPermissionsStatus();
-                                  }
-                                }
-                              }
-                            },
-                          ),
-                          const Divider(height: 1),
-                          _PermissionTile(
-                            title: "Bildirishnomalar",
-                            icon: Icons.notifications_outlined,
-                            isEnabled: _notificationPermission,
-                            isLoading: _isLoadingPermissions,
-                            onTap: () async {
-                              if (!_notificationPermission) {
-                                final granted = await _permissionsService
-                                    .requestNotificationPermission();
-                                if (mounted) {
-                                  setState(
-                                      () => _notificationPermission = granted);
-                                  if (!granted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            "Bildirishnomalar ruxsati berilmadi"),
-                                        backgroundColor:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                    );
-                                  } else {
-                                    await _loadPermissionsStatus();
-                                  }
-                                }
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildPermissionsCard(),
                     SizedBox(height: AppSpacing.xl.h),
-                    AppSectionHeader(
-                      title: "Qo'llab-quvvatlash",
-                      padding: EdgeInsets.zero,
-                    ),
+                    _buildSectionTitle("Qo'llab-quvvatlash"),
                     SizedBox(height: AppSpacing.sm.h),
-                    AppCardFilled(
-                      padding: EdgeInsets.zero,
-                      child: AppListTile(
-                        title: "Telegram bot",
-                        subtitle: "Taklif va shikoyatlar uchun @geoagro_bot",
-                        leading: const Icon(Icons.support_agent_outlined),
-                        trailing: const Icon(Icons.north_east),
-                        onTap: _openTelegramBot,
-                      ),
-                    ),
+                    _buildSupportCard(),
+                    SizedBox(height: AppSpacing.xl.h),
                   ],
                 ),
               ),
             ),
     );
   }
-}
 
-class _ProfileHeader extends StatelessWidget {
-  final UserInfoModel? userInfo;
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // PROFILE HEADER
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  const _ProfileHeader({required this.userInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    if (userInfo == null) {
-      return const AppEmptyState(
-        iconData: Icons.person_outline,
-        title: "Ma'lumot topilmadi",
-        description: "Profil ma'lumotlari yuklanmadi. Qayta urinib ko'ring.",
-      );
-    }
-
-    final initials = _initialsFromName(userInfo!.displayName);
-
-    return AppCardElevated(
-      padding: EdgeInsets.all(AppSpacing.lg),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 56.w,
-            height: 56.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  DesignTokens.AppColors.accentGreen,
-                  DesignTokens.AppColors.accentGreenDark,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initials,
-              style: AppTypography.displaySmall(context).copyWith(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          SizedBox(width: AppSpacing.lg.w),
-          Expanded(
+  Widget _buildProfileHeader() {
+    if (_userInfo == null) {
+      return _buildCard(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Icon(
+                  Icons.person_outline,
+                  size: 48.sp,
+                  color: DesignColors.AppColors.darkTextSecondary,
+                ),
+                SizedBox(height: AppSpacing.md.h),
                 Text(
-                  userInfo!.displayName.isNotEmpty
-                      ? userInfo!.displayName
-                      : userInfo!.username,
-                  style: AppTypography.headlineMedium(context).copyWith(
-                    fontWeight: FontWeight.w700,
+                  "Ma'lumot topilmadi",
+                  style: AppTypography.title(context).copyWith(
+                    color: DesignColors.AppColors.darkTextPrimary,
                   ),
                 ),
                 SizedBox(height: AppSpacing.xs.h),
-                if (userInfo!.districtName.isNotEmpty)
-                  Text(
-                    userInfo!.districtName,
-                    style: AppTypography.bodyMedium(context).copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                Text(
+                  "Profil ma'lumotlari yuklanmadi. Qayta urinib ko'ring.",
+                  textAlign: TextAlign.center,
+                  style: AppTypography.caption(context).copyWith(
+                    color: DesignColors.AppColors.darkTextSecondary,
                   ),
-                if (userInfo!.phoneNumber.isNotEmpty) ...[
-                  SizedBox(height: AppSpacing.xs.h),
-                  Text(
-                    userInfo!.phoneNumber,
-                    style: AppTypography.bodyMedium(context),
-                  ),
-                ],
+                ),
               ],
             ),
           ),
+        ),
+      );
+    }
+
+    final initials = _initialsFromName(_userInfo!.displayName);
+
+    return _buildCard(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 56.w,
+              height: 56.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    DesignColors.AppColors.accentGreen,
+                    DesignColors.AppColors.accentGreenDark,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initials,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w700,
+                  color: DesignColors.AppColors.darkTextPrimary,
+                ),
+              ),
+            ),
+            SizedBox(width: AppSpacing.lg.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _userInfo!.displayName.isNotEmpty
+                        ? _userInfo!.displayName
+                        : _userInfo!.username,
+                    style: AppTypography.title(context).copyWith(
+                      color: DesignColors.AppColors.darkTextPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (_userInfo!.districtName.isNotEmpty) ...[
+                    SizedBox(height: AppSpacing.xs.h),
+                    Text(
+                      _userInfo!.districtName,
+                      style: AppTypography.caption(context).copyWith(
+                        color: DesignColors.AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                  if (_userInfo!.phoneNumber.isNotEmpty) ...[
+                    SizedBox(height: AppSpacing.xs.h),
+                    Text(
+                      _userInfo!.phoneNumber,
+                      style: AppTypography.body(context).copyWith(
+                        color: DesignColors.AppColors.darkTextPrimary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // PERSONAL INFO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildPersonalInfoCard() {
+    return _buildCard(
+      child: Column(
+        children: [
+          _buildInfoRow(Icons.person_outline, "F.I.Sh",
+              _userInfo?.displayName ?? "Ko'rsatilmagan"),
+          _buildDivider(),
+          _buildInfoRow(
+              Icons.place_outlined,
+              "Viloyat",
+              _userInfo != null
+                  ? (_regionNames[_userInfo!.regionId] ?? "Ko'rsatilmagan")
+                  : "Ko'rsatilmagan"),
+          _buildDivider(),
+          _buildInfoRow(Icons.map_outlined, "Tuman",
+              _userInfo?.districtName ?? "Ko'rsatilmagan"),
+          _buildDivider(),
+          _buildInfoRow(Icons.phone_outlined, "Telefon",
+              _userInfo?.phoneNumber ?? "Ko'rsatilmagan"),
         ],
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // PERMISSIONS
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildPermissionsCard() {
+    return _buildCard(
+      child: Column(
+        children: [
+          _buildPermissionRow(
+            icon: Icons.camera_alt_outlined,
+            title: "Kamera",
+            isEnabled: _cameraPermission,
+            onTap: () => _requestPermission(
+              currentStatus: _cameraPermission,
+              requestFn: _permissionsService.requestCameraPermission,
+              onResult: (v) => setState(() => _cameraPermission = v),
+              permissionName: "Kamera",
+            ),
+          ),
+          _buildDivider(),
+          _buildPermissionRow(
+            icon: Icons.photo_library_outlined,
+            title: "Galereya",
+            isEnabled: _galleryPermission,
+            onTap: () => _requestPermission(
+              currentStatus: _galleryPermission,
+              requestFn: _permissionsService.requestGalleryPermission,
+              onResult: (v) => setState(() => _galleryPermission = v),
+              permissionName: "Galereya",
+            ),
+          ),
+          _buildDivider(),
+          _buildPermissionRow(
+            icon: Icons.location_on_outlined,
+            title: "Geolokatsiya",
+            isEnabled: _locationPermission,
+            onTap: () => _requestPermission(
+              currentStatus: _locationPermission,
+              requestFn: _permissionsService.requestLocationPermission,
+              onResult: (v) => setState(() => _locationPermission = v),
+              permissionName: "Geolokatsiya",
+            ),
+          ),
+          _buildDivider(),
+          _buildPermissionRow(
+            icon: Icons.notifications_outlined,
+            title: "Bildirishnomalar",
+            isEnabled: _notificationPermission,
+            onTap: () => _requestPermission(
+              currentStatus: _notificationPermission,
+              requestFn: _permissionsService.requestNotificationPermission,
+              onResult: (v) => setState(() => _notificationPermission = v),
+              permissionName: "Bildirishnomalar",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // SUPPORT
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildSupportCard() {
+    return _buildCard(
+      onTap: _openTelegramBot,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.support_agent_outlined,
+              color: DesignColors.AppColors.accentGreen,
+              size: 24.sp,
+            ),
+            SizedBox(width: AppSpacing.md.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Telegram bot",
+                    style: AppTypography.body(context).copyWith(
+                      color: DesignColors.AppColors.darkTextPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Taklif va shikoyatlar uchun @geoagro_bot",
+                    style: AppTypography.caption(context).copyWith(
+                      color: DesignColors.AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.north_east,
+              color: DesignColors.AppColors.darkTextSecondary,
+              size: 18.sp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // REUSABLE BUILDERS
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: AppTypography.title(context).copyWith(
+        color: DesignColors.AppColors.darkTextPrimary,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  Widget _buildCard({required Widget child, VoidCallback? onTap}) {
+    final container = Container(
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: child,
+    );
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          child: container,
+        ),
+      );
+    }
+    return container;
+  }
+
+  Widget _buildDivider() {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: DesignColors.AppColors.darkBorder,
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20.sp, color: DesignColors.AppColors.accentGreen),
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: AppTypography.caption(context).copyWith(
+                color: DesignColors.AppColors.darkTextSecondary,
+              ),
+            ),
+          ),
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
+            flex: 6,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: AppTypography.body(context).copyWith(
+                color: DesignColors.AppColors.darkTextPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPermissionRow({
+    required IconData icon,
+    required String title,
+    required bool isEnabled,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: isEnabled ? null : onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20.sp, color: DesignColors.AppColors.accentGreen),
+            SizedBox(width: AppSpacing.md.w),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTypography.body(context).copyWith(
+                  color: DesignColors.AppColors.darkTextPrimary,
+                ),
+              ),
+            ),
+            if (_isLoadingPermissions)
+              SizedBox(
+                width: 20.sp,
+                height: 20.sp,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: DesignColors.AppColors.accentGreen,
+                ),
+              )
+            else
+              Icon(
+                isEnabled ? Icons.check_circle : Icons.circle_outlined,
+                color: isEnabled
+                    ? DesignColors.AppColors.accentGreen
+                    : DesignColors.AppColors.darkTextSecondary,
+                size: 24.sp,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -491,47 +617,5 @@ class _ProfileHeader extends StatelessWidget {
     }
     return (parts.first.characters.first + parts.last.characters.first)
         .toUpperCase();
-  }
-}
-
-class _PermissionTile extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool isEnabled;
-  final bool isLoading;
-  final VoidCallback onTap;
-
-  const _PermissionTile({
-    required this.title,
-    required this.icon,
-    required this.isEnabled,
-    required this.isLoading,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppListTile(
-      leading: Icon(icon),
-      title: title,
-      trailing: isLoading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : isEnabled
-              ? Icon(
-                  Icons.check_circle,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 24,
-                )
-              : Icon(
-                  Icons.circle_outlined,
-                  color: DesignTokens.AppColors.darkTextSecondary,
-                  size: 24,
-                ),
-      onTap: isEnabled ? null : onTap,
-    );
   }
 }

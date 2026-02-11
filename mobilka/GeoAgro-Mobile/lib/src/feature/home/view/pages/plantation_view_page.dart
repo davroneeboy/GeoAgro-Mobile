@@ -782,25 +782,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final sections = <DetailSection>[
-      DetailSection(
-        title: "Xarita va holat",
-        icon: Icons.map_outlined,
-        content: _buildMapCard(
-          context: context,
-          plantation: plantation,
-          mapVm: mapVm,
-          statusData: statusData,
-        ),
-      ),
-      DetailSection(
-        title: "Asosiy ma'lumotlar",
-        icon: Icons.info_outline,
-        content: _buildMetricsCard(context, baseEntries),
-      ),
-    ];
+    final sections = <DetailSection>[];
 
-    // Секция с информацией о подтверждении/модерации
+    // Секция с информацией о подтверждении/модерации — первой
     if (plantation.moderatedAt != null || plantation.moderatedBy != null ||
         plantation.createdAt != null || plantation.createdBy != null) {
       final createdByDisplay = detailVm.createdByName ?? 
@@ -847,6 +831,29 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         );
       }
     }
+
+    // Карта и статус
+    sections.add(
+      DetailSection(
+        title: "Xarita va holat",
+        icon: Icons.map_outlined,
+        content: _buildMapCard(
+          context: context,
+          plantation: plantation,
+          mapVm: mapVm,
+          statusData: statusData,
+        ),
+      ),
+    );
+
+    // Основная информация
+    sections.add(
+      DetailSection(
+        title: "Asosiy ma'lumotlar",
+        icon: Icons.info_outline,
+        content: _buildMetricsCard(context, baseEntries),
+      ),
+    );
 
     if (plantation.trellises?.isNotEmpty == true) {
       sections.add(
