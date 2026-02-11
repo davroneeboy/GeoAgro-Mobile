@@ -20,14 +20,14 @@ class AppColors {
   static const Color lightOutlineVariant = Color(0xFFE5E5EA); // iOS separator
 
   static const Color darkBackground = Color(0xFF021024); // Deep Navy Blue
-  static const Color darkSurface = Color(0xFF3F433F);
-  static const Color darkSurfaceVariant = Color(0xFF4A4E4A);
-  static const Color darkSurfaceElevated = Color(0xFF555955);
-  static const Color darkOnBackground = Color(0xFFE6E3DC);
-  static const Color darkOnSurface = Color(0xFFE6E3DC);
-  static const Color darkOnSurfaceVariant = Color(0xFFCBC8C0);
-  static const Color darkOutline = Color(0xFF5A5E5A);
-  static const Color darkOutlineVariant = Color(0xFF4E524E);
+  static const Color darkSurface = Color(0xFF1E293B); // Slate-800 (cards)
+  static const Color darkSurfaceVariant = Color(0xFF283548); // Elevated elements
+  static const Color darkSurfaceElevated = Color(0xFF334155); // Slate-700
+  static const Color darkOnBackground = Color(0xFFF9FAFB); // Slate-50
+  static const Color darkOnSurface = Color(0xFFF9FAFB); // Slate-50
+  static const Color darkOnSurfaceVariant = Color(0xFF94A3B8); // Slate-400
+  static const Color darkOutline = Color(0xFF2D3A4D); // Subtle border
+  static const Color darkOutlineVariant = Color(0xFF27324A); // Subtle divider
 
   static const Color success = Color(0xFF16A34A);
   static const Color successLight = Color(0xFF34D399);

@@ -305,7 +305,7 @@ class HomePageCardWidget extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: context.colors.isDark
-            ? context.colors.surfaceVariant
+            ? context.colors.surfaceElevated
             : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
         border: context.colors.isDark
@@ -374,7 +374,7 @@ class HomePageCardWidget extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: context.colors.isDark
-            ? context.colors.surfaceVariant
+            ? context.colors.surfaceElevated
             : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
         border: context.colors.isDark

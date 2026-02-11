@@ -1954,7 +1954,7 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accentColor = entry.statusColor ?? DesignColors.AppColors.accentGreen;
-    final backgroundColor = context.colors.surface;
+    final backgroundColor = context.colors.surfaceElevated;
     final labelStyle = AppTypography.caption(context).copyWith(
       fontWeight: FontWeight.w500,
       color: context.colors.textSecondary,

@@ -894,7 +894,7 @@ class _MetricPill extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: context.colors.isDark
-            ? context.colors.surface
+            ? context.colors.surfaceElevated
             : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
         border: context.colors.isDark

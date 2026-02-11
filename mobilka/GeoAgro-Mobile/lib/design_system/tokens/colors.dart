@@ -7,16 +7,16 @@ class AppColors {
 
   // ===== DARK THEME (DEFAULT) =====
   static const Color darkBackground = Color(0xFF021024); // Deep Navy Blue
-  static const Color darkSurface = Color(0xFF051933); // Lighter Navy for surface
-  static const Color darkSurfaceVariant = Color(0xFF1F2937); // Tailwind slate-800
-  static const Color darkTextPrimary = Color(0xFFF9FAFB); // Tailwind slate-50
-  static const Color darkTextSecondary = Color(0xFFE2E8F0); // Tailwind slate-200
-  static const Color darkTextTertiary = Color(0xFF94A3B8); // Tailwind slate-400
-  static const Color darkBorder = Color(0xFF1E293B); // Tailwind slate-700
-  static const Color darkDivider = Color(0xFF27324A); // Tailwind slate-800
-  static const Color darkSurfaceElevated = Color(0xFF1E293B); // Tailwind slate-700
-  static const Color darkMuted = Color(0xFF334155); // Tailwind slate-600
-  static const Color darkHighlight = Color(0xFF0B1120); // Tailwind slate-950 deeper
+  static const Color darkSurface = Color(0xFF051933); // Navy surface
+  static const Color darkSurfaceVariant = Color(0xFF1E293B); // Slate-800 (cards)
+  static const Color darkTextPrimary = Color(0xFFF9FAFB); // Slate-50
+  static const Color darkTextSecondary = Color(0xFFE2E8F0); // Slate-200
+  static const Color darkTextTertiary = Color(0xFF94A3B8); // Slate-400
+  static const Color darkBorder = Color(0xFF2D3A4D); // Subtle navy-slate border
+  static const Color darkDivider = Color(0xFF27324A); // Navy divider
+  static const Color darkSurfaceElevated = Color(0xFF283548); // Chips on cards (slightly lighter)
+  static const Color darkMuted = Color(0xFF334155); // Slate-700
+  static const Color darkHighlight = Color(0xFF0B1120); // Deep navy
   
   // ===== ACCENT COLOR (Green #16A34A) =====
   static const Color accentGreen = Color(0xFF16A34A); // Primary accent
