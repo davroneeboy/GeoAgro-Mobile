@@ -1,12 +1,10 @@
 import 'dart:convert';
 
-import 'package:agro_employee_public/design_system/components/cards.dart';
-import 'package:agro_employee_public/design_system/templates/screen_shells.dart';
-import 'package:agro_employee_public/design_system/theme/colors.dart'
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
-import 'package:agro_employee_public/design_system/theme/radius.dart';
-import 'package:agro_employee_public/design_system/theme/spacing.dart';
-import 'package:agro_employee_public/design_system/theme/typography.dart';
+import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/spacing.dart';
+import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +31,19 @@ final plantationMapMiniVM = ChangeNotifierProvider.autoDispose
   ref.onDispose(vm.dispose);
   return vm;
 });
+
+/// Локальный класс секции (замена DetailSection из screen_shells)
+class _DetailSection {
+  final String title;
+  final IconData? icon;
+  final Widget content;
+
+  _DetailSection({
+    required this.title,
+    this.icon,
+    required this.content,
+  });
+}
 
 class _PlantationViewVm extends ChangeNotifier {
   final AppRepositoryImpl _repo = AppRepositoryImpl();
@@ -203,7 +214,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.16),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +229,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   ],
                   Text(
                     entries[i].label,
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.caption(context).copyWith(
                       color: Colors.white.withOpacity(0.72),
                       fontWeight: FontWeight.w600,
                     ),
@@ -325,9 +336,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        color: isDark
-            ? DesignColors.AppColors.darkSurface
-            : DesignColors.AppColors.lightSurface,
+        color: DesignColors.AppColors.darkSurface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: DesignColors.AppColors.warning.withOpacity(0.5),
@@ -359,11 +368,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 Expanded(
                   child: Text(
                     formattedDate,
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.caption(context).copyWith(
                       fontSize: 12.sp,
-                      color: isDark
-                          ? DesignColors.AppColors.darkOnSurfaceVariant
-                          : theme.colorScheme.onSurfaceVariant,
+                      color: DesignColors.AppColors.darkTextSecondary,
                     ),
                   ),
                 ),
@@ -374,11 +381,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             SizedBox(height: 4.h),
             Text(
               comment.author!,
-              style: AppTypography.bodySmall(context).copyWith(
+              style: AppTypography.caption(context).copyWith(
                 fontSize: 12.sp,
-                color: isDark
-                    ? DesignColors.AppColors.darkOnSurfaceVariant
-                    : theme.colorScheme.onSurfaceVariant,
+                color: DesignColors.AppColors.darkTextSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -386,11 +391,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           SizedBox(height: 8.h),
           Text(
             comment.text,
-            style: AppTypography.bodyMedium(context).copyWith(
+            style: AppTypography.bodySmall(context).copyWith(
               fontSize: 14.sp,
-              color: isDark
-                  ? DesignColors.AppColors.darkOnSurface
-                  : DesignColors.AppColors.lightOnSurface,
+              color: DesignColors.AppColors.darkTextPrimary,
             ),
           ),
         ],
@@ -412,14 +415,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        color: isDark
-            ? DesignColors.AppColors.darkSurface
-            : DesignColors.AppColors.lightSurface,
+        color: DesignColors.AppColors.darkSurface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: isDark
-              ? DesignColors.AppColors.darkOutline
-              : DesignColors.AppColors.lightOutline,
+          color: DesignColors.AppColors.darkBorder,
           width: 1,
         ),
       ),
@@ -448,11 +447,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               Expanded(
                 child: Text(
                   formattedDate,
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.caption(context).copyWith(
                     fontSize: 12.sp,
-                    color: isDark
-                        ? DesignColors.AppColors.darkOnSurfaceVariant
-                        : theme.colorScheme.onSurfaceVariant,
+                    color: DesignColors.AppColors.darkTextSecondary,
                   ),
                 ),
               ),
@@ -462,11 +459,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             SizedBox(height: 4.h),
             Text(
               comment.createdBy!.fullName,
-              style: AppTypography.bodySmall(context).copyWith(
+              style: AppTypography.caption(context).copyWith(
                 fontSize: 12.sp,
-                color: isDark
-                    ? DesignColors.AppColors.darkOnSurfaceVariant
-                    : theme.colorScheme.onSurfaceVariant,
+                color: DesignColors.AppColors.darkTextSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -474,11 +469,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           SizedBox(height: 8.h),
           Text(
             comment.body,
-            style: AppTypography.bodyMedium(context).copyWith(
+            style: AppTypography.bodySmall(context).copyWith(
               fontSize: 14.sp,
-              color: isDark
-                  ? DesignColors.AppColors.darkOnSurface
-                  : DesignColors.AppColors.lightOnSurface,
+              color: DesignColors.AppColors.darkTextPrimary,
             ),
           ),
         ],
@@ -504,7 +497,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     Widget? summaryCard;
     List<_InfoEntry> baseEntries = const [];
-    List<DetailSection> sections = const [];
+    List<_DetailSection> sections = const [];
 
     if (!isLoading && !hasError && plantation != null) {
       // Пытаемся использовать координаты из детальной информации для немедленного отображения
@@ -544,14 +537,87 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       );
     }
 
-    return DetailScreenShell(
-      title: "Plantatsiya ma'lumotlari",
-      isLoading: isLoading,
-      hasError: hasError,
-      errorMessage: detailVm.errorMessage,
-      onRetry: detailVm.retry,
-      summaryCard: summaryCard,
-      sections: sections.isEmpty ? null : sections,
+    return Scaffold(
+      backgroundColor: DesignColors.AppColors.darkBackground,
+      appBar: AppBar(
+        title: const Text("Plantatsiya ma'lumotlari"),
+        backgroundColor: DesignColors.AppColors.darkSurface,
+        foregroundColor: DesignColors.AppColors.darkTextPrimary,
+      ),
+      body: hasError
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 48,
+                        color: DesignColors.AppColors.error),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      detailVm.errorMessage ?? "Xatolik yuz berdi",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: DesignColors.AppColors.darkTextSecondary),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    FilledButton(
+                      onPressed: detailVm.retry,
+                      child: const Text("Qayta urinish"),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (summaryCard != null) ...[
+                        summaryCard!,
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                      if (sections.isNotEmpty)
+                        ...sections.map((section) => Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppSpacing.lg,
+                              ),
+                              child: _buildSectionWidget(context, section),
+                            )),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildSectionWidget(BuildContext context, _DetailSection section) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (section.icon != null) ...[
+              Icon(
+                section.icon,
+                size: 20,
+                color: DesignColors.AppColors.accentGreen,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            Text(
+              section.title,
+              style: AppTypography.title(context).copyWith(
+                color: DesignColors.AppColors.darkTextPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        section.content,
+      ],
     );
   }
 
@@ -653,8 +719,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required PlantationMapViewVm mapVm,
     required MapEntry<String, Color> statusData,
   }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final name = mapVm.currentPlantation?.name?.trim();
     final title = (name != null && name.isNotEmpty)
         ? name
@@ -688,26 +752,19 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ),
     ];
 
-    final gradientColors = isDark
-        ? [
-            DesignColors.AppColors.primaryDark.withOpacity(0.9),
-            DesignColors.AppColors.primary.withOpacity(0.75),
-          ]
-        : [
-            DesignColors.AppColors.primary,
-            DesignColors.AppColors.primaryDark,
-          ];
+    final gradientColors = [
+      DesignColors.AppColors.accentGreenDark.withOpacity(0.9),
+      DesignColors.AppColors.accentGreen.withOpacity(0.75),
+    ];
 
-    return AppCardElevated(
-      padding: EdgeInsets.zero,
-      child: Container(
+    return Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: gradientColors,
           ),
-          borderRadius: BorderRadius.circular(AppRadius.card),
+          borderRadius: BorderRadius.circular(AppRadii.card),
         ),
         padding: const EdgeInsets.all(AppSpacing.cardPadding),
         child: Column(
@@ -722,7 +779,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     children: [
                       Text(
                         title,
-                        style: AppTypography.displaySmall(context).copyWith(
+                        style: AppTypography.headline3(context).copyWith(
                           color: Colors.white,
                         ),
                       ),
@@ -730,7 +787,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                         const SizedBox(height: AppSpacing.xs),
                         Text(
                           descriptionParts.join(" • "),
-                          style: AppTypography.bodyMedium(context).copyWith(
+                          style: AppTypography.bodySmall(context).copyWith(
                             color: Colors.white.withOpacity(0.72),
                           ),
                         ),
@@ -745,7 +802,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderRadius: BorderRadius.circular(AppRadii.button),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -754,7 +811,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                       const SizedBox(width: AppSpacing.xs),
                       Text(
                         statusData.key,
-                        style: AppTypography.bodyMedium(context).copyWith(
+                        style: AppTypography.bodySmall(context).copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
@@ -768,11 +825,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             _buildSummaryHighlights(context, highlightEntries),
           ],
         ),
-      ),
     );
   }
 
-  List<DetailSection> _buildDetailSections({
+  List<_DetailSection> _buildDetailSections({
     required BuildContext context,
     required EditPlantationModel plantation,
     required PlantationMapViewVm mapVm,
@@ -780,9 +836,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required MapEntry<String, Color> statusData,
     required _PlantationViewVm detailVm,
   }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final sections = <DetailSection>[];
+    const isDark = true; // Приложение всегда в тёмной теме
+    final sections = <_DetailSection>[];
 
     // Секция с информацией о подтверждении/модерации — первой
     if (plantation.moderatedAt != null || plantation.moderatedBy != null ||
@@ -823,7 +878,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
       if (moderationEntries.isNotEmpty) {
         sections.add(
-          DetailSection(
+          _DetailSection(
             title: "Tasdiqlash ma'lumotlari",
             icon: Icons.verified_outlined,
             content: _buildMetricsCard(context, moderationEntries),
@@ -834,7 +889,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     // Карта и статус
     sections.add(
-      DetailSection(
+      _DetailSection(
         title: "Xarita va holat",
         icon: Icons.map_outlined,
         content: _buildMapCard(
@@ -848,7 +903,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     // Основная информация
     sections.add(
-      DetailSection(
+      _DetailSection(
         title: "Asosiy ma'lumotlar",
         icon: Icons.info_outline,
         content: _buildMetricsCard(context, baseEntries),
@@ -857,7 +912,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (plantation.trellises?.isNotEmpty == true) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Shpaller",
           icon: Icons.account_tree_outlined,
           content: _buildGroupedCard(
@@ -889,7 +944,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (plantation.reservoirs?.isNotEmpty == true) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Suv havzalari",
           icon: Icons.water_outlined,
           content: _buildGroupedCard(
@@ -915,7 +970,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (plantation.investments?.isNotEmpty == true) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Investitsiyalar",
           icon: Icons.account_balance_wallet_outlined,
           content: _buildGroupedCard(
@@ -941,7 +996,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (plantation.subsidies?.isNotEmpty == true) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Subsidiyalar",
           icon: Icons.card_giftcard_outlined,
           content: _buildGroupedCard(
@@ -985,7 +1040,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         .toList();
     if (regularComments != null && regularComments.isNotEmpty) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Izohlar (yaratilganda)",
           icon: Icons.comment_outlined,
           content: _buildCommentsList(context, regularComments, isDark),
@@ -1030,7 +1085,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     
     if (allModerationComments.isNotEmpty) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Moderatsiya izohlari",
           icon: Icons.gavel_outlined,
           content: _buildModerationCommentsList(context, allModerationComments, isDark),
@@ -1051,7 +1106,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           );
 
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Mevali hududlar",
           icon: Icons.eco_outlined,
           content: Column(
@@ -1116,7 +1171,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (plantation.images?.isNotEmpty == true) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Fotogalereya",
           icon: Icons.photo_library_outlined,
           content: _buildImagesCard(context, plantation.images!),
@@ -1126,7 +1181,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     if (sections.isEmpty) {
       sections.add(
-        DetailSection(
+        _DetailSection(
           title: "Ma'lumotlar",
           icon: Icons.info_outline,
           content: _buildMetricsCard(context, baseEntries),
@@ -1136,7 +1191,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     // Add action buttons section
     sections.add(
-      DetailSection(
+      _DetailSection(
         title: "Harakatlar",
         icon: Icons.settings_outlined,
         content: _buildActionButtons(context, plantation, mapVm),
@@ -1218,8 +1273,13 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ),
     ];
 
-    return AppCard(
+    return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1237,7 +1297,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     PlantationMapViewVm mapVm,
     MapEntry<String, Color> statusData,
   ) {
-    final borderRadius = BorderRadius.circular(AppRadius.card);
+    final borderRadius = BorderRadius.circular(AppRadii.card);
     final colorScheme = Theme.of(context).colorScheme;
 
     if (mapVm.isLoading) {
@@ -1270,7 +1330,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               Text(
                 mapVm.errorMessage!,
                 textAlign: TextAlign.center,
-                style: AppTypography.bodySmall(context),
+                style: AppTypography.caption(context),
               ),
               const SizedBox(height: AppSpacing.md),
               FilledButton.tonal(
@@ -1297,7 +1357,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           alignment: Alignment.center,
           child: Text(
             "Koordinatalar topilmadi",
-            style: AppTypography.bodyMedium(context),
+            style: AppTypography.bodySmall(context),
           ),
         ),
       );
@@ -1512,22 +1572,35 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
   // Метод _buildCoordinateChip удален по запросу пользователя
 
+  /// Хелпер для создания карточки с тёмным стилем (замена AppCardFilled)
+  Widget _buildFilledCard({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      decoration: BoxDecoration(
+        color: DesignColors.AppColors.darkSurfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: DesignColors.AppColors.darkBorder),
+      ),
+      child: child,
+    );
+  }
+
   Widget _buildMetricsCard(
     BuildContext context,
     List<_InfoEntry> entries,
   ) {
     if (entries.isEmpty) {
-      return AppCardFilled(
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      return _buildFilledCard(
         child: Text(
           "Ma'lumot yo'q",
-          style: AppTypography.bodyMedium(context),
+          style: AppTypography.bodySmall(context).copyWith(
+            color: DesignColors.AppColors.darkTextSecondary,
+          ),
         ),
       );
     }
 
-    return AppCardFilled(
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+    return _buildFilledCard(
       child: _buildInfoGrid(context, entries),
     );
   }
@@ -1537,17 +1610,17 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     List<List<_InfoEntry>> groups,
   ) {
     if (groups.isEmpty) {
-      return AppCardFilled(
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      return _buildFilledCard(
         child: Text(
           "Ma'lumot yo'q",
-          style: AppTypography.bodyMedium(context),
+          style: AppTypography.bodySmall(context).copyWith(
+            color: DesignColors.AppColors.darkTextSecondary,
+          ),
         ),
       );
     }
 
-    return AppCardFilled(
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+    return _buildFilledCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1557,7 +1630,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (index > 0) const Divider(height: 32),
+                if (index > 0) Divider(height: 32, color: DesignColors.AppColors.darkBorder),
                 _buildInfoGrid(context, items),
               ],
             );
@@ -1569,17 +1642,17 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
   Widget _buildImagesCard(BuildContext context, List<String> images) {
     if (images.isEmpty) {
-      return AppCard(
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      return _buildFilledCard(
         child: Text(
           "Rasmlar mavjud emas",
-          style: AppTypography.bodyMedium(context),
+          style: AppTypography.bodySmall(context).copyWith(
+            color: DesignColors.AppColors.darkTextSecondary,
+          ),
         ),
       );
     }
 
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+    return _buildFilledCard(
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -1592,7 +1665,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         itemBuilder: (context, index) {
           final imageUrl = images[index];
           return ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.sm),
+            borderRadius: BorderRadius.circular(AppRadii.sm),
             child: GestureDetector(
               onTap: () => _showImageDialog(context, imageUrl),
               child: Ink.image(
@@ -1613,13 +1686,12 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     BuildContext context,
     double totalInefficientArea,
   ) {
-    return AppCardFilled(
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+    return _buildFilledCard(
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: DesignColors.AppColors.warning.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderRadius: BorderRadius.circular(AppRadii.sm),
           border: Border.all(
             color: DesignColors.AppColors.warning.withOpacity(0.3),
             width: 1,
@@ -1639,7 +1711,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 children: [
                   Text(
                     "Iqtisodiy samarasiz maydon",
-                    style: AppTypography.bodyMedium(context).copyWith(
+                    style: AppTypography.bodySmall(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: DesignColors.AppColors.warning,
                     ),
@@ -1647,7 +1719,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     "${_formatNumber(totalInefficientArea)} GA",
-                    style: AppTypography.headlineSmall(context).copyWith(
+                    style: AppTypography.bodyLarge(context).copyWith(
                       fontWeight: FontWeight.w700,
                       color: DesignColors.AppColors.warning,
                     ),
@@ -1768,7 +1840,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Colors.black54,
-                      borderRadius: BorderRadius.circular(AppRadius.modal),
+                      borderRadius: BorderRadius.circular(AppRadii.modal),
                     ),
                     child: const CircularProgressIndicator(color: Colors.white),
                   );
@@ -1779,7 +1851,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     height: 240,
                     decoration: BoxDecoration(
                       color: Colors.black54,
-                      borderRadius: BorderRadius.circular(AppRadius.modal),
+                      borderRadius: BorderRadius.circular(AppRadii.modal),
                     ),
                     alignment: Alignment.center,
                     child: Column(
@@ -1790,7 +1862,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           "Rasm yuklanmadi",
-                          style: AppTypography.bodyMedium(context).copyWith(
+                          style: AppTypography.bodySmall(context).copyWith(
                             color: Colors.white,
                           ),
                         ),
@@ -1839,33 +1911,25 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final accentColor = entry.statusColor ?? colorScheme.primary;
-    final backgroundColor = Color.lerp(
-          colorScheme.surfaceVariant,
-          colorScheme.surface,
-          isDark ? 0.15 : 0.55,
-        ) ??
-        colorScheme.surfaceVariant;
-    final labelStyle = AppTypography.bodySmall(context).copyWith(
+    final accentColor = entry.statusColor ?? DesignColors.AppColors.accentGreen;
+    final backgroundColor = DesignColors.AppColors.darkSurface;
+    final labelStyle = AppTypography.caption(context).copyWith(
       fontWeight: FontWeight.w500,
-      color: colorScheme.onSurfaceVariant,
+      color: DesignColors.AppColors.darkTextSecondary,
     );
     final valueStyle = AppTypography.bodyLarge(context).copyWith(
       fontSize: 16,
       fontWeight: FontWeight.w700,
-      color: entry.statusColor ?? colorScheme.onSurface,
+      color: entry.statusColor ?? DesignColors.AppColors.darkTextPrimary,
     );
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderRadius: BorderRadius.circular(AppRadii.sm),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(isDark ? 0.4 : 0.2),
+          color: DesignColors.AppColors.darkBorder,
         ),
       ),
       child: Column(
@@ -1878,7 +1942,7 @@ class _InfoTile extends StatelessWidget {
                   padding: const EdgeInsets.all(AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: accentColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.chip),
+                    borderRadius: BorderRadius.circular(AppRadii.sm),
                   ),
                   child: Icon(entry.icon, size: 16, color: accentColor),
                 ),
