@@ -61,35 +61,6 @@ class CreateMapPageVm extends ChangeNotifier {
   // Состояние линейки для рисования
   BitmapDescriptor? rulerIcon; // Иконка линейки
 
-  bool isPointInPolygon(LatLng point, List<LatLng> polygon) {
-    int intersectCount = 0;
-    for (int j = 0; j < polygon.length - 1; j++) {
-      if (rayCastIntersect(point, polygon[j], polygon[j + 1])) {
-        intersectCount++;
-      }
-    }
-    return (intersectCount % 2) == 1; // odd = inside, even = outside
-  }
-
-  bool rayCastIntersect(LatLng point, LatLng vertA, LatLng vertB) {
-    double aY = vertA.latitude;
-    double bY = vertB.latitude;
-    double aX = vertA.longitude;
-    double bX = vertB.longitude;
-    double pY = point.latitude;
-    double pX = point.longitude;
-
-    if ((aY > pY && bY > pY) || (aY < pY && bY < pY) || (aX < pX && bX < pX)) {
-      return false;
-    }
-
-    double m = (aY - bY) / (aX - bX);
-    double bee = (-aX) * m + aY;
-    double x = (pY - bee) / m;
-
-    return x > pX;
-  }
-
   double calculateDistance(LatLng start, LatLng end) {
     const double earthRadius = 6371000; // meters
     double dLat = _degreesToRadians(end.latitude - start.latitude);
@@ -932,7 +903,7 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     // Проверяем, находится ли пользователь внутри полигона
-    final isInside = isPointInPolygon(currentLocation, coordinates);
+    final isInside = _isPointInPolygon(currentLocation, coordinates);
 
     // Если не внутри, проверяем минимальное расстояние
     if (!isInside) {

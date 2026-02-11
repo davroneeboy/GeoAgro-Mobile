@@ -684,11 +684,12 @@ class EditVM extends ChangeNotifier {
       return "Kamida bitta investitsiya miqdorini kiriting (Mahalliy yoki Xorijiy)";
     }
         // 8) Rasm - динамическая проверка количества фотографий
-    final minPhotosRequired = calculateMinimumPhotosRequired(ref);
-    final totalImages = images.length + _imageFiles.values.where((f) => f != null).length;
-    if (totalImages < minPhotosRequired) {
-      return "Kamida $minPhotosRequired ta rasm yuklash kerak. Hozir: $totalImages ta.\n${getPhotoRequirementDetails(ref)}";
-    }
+    // TODO: Disabled for edit page — photo count validation is only required on create page
+    // final minPhotosRequired = calculateMinimumPhotosRequired(ref);
+    // final totalImages = images.length + _imageFiles.values.where((f) => f != null).length;
+    // if (totalImages < minPhotosRequired) {
+    //   return "Kamida $minPhotosRequired ta rasm yuklash kerak. Hozir: $totalImages ta.\n${getPhotoRequirementDetails(ref)}";
+    // }
     // 9) Meva maydonlari
     if (selectedDetails.isEmpty) {
       return "Kamida bitta meva maydoni qo'shing";
@@ -712,93 +713,60 @@ class EditVM extends ChangeNotifier {
     return null;
   }
 
-  /// Calculates minimum photos required based on plantation details
-  /// 
-  /// Logic:
-  /// - Base: 1 photo for any plantation
-  /// - +1 photo for each added fruit
-  /// - +1 photo if land type is Lalmi (unirrigated/yaroqsiz)
-  /// - +1 photo if ochiq maydon (empty field) > 0
-  /// - +1 photo if tomchilab sug'orish (drip irrigation) is enabled
-  /// - +1 photo if shpaller (trellis) is enabled
-  /// - +1 photo if suv havzasi (reservoir) is enabled
-  int calculateMinimumPhotosRequired(WidgetRef ref) {
-    int minPhotos = 1; // Base photo for plantation
-    
-    // Add 1 photo for each fruit
-    minPhotos += selectedDetails.length;
-    
-    // Add 1 photo if land type is Lalmi (1 = yaroqsiz/unirrigated)
-    if (_selectedYerTuriMap == 1) {
-      minPhotos += 1;
-    }
-    
-    // Add 1 photo if ochiq maydon (empty field) is greater than 0
-    // If value is 0, no photo required. If value >= 0.1, photo is required
-    final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
-    if (emptyAreaValue > 0) {
-      minPhotos += 1;
-    }
-    
-    // Add 1 photo if tomchilab sug'orish (drip irrigation) is enabled
-    final isTomchiEnabled = ref.read(switchTomchi);
-    if (isTomchiEnabled) {
-      minPhotos += 1;
-    }
-    
-    // Add 1 photo if shpaller (trellis) is enabled
-    final isShpaller = ref.read(switchTrellis);
-    if (isShpaller) {
-      minPhotos += 1;
-    }
-    
-    // Add 1 photo if suv havzasi (reservoir) is enabled
-    final isReservoir = ref.read(switchReservoirs);
-    if (isReservoir) {
-      minPhotos += 1;
-    }
-    
-    debugPrint("📸 EditVM: Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${_selectedYerTuriMap == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0}, tomchi: ${isTomchiEnabled ? 1 : 0}, shpaller: ${isShpaller ? 1 : 0}, suv havzasi: ${isReservoir ? 1 : 0})");
-    
-    return minPhotos;
-  }
-  
-  /// Returns detailed explanation of photo requirements
-  String getPhotoRequirementDetails(WidgetRef ref) {
-    final details = <String>[];
-    
-    details.add("• Asosiy plantatsiya: 1 ta rasm");
-    
-    if (selectedDetails.isNotEmpty) {
-      details.add("• Mevalar (${selectedDetails.length} ta): ${selectedDetails.length} ta rasm");
-    }
-    
-    if (_selectedYerTuriMap == 1) {
-      details.add("• Lalmi (yaroqsiz) maydon: 1 ta rasm");
-    }
-    
-    final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
-    if (emptyAreaValue > 0) {
-      details.add("• Ochiq maydon: 1 ta rasm");
-    }
-    
-    final isTomchiEnabled = ref.read(switchTomchi);
-    if (isTomchiEnabled) {
-      details.add("• Tomchilab sug'orish: 1 ta rasm");
-    }
-    
-    final isShpaller = ref.read(switchTrellis);
-    if (isShpaller) {
-      details.add("• Shpaller: 1 ta rasm");
-    }
-    
-    final isReservoir = ref.read(switchReservoirs);
-    if (isReservoir) {
-      details.add("• Suv havzasi: 1 ta rasm");
-    }
-    
-    return details.join('\n');
-  }
+  // TODO: Disabled for edit page — photo count validation is only required on create page
+  // /// Calculates minimum photos required based on plantation details
+  // ///
+  // /// Logic:
+  // /// - Base: 1 photo for any plantation
+  // /// - +1 photo for each added fruit
+  // /// - +1 photo if land type is Lalmi (unirrigated/yaroqsiz)
+  // /// - +1 photo if ochiq maydon (empty field) > 0
+  // /// - +1 photo if tomchilab sug'orish (drip irrigation) is enabled
+  // /// - +1 photo if shpaller (trellis) is enabled
+  // /// - +1 photo if suv havzasi (reservoir) is enabled
+  // int calculateMinimumPhotosRequired(WidgetRef ref) {
+  //   int minPhotos = 1;
+  //   minPhotos += selectedDetails.length;
+  //   if (_selectedYerTuriMap == 1) minPhotos += 1;
+  //   final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
+  //   if (emptyAreaValue > 0) minPhotos += 1;
+  //   final isTomchiEnabled = ref.read(switchTomchi);
+  //   if (isTomchiEnabled) minPhotos += 1;
+  //   final isShpaller = ref.read(switchTrellis);
+  //   if (isShpaller) minPhotos += 1;
+  //   final isReservoir = ref.read(switchReservoirs);
+  //   if (isReservoir) minPhotos += 1;
+  //   return minPhotos;
+  // }
+  //
+  // /// Returns detailed explanation of photo requirements
+  // String getPhotoRequirementDetails(WidgetRef ref) {
+  //   final details = <String>[];
+  //   details.add("• Asosiy plantatsiya: 1 ta rasm");
+  //   if (selectedDetails.isNotEmpty) {
+  //     details.add("• Mevalar (${selectedDetails.length} ta): ${selectedDetails.length} ta rasm");
+  //   }
+  //   if (_selectedYerTuriMap == 1) {
+  //     details.add("• Lalmi (yaroqsiz) maydon: 1 ta rasm");
+  //   }
+  //   final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
+  //   if (emptyAreaValue > 0) {
+  //     details.add("• Ochiq maydon: 1 ta rasm");
+  //   }
+  //   final isTomchiEnabled = ref.read(switchTomchi);
+  //   if (isTomchiEnabled) {
+  //     details.add("• Tomchilab sug'orish: 1 ta rasm");
+  //   }
+  //   final isShpaller = ref.read(switchTrellis);
+  //   if (isShpaller) {
+  //     details.add("• Shpaller: 1 ta rasm");
+  //   }
+  //   final isReservoir = ref.read(switchReservoirs);
+  //   if (isReservoir) {
+  //     details.add("• Suv havzasi: 1 ta rasm");
+  //   }
+  //   return details.join('\n');
+  // }
 
   Future<bool> editPlantation(WidgetRef ref, int id) async {
     // Защита от множественных вызовов
