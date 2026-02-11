@@ -1192,13 +1192,11 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     PlantationMapViewVm mapVm,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    // Используем isChecked из EditPlantationModel, если доступен, иначе из mapVm
-    final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
-
-    // Если плантация подтверждена, не показываем кнопки редактирования и удаления
-    if (isChecked) {
-      return const SizedBox.shrink();
-    }
+    // TODO: Disabled — allow editing/deleting even for confirmed plantations
+    // final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
+    // if (isChecked) {
+    //   return const SizedBox.shrink();
+    // }
 
     return Row(
       children: [
@@ -1245,22 +1243,19 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     EditPlantationModel plantation,
     PlantationMapViewVm mapVm,
   ) {
-    // Используем isChecked из EditPlantationModel, если доступен, иначе из mapVm
-    final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
-    
-    // Если плантация подтверждена, нельзя удалять
-    if (isChecked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-    
-    // Для неподтвержденных плантаций - простой диалог подтверждения (прямое удаление)
+    // TODO: Disabled — allow deleting even for confirmed plantations
+    // final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
+    // if (isChecked) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
+    //       backgroundColor: Theme.of(context).colorScheme.error,
+    //       duration: const Duration(seconds: 3),
+    //     ),
+    //   );
+    //   return;
+    // }
+
     _showSimpleDeleteConfirmation(context, plantation);
   }
 
@@ -1329,26 +1324,23 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
     try {
       final vm = ref.read(homePageVM.notifier);
-      // Получаем статус плантации из plantationViewVM, так как EditPlantationModel содержит isChecked
-      final plantationViewVm = ref.read(plantationViewVM(widget.id));
-      final plantation = plantationViewVm.plantation;
-      final isChecked = plantation?.isChecked ?? false;
-      
-      // Если плантация подтверждена, нельзя удалять
-      if (isChecked) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-        return;
-      }
-      
-      // Для неподтвержденных плантаций - прямое удаление
+      // TODO: Disabled — allow deleting even for confirmed plantations
+      // final plantationViewVm = ref.read(plantationViewVM(widget.id));
+      // final plantation = plantationViewVm.plantation;
+      // final isChecked = plantation?.isChecked ?? false;
+      // if (isChecked) {
+      //   if (context.mounted) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(
+      //         content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
+      //         backgroundColor: Theme.of(context).colorScheme.error,
+      //         duration: const Duration(seconds: 3),
+      //       ),
+      //     );
+      //   }
+      //   return;
+      // }
+
       final result = await vm.deletePlantation(id: plantationId);
       
       if (context.mounted) {
