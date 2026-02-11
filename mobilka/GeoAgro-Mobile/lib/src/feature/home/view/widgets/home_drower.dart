@@ -12,6 +12,7 @@ import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -75,7 +76,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -136,7 +137,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     'geoAgro v${currentAppVersion ?? "3.0.1"}',
                     textAlign: TextAlign.center,
                     style: AppTypography.caption(context).copyWith(
-                      color: DesignColors.AppColors.darkTextTertiary,
+                  color: context.colors.textTertiary,
                     ),
                   ),
                   SizedBox(height: AppSpacing.sm),
@@ -280,7 +281,7 @@ class _ModernDrawerHeader extends StatelessWidget {
           CircleAvatar(
             radius: 28,
             backgroundColor:
-                DesignColors.AppColors.darkBackground.withOpacity(0.2),
+                context.colors.background.withOpacity(0.2),
             child: Text(
               initials,
               style: AppTypography.headline3(context).copyWith(
@@ -374,9 +375,9 @@ class _DrawerActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final backgroundColor = isAccent
         ? DesignColors.AppColors.accentGreen
-        : DesignColors.AppColors.darkSurfaceVariant;
+        : context.colors.surfaceVariant;
     final foregroundColor =
-        isAccent ? Colors.white : DesignColors.AppColors.darkTextSecondary;
+        isAccent ? Colors.white : context.colors.textSecondary;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
@@ -394,7 +395,7 @@ class _DrawerActionButton extends StatelessWidget {
             border: Border.all(
               color: isAccent
                   ? DesignColors.AppColors.accentGreenDark
-                  : DesignColors.AppColors.darkBorder,
+                  : context.colors.border,
             ),
           ),
           child: Row(

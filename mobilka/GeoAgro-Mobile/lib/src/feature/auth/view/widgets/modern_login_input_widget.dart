@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../../../../design_system/tokens/typography.dart';
 
@@ -96,7 +97,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
             fontWeight: isFloatingLabel ? FontWeight.w600 : FontWeight.w500,
             color: _isFocused
                 ? DesignColors.AppColors.accentGreen
-                : DesignColors.AppColors.darkTextSecondary,
+                : context.colors.textSecondary,
             letterSpacing: isFloatingLabel ? 0.5 : 0,
             height: 1.4,
           ),
@@ -119,7 +120,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
             style: AppTypography.body(context).copyWith(
               fontSize: 16.sp,
               fontWeight: FontWeight.w500,
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
             ),
             cursorColor: DesignColors.AppColors.accentGreen,
             inputFormatters: widget.keyboardType == TextInputType.emailAddress
@@ -129,7 +130,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
               hintText: widget.hintText,
               hintStyle: TextStyle(
                 fontSize: 16.sp,
-                color: DesignColors.AppColors.darkTextTertiary,
+                color: context.colors.textTertiary,
                 fontWeight: FontWeight.w400,
               ),
               contentPadding: EdgeInsets.symmetric(
@@ -138,14 +139,14 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
               ),
               filled: true,
               fillColor: _isFocused
-                  ? DesignColors.AppColors.darkSurface
-                  : DesignColors.AppColors.darkSurfaceVariant,
+                  ? context.colors.surface
+                  : context.colors.surfaceVariant,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
                   color: _isFocused
                       ? DesignColors.AppColors.accentGreen
-                      : DesignColors.AppColors.darkBorder,
+                      : context.colors.border,
                   width: _isFocused ? 2.0 : 1.5,
                 ),
               ),
@@ -176,7 +177,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
                         _obscureText
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: DesignColors.AppColors.darkTextSecondary,
+                        color: context.colors.textSecondary,
                         size: 20,
                       ),
                       onPressed: () {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/colors.dart' as DesignColors;
 
 /// Современная кнопка логина с анимациями в стиле Apple
@@ -85,9 +86,7 @@ class _ModernLoginButtonState extends State<ModernLoginButton>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-            color: isDisabled
-                ? DesignColors.AppColors.darkSurfaceVariant
-                : null,
+            color: isDisabled ? context.colors.surfaceVariant : null,
             borderRadius: BorderRadius.circular(14),
             boxShadow: isDisabled
                 ? null

@@ -6,7 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/style/app_colors.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
 import '../../../../core/routes/app_route_names.dart';
@@ -169,7 +169,7 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
           await vm.fetch(isLoadMore: false);
         },
         color: AppColors.c28A745,
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         child: vm.list.isEmpty
             ? LayoutBuilder(
                 builder: (context, constraints) => SingleChildScrollView(

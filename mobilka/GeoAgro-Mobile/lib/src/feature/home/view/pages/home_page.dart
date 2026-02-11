@@ -23,6 +23,7 @@ import '../../vm/home_page_vm.dart';
 import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 
@@ -147,14 +148,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     ];
 
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       body: IndexedStack(
         index: _selectedIndex,
         children: tabs,
       ),
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
-          backgroundColor: DesignColors.AppColors.darkSurfaceVariant,
+          backgroundColor: context.colors.surfaceVariant,
           indicatorColor: DesignColors.AppColors.accentGreen.withOpacity(0.16),
           labelTextStyle: MaterialStateProperty.resolveWith(
             (states) => TextStyle(
@@ -162,15 +163,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ? FontWeight.w600
                   : FontWeight.w500,
               color: states.contains(MaterialState.selected)
-                  ? DesignColors.AppColors.darkTextPrimary
-                  : DesignColors.AppColors.darkTextTertiary,
+                  ? context.colors.textPrimary
+                  : context.colors.textTertiary,
             ),
           ),
           iconTheme: MaterialStateProperty.resolveWith(
             (states) => IconThemeData(
               color: states.contains(MaterialState.selected)
                   ? DesignColors.AppColors.accentGreen
-                  : DesignColors.AppColors.darkTextSecondary.withOpacity(0.7),
+                  : context.colors.textSecondary.withOpacity(0.7),
             ),
           ),
           elevation: 12,
@@ -215,7 +216,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildContent(HomePageVm vm) {
     if (vm.isLoading) {
       return Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(
           title: "Ma`lumotlar yuklanmoqda",
           canPop: false,
@@ -243,7 +244,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
     if (vm.errorMessage != null) {
       return Scaffold(
-        backgroundColor: DesignColors.AppColors.darkBackground,
+        backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(
           title: "Kutilmagan xatolik",
           canPop: false,
@@ -335,7 +336,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 await vm.getPlantationsModel(isLoadMore: false);
               },
               color: DesignColors.AppColors.accentGreen,
-              backgroundColor: DesignColors.AppColors.darkSurface,
+              backgroundColor: context.colors.surface,
               child: LayoutBuilder(
                 builder: (context, constraints) => SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -356,7 +357,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 await vm.getPlantationsModel(isLoadMore: false);
               },
               color: DesignColors.AppColors.accentGreen,
-              backgroundColor: DesignColors.AppColors.darkSurface,
+              backgroundColor: context.colors.surface,
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 controller: _scrollController,

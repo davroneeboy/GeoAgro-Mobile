@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import '../../../../core/services/biometric_service.dart';
 import '../../../../core/storage/app_storage.dart';
@@ -120,7 +121,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: design_colors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -129,8 +130,8 @@ class _BiometricLockPageState extends State<BiometricLockPage>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                design_colors.AppColors.darkBackground,
-                design_colors.AppColors.darkSurface,
+                context.colors.background,
+                context.colors.surface,
               ],
             ),
           ),
@@ -174,7 +175,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
           style: AppTypography.headline2(context).copyWith(
             fontSize: 28.sp,
             fontWeight: FontWeight.w800,
-            color: design_colors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         SizedBox(height: 8.h),
@@ -183,7 +184,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
           textAlign: TextAlign.center,
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 15.sp,
-            color: design_colors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
             height: 1.5,
           ),
         ),
@@ -201,7 +202,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
           height: 88.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: design_colors.AppColors.darkSurfaceVariant,
+            color: context.colors.surfaceVariant,
             border: Border.all(
               color: design_colors.AppColors.accentGreen
                   .withValues(alpha: 0.5),
@@ -246,7 +247,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
           : "Bosing — barmoq izi, PIN yoki parol",
       style: AppTypography.bodySmall(context).copyWith(
         fontSize: 14.sp,
-        color: design_colors.AppColors.darkTextSecondary,
+        color: context.colors.textSecondary,
       ),
     );
   }
@@ -291,7 +292,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
           "Boshqa akkaunt bilan kirish",
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 15.sp,
-            color: design_colors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),

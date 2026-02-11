@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -337,7 +338,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: DesignColors.AppColors.warning.withOpacity(0.5),
@@ -371,7 +372,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     formattedDate,
                     style: AppTypography.caption(context).copyWith(
                       fontSize: 12.sp,
-                      color: DesignColors.AppColors.darkTextSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ),
@@ -384,7 +385,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               comment.author!,
               style: AppTypography.caption(context).copyWith(
                 fontSize: 12.sp,
-                color: DesignColors.AppColors.darkTextSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -394,7 +395,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             comment.text,
             style: AppTypography.bodySmall(context).copyWith(
               fontSize: 14.sp,
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ],
@@ -416,10 +417,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: DesignColors.AppColors.darkBorder,
+          color: context.colors.border,
           width: 1,
         ),
       ),
@@ -450,7 +451,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   formattedDate,
                   style: AppTypography.caption(context).copyWith(
                     fontSize: 12.sp,
-                    color: DesignColors.AppColors.darkTextSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ),
@@ -462,7 +463,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               comment.createdBy!.fullName,
               style: AppTypography.caption(context).copyWith(
                 fontSize: 12.sp,
-                color: DesignColors.AppColors.darkTextSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -472,7 +473,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             comment.body,
             style: AppTypography.bodySmall(context).copyWith(
               fontSize: 14.sp,
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ],
@@ -539,11 +540,11 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     }
 
     return Scaffold(
-      backgroundColor: DesignColors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text("Plantatsiya ma'lumotlari"),
-        backgroundColor: DesignColors.AppColors.darkSurface,
-        foregroundColor: DesignColors.AppColors.darkTextPrimary,
+        backgroundColor: context.colors.surface,
+        foregroundColor: context.colors.textPrimary,
       ),
       body: hasError
           ? Center(
@@ -559,7 +560,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                       detailVm.errorMessage ?? "Xatolik yuz berdi",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: DesignColors.AppColors.darkTextSecondary),
+                          color: context.colors.textSecondary),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     FilledButton(
@@ -611,7 +612,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             Text(
               section.title,
               style: AppTypography.title(context).copyWith(
-                color: DesignColors.AppColors.darkTextPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ],
@@ -1277,9 +1278,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1586,9 +1587,9 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: child,
     );
@@ -1603,7 +1604,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         child: Text(
           "Ma'lumot yo'q",
           style: AppTypography.bodySmall(context).copyWith(
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -1623,7 +1624,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         child: Text(
           "Ma'lumot yo'q",
           style: AppTypography.bodySmall(context).copyWith(
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -1639,7 +1640,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (index > 0) Divider(height: 32, color: DesignColors.AppColors.darkBorder),
+                if (index > 0) Divider(height: 32, color: context.colors.border),
                 _buildInfoGrid(context, items),
               ],
             );
@@ -1655,7 +1656,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         child: Text(
           "Rasmlar mavjud emas",
           style: AppTypography.bodySmall(context).copyWith(
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -1679,7 +1680,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadii.sm),
                 border: Border.all(
-                  color: DesignColors.AppColors.darkBorder,
+                  color: context.colors.border,
                   width: 1,
                 ),
               ),
@@ -1691,7 +1692,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Container(
-                      color: DesignColors.AppColors.darkSurface,
+                      color: context.colors.surface,
                       alignment: Alignment.center,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
@@ -1703,11 +1704,11 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   },
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      color: DesignColors.AppColors.darkSurface,
+                      color: context.colors.surface,
                       alignment: Alignment.center,
                       child: Icon(
                         Icons.broken_image_outlined,
-                        color: DesignColors.AppColors.darkTextSecondary,
+                        color: context.colors.textSecondary,
                         size: 32,
                       ),
                     );
@@ -1951,15 +1952,15 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accentColor = entry.statusColor ?? DesignColors.AppColors.accentGreen;
-    final backgroundColor = DesignColors.AppColors.darkSurface;
+    final backgroundColor = context.colors.surface;
     final labelStyle = AppTypography.caption(context).copyWith(
       fontWeight: FontWeight.w500,
-      color: DesignColors.AppColors.darkTextSecondary,
+      color: context.colors.textSecondary,
     );
     final valueStyle = AppTypography.bodyLarge(context).copyWith(
       fontSize: 16,
       fontWeight: FontWeight.w700,
-      color: entry.statusColor ?? DesignColors.AppColors.darkTextPrimary,
+      color: entry.statusColor ?? context.colors.textPrimary,
     );
 
     return Container(
@@ -1968,7 +1969,7 @@ class _InfoTile extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(AppRadii.sm),
         border: Border.all(
-          color: DesignColors.AppColors.darkBorder,
+          color: context.colors.border,
         ),
       ),
       child: Column(

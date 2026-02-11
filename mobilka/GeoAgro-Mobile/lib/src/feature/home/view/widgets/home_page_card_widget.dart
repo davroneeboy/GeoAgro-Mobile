@@ -10,6 +10,7 @@ import '../../../../core/utils/date_utils.dart' as app_date;
 import '../../../../core/widgets/custom_card_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
@@ -146,7 +147,7 @@ class HomePageCardWidget extends StatelessWidget {
                       style: AppTypography.title(context).copyWith(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.w700,
-                        color: DesignColors.AppColors.darkTextPrimary,
+                        color: context.colors.textPrimary,
                         height: 1.2,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -157,7 +158,7 @@ class HomePageCardWidget extends StatelessWidget {
                       Text(
                         "ИНН: $farmerInn",
                         style: AppTypography.bodySmall(context).copyWith(
-                          color: DesignColors.AppColors.darkTextSecondary,
+                          color: context.colors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -169,7 +170,7 @@ class HomePageCardWidget extends StatelessWidget {
                       Text(
                         "Qo'shilgan: $createdAt",
                         style: AppTypography.bodySmall(context).copyWith(
-                          color: DesignColors.AppColors.darkTextTertiary,
+                          color: context.colors.textTertiary,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -303,9 +304,9 @@ class HomePageCardWidget extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -314,14 +315,14 @@ class HomePageCardWidget extends StatelessWidget {
           Text(
             "ID",
             style: AppTypography.caption(context).copyWith(
-              color: DesignColors.AppColors.darkTextTertiary,
+          color: context.colors.textTertiary,
               letterSpacing: 0.4,
             ),
           ),
           Text(
             id,
             style: AppTypography.bodySmall(context).copyWith(
-              color: DesignColors.AppColors.darkTextPrimary,
+          color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -349,7 +350,7 @@ class HomePageCardWidget extends StatelessWidget {
         color: statusColor,
         shape: BoxShape.circle,
         border: Border.all(
-          color: DesignColors.AppColors.darkBorder,
+          color: context.colors.border,
           width: 1,
         ),
       ),
@@ -368,9 +369,9 @@ class HomePageCardWidget extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.darkSurfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: DesignColors.AppColors.darkBorder),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -388,7 +389,7 @@ class HomePageCardWidget extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.caption(context).copyWith(
-                  color: DesignColors.AppColors.darkTextTertiary,
+                  color: context.colors.textTertiary,
                   letterSpacing: 0.3,
                 ),
               ),
@@ -396,7 +397,7 @@ class HomePageCardWidget extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: DesignColors.AppColors.darkTextPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -438,7 +439,7 @@ class HomePageCardWidget extends StatelessWidget {
                   "Tafsilot",
                   style: AppTypography.bodySmall(context).copyWith(
                     fontWeight: FontWeight.w600,
-                    color: DesignColors.AppColors.darkTextPrimary,
+                  color: context.colors.textPrimary,
                   ),
                 ),
                 SizedBox(height: AppSpacing.xs),
@@ -451,7 +452,7 @@ class HomePageCardWidget extends StatelessWidget {
                         Text(
                           "• ",
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: DesignColors.AppColors.darkTextSecondary,
+                            color: context.colors.textSecondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -459,7 +460,7 @@ class HomePageCardWidget extends StatelessWidget {
                           child: Text(
                             message,
                             style: AppTypography.bodySmall(context).copyWith(
-                              color: DesignColors.AppColors.darkTextSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),

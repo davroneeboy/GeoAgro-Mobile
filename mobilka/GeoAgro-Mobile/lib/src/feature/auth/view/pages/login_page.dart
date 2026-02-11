@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import '../../vm/login_vm.dart';
 import '../../../../core/utils/utils.dart';
@@ -125,7 +126,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     final loginVmNotifier = ref.read(loginPageVM.notifier);
 
     return Scaffold(
-      backgroundColor: design_colors.AppColors.darkBackground,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -135,8 +136,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    design_colors.AppColors.darkBackground,
-                    design_colors.AppColors.darkSurface,
+                    context.colors.background,
+                    context.colors.surface,
                   ],
                 ),
               ),
@@ -210,7 +211,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 13.sp,
             fontWeight: FontWeight.w500,
-            color: design_colors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
             height: 1.5,
             letterSpacing: 0.2,
           ),
@@ -222,7 +223,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           style: AppTypography.title(context).copyWith(
             fontSize: 16.sp,
             fontWeight: FontWeight.w700,
-            color: design_colors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
             height: 1.4,
           ),
         ),
@@ -240,7 +241,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           style: AppTypography.headline2(context).copyWith(
             fontSize: 32.sp,
             fontWeight: FontWeight.w800,
-            color: design_colors.AppColors.darkTextPrimary,
+            color: context.colors.textPrimary,
             height: 1.2,
             letterSpacing: -0.5,
           ),
@@ -251,7 +252,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           textAlign: TextAlign.center,
           style: AppTypography.bodySmall(context).copyWith(
             fontSize: 15.sp,
-            color: design_colors.AppColors.darkTextSecondary,
+            color: context.colors.textSecondary,
             height: 1.4,
           ),
         ),
