@@ -5,6 +5,15 @@ import 'plantations_list_model.dart';
 EditPlantationModel editPlantationModelFromJson(String str) =>
     EditPlantationModel.fromJson(json.decode(str));
 
+/// Safely parses a value to bool, handling bool, int (0/1), and String ("true"/"false").
+bool? _parseBool(dynamic value) {
+  if (value == null) return null;
+  if (value is bool) return value;
+  if (value is int) return value != 0;
+  if (value is String) return value.toLowerCase() == 'true';
+  return null;
+}
+
 String editPlantationModelToJson(EditPlantationModel data) =>
     json.encode(data.toJson());
 
@@ -138,8 +147,8 @@ class EditPlantationModel {
         fertilityScore: json["fertility_score"]?.toDouble(),
         landType: json["land_type"],
         isFertile: json["is_fertile"],
-        isChecked: json["is_checked"] as bool?,
-        isRejected: json["is_rejected"] as bool? ?? false,
+        isChecked: _parseBool(json["is_checked"]),
+        isRejected: _parseBool(json["is_rejected"]) ?? false,
         irrigationSystemsCount: json["irrigation_systems_count"],
         qarorRaqami: json["qaror_raqami"],
         qarorType: json["qaror_type"],

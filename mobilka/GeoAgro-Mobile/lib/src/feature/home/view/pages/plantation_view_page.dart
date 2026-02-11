@@ -999,31 +999,30 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     EditPlantationModel? editPlantation,
     ColorScheme scheme,
   ) {
-    // Приоритет у editPlantation, так как это данные из детальной страницы (загружаются первыми)
-    if (editPlantation != null) {
-      debugPrint('_resolveStatus: Using editPlantation - isChecked=${editPlantation.isChecked}, isRejected=${editPlantation.isRejected}');
-      if (editPlantation.isRejected == true) {
-        return MapEntry("Rad etilgan", DesignColors.AppColors.error);
-      }
-      if (editPlantation.isChecked == true) {
-        return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
-      }
-      return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
+    if (editPlantation == null && relatedPlantation == null) {
+      return MapEntry("Ma'lumot yo'q", scheme.onSurfaceVariant);
     }
-    
-    // Если editPlantation недоступен, используем relatedPlantation (данные с карты)
-    if (relatedPlantation != null) {
-      debugPrint('_resolveStatus: Using relatedPlantation - isChecked=${relatedPlantation.isChecked}, isRejected=${relatedPlantation.isRejected}');
-      if (relatedPlantation.isRejected == true) {
-        return MapEntry("Rad etilgan", DesignColors.AppColors.error);
-      }
-      if (relatedPlantation.isChecked == true) {
-        return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
-      }
-      return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
+
+    // Объединяем данные из обоих источников через ||:
+    // если ХОТЯ БЫ ОДИН источник подтверждает статус, используем его.
+    // Это решает проблему, когда detail API возвращает is_checked: false,
+    // а list/map API корректно возвращает is_checked: true.
+    final bool isRejected =
+        (editPlantation?.isRejected == true) || (relatedPlantation?.isRejected == true);
+    final bool isChecked =
+        (editPlantation?.isChecked == true) || (relatedPlantation?.isChecked == true);
+
+    debugPrint('_resolveStatus: isChecked=$isChecked, isRejected=$isRejected '
+        '(edit.isChecked=${editPlantation?.isChecked}, '
+        'related.isChecked=${relatedPlantation?.isChecked})');
+
+    if (isRejected) {
+      return MapEntry("Rad etilgan", DesignColors.AppColors.error);
     }
-    
-    return MapEntry("Ma'lumot yo'q", scheme.onSurfaceVariant);
+    if (isChecked) {
+      return MapEntry("Tasdiqlangan", DesignColors.AppColors.success);
+    }
+    return MapEntry("Ko'rib chiqilmoqda", DesignColors.AppColors.warning);
   }
 
   Widget _buildMapCard({
