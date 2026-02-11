@@ -717,4 +717,19 @@ class AppRepositoryImpl implements AppRepo {
       );
     }
   }
+
+  // ==== Users ====
+  @override
+  Future<String?> getUserById({required int id}) async {
+    try {
+      final data = await ApiService.get(
+          ApiConst.apiUserById(id), ApiParams.emptyParams());
+      return data;
+    } on DioException catch (e) {
+      debugPrint("getUserById error: ${e.response?.data ?? e.message}");
+    } catch (e) {
+      debugPrint("getUserById unexpected error: $e");
+    }
+    return null;
+  }
 }

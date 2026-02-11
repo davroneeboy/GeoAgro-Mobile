@@ -42,6 +42,10 @@ class _PlantationViewVm extends ChangeNotifier {
   String? errorMessage;
   EditPlantationModel? plantation;
 
+  /// Имена пользователей: создатель и модератор
+  String? createdByName;
+  String? moderatedByName;
+
   _PlantationViewVm(this.plantationId) {
     _loadPlantation();
   }
@@ -57,6 +61,8 @@ class _PlantationViewVm extends ChangeNotifier {
         errorMessage = "Ma'lumotlar topilmadi";
       } else {
         plantation = editPlantationModelFromJson(data);
+        // Загружаем имена пользователей асинхронно
+        _loadUserNames();
       }
     } catch (e) {
       errorMessage = "Xatolik yuz berdi: $e";
@@ -64,6 +70,59 @@ class _PlantationViewVm extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Асинхронно загружает имена пользователей (создатель и модератор)
+  Future<void> _loadUserNames() async {
+    final createdById = plantation?.createdBy;
+    final moderatedById = plantation?.moderatedBy;
+
+    // Загружаем параллельно
+    final futures = <Future>[];
+
+    if (createdById != null) {
+      futures.add(_fetchUserName(createdById).then((name) {
+        createdByName = name;
+      }));
+    }
+
+    if (moderatedById != null) {
+      futures.add(_fetchUserName(moderatedById).then((name) {
+        moderatedByName = name;
+      }));
+    }
+
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+      notifyListeners();
+    }
+  }
+
+  /// Получает имя пользователя по ID через API
+  Future<String?> _fetchUserName(int userId) async {
+    try {
+      final data = await _repo.getUserById(id: userId);
+      if (data != null) {
+        final json = jsonDecode(data) as Map<String, dynamic>;
+        // Пробуем разные возможные поля для имени
+        final fullName = json['full_name'] ?? json['display_name'] ?? json['name'];
+        final firstName = json['first_name']?.toString() ?? '';
+        final lastName = json['last_name']?.toString() ?? '';
+
+        if (fullName != null && fullName.toString().trim().isNotEmpty) {
+          return fullName.toString();
+        }
+        if (firstName.isNotEmpty || lastName.isNotEmpty) {
+          return '$firstName $lastName'.trim();
+        }
+        // Если имени нет, пробуем username
+        final username = json['username'];
+        if (username != null) return username.toString();
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch user name for id=$userId: $e');
+    }
+    return null;
   }
 
   void retry() => _loadPlantation();
@@ -214,6 +273,22 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     }
 
     return '${isNegative ? '-' : ''}$buffer$decPart';
+  }
+
+  /// Форматирует ISO 8601 дату в читаемый формат: "dd.MM.yyyy HH:mm"
+  String _formatDateTime(String? isoString) {
+    if (isoString == null || isoString.isEmpty) return "Noma'lum";
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = dt.month.toString().padLeft(2, '0');
+      final year = dt.year;
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$day.$month.$year $hour:$minute';
+    } catch (_) {
+      return isoString;
+    }
   }
 
   Widget _buildCommentsList(BuildContext context, List<Comment> comments, bool isDark) {
@@ -465,6 +540,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         mapVm: mapVm,
         baseEntries: baseEntries,
         statusData: statusData,
+        detailVm: detailVm,
       );
     }
 
@@ -702,6 +778,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required PlantationMapViewVm mapVm,
     required List<_InfoEntry> baseEntries,
     required MapEntry<String, Color> statusData,
+    required _PlantationViewVm detailVm,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -722,6 +799,54 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         content: _buildMetricsCard(context, baseEntries),
       ),
     ];
+
+    // Секция с информацией о подтверждении/модерации
+    if (plantation.moderatedAt != null || plantation.moderatedBy != null ||
+        plantation.createdAt != null || plantation.createdBy != null) {
+      final createdByDisplay = detailVm.createdByName ?? 
+          (plantation.createdBy != null ? 'ID: ${plantation.createdBy}' : null);
+      final moderatedByDisplay = detailVm.moderatedByName ?? 
+          (plantation.moderatedBy != null ? 'ID: ${plantation.moderatedBy}' : null);
+
+      final moderationEntries = <_InfoEntry>[
+        if (createdByDisplay != null)
+          _InfoEntry(
+            "Yaratgan",
+            createdByDisplay,
+            Icons.person_add_outlined,
+          ),
+        if (plantation.createdAt != null)
+          _InfoEntry(
+            "Yaratilgan vaqt",
+            _formatDateTime(plantation.createdAt),
+            Icons.access_time_outlined,
+          ),
+        if (moderatedByDisplay != null)
+          _InfoEntry(
+            "Tasdiqlagan",
+            moderatedByDisplay,
+            Icons.verified_user_outlined,
+            DesignColors.AppColors.success,
+          ),
+        if (plantation.moderatedAt != null)
+          _InfoEntry(
+            "Tasdiqlangan vaqt",
+            _formatDateTime(plantation.moderatedAt),
+            Icons.schedule_outlined,
+            DesignColors.AppColors.success,
+          ),
+      ];
+
+      if (moderationEntries.isNotEmpty) {
+        sections.add(
+          DetailSection(
+            title: "Tasdiqlash ma'lumotlari",
+            icon: Icons.verified_outlined,
+            content: _buildMetricsCard(context, moderationEntries),
+          ),
+        );
+      }
+    }
 
     if (plantation.trellises?.isNotEmpty == true) {
       sections.add(

@@ -46,6 +46,11 @@ class EditPlantationModel {
   List<String>? konturNumber;
   List<Comment>? comments;
   List<ModerationComment>? moderationComments;
+  String? createdAt;
+  String? updatedAt;
+  int? createdBy;
+  String? moderatedAt;
+  int? moderatedBy;
 
   EditPlantationModel({
     this.id,
@@ -74,6 +79,11 @@ class EditPlantationModel {
     this.konturNumber,
     this.comments,
     this.moderationComments,
+    this.createdAt,
+    this.updatedAt,
+    this.createdBy,
+    this.moderatedAt,
+    this.moderatedBy,
   });
 
   EditPlantationModel copyWith({
@@ -103,6 +113,11 @@ class EditPlantationModel {
     List<String>? konturNumber,
     List<Comment>? comments,
     List<ModerationComment>? moderationComments,
+    String? createdAt,
+    String? updatedAt,
+    int? createdBy,
+    String? moderatedAt,
+    int? moderatedBy,
   }) =>
       EditPlantationModel(
         id: id ?? this.id,
@@ -133,6 +148,11 @@ class EditPlantationModel {
         konturNumber: konturNumber ?? this.konturNumber,
         comments: comments ?? this.comments,
         moderationComments: moderationComments ?? this.moderationComments,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        createdBy: createdBy ?? this.createdBy,
+        moderatedAt: moderatedAt ?? this.moderatedAt,
+        moderatedBy: moderatedBy ?? this.moderatedBy,
       );
 
   factory EditPlantationModel.fromJson(Map<String, dynamic> json) =>
@@ -229,6 +249,11 @@ class EditPlantationModel {
           }
           return null;
         })(),
+        createdAt: json["created_at"]?.toString(),
+        updatedAt: json["updated_at"]?.toString(),
+        createdBy: json["created_by"],
+        moderatedAt: json["moderated_at"]?.toString(),
+        moderatedBy: json["moderated_by"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -275,6 +300,11 @@ class EditPlantationModel {
         "moderation_comment": moderationComments == null
             ? null
             : List<dynamic>.from(moderationComments!.map((x) => x.toJson())),
+        "created_at": createdAt,
+        "updated_at": updatedAt,
+        "created_by": createdBy,
+        "moderated_at": moderatedAt,
+        "moderated_by": moderatedBy,
       };
 }
 

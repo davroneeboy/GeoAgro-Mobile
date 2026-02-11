@@ -37,6 +37,10 @@ final class ApiConst {
   
   // Comments
   static String apiPlantationComments(int plantationId) => '/api/plantations/$plantationId/comments/';
+
+  // Users
+  static const String apiUsers = "/api/users/";
+  static String apiUserById(int id) => "/api/users/$id/";
 }
 
 final class ApiParams {
