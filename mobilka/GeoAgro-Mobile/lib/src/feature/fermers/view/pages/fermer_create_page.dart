@@ -46,7 +46,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
             decoration: BoxDecoration(
               color: context.colors.surfaceVariant,
               borderRadius: BorderRadius.circular(AppRadii.card),
-              border: Border.all(color: context.colors.border),
+              border: context.colors.cardBorder,
+              boxShadow: context.colors.cardShadow,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

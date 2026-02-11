@@ -113,7 +113,9 @@ class CustomTextField extends StatelessWidget {
               borderSide: BorderSide(
                 color: errorText != null
                     ? DesignColors.AppColors.error
-                    : context.colors.border,
+                    : context.colors.isDark
+                        ? context.colors.border
+                        : context.colors.border.withValues(alpha: 0.5),
                 width: 1.5,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),
@@ -129,7 +131,9 @@ class CustomTextField extends StatelessWidget {
             ),
             disabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: context.colors.border,
+                color: context.colors.isDark
+                    ? context.colors.border
+                    : context.colors.border.withValues(alpha: 0.3),
                 width: 1.0,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),

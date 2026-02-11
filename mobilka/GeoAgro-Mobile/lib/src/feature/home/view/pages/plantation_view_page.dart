@@ -417,12 +417,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        color: context.colors.surface,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: context.colors.border,
-          width: 1,
-        ),
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,7 +836,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     required MapEntry<String, Color> statusData,
     required _PlantationViewVm detailVm,
   }) {
-    const isDark = true; // Приложение всегда в тёмной теме
+    final isDark = context.colors.isDark;
     final sections = <_DetailSection>[];
 
     // Секция с информацией о подтверждении/модерации — первой
@@ -1280,7 +1278,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       decoration: BoxDecoration(
         color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1589,7 +1588,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       decoration: BoxDecoration(
         color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
       ),
       child: child,
     );
@@ -1679,10 +1679,12 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadii.sm),
-                border: Border.all(
-                  color: context.colors.border,
-                  width: 1,
-                ),
+                border: context.colors.isDark
+                    ? Border.all(color: context.colors.border, width: 1)
+                    : null,
+                boxShadow: context.colors.isDark
+                    ? null
+                    : context.colors.cardShadow,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadii.sm - 1),
@@ -1966,11 +1968,13 @@ class _InfoTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: context.colors.isDark
+            ? backgroundColor
+            : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(
-          color: context.colors.border,
-        ),
+        border: context.colors.isDark
+            ? Border.all(color: context.colors.border)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

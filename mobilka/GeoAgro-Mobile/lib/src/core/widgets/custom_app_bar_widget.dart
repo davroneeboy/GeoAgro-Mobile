@@ -4,34 +4,35 @@ import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/typography.dart';
 
-/// Modern app bar with dark theme
+/// Modern app bar that adapts to light/dark theme.
 class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool canPop;
   final List<Widget>? actions;
-  final VoidCallback? onBackPressed; // Кастомный обработчик для кнопки назад
+  final VoidCallback? onBackPressed;
   
   const CustomAppBarWidget({
     super.key,
     required this.title,
     required this.canPop,
     this.actions,
-    this.onBackPressed, // Опциональный параметр
+    this.onBackPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return AppBar(
       toolbarHeight: 68.h,
       centerTitle: true,
-      backgroundColor: context.colors.background,
+      backgroundColor: colors.background,
       elevation: 0,
       leading: canPop
           ? IconButton(
-              onPressed: onBackPressed ?? () => context.pop(), // Используем кастомный обработчик или стандартный pop
+              onPressed: onBackPressed ?? () => context.pop(),
               icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: context.colors.textPrimary,
+                color: colors.textPrimary,
                 size: 18.sp,
               ),
             )
@@ -39,7 +40,7 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
       title: Text(
         title,
         style: AppTypography.headline3(context).copyWith(
-          color: context.colors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 18.sp,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -48,10 +49,12 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
       scrolledUnderElevation: 0,
       actions: actions,
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
+        preferredSize: const Size.fromHeight(0.5),
         child: Container(
-          height: 1,
-          color: context.colors.border,
+          height: 0.5,
+          color: colors.isDark
+              ? colors.border
+              : colors.border.withValues(alpha: 0.5),
         ),
       ),
     );

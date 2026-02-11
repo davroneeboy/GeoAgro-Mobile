@@ -38,6 +38,39 @@ class AdaptiveColors {
       isDark ? AppColors.darkDivider : AppColors.lightDivider;
   Color get muted =>
       isDark ? AppColors.darkMuted : AppColors.lightMuted;
+
+  // ─── Card Decoration ──────────────────────────────────────
+  /// Card shadow: soft elevation in light mode, none in dark mode.
+  List<BoxShadow> get cardShadow => isDark
+      ? const []
+      : const [
+          BoxShadow(
+            color: Color(0x0A000000), // 4% black
+            blurRadius: 1,
+            offset: Offset(0, 1),
+          ),
+          BoxShadow(
+            color: Color(0x0F000000), // 6% black
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ];
+
+  /// Card border: visible in dark mode, subtle/none in light mode.
+  Border? get cardBorder => isDark
+      ? Border.all(color: border)
+      : null;
+
+  /// Inner divider color (inside cards): thinner in light, normal in dark.
+  Color get cardDivider => isDark
+      ? AppColors.darkDivider
+      : const Color(0xFFF2F2F7); // iOS system gray 6
+
+  // ─── Icon Tint ────────────────────────────────────────────
+  /// Muted icon tint that adapts to theme.
+  Color get iconSecondary => isDark
+      ? AppColors.darkTextTertiary
+      : const Color(0xFF8E8E93); // iOS gray
 }
 
 /// Extension on [BuildContext] for convenient access to [AdaptiveColors].

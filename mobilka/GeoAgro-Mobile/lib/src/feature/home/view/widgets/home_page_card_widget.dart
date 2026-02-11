@@ -304,9 +304,13 @@ class HomePageCardWidget extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: context.colors.surfaceVariant,
+        color: context.colors.isDark
+            ? context.colors.surfaceVariant
+            : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.isDark
+            ? Border.all(color: context.colors.border)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -369,9 +373,13 @@ class HomePageCardWidget extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: context.colors.surfaceVariant,
+        color: context.colors.isDark
+            ? context.colors.surfaceVariant
+            : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.isDark
+            ? Border.all(color: context.colors.border)
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

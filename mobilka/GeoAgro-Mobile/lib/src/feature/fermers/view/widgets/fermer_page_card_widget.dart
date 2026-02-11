@@ -33,18 +33,8 @@ class FermerPageCardWidget extends ConsumerWidget {
         decoration: BoxDecoration(
           color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(
-            color: context.colors.border,
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.18),
-              blurRadius: 18,
-              offset: const Offset(0, 14),
-              spreadRadius: -12,
-            ),
-          ],
+          border: context.colors.cardBorder,
+          boxShadow: context.colors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,9 +216,13 @@ class _InfoPill extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: context.colors.surface,
+        color: context.colors.isDark
+            ? context.colors.surface
+            : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.isDark
+            ? Border.all(color: context.colors.border)
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

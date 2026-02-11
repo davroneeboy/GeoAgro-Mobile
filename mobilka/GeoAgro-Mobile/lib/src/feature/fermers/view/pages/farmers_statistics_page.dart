@@ -145,7 +145,8 @@ class _SearchSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +237,8 @@ class _SearchResultsList extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(color: context.colors.border),
+          border: context.colors.cardBorder,
+          boxShadow: context.colors.cardShadow,
         ),
         child: Center(
           child: Column(
@@ -324,7 +326,8 @@ class _SearchResultCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(color: context.colors.border),
+          border: context.colors.cardBorder,
+          boxShadow: context.colors.cardShadow,
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -471,15 +474,8 @@ class _OverviewHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(color: context.colors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 32,
-            offset: const Offset(0, 24),
-            spreadRadius: -24,
-          ),
-        ],
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,15 +629,8 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: context.colors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 18,
-            offset: const Offset(0, 12),
-            spreadRadius: -12,
-          ),
-        ],
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -750,7 +739,8 @@ class _FarmerCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppRadii.card),
-          border: Border.all(color: context.colors.border),
+          border: context.colors.cardBorder,
+          boxShadow: context.colors.cardShadow,
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -903,9 +893,13 @@ class _MetricPill extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: context.colors.surface,
+        color: context.colors.isDark
+            ? context.colors.surface
+            : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
-        border: Border.all(color: context.colors.border),
+        border: context.colors.isDark
+            ? Border.all(color: context.colors.border)
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

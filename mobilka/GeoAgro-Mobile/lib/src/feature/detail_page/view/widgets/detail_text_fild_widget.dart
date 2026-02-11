@@ -62,7 +62,9 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: context.colors.border,
+                color: context.colors.isDark
+                    ? context.colors.border
+                    : context.colors.border.withValues(alpha: 0.5),
                 width: 1.2,
               ),
             ),

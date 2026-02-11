@@ -384,6 +384,13 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: DesignColors.AppColors.accentGreen.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               alignment: Alignment.center,
               child: Text(
@@ -589,11 +596,16 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   Widget _buildSectionTitle(String title, AdaptiveColors colors) {
-    return Text(
-      title,
-      style: AppTypography.title(context).copyWith(
-        color: colors.textPrimary,
-        fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.only(left: AppSpacing.xs),
+      child: Text(
+        title.toUpperCase(),
+        style: AppTypography.caption(context).copyWith(
+          color: colors.textTertiary,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.6,
+          fontSize: 13.sp,
+        ),
       ),
     );
   }
@@ -601,10 +613,12 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
   Widget _buildCard(AdaptiveColors colors,
       {required Widget child, VoidCallback? onTap}) {
     final container = Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: colors.border),
+        border: colors.cardBorder,
+        boxShadow: colors.cardShadow,
       ),
       child: child,
     );
@@ -622,7 +636,14 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
   }
 
   Widget _buildDivider(AdaptiveColors colors) {
-    return Divider(height: 1, thickness: 1, color: colors.border);
+    return Padding(
+      padding: const EdgeInsets.only(left: 52.0),
+      child: Divider(
+        height: 0.5,
+        thickness: 0.5,
+        color: colors.cardDivider,
+      ),
+    );
   }
 
   Widget _buildInfoRow(

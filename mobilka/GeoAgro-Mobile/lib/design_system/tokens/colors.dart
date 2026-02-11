@@ -80,17 +80,17 @@ class AppColors {
   static const Color cE60C0C02 = Color.fromRGBO(230, 12, 12, 0.2);
   
   // ===== LIGHT THEME =====
-  static const Color lightBackground = Color(0xFFF8FAFC); // Tailwind slate-50
+  static const Color lightBackground = Color(0xFFF2F2F7); // iOS system gray 6
   static const Color lightSurface = Color(0xFFFFFFFF); // White
-  static const Color lightSurfaceVariant = Color(0xFFF1F5F9); // Tailwind slate-100
-  static const Color lightTextPrimary = Color(0xFF0F172A); // Tailwind slate-900
-  static const Color lightTextSecondary = Color(0xFF475569); // Tailwind slate-600
-  static const Color lightTextTertiary = Color(0xFF94A3B8); // Tailwind slate-400
-  static const Color lightBorder = Color(0xFFE2E8F0); // Tailwind slate-200
-  static const Color lightDivider = Color(0xFFF1F5F9); // Tailwind slate-100
+  static const Color lightSurfaceVariant = Color(0xFFFFFFFF); // White cards
+  static const Color lightTextPrimary = Color(0xFF1C1C1E); // iOS label
+  static const Color lightTextSecondary = Color(0xFF3C3C43); // iOS secondary label
+  static const Color lightTextTertiary = Color(0xFF8E8E93); // iOS tertiary label
+  static const Color lightBorder = Color(0xFFE5E5EA); // iOS separator
+  static const Color lightDivider = Color(0xFFC6C6C8); // iOS opaque separator
   static const Color lightSurfaceElevated = Color(0xFFFFFFFF); // White
-  static const Color lightMuted = Color(0xFFCBD5E1); // Tailwind slate-300
-  static const Color lightHighlight = Color(0xFFF8FAFC); // Tailwind slate-50
+  static const Color lightMuted = Color(0xFFD1D1D6); // iOS gray 4
+  static const Color lightHighlight = Color(0xFFE5E5EA); // iOS gray 5
   
   // iOS Blue (for accents in some areas)
   static const Color accentBlue = Color(0xFF007AFF);

@@ -9,15 +9,15 @@ class AppColors {
   static const Color primaryContainer = Color(0xFFD1FAE5);
   static const Color primaryContainerDark = Color(0xFF0F4A2B);
 
-  static const Color lightBackground = Color(0xFFF9F6EE);
-  static const Color lightSurface = Color(0xFFFFFBF5);
-  static const Color lightSurfaceVariant = Color(0xFFF5F2E8);
-  static const Color lightSurfaceElevated = Color(0xFFFFFFFF);
-  static const Color lightOnBackground = Color(0xFF1C1B1A);
-  static const Color lightOnSurface = Color(0xFF3E3E3C);
-  static const Color lightOnSurfaceVariant = Color(0xFF706F6C);
-  static const Color lightOutline = Color(0xFFE0DED9);
-  static const Color lightOutlineVariant = Color(0xFFEBE8E2);
+  static const Color lightBackground = Color(0xFFF2F2F7); // iOS system gray 6
+  static const Color lightSurface = Color(0xFFFFFFFF); // White
+  static const Color lightSurfaceVariant = Color(0xFFFFFFFF); // White cards
+  static const Color lightSurfaceElevated = Color(0xFFFFFFFF); // White
+  static const Color lightOnBackground = Color(0xFF1C1C1E); // iOS label
+  static const Color lightOnSurface = Color(0xFF1C1C1E); // iOS label
+  static const Color lightOnSurfaceVariant = Color(0xFF8E8E93); // iOS tertiary label
+  static const Color lightOutline = Color(0xFFD1D1D6); // iOS gray 4
+  static const Color lightOutlineVariant = Color(0xFFE5E5EA); // iOS separator
 
   static const Color darkBackground = Color(0xFF021024); // Deep Navy Blue
   static const Color darkSurface = Color(0xFF3F433F);

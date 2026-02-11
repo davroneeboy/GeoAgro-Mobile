@@ -40,9 +40,11 @@ class GenericDropWidget<T> extends StatelessWidget {
           width: MediaQuery.of(context).size.width * 0.3,
           padding: REdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: context.colors.surface,
+            color: context.colors.surfaceVariant,
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: context.colors.border),
+            border: context.colors.isDark
+                ? Border.all(color: context.colors.border)
+                : Border.all(color: context.colors.border.withValues(alpha: 0.5)),
           ),
           child: Stack(
             alignment: Alignment.center,

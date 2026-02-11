@@ -98,9 +98,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
     final isInvestmentMahalliy = ref.watch(detailVm.switchInvestmentMahhalliy);
 
     final backgroundColor = context.colors.background;
-    final sectionColor = context.colors.surface;
-    final outlineColor = context.colors.border;
-    final shadowColor = Colors.black.withOpacity(0.25);
+    final sectionColor = context.colors.surfaceVariant;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -118,15 +116,8 @@ class DetailPageState extends ConsumerState<DetailPage> {
           decoration: BoxDecoration(
             color: sectionColor,
             borderRadius: BorderRadius.circular(AppRadii.card),
-            border: Border.all(color: outlineColor),
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 32,
-                spreadRadius: -12,
-                offset: const Offset(0, 24),
-              ),
-            ],
+            border: context.colors.cardBorder,
+            boxShadow: context.colors.cardShadow,
           ),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.cardPadding),
@@ -250,7 +241,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppRadii.input),
                             borderSide: BorderSide(
-                              color: outlineColor,
+                              color: context.colors.isDark
+                                  ? context.colors.border
+                                  : context.colors.border.withValues(alpha: 0.5),
                               width: 1.2,
                             ),
                           ),
@@ -818,7 +811,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: outlineColor,
+                      color: context.colors.isDark
+                          ? context.colors.border
+                          : context.colors.border.withValues(alpha: 0.5),
                       width: 1.2,
                     ),
                   ),

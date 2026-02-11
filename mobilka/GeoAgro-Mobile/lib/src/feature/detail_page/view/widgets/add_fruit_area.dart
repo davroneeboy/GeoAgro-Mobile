@@ -43,12 +43,10 @@ class AddFruitArea extends StatelessWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: context.colors.surface,
+                            color: context.colors.surfaceVariant,
                             borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(
-                              color: context.colors.border,
-                              width: 1,
-                            ),
+                            border: context.colors.cardBorder,
+                            boxShadow: context.colors.cardShadow,
                           ),
                           padding: EdgeInsets.all(12.w),
                           child: Column(

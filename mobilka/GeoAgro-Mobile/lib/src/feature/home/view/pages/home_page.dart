@@ -156,18 +156,21 @@ class _HomePageState extends ConsumerState<HomePage> {
       bottomNavigationBar: Container(
         margin: EdgeInsets.only(left: 12.w, right: 12.w, bottom: 12.h),
         decoration: BoxDecoration(
-          color: context.colors.surface,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(24.r),
-          border: Border.all(
-            color: context.colors.border,
-            width: 0.5,
-          ),
+          border: context.colors.cardBorder,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 24,
+              color: Colors.black.withValues(alpha: context.colors.isDark ? 0.08 : 0.06),
+              blurRadius: context.colors.isDark ? 24 : 16,
               offset: const Offset(0, 4),
             ),
+            if (!context.colors.isDark)
+              const BoxShadow(
+                color: Color(0x08000000),
+                blurRadius: 1,
+                offset: Offset(0, 0),
+              ),
           ],
         ),
         child: ClipRRect(

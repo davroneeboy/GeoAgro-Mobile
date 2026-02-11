@@ -135,14 +135,18 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
                         borderSide: BorderSide(
-                          color: context.colors.border,
+                          color: context.colors.isDark
+                              ? context.colors.border
+                              : context.colors.border.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
                         borderSide: BorderSide(
-                          color: context.colors.border,
+                          color: context.colors.isDark
+                              ? context.colors.border
+                              : context.colors.border.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),

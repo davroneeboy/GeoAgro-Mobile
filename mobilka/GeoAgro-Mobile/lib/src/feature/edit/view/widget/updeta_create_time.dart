@@ -37,8 +37,10 @@ class UpdetaCreateTime extends StatelessWidget {
       child: Container(
         padding: REdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: context.colors.surface,
-          border: Border.all(color: context.colors.border),
+          color: context.colors.surfaceVariant,
+          border: context.colors.isDark
+              ? Border.all(color: context.colors.border)
+              : Border.all(color: context.colors.border.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: ValueListenableBuilder<DateTime?>(

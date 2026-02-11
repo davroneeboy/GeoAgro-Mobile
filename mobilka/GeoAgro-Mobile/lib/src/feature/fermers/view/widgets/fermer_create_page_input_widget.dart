@@ -43,18 +43,26 @@ class FermerCreatePageInputWidget extends StatelessWidget {
       maxLength: maxLength,
       decoration: InputDecoration(
         filled: true,
-        fillColor: context.colors.surface,
+        fillColor: context.colors.surfaceVariant,
         counterText: '',
         contentPadding: EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: context.colors.border),
+          borderSide: BorderSide(
+            color: context.colors.isDark
+                ? context.colors.border
+                : context.colors.border.withValues(alpha: 0.5),
+          ),
           borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         disabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: context.colors.border),
+          borderSide: BorderSide(
+            color: context.colors.isDark
+                ? context.colors.border
+                : context.colors.border.withValues(alpha: 0.3),
+          ),
           borderRadius: BorderRadius.circular(AppRadii.input),
         ),
         focusedBorder: OutlineInputBorder(

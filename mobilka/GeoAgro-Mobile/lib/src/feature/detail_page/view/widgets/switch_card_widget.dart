@@ -25,11 +25,9 @@ class CustomSwitchCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: context.colors.surface,
-            border: Border.all(
-              color: context.colors.border,
-              width: 1,
-            ),
+            color: context.colors.surfaceVariant,
+            border: context.colors.cardBorder,
+            boxShadow: context.colors.cardShadow,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(

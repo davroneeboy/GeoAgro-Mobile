@@ -22,13 +22,13 @@ class SubsidiyaButton<T> extends StatelessWidget {
           height: 56.h,
           minWidth: MediaQuery.of(context).size.width,
           color: context.colors.surfaceVariant,
+          elevation: context.colors.isDark ? 0 : 1,
           padding: REdgeInsets.symmetric(horizontal: 20.w),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.r),
-            side: BorderSide(
-              color: context.colors.border,
-              width: 1,
-            ),
+            side: context.colors.isDark
+                ? BorderSide(color: context.colors.border, width: 1)
+                : BorderSide.none,
           ),
           onPressed: () {
             showModalBottomSheet(
