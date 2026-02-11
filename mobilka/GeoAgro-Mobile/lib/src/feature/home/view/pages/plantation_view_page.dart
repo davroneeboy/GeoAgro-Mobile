@@ -1664,15 +1664,45 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ),
         itemBuilder: (context, index) {
           final imageUrl = images[index];
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadii.sm),
-            child: GestureDetector(
-              onTap: () => _showImageDialog(context, imageUrl),
-              child: Ink.image(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
-                child: Container(
-                  color: Colors.black.withOpacity(0.04),
+          return GestureDetector(
+            onTap: () => _showImageDialog(context, imageUrl),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadii.sm),
+                border: Border.all(
+                  color: DesignColors.AppColors.darkBorder,
+                  width: 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.sm - 1),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: DesignColors.AppColors.darkSurface,
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          DesignColors.AppColors.accentGreen,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: DesignColors.AppColors.darkSurface,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        color: DesignColors.AppColors.darkTextSecondary,
+                        size: 32,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
