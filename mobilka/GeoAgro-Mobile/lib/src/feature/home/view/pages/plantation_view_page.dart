@@ -797,7 +797,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                       ),
                       _InfoEntry(
                         "Miqdor",
-                        "${_formatNumber(investment.investmentAmount)} UZS",
+                        "${_formatNumber(investment.investmentAmount)} ${investment.investType == 1 ? 'UZS' : 'USD'}",
                         Icons.attach_money_outlined,
                       ),
                     ])
