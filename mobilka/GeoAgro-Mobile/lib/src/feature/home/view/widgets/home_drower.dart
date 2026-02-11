@@ -297,8 +297,8 @@ class _ModernDrawerHeader extends StatelessWidget {
                 Text(
                   isLoading
                       ? "Ma'lumotlar yuklanmoqda..."
-                      : (userInfo?.displayName?.isNotEmpty == true
-                          ? userInfo!.displayName!
+                      : (userInfo?.displayName.isNotEmpty == true
+                          ? userInfo!.displayName
                           : "Foydalanuvchi"),
                   style: AppTypography.title(context).copyWith(
                     color: Colors.white,
@@ -343,7 +343,7 @@ class _ModernDrawerHeader extends StatelessWidget {
   }
 
   String _userInitials(UserInfoModel? info) {
-    final source = info?.displayName?.trim();
+    final source = info?.displayName.trim();
     if (source == null || source.isEmpty) {
       return "GA";
     }

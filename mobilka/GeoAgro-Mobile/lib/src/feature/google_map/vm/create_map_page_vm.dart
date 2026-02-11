@@ -12,7 +12,6 @@ import '../../../data/model/plantation/nearby_plantations_model.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
-import '../../../core/setting/setup.dart';
 import '../../../core/services/district_boundary_service.dart';
 import 'dart:convert';
 List<LatLng> polygoneCoordinates = [];
@@ -131,7 +130,7 @@ class CreateMapPageVm extends ChangeNotifier {
 
   void _setLoading(bool value) {
     isLoading = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> loadUserArrowIcon() async {
@@ -182,7 +181,7 @@ class CreateMapPageVm extends ChangeNotifier {
         }
         currentLocation = LatLng(position.latitude, position.longitude);
         _updateUserArrowMarker();
-        notifyListeners();
+        _safeNotifyListeners();
       });
     } catch (e) {
       // Если не удалось запустить поток местоположения, используем разовое получение
@@ -210,6 +209,13 @@ class CreateMapPageVm extends ChangeNotifier {
   }
 
   bool _isDisposed = false;
+
+  /// Безопасный вызов notifyListeners — не вызывает после dispose
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      _safeNotifyListeners();
+    }
+  }
 
   @override
   void dispose() {
@@ -245,7 +251,7 @@ class CreateMapPageVm extends ChangeNotifier {
     // Загружаем границы области пользователя
     loadRegionBoundaries();
 
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Загружает границы района пользователя на основе его district_id
@@ -279,7 +285,7 @@ class CreateMapPageVm extends ChangeNotifier {
         regionBoundaries.clear();
         regionBoundaries.addAll(boundaries);
         debugPrint('✅ CreateMapPageVm: Loaded ${boundaries.length} boundary polygons');
-        notifyListeners();
+        _safeNotifyListeners();
       } else {
         debugPrint('⚠️ CreateMapPageVm: No boundaries loaded for district_id: $districtId');
       }
@@ -290,7 +296,7 @@ class CreateMapPageVm extends ChangeNotifier {
 
   Future<void> loadNearbyPlantations() async {
     isLoadingNearby = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final data = await _appRepositoryImpl.getUserPlantationsForMap();
@@ -336,7 +342,7 @@ class CreateMapPageVm extends ChangeNotifier {
       await _loadPlantationsAlternative();
     } finally {
       isLoadingNearby = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -406,7 +412,7 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     // Уведомляем UI об обновлении
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void _addPlantationTooltipMarker({
@@ -438,7 +444,7 @@ class CreateMapPageVm extends ChangeNotifier {
           // Также показываем всплывающее окно при прямом тапе по маркеру
           selectedPlantation = plantation;
           showPlantationDialog = true;
-          notifyListeners();
+          _safeNotifyListeners();
         },
       ),
     );
@@ -473,7 +479,7 @@ class CreateMapPageVm extends ChangeNotifier {
   void _handlePlantationInfoTap(FormeMapPlantation plantation) {
     selectedPlantation = plantation;
     showPlantationDialog = true;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void onPolygonTap(PolygonId polygonId) {
@@ -481,10 +487,16 @@ class CreateMapPageVm extends ChangeNotifier {
 
     // Найти плантацию по ID полигона
     final plantationId = polygonId.value.replaceFirst('user_plantation_', '');
-    final plantation = userPlantations.firstWhere(
+    final plantationIndex = userPlantations.indexWhere(
       (p) => p.id.toString() == plantationId,
-      orElse: () => throw StateError('Plantation not found'),
     );
+
+    if (plantationIndex == -1) {
+      debugPrint('Plantation not found for polygon: ${polygonId.value}');
+      return;
+    }
+
+    final plantation = userPlantations[plantationIndex];
 
     debugPrint('Selected plantation: ${plantation.id}');
     debugPrint('Farmer: ${plantation.getDisplayFarmerName()}');
@@ -499,7 +511,7 @@ class CreateMapPageVm extends ChangeNotifier {
     if (mapController != null) {
       mapController!.showMarkerInfoWindow(markerId);
     }
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void closePlantationDialog() {
@@ -510,7 +522,7 @@ class CreateMapPageVm extends ChangeNotifier {
     }
     selectedPlantation = null;
     showPlantationDialog = false;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void onTap(LatLng position) {
@@ -533,7 +545,7 @@ class CreateMapPageVm extends ChangeNotifier {
       _updateDrawingElements();
     }
 
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   // Проверяет, находится ли точка внутри полигона
@@ -583,7 +595,7 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     _updateDrawingElements();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void _updateDrawingElements() async {
@@ -726,7 +738,7 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     _updateDrawingElements();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void removeLastPoint() {
@@ -740,7 +752,7 @@ class CreateMapPageVm extends ChangeNotifier {
         segmentDistances.removeLast();
       }
       _updateDrawingElements();
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -754,7 +766,7 @@ class CreateMapPageVm extends ChangeNotifier {
     segmentDistances.clear();
     isPolygonComplete = false;
     _updateDrawingElements();
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   double getPolygonArea() {
@@ -781,7 +793,7 @@ class CreateMapPageVm extends ChangeNotifier {
     isLocationPermissionGranted = permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
 
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   List<Coordinate> cordinatesConverter() {
@@ -984,7 +996,7 @@ class CreateMapPageVm extends ChangeNotifier {
       loadNearbyPlantations();
     } finally {
       _setLoading(false);
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 }

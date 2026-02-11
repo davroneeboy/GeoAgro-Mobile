@@ -1,4 +1,4 @@
-import 'package:agro_employee_public/src/data/model/plantation/new_plantation_model.dart';
+import '../../../../data/model/plantation/new_plantation_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 

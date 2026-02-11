@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../design_system/tokens/colors.dart';
-import '../../../../design_system/tokens/typography.dart';
+import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/typography.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final String message;

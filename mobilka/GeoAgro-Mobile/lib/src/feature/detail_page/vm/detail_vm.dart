@@ -890,6 +890,8 @@ class DetailVM extends ChangeNotifier {
     // Загружаем информацию о пользователе перед показом диалога
     await loadUserInfo();
     
+    if (!context.mounted) return;
+    
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {
@@ -917,7 +919,7 @@ class DetailVM extends ChangeNotifier {
       },
     );
 
-    if (source != null) {
+    if (source != null && context.mounted) {
       await pickImage(cardId: cardId, source: source, context: context);
     }
   }

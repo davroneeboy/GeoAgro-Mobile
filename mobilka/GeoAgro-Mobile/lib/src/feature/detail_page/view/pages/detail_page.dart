@@ -1,24 +1,23 @@
-import 'package:agro_employee_public/src/core/setting/setup.dart';
-import 'package:agro_employee_public/src/core/widgets/mian_text.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/add_subsidiya_bottom_shit.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/border_widget.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/created_time_widget.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/add_fruit_area.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/productivity_indicator_widget.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/subsidiya_button.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/add_subsidy_list.dart';
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/switch_card_widget.dart';
+import '../../../../core/setting/setup.dart';
+import '../../../../core/widgets/mian_text.dart';
+import '../widgets/add_subsidiya_bottom_shit.dart';
+import '../widgets/border_widget.dart';
+import '../widgets/created_time_widget.dart';
+import '../widgets/add_fruit_area.dart';
+import '../widgets/productivity_indicator_widget.dart';
+import '../widgets/subsidiya_button.dart';
+import '../widgets/add_subsidy_list.dart';
+import '../widgets/switch_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
-import 'package:agro_employee_public/design_system/theme/colors.dart'
-    as DesignColors;
-import 'package:agro_employee_public/design_system/theme/radius.dart';
-import 'package:agro_employee_public/design_system/theme/spacing.dart';
-import 'package:agro_employee_public/design_system/theme/typography.dart';
+import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/radius.dart';
+import '../../../../../design_system/theme/spacing.dart';
+import '../../../../../design_system/theme/typography.dart';
 
 import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/utils.dart';

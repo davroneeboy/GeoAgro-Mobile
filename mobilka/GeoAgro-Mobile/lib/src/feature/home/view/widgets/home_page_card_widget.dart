@@ -3,22 +3,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
-import 'package:agro_employee_public/src/core/setting/setup.dart';
-import 'package:agro_employee_public/src/core/style/app_colors.dart';
-import 'package:agro_employee_public/src/core/utils/date_utils.dart'
-    as app_date;
-import 'package:agro_employee_public/src/core/widgets/custom_card_widget.dart';
-import 'package:agro_employee_public/src/data/model/plantation/plantations_list_model.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
-import 'package:agro_employee_public/design_system/tokens/radii.dart';
-import 'package:agro_employee_public/design_system/tokens/spacing.dart';
-import 'package:agro_employee_public/design_system/tokens/typography.dart';
-import 'package:agro_employee_public/src/feature/home/vm/home_page_vm.dart';
-import 'package:agro_employee_public/src/feature/home/view/pages/home_page.dart';
-
-import '../widgets/delete_confirmation_dialog.dart';
+import '../../../../core/routes/app_route_names.dart';
+import '../../../../core/setting/setup.dart';
+import '../../../../core/style/app_colors.dart';
+import '../../../../core/utils/date_utils.dart' as app_date;
+import '../../../../core/widgets/custom_card_widget.dart';
+import '../../../../data/model/plantation/plantations_list_model.dart';
+import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/radii.dart';
+import '../../../../../design_system/tokens/spacing.dart';
+import '../../../../../design_system/tokens/typography.dart';
+import '../../vm/home_page_vm.dart';
+import '../pages/home_page.dart';
 
 class HomePageCardWidget extends StatelessWidget {
   final Result plantation;
@@ -117,7 +113,7 @@ class HomePageCardWidget extends StatelessWidget {
     //   onTap: onPressed,
     //   child: CustomCardWidget(
     final farmerName = plantation.farmerName ?? "Noma'lum fermer";
-    final farmerInn = plantation.farmerInn?.toString() ?? null;
+    final farmerInn = plantation.farmerInn?.toString();
     final plantationId = plantation.id?.toString() ?? "N/A";
     final landType = yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
@@ -628,75 +624,4 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, int plantationId) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Consumer(
-          builder: (context, ref, child) {
-            // Use custom provider if provided, otherwise use default homePageVM
-            final provider = customProvider ?? homePageVM;
-            final vm = ref.watch(provider.notifier);
-            final isDeleting = ref.watch(provider).isDeleting;
-
-            return DeleteConfirmationDialog(
-              onConfirm: (String reason) async {
-                // НЕ закрываем диалог сразу - ждем завершения операции
-                try {
-                  final result = await vm.deletePlantationPermanently(
-                      id: plantationId, reason: reason);
-
-                  // Закрываем диалог только после завершения операции
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-
-                  if (result && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(vm.deletMessage ??
-                            "O'chirish so'rovi moderatsiyaga yuborildi"),
-                        backgroundColor: AppColors.c28A745,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                    onDeleteSuccess?.call(); // Call the callback
-                  } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
-                        backgroundColor: AppColors.cE60C0C,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  // Закрываем диалог даже при ошибке
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Kutilmagan xatolik: ${e.toString()}"),
-                        backgroundColor: AppColors.cE60C0C,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                }
-              },
-              onCancel: () {
-                Navigator.of(context).pop();
-              },
-              isDeleting: isDeleting, // Pass loading state
-            );
-          },
-        );
-      },
-    );
-  }
 }

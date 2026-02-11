@@ -1,6 +1,7 @@
 import "dart:developer";
 import "package:dio/dio.dart";
 import "package:flutter/foundation.dart";
+import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:package_info_plus/package_info_plus.dart";
 
@@ -8,7 +9,6 @@ import "../../storage/app_storage.dart";
 import "../../routes/router_config.dart";
 import "../../routes/app_route_names.dart";
 import "../../setting/setup.dart";
-import "../../version/version_check_service.dart";
 import "../../widgets/update_required_dialog.dart";
 
 class TokenInterceptor extends Interceptor {

@@ -54,6 +54,7 @@ class EditVM extends ChangeNotifier {
   }
 
   // Вспомогательные функции для нормализации строк
+  // ignore: unused_element
   String _norm(String v) => v.replaceAll(',', '.');
 
   // Получить все изображения (существующие + новые)
@@ -1190,6 +1191,8 @@ class EditVM extends ChangeNotifier {
     // Загружаем информацию о пользователе перед показом диалога
     await loadUserInfo();
     
+    if (!context.mounted) return;
+    
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {
@@ -1217,7 +1220,7 @@ class EditVM extends ChangeNotifier {
       },
     );
 
-    if (source != null) {
+    if (source != null && context.mounted) {
       await pickImage(cardId: cardId, source: source, context: context);
     }
   }
@@ -1877,6 +1880,40 @@ class EditVM extends ChangeNotifier {
     imageIds = List<int>.from(_originalImageIds);
     _imagesToDelete.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    notUsableArea.dispose();
+    emptyArea.dispose();
+    investmentXorijiyAmount.dispose();
+    investmentMahhalliyAmount.dispose();
+    irrigationAreaController.dispose();
+    irrigationSystemsCount.dispose();
+    subsidiyaYear.dispose();
+    subsidiyaContract.dispose();
+    subsidiyaAmount.dispose();
+    trellisTemirInstalledArea.dispose();
+    trellisTemirCount.dispose();
+    trellisBetonInstalledArea.dispose();
+    trellisBetonCount.dispose();
+    cultivatedArea.dispose();
+    sxema1.dispose();
+    sxema2.dispose();
+    konturInputController.dispose();
+    commentsController.dispose();
+    selectedDateController.dispose();
+    tonnaController.dispose();
+    economicInefficientAreaController.dispose();
+    // Dispose динамических контроллеров резервуаров
+    // (основные reservoirsBetonliVolume/reservoirsQoplamaliVolume уже в списках)
+    for (final c in reservoirsBetonliVolumes) {
+      c.dispose();
+    }
+    for (final c in reservoirsQoplamaliVolumes) {
+      c.dispose();
+    }
+    super.dispose();
   }
 }
 

@@ -77,7 +77,9 @@ class EditImageUploadListWidget extends StatelessWidget {
                     return;
                   } else if (action == 'edit') {
                     // Продолжаем к выбору изображения
-                    showImagePicker(context, index);
+                    if (context.mounted) {
+                      showImagePicker(context, index);
+                    }
                     return;
                   }
                 } else {

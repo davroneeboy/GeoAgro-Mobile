@@ -365,7 +365,6 @@ class HomePageVm extends ChangeNotifier {
                     // Если не валидный JSON, извлекаем через регулярное выражение
                     // Формат: {error: No Plantation matches the given query.}
                     // Пробуем разные варианты регулярных выражений
-                    RegExp? errorMatch;
                     String? errorMessage;
                     
                     // Вариант 1: {error: message}

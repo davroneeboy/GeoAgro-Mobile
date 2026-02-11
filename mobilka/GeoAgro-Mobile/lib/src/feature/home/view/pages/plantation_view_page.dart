@@ -22,8 +22,6 @@ import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_vi
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../pages/home_page.dart';
-import '../widgets/delete_confirmation_dialog.dart';
-
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
   return _PlantationViewVm(id);
@@ -185,15 +183,37 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
 
   String _formatNumber(dynamic value) {
     if (value == null) return "0";
+
+    String intPart;
+    String decPart = '';
+
     if (value is double) {
-      return value == value.toInt().toDouble()
-          ? value.toInt().toString()
-          : value.toStringAsFixed(2);
-    }
-    if (value is int) {
+      if (value == value.toInt().toDouble()) {
+        intPart = value.toInt().toString();
+      } else {
+        final parts = value.toStringAsFixed(2).split('.');
+        intPart = parts[0];
+        decPart = '.${parts[1]}';
+      }
+    } else if (value is int) {
+      intPart = value.toString();
+    } else {
       return value.toString();
     }
-    return value.toString();
+
+    // Добавляем разделитель тысяч (пробел)
+    final isNegative = intPart.startsWith('-');
+    if (isNegative) intPart = intPart.substring(1);
+
+    final buffer = StringBuffer();
+    for (int i = 0; i < intPart.length; i++) {
+      if (i > 0 && (intPart.length - i) % 3 == 0) {
+        buffer.write(' ');
+      }
+      buffer.write(intPart[i]);
+    }
+
+    return '${isNegative ? '-' : ''}$buffer$decPart';
   }
 
   Widget _buildCommentsList(BuildContext context, List<Comment> comments, bool isDark) {
@@ -1292,34 +1312,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     );
   }
 
-  void _showDeleteConfirmation(
-    BuildContext context,
-    EditPlantationModel plantation,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => Consumer(
-        builder: (context, ref, child) {
-          final isDeleting = ref.watch(homePageVM).isDeleting;
-          
-          return DeleteConfirmationDialog(
-            onConfirm: (String reason) async {
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
-              await _deletePlantation(context, plantation.id, reason: reason);
-            },
-            onCancel: () {
-              Navigator.of(context).pop();
-            },
-            isDeleting: isDeleting,
-          );
-        },
-      ),
-    );
-  }
-
-  Future<void> _deletePlantation(BuildContext context, int? plantationId, {String? reason}) async {
+  Future<void> _deletePlantation(BuildContext context, int? plantationId) async {
     if (plantationId == null) return;
 
     try {
