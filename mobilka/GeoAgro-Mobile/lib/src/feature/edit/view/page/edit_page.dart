@@ -22,6 +22,7 @@ import '../../../../../design_system/tokens/colors.dart' as DesignColors;
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/typography.dart';
+import '../../../../core/services/biometric_service.dart';
 import '../../../detail_page/view/widgets/border_widget.dart';
 import '../../../detail_page/view/widgets/detail_text_fild_widget.dart';
 import '../../../detail_page/view/widgets/productivity_indicator_widget.dart';
@@ -730,6 +731,13 @@ class _EditPageState extends ConsumerState<EditPage> {
                     }
                     return;
                   }
+
+                  // Подтверждение через блокировку устройства
+                  final confirmed = await BiometricService.instance.confirmCriticalAction(
+                    reason: "O'zgarishlarni saqlash uchun tasdiqlang",
+                  );
+                  if (!confirmed) return;
+                  if (!context.mounted) return;
 
                   var allTrue = await edit.saveAllChanges(ref, widget.id);
                   if (allTrue && context.mounted) {

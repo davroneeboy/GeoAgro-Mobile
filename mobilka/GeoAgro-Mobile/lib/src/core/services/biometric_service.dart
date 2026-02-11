@@ -90,4 +90,23 @@ class BiometricService {
   Future<void> setBiometricEnabled(bool value) async {
     await AppStorage.$writeBool(key: StorageKey.biometricEnabled, value: value);
   }
+
+  // ─── Проверка перед критическим действием ───────────────────
+
+  /// Запрашивает аутентификацию перед критическим действием
+  /// (удаление, сохранение изменений и т.д.).
+  ///
+  /// Если блокировка не включена — пропускает проверку и возвращает `true`.
+  /// Возвращает `true` если пользователь прошёл аутентификацию.
+  Future<bool> confirmCriticalAction({
+    String reason = 'Amalni tasdiqlash uchun qurilma qulfini ishlating',
+  }) async {
+    final enabled = await isBiometricEnabled();
+    if (!enabled) return true; // Блокировка не включена — пропускаем
+
+    final available = await isBiometricAvailable();
+    if (!available) return true; // Устройство не поддерживает — пропускаем
+
+    return await authenticate(reason: reason);
+  }
 }

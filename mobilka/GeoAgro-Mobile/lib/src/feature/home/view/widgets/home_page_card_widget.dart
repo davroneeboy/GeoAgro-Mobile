@@ -14,6 +14,7 @@ import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 import '../../vm/home_page_vm.dart';
+import '../../../../core/services/biometric_service.dart';
 import '../pages/home_page.dart';
 
 class HomePageCardWidget extends StatelessWidget {
@@ -548,8 +549,14 @@ class HomePageCardWidget extends StatelessWidget {
               child: const Text("Bekor qilish"),
             ),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
+                // Подтверждение через блокировку устройства
+                final confirmed = await BiometricService.instance.confirmCriticalAction(
+                  reason: "Plantatsiyani o'chirish uchun tasdiqlang",
+                );
+                if (!confirmed) return;
+                if (!context.mounted) return;
                 _deletePlantationDirectly(context, plantationId);
               },
               style: FilledButton.styleFrom(

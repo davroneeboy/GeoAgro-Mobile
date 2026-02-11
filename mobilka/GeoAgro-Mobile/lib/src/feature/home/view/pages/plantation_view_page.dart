@@ -20,6 +20,7 @@ import 'package:agro_employee_public/src/feature/google_map/vm/plantation_map_vi
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../pages/home_page.dart';
+import '../../../../core/services/biometric_service.dart';
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
   return _PlantationViewVm(id);
@@ -1490,8 +1491,14 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             child: const Text("Bekor qilish"),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
+              // Подтверждение через блокировку устройства
+              final confirmed = await BiometricService.instance.confirmCriticalAction(
+                reason: "Plantatsiyani o'chirish uchun tasdiqlang",
+              );
+              if (!confirmed) return;
+              if (!context.mounted) return;
               _deletePlantation(context, plantation.id);
             },
             style: FilledButton.styleFrom(
