@@ -611,6 +611,17 @@ class EditVM extends ChangeNotifier {
         ref.read(switchReservoirsQoplamali.notifier).state = qopVolumes.isNotEmpty;
         ref.read(switchReservoirs.notifier).state = (betonVolumes.isNotEmpty || qopVolumes.isNotEmpty);
 
+        // Prefill subsidies
+        selectedEditSubsidy = (plantationModel.subsidies ?? []).toList();
+        final hasSubsidies = selectedEditSubsidy.isNotEmpty;
+        ref.read(switchSubsidiya.notifier).state = hasSubsidies;
+        if (hasSubsidies) {
+          final hasEfficiency = selectedEditSubsidy.any(
+            (s) => s.efficiency == true,
+          );
+          ref.read(switchEfficiency.notifier).state = hasEfficiency;
+        }
+
         // Prefill kontur numbers
         try {
           final imgs = (jsonData is Map<String, dynamic>) ? jsonData['kontur_number'] : null;
