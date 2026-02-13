@@ -1003,23 +1003,31 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             context,
             plantation.subsidies!
                 .map((subsidy) => [
+                      if (subsidy.direction != null)
+                        _InfoEntry(
+                          "Yo'nalish",
+                          subsidyType[subsidy.direction] ?? "Noma'lum",
+                          Icons.category_outlined,
+                        ),
                       if (subsidy.year != null)
                         _InfoEntry(
                           "Yil",
                           subsidy.year.toString(),
                           Icons.event_outlined,
                         ),
-                      if (subsidy.contractNumber != null)
+                      if (subsidy.contractNumber != null &&
+                          subsidy.contractNumber!.isNotEmpty)
                         _InfoEntry(
                           "Shartnoma raqami",
                           subsidy.contractNumber!,
                           Icons.description_outlined,
                         ),
-                      _InfoEntry(
-                        "Miqdor",
-                        "${_formatNumber(subsidy.amount)} UZS",
-                        Icons.payments_outlined,
-                      ),
+                      if (subsidy.amount != null)
+                        _InfoEntry(
+                          "Miqdor",
+                          "${_formatNumber(subsidy.amount)} UZS",
+                          Icons.payments_outlined,
+                        ),
                       _InfoEntry(
                         "Samaradorlik",
                         subsidy.efficiency == true ? "Ha" : "Yo'q",

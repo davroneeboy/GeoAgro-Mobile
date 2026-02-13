@@ -890,27 +890,31 @@ class EditVM extends ChangeNotifier {
   }
 
   void addSubsidiyaList(WidgetRef ref) {
+    // Убираем пробелы-разделители тысяч из суммы перед парсингом
+    final rawAmount = subsidiyaAmount.text.trim().replaceAll(' ', '');
+    final year = int.tryParse(subsidiyaYear.text.trim()) ?? 0;
+    final contractNum = subsidiyaContract.text.trim();
+
     final existingSubsidyIndex = selectedEditSubsidy.indexWhere((subsidy) =>
-        subsidy.year == int.tryParse(subsidiyaYear.text.trim()) &&
-        subsidy.contractNumber == subsidiyaContract.text.trim());
+        subsidy.year == year && subsidy.contractNumber == contractNum);
 
     if (existingSubsidyIndex != -1) {
       // Update existing subsidy
       selectedEditSubsidy[existingSubsidyIndex] = Subsidy(
-        year: int.tryParse(subsidiyaYear.text.trim()) ?? 0,
-        contractNumber: subsidiyaContract.text.trim(),
-        amount: double.tryParse(subsidiyaAmount.text.trim()) ?? 0.0,
+        year: year,
+        contractNumber: contractNum,
+        amount: double.tryParse(rawAmount) ?? 0.0,
         direction: _selectedEnergy,
-        efficiency: ref.watch(switchEfficiency),
+        efficiency: ref.read(switchEfficiency),
       );
     } else {
       // Add new subsidy
       selectedEditSubsidy.add(Subsidy(
-        year: int.tryParse(subsidiyaYear.text.trim()) ?? 0,
-        contractNumber: subsidiyaContract.text.trim(),
-        amount: double.tryParse(subsidiyaAmount.text.trim()) ?? 0.0,
+        year: year,
+        contractNumber: contractNum,
+        amount: double.tryParse(rawAmount) ?? 0.0,
         direction: _selectedEnergy,
-        efficiency: ref.watch(switchEfficiency),
+        efficiency: ref.read(switchEfficiency),
       ));
     }
     resetSubsudy();
@@ -1378,6 +1382,8 @@ class EditVM extends ChangeNotifier {
     subsidiyaYear.clear();
     subsidiyaContract.clear();
     subsidiyaAmount.clear();
+    _selectedEnergy = null;
+    notifyListeners();
   }
 
   void editDetailAt(int index, WidgetRef ref, BuildContext context) async {

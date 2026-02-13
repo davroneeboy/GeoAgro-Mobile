@@ -15,6 +15,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
   final String hintText;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
+  final String? suffixText;
 
   const CustomTextFieldWithLabel({
     super.key,
@@ -24,6 +25,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
     required this.hintText,
     this.keyboardType,
     this.inputFormatters,
+    this.suffixText,
   });
 
   @override
@@ -57,6 +59,11 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.inputPaddingHorizontal,
               vertical: AppSpacing.inputPaddingVertical,
+            ),
+            suffixText: suffixText,
+            suffixStyle: AppTypography.bodyLarge(context).copyWith(
+              fontSize: 14.sp,
+              color: DesignColors.AppColors.darkTextSecondary,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),

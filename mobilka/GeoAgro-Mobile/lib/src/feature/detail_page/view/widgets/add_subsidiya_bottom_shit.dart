@@ -1,9 +1,11 @@
-import 'package:agro_employee_public/src/feature/detail_page/view/widgets/created_time_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/setting/setup.dart';
+import '../../../../core/utils/thousands_separator_input_formatter.dart';
+import '../../../../core/widgets/year_wheel_picker.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -30,6 +32,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
       color: DesignColors.AppColors.darkTextPrimary,
     );
 
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       padding: EdgeInsets.only(
         left: AppSpacing.lg,
@@ -47,15 +50,22 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
           topRight: Radius.circular(AppRadii.modal),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text("Subsidiya qo`shish va to`ldirish", style: textStyle),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+          Text("Subsidiya qo\`shish va to\`ldirish", style: textStyle),
           SizedBox(height: AppSpacing.lg.h),
-          CreatedTime(
-            selectedDate: detailVm.selectedDate3,
-            setSelectedDate: detailVm.setSelectedDate3,
+          // Год — выбор колёсиком
+          YearWheelPicker(
+            label: "Subsidiya ajratilgan yil",
+            hint: "Yilni tanlang",
+            selectedYear: detailVm.selectedDate3?.year,
+            onYearSelected: (year) {
+              detailVm.setSelectedDate3(DateTime(year));
+            },
           ),
           CustomTextFieldWithLabel(
             controller: detailVm.subsidiyaContract,
@@ -66,15 +76,20 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
           CustomTextFieldWithLabel(
             controller: detailVm.subsidiyaAmount,
             onTextChanged: detailVm.setSubsidiyaAmount,
-            hintText: "ajratilgan subsidiya miqdori: so`m",
+            hintText: "ajratilgan subsidiya miqdori",
             keyboardType: TextInputType.number,
             label: "Ajratilgan subsidiya miqdori",
+            suffixText: "so'm",
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              ThousandsSeparatorInputFormatter(),
+            ],
           ),
           DropdownWithLabel(
             items: subsidyType,
-            hint: "subsidiya ajratilgan yo`nalish kiriting",
+            hint: "subsidiya ajratilgan yo\`nalish kiriting",
             selectedValue: detailVm.selectedSubsidyType,
-            label: "Subsidiya ajratilgan yo`nalish",
+            label: "Subsidiya ajratilgan yo\`nalish",
             onChanged: (value) {
               detailVm.setSubsidyType(value);
             },
@@ -116,45 +131,9 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
               Expanded(
                 child: FilledButton(
                   onPressed: () {
-                    String? errorMessage;
-                    if (detailVm.selectedDate3 == null) {
-                      errorMessage = "Subsidiya ajratilgan yilni kiriting";
-                    } else if (detailVm.subsidiyaContract.text.isEmpty) {
-                      errorMessage = "Subsidiya shartnoma raqamini kiriting";
-                    } else if (detailVm.subsidiyaAmount.text.isEmpty) {
-                      errorMessage = "Ajratilgan subsidiya miqdorini kiriting";
-                    } else if (detailVm.selectedSubsidyType == null) {
-                      detailVm.direction == detailVm.selectedSubsidyType;
-                      errorMessage = "Subsidiya turi tanalanmagan";
-                    }
+                    final errorMessage = _validate(detailVm);
                     if (errorMessage != null) {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor:
-                              DesignColors.AppColors.darkSurfaceVariant,
-                          title: Text(
-                            "Xatolik",
-                            style: AppTypography.headlineMedium(context).copyWith(
-                              color: DesignColors.AppColors.darkTextPrimary,
-                            ),
-                          ),
-                          content: Text(
-                            errorMessage!,
-                            style: AppTypography.bodyMedium(context).copyWith(
-                              color: DesignColors.AppColors.darkTextSecondary,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text("OK"),
-                            ),
-                          ],
-                        ),
-                      );
+                      _showError(context, errorMessage);
                       return;
                     }
                     detailVm.addSubsidiyaList(ref);
@@ -176,6 +155,58 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+
+  String? _validate(DetailVM vm) {
+    if (vm.selectedDate3 == null) {
+      return "Subsidiya ajratilgan yilni kiriting";
+    }
+    if (vm.subsidiyaContract.text.trim().isEmpty) {
+      return "Subsidiya shartnoma raqamini kiriting";
+    }
+    // Проверка дубликата номера договора
+    final contractNum = vm.subsidiyaContract.text.trim();
+    final hasDuplicate = vm.selectedSubsidy.any(
+      (s) => s.contractNumber == contractNum,
+    );
+    if (hasDuplicate) {
+      return "Bu shartnoma raqami allaqachon qo'shilgan. Shartnoma raqami bir xil bo'lishi mumkin emas";
+    }
+    if (vm.subsidiyaAmount.text.trim().isEmpty) {
+      return "Ajratilgan subsidiya miqdorini kiriting";
+    }
+    if (vm.selectedSubsidyType == null) {
+      return "Subsidiya turini tanlang";
+    }
+    return null;
+  }
+
+  void _showError(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: DesignColors.AppColors.darkSurfaceVariant,
+        title: Text(
+          "Xatolik",
+          style: AppTypography.headlineMedium(context).copyWith(
+            color: DesignColors.AppColors.darkTextPrimary,
+          ),
+        ),
+        content: Text(
+          message,
+          style: AppTypography.bodyMedium(context).copyWith(
+            color: DesignColors.AppColors.darkTextSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
           ),
         ],
       ),

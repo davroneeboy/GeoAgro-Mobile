@@ -842,12 +842,14 @@ class DetailVM extends ChangeNotifier {
   }
 
   void addSubsidiyaList(WidgetRef ref) {
+    // Убираем пробелы-разделители тысяч из суммы перед парсингом
+    final rawAmount = subsidiyaAmount.text.trim().replaceAll(' ', '');
     selectedSubsidy.add(Subsidy(
       year: _selectedDate3?.year.toString() ?? "0",
       contractNumber: subsidiyaContract.text.trim(),
-      amount: double.tryParse(subsidiyaAmount.text.trim()) ?? 0.0,
+      amount: double.tryParse(rawAmount) ?? 0.0,
       direction: _selectedSubsidyType,
-      efficiency: ref.watch(switchEfficiency),
+      efficiency: ref.read(switchEfficiency),
     ));
     resetSubsudy();
     notifyListeners();
@@ -857,6 +859,7 @@ class DetailVM extends ChangeNotifier {
     _selectedDate3 = null;
     subsidiyaContract.clear();
     subsidiyaAmount.clear();
+    _selectedSubsidyType = null;
     notifyListeners();
   }
 
