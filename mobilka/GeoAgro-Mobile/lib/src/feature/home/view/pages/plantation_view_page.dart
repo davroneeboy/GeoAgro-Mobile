@@ -321,7 +321,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   }
 
   Widget _buildModerationCommentCard(BuildContext context, _ModerationCommentDisplay comment, bool isDark) {
-    final theme = Theme.of(context);
     String formattedDate = '';
     if (comment.timestamp != null) {
       try {
@@ -402,7 +401,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   }
 
   Widget _buildCommentCard(BuildContext context, Comment comment, bool isDark) {
-    final theme = Theme.of(context);
     String formattedDate = '';
     try {
       final date = DateTime.parse(comment.createdAt);
@@ -577,7 +575,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (summaryCard != null) ...[
-                        summaryCard!,
+                        summaryCard,
                         const SizedBox(height: AppSpacing.lg),
                       ],
                       if (sections.isNotEmpty)
