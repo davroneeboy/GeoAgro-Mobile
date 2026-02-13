@@ -4,6 +4,8 @@ final class AppRouteNames {
   // Auth
   static const String login = "/login";
   static const String biometricLock = "/biometric-lock";
+  static const String pinSetup = "/pin-setup";
+  static const String pinLock = "/pin-lock";
 
   // Home
   static const String home = "/";

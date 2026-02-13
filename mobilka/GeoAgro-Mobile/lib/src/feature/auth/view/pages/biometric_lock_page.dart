@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import '../../../../core/services/biometric_service.dart';
+import '../../../../core/services/pin_service.dart';
 import '../../../../core/storage/app_storage.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 import '../../../../core/routes/app_route_names.dart';
@@ -26,6 +27,8 @@ class _BiometricLockPageState extends State<BiometricLockPage>
   final BiometricService _biometricService = BiometricService.instance;
   bool _isAuthenticating = false;
   String? _errorMessage;
+  int _failedAttempts = 0;
+  static const int _maxFailedAttempts = 3;
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -40,7 +43,8 @@ class _BiometricLockPageState extends State<BiometricLockPage>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndAuthenticate());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _checkAndAuthenticate());
   }
 
   @override
@@ -50,7 +54,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
   }
 
   /// Проверяет доступность блокировки перед аутентификацией.
-  /// Если пользователь убрал PIN/пароль — пропускаем экран с предупреждением.
+  /// Если пользователь убрал PIN/пароль — отключаем биометрию и пропускаем.
   Future<void> _checkAndAuthenticate() async {
     final availability = await _biometricService.checkAvailability();
     if (!mounted) return;
@@ -59,35 +63,72 @@ class _BiometricLockPageState extends State<BiometricLockPage>
         await _authenticate();
         break;
       case BiometricAvailability.securityRemoved:
-        // Пользователь убрал блокировку с устройства — отключаем и пропускаем
-        await _biometricService.setBiometricEnabled(false);
-        app_setup.biometricEnabled = false;
-        if (!mounted) return;
-        _showSecurityRemovedSnackBar();
-        context.go(AppRouteNames.home);
-        break;
       case BiometricAvailability.noSecuritySetup:
-        // Устройство не защищено — не должно попасть сюда, но на всякий случай
-        await _biometricService.setBiometricEnabled(false);
-        app_setup.biometricEnabled = false;
-        if (!mounted) return;
-        context.go(AppRouteNames.home);
+        // Блокировка убрана или не была → предлагаем установить PIN
+        await _offerPinFallback();
         break;
     }
   }
 
-  void _showSecurityRemovedSnackBar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+  /// Предлагает пользователю установить in-app PIN вместо блокировки устройства.
+  Future<void> _offerPinFallback() async {
+    if (!mounted) return;
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Qurilma qulfi topilmadi"),
         content: const Text(
-          "Qurilma qulfi olib tashlangan. Iltimos, sozlamalarda qulfni qayta o'rnating.",
+          "Qurilmangizdan qulf (PIN/parol/barmoq izi) olib tashlangan.\n\n"
+          "Ilova xavfsizligi uchun 4 raqamli PIN-kod o'rnatishni xohlaysizmi?",
         ),
-        backgroundColor: design_colors.AppColors.error,
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("O'tkazib yuborish"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("PIN o'rnatish"),
+          ),
+        ],
       ),
     );
+    if (!mounted) return;
+    if (result == true) {
+      // Сбрасываем device-метод и отправляем на установку PIN
+      await PinService.instance.clearAuthMethod();
+      await _biometricService.setBiometricEnabled(false);
+      app_setup.biometricEnabled = false;
+      app_setup.authMethod = AuthMethod.none;
+      if (!mounted) return;
+      context.go(AppRouteNames.pinSetup);
+    } else {
+      await _disableBiometricAndGoHome(null);
+    }
+  }
+
+  /// Отключает биометрию и перенаправляет на главную страницу.
+  Future<void> _disableBiometricAndGoHome(String? snackBarMessage) async {
+    await PinService.instance.clearAuthMethod();
+    await _biometricService.setBiometricEnabled(false);
+    app_setup.biometricEnabled = false;
+    app_setup.authMethod = AuthMethod.none;
+    if (!mounted) return;
+    if (snackBarMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(snackBarMessage),
+          backgroundColor: design_colors.AppColors.error,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      );
+    }
+    context.go(AppRouteNames.home);
   }
 
   Future<void> _authenticate() async {
@@ -96,26 +137,58 @@ class _BiometricLockPageState extends State<BiometricLockPage>
       _isAuthenticating = true;
       _errorMessage = null;
     });
-    final success = await _biometricService.authenticate(
+
+    // Безопасная аутентификация — null означает, что невозможно
+    final result = await _biometricService.safeAuthenticate(
       reason: "Ilovaga kirish uchun qurilma qulfini ishlating",
     );
+
     if (!mounted) return;
-    if (success) {
+
+    if (result == null) {
+      // Аутентификация невозможна (нет блокировки) — отключаем
+      await _disableBiometricAndGoHome(
+        "Qurilma qulfi mavjud emas. Biometrik qulf o'chirildi.",
+      );
+      return;
+    }
+
+    if (result) {
+      // Успешно — идём на главную
       context.go(AppRouteNames.home);
     } else {
+      // Не прошёл — увеличиваем счётчик
+      _failedAttempts++;
       setState(() {
         _isAuthenticating = false;
-        _errorMessage = "Autentifikatsiya amalga oshmadi";
+        if (_failedAttempts >= _maxFailedAttempts) {
+          _errorMessage =
+              "Autentifikatsiya $_failedAttempts marta amalga oshmadi";
+        } else {
+          _errorMessage = "Autentifikatsiya amalga oshmadi";
+        }
       });
     }
   }
 
   Future<void> _logout() async {
+    await PinService.instance.clearAuthMethod();
     await _biometricService.setBiometricEnabled(false);
     app_setup.biometricEnabled = false;
+    app_setup.authMethod = AuthMethod.none;
     await AppStorage.$deleteSecureTokens();
     if (!mounted) return;
     context.go(AppRouteNames.login);
+  }
+
+  /// Пропустить биометрию (доступно после N неудачных попыток).
+  Future<void> _skipBiometric() async {
+    await PinService.instance.clearAuthMethod();
+    await _biometricService.setBiometricEnabled(false);
+    app_setup.biometricEnabled = false;
+    app_setup.authMethod = AuthMethod.none;
+    if (!mounted) return;
+    context.go(AppRouteNames.home);
   }
 
   @override
@@ -275,6 +348,20 @@ class _BiometricLockPageState extends State<BiometricLockPage>
             ),
           ),
         ),
+        // После N неудачных попыток — кнопка "Пропустить"
+        if (_failedAttempts >= _maxFailedAttempts) ...[
+          SizedBox(height: 4.h),
+          TextButton(
+            onPressed: _skipBiometric,
+            child: Text(
+              "Qulfni o'tkazib yuborish",
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: context.colors.textSecondary,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

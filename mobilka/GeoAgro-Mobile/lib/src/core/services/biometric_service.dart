@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:flutter/services.dart';
 import '../storage/app_storage.dart';
 
 /// Результат проверки доступности биометрии / блокировки устройства.
@@ -55,13 +57,23 @@ class BiometricService {
     }
   }
 
-  /// Комбинированная проверка: устройство поддерживает И есть хотя бы один
-  /// способ аутентификации (биометрия или PIN/пароль).
+  /// Комбинированная проверка: устройство поддерживает И есть способ
+  /// аутентификации (PIN/пароль и/или биометрия).
+  ///
+  /// `isDeviceSupported()` — проверяет, что на устройстве настроен
+  /// хотя бы один метод блокировки (PIN/пароль/графический ключ/биометрия).
+  /// Если блокировка не установлена — возвращает false.
   Future<bool> isBiometricAvailable() async {
     final deviceSupported = await isDeviceSupported();
     final canCheck = await canCheckBiometrics();
-    debugPrint('BiometricService: deviceSupported=$deviceSupported, canCheck=$canCheck');
-    return deviceSupported || canCheck;
+    debugPrint(
+      'BiometricService: deviceSupported=$deviceSupported, '
+      'canCheck=$canCheck',
+    );
+    // Устройство должно поддерживать блокировку экрана.
+    // canCheckBiometrics дополнительно проверяет наличие отпечатков,
+    // но нам достаточно isDeviceSupported (включает PIN/пароль).
+    return deviceSupported;
   }
 
   /// Расширенная проверка доступности с учётом текущего состояния.
@@ -96,22 +108,59 @@ class BiometricService {
       );
       debugPrint('BiometricService.authenticate result: $result');
       return result;
+    } on PlatformException catch (e) {
+      debugPrint(
+        'BiometricService.authenticate PlatformException: '
+        'code=${e.code}, message=${e.message}',
+      );
+      // Обрабатываем специфические ошибки
+      if (e.code == auth_error.notAvailable ||
+          e.code == auth_error.notEnrolled ||
+          e.code == auth_error.passcodeNotSet) {
+        // На устройстве нет блокировки или биометрии — не падаем
+        return false;
+      }
+      return false;
     } catch (e) {
       debugPrint('BiometricService.authenticate error: $e');
       return false;
     }
   }
 
+  /// Безопасная аутентификация с предварительной проверкой.
+  ///
+  /// Сначала проверяет, доступна ли аутентификация на устройстве.
+  /// Если нет — сразу возвращает `null` (означает «невозможно»),
+  /// в отличие от `false` (означает «пользователь отменил/не прошёл»).
+  Future<bool?> safeAuthenticate({
+    String reason = 'Ilovaga kirish uchun qurilma qulfini ishlating',
+  }) async {
+    final available = await isBiometricAvailable();
+    if (!available) return null; // Аутентификация невозможна
+    return await authenticate(reason: reason);
+  }
+
   // ─── Настройки (Storage) ──────────────────────────────────
 
   /// Включена ли биометрия пользователем.
   Future<bool> isBiometricEnabled() async {
-    return await AppStorage.$readBool(key: StorageKey.biometricEnabled) ?? false;
+    return await AppStorage.$readBool(key: StorageKey.biometricEnabled) ??
+        false;
   }
 
   /// Сохранить состояние: включена/выключена биометрическая блокировка.
   Future<void> setBiometricEnabled(bool value) async {
-    await AppStorage.$writeBool(key: StorageKey.biometricEnabled, value: value);
+    await AppStorage.$writeBool(
+      key: StorageKey.biometricEnabled,
+      value: value,
+    );
+  }
+
+  /// Отключает биометрию (storage + in-memory флаг).
+  Future<void> disableBiometric() async {
+    await setBiometricEnabled(false);
+    // Импортировать setup.dart нельзя из-за цикла,
+    // поэтому вызывающий код должен обновить app_setup.biometricEnabled сам.
   }
 
   // ─── Проверка перед критическим действием ───────────────────
@@ -132,10 +181,9 @@ class BiometricService {
         return await authenticate(reason: reason);
       case BiometricAvailability.securityRemoved:
         // Блокировка была включена, но пользователь убрал PIN/пароль
-        // Показываем предупреждение и требуем подтверждение
         return await _showSecurityWarningDialog(context);
       case BiometricAvailability.noSecuritySetup:
-        // Устройство не защищено — показываем предупреждение
+        // Устройство не защищено — разрешаем действие с предупреждением
         return await _showNoSecurityDialog(context);
     }
   }
@@ -187,6 +235,34 @@ class BiometricService {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text("Davom etish"),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  /// Показывает диалог с предложением включить биометрию.
+  /// Возвращает `true` если пользователь согласился.
+  Future<bool> showEnableBiometricDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Qurilma qulfini yoqish"),
+        content: const Text(
+          "Ilova xavfsizligini oshirish uchun qurilma qulfini "
+          "(barmoq izi, PIN yoki parol) yoqishni xohlaysizmi?\n\n"
+          "Har safar ilovaga kirishda qurilma qulfi so'raladi.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Keyinroq"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Yoqish"),
           ),
         ],
       ),

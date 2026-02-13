@@ -9,6 +9,7 @@ import '../../vm/login_vm.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/tools/assets.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
+import '../../../../core/services/pin_service.dart';
 import '../widgets/modern_login_input_widget.dart';
 import '../widgets/modern_login_button.dart';
 import '../../../../core/routes/app_route_names.dart';
@@ -331,11 +332,20 @@ class _LoginPageState extends ConsumerState<LoginPage>
             design_colors.AppColors.success,
             context,
           );
-          app_setup.shouldOfferBiometric = true;
           // Даём snackbar отобразиться перед навигацией
           await Future.delayed(const Duration(milliseconds: 300));
           if (!mounted || !context.mounted) return;
-          context.go(AppRouteNames.home);
+          // Проверяем, установлен ли PIN
+          final hasPinSet = await PinService.instance.isPinSet();
+          if (hasPinSet) {
+            // PIN уже есть — идём домой
+            app_setup.appPinSet = true;
+            app_setup.authMethod = await PinService.instance.getAuthMethod();
+            context.go(AppRouteNames.home);
+          } else {
+            // PIN не установлен — обязательная установка
+            context.go(AppRouteNames.pinSetup);
+          }
         } else {
           Utils.fireTopSnackBar(
             vm.errorMessage ?? "Xatolik yuz berdi",

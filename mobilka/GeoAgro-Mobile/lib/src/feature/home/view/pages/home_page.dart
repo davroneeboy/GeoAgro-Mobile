@@ -24,7 +24,7 @@ import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
-import '../../../../core/services/biometric_service.dart';
+import '../../../../core/services/pin_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 
 final homePageVM = ChangeNotifierProvider.autoDispose<HomePageVm>((ref) {
@@ -53,47 +53,20 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
-  /// Автоматически включает блокировку устройства после логина.
+  /// Проверяет, установлен ли PIN. Если нет — отправляет на обязательную установку.
   ///
-  /// Если устройство поддерживает — делает пробную аутентификацию
-  /// и только при успехе включает блокировку.
-  /// Если устройство не защищено — показывает предупреждение.
+  /// Эта проверка работает как страховка для случаев,
+  /// когда пользователь попал на home без PIN (обратная совместимость,
+  /// обновление приложения и т.д.).
   Future<void> _checkBiometricOffer() async {
-    if (!app_setup.shouldOfferBiometric) return;
-    app_setup.shouldOfferBiometric = false;
-    final biometricService = BiometricService.instance;
-    // Уже включена — пропускаем
-    final alreadyEnabled = await biometricService.isBiometricEnabled();
-    if (alreadyEnabled) return;
-    // Проверяем поддержку устройства
-    final availability = await biometricService.checkAvailability();
+    // Если PIN уже установлен — ничего делать не нужно
+    final hasPinSet = await PinService.instance.isPinSet();
+    if (hasPinSet) return;
+    // Если нет токена — не нужно (пользователь не авторизован)
+    if (app_setup.accessToken == null) return;
     if (!mounted) return;
-    switch (availability) {
-      case BiometricAvailability.available:
-        // Пробная аутентификация — убеждаемся, что пользователь может пройти
-        final testResult = await biometricService.authenticate(
-          reason: "Qurilma qulfini tekshirish",
-        );
-        if (testResult) {
-          await biometricService.setBiometricEnabled(true);
-          app_setup.biometricEnabled = true;
-          debugPrint("Блокировка устройства включена после пробной аутентификации");
-        } else {
-          debugPrint("Пробная аутентификация не пройдена, блокировка не включена");
-        }
-        break;
-      case BiometricAvailability.noSecuritySetup:
-        // Устройство не защищено — показываем предупреждение
-        debugPrint("Устройство не защищено, показываем предупреждение");
-        if (mounted) {
-          await biometricService.showSetupSecurityDialog(context);
-        }
-        break;
-      case BiometricAvailability.securityRemoved:
-        // Маловероятно после логина, но обрабатываем
-        debugPrint("Блокировка была убрана с устройства");
-        break;
-    }
+    // PIN не установлен — отправляем на обязательную установку
+    context.go(AppRouteNames.pinSetup);
   }
 
   void refreshPlantationsList() {
