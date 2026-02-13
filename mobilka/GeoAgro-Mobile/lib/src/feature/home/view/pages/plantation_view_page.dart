@@ -22,6 +22,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../pages/home_page.dart';
 import '../../../../core/services/biometric_service.dart';
+import '../widgets/delete_confirmation_dialog.dart';
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
   return _PlantationViewVm(id);
@@ -1462,105 +1463,97 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     EditPlantationModel plantation,
     PlantationMapViewVm mapVm,
   ) {
-    // TODO: Disabled — allow deleting even for confirmed plantations
-    // final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
-    // if (isChecked) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
-    //       backgroundColor: Theme.of(context).colorScheme.error,
-    //       duration: const Duration(seconds: 3),
-    //     ),
-    //   );
-    //   return;
-    // }
+    final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
 
-    _showSimpleDeleteConfirmation(context, plantation);
+    if (isChecked) {
+      // Подтверждённую плантацию удалить нельзя — показываем модальное окно
+      _showCannotDeleteDialog(context);
+      return;
+    }
+
+    // Не подтверждённая — показываем диалог с комментарием
+    _showDeleteWithReasonDialog(context, plantation);
   }
 
-  void _showSimpleDeleteConfirmation(
-    BuildContext context,
-    EditPlantationModel plantation,
-  ) {
+  /// Модальное окно: удалить нельзя (is_checked == true)
+  void _showCannotDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, size: 48),
+        icon: const Icon(Icons.block, size: 48),
         iconColor: Theme.of(context).colorScheme.error,
-        title: const Text("Plantatsiyani o'chirish"),
+        title: const Text("O'chirib bo'lmaydi"),
         content: const Text(
-          "Haqiqatan ham bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+          "Tasdiqlangan plantatsiyani o'chirib bo'lmaydi. "
+          "Iltimos, administrator bilan bog'laning.",
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Bekor qilish"),
-          ),
           FilledButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              // Подтверждение через блокировку устройства
-              if (!context.mounted) return;
-              final confirmed = await BiometricService.instance.confirmCriticalAction(
-                context: context,
-                reason: "Plantatsiyani o'chirish uchun tasdiqlang",
-              );
-              if (!confirmed) return;
-              if (!context.mounted) return;
-              _deletePlantation(context, plantation.id);
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text("O'chirish"),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Tushunarli"),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _deletePlantation(BuildContext context, int? plantationId) async {
+  /// Диалог удаления с комментарием (is_checked == false)
+  void _showDeleteWithReasonDialog(
+    BuildContext context,
+    EditPlantationModel plantation,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return DeleteConfirmationDialog(
+          onConfirm: (reason) async {
+            Navigator.of(dialogContext).pop();
+            if (!context.mounted) return;
+            // Подтверждение через блокировку устройства
+            final confirmed = await BiometricService.instance.confirmCriticalAction(
+              context: context,
+              reason: "Plantatsiyani o'chirish uchun tasdiqlang",
+            );
+            if (!confirmed) return;
+            if (!context.mounted) return;
+            _deletePlantationWithReason(context, plantation.id, reason);
+          },
+          onCancel: () => Navigator.of(dialogContext).pop(),
+        );
+      },
+    );
+  }
+
+  Future<void> _deletePlantationWithReason(
+    BuildContext context,
+    int? plantationId,
+    String reason,
+  ) async {
     if (plantationId == null) return;
 
     try {
       final vm = ref.read(homePageVM.notifier);
-      // TODO: Disabled — allow deleting even for confirmed plantations
-      // final plantationViewVm = ref.read(plantationViewVM(widget.id));
-      // final plantation = plantationViewVm.plantation;
-      // final isChecked = plantation?.isChecked ?? false;
-      // if (isChecked) {
-      //   if (context.mounted) {
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       SnackBar(
-      //         content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
-      //         backgroundColor: Theme.of(context).colorScheme.error,
-      //         duration: const Duration(seconds: 3),
-      //       ),
-      //     );
-      //   }
-      //   return;
-      // }
 
-      final result = await vm.deletePlantation(id: plantationId);
+      final result = await vm.deletePlantationPermanently(
+        id: plantationId,
+        reason: reason,
+      );
       
       if (context.mounted) {
         debugPrint("Delete: Result: $result, deletMessage: ${vm.deletMessage}");
         if (result) {
-          // Показываем сообщение об успехе
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(vm.deletMessage ?? "Plantatsiya muvaffaqiyatli o'chirildi"),
+              content: Text(vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
               backgroundColor: DesignColors.AppColors.success,
               duration: const Duration(seconds: 2),
             ),
           );
-          // Возвращаемся на предыдущую страницу
           if (context.mounted) {
-            // Используем go_router для возврата на предыдущую страницу
             context.pop();
           }
         } else {
-          // Показываем сообщение об ошибке
           final errorMessage = vm.deletMessage ?? "O'chirishda xatolik yuz berdi";
           debugPrint("Delete: Showing error message: $errorMessage");
           ScaffoldMessenger.of(context).showSnackBar(

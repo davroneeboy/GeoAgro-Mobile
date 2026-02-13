@@ -77,55 +77,57 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
         ),
         textAlign: TextAlign.center,
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Bog'ni o'chirishni tasdiqlaysizmi?",
-            style: AppTypography.bodyLarge(context).copyWith(
-              color: textColor,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: AppSpacing.md),
-          Text(
-            "O'chirish sababi:",
-            style: AppTypography.bodyMedium(context).copyWith(
-              fontWeight: FontWeight.w500,
-              color: textColor,
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: _reasonController,
-            maxLines: 3,
-            style: AppTypography.bodyMedium(context).copyWith(
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              hintText: "Sababni kiriting...",
-              hintStyle: AppTypography.bodyMedium(context).copyWith(
-                color: hintColor,
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Bog'ni o'chirishni tasdiqlaysizmi?",
+              style: AppTypography.bodyLarge(context).copyWith(
+                color: textColor,
               ),
-              filled: true,
-              fillColor: inputFillColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.input),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.input),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.input),
-                borderSide: BorderSide(color: focusedBorderColor, width: 2),
-              ),
-              contentPadding: EdgeInsets.all(AppSpacing.md),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
+            SizedBox(height: AppSpacing.md),
+            Text(
+              "O'chirish sababi:",
+              style: AppTypography.bodyMedium(context).copyWith(
+                fontWeight: FontWeight.w500,
+                color: textColor,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _reasonController,
+              maxLines: 3,
+              style: AppTypography.bodyMedium(context).copyWith(
+                color: textColor,
+              ),
+              decoration: InputDecoration(
+                hintText: "Sababni kiriting...",
+                hintStyle: AppTypography.bodyMedium(context).copyWith(
+                  color: hintColor,
+                ),
+                filled: true,
+                fillColor: inputFillColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: BorderSide(color: focusedBorderColor, width: 2),
+                ),
+                contentPadding: EdgeInsets.all(AppSpacing.md),
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         Row(

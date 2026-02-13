@@ -17,6 +17,7 @@ import '../../../../../design_system/tokens/typography.dart';
 import '../../vm/home_page_vm.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../pages/home_page.dart';
+import 'delete_confirmation_dialog.dart';
 
 class HomePageCardWidget extends StatelessWidget {
   final Result plantation;
@@ -525,121 +526,125 @@ class HomePageCardWidget extends StatelessWidget {
   }
 
   void _handleDelete(BuildContext context, int plantationId, bool isChecked) {
-    // Если плантация подтверждена, нельзя удалять
     if (isChecked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Tasdiqlangan plantatsiyani o'chirib bo'lmaydi."),
-          backgroundColor: AppColors.cE60C0C,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      // Подтверждённую плантацию удалить нельзя — модальное окно
+      _showCannotDeleteDialog(context);
       return;
     }
-    
-    // Для неподтвержденных плантаций - простой диалог подтверждения
-    _showSimpleDeleteConfirmation(context, plantationId);
+
+    // Не подтверждённая — показываем диалог с комментарием
+    _showDeleteWithReasonDialog(context, plantationId);
   }
 
-  void _showSimpleDeleteConfirmation(BuildContext context, int plantationId) {
+  /// Модальное окно: удалить нельзя (is_checked == true)
+  void _showCannotDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded, size: 48),
-          iconColor: Theme.of(context).colorScheme.error,
-          title: const Text("Plantatsiyani o'chirish"),
-          content: const Text(
-            "Haqiqatan ham bu plantatsiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.block, size: 48),
+        iconColor: Theme.of(context).colorScheme.error,
+        title: const Text("O'chirib bo'lmaydi"),
+        content: const Text(
+          "Tasdiqlangan plantatsiyani o'chirib bo'lmaydi. "
+          "Iltimos, administrator bilan bog'laning.",
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Tushunarli"),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Bekor qilish"),
-            ),
-            FilledButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                // Подтверждение через блокировку устройства
-                if (!context.mounted) return;
-                final confirmed = await BiometricService.instance.confirmCriticalAction(
-                  context: context,
-                  reason: "Plantatsiyani o'chirish uchun tasdiqlang",
-                );
-                if (!confirmed) return;
-                if (!context.mounted) return;
-                _deletePlantationDirectly(context, plantationId);
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text("O'chirish"),
-            ),
-          ],
+        ],
+      ),
+    );
+  }
+
+  /// Диалог удаления с комментарием (is_checked == false)
+  void _showDeleteWithReasonDialog(BuildContext context, int plantationId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return DeleteConfirmationDialog(
+          onConfirm: (reason) async {
+            Navigator.of(dialogContext).pop();
+            if (!context.mounted) return;
+            // Подтверждение через блокировку устройства
+            final confirmed = await BiometricService.instance.confirmCriticalAction(
+              context: context,
+              reason: "Plantatsiyani o'chirish uchun tasdiqlang",
+            );
+            if (!confirmed) return;
+            if (!context.mounted) return;
+            _deletePlantationWithReason(context, plantationId, reason);
+          },
+          onCancel: () => Navigator.of(dialogContext).pop(),
         );
       },
     );
   }
 
-  void _deletePlantationDirectly(BuildContext context, int plantationId) async {
-    return showDialog(
+  Future<void> _deletePlantationWithReason(
+    BuildContext context,
+    int plantationId,
+    String reason,
+  ) async {
+    // Показываем индикатор загрузки
+    showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final provider = customProvider ?? homePageVM;
-            final vm = ref.watch(provider.notifier);
-            
-            // Удаляем плантацию
-            Future.microtask(() async {
-              try {
-                final result = await vm.deletePlantation(id: plantationId);
-                
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-                
-                if (result && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(vm.deletMessage ?? "Plantatsiya muvaffaqiyatli o'chirildi"),
-                      backgroundColor: AppColors.c28A745,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                  // Вызываем callback для обновления списка
-                  onDeleteSuccess?.call();
-                } else if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
-                      backgroundColor: AppColors.cE60C0C,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Kutilmagan xatolik: ${e.toString()}"),
-                      backgroundColor: AppColors.cE60C0C,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                }
-              }
-            });
-            
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          },
-        );
-      },
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
+
+    // Сохраняем Navigator до async-вызова, чтобы гарантированно закрыть диалог
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      final provider = customProvider ?? homePageVM;
+      final container = ProviderScope.containerOf(context);
+      final vm = container.read(provider.notifier);
+
+      final result = await vm.deletePlantationPermanently(
+        id: plantationId,
+        reason: reason,
+      );
+
+      navigator.pop(); // Закрываем индикатор загрузки
+
+      if (result) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
+            backgroundColor: AppColors.c28A745,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        onDeleteSuccess?.call();
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
+            backgroundColor: AppColors.cE60C0C,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      try {
+        navigator.pop(); // Закрываем индикатор загрузки
+      } catch (_) {
+        // Навигатор мог быть уже удалён
+      }
+      if (context.mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text("Kutilmagan xatolik: ${e.toString()}"),
+            backgroundColor: AppColors.cE60C0C,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
 }

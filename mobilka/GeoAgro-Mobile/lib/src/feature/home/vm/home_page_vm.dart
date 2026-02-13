@@ -143,21 +143,6 @@ class HomePageVm extends ChangeNotifier {
   Future<bool> deletePlantation({required int id}) async {
     deletMessage = null;
     debugPrint("Delete: Starting deletion for plantation ID: $id");
-    
-    // Проверяем, не является ли плантация подтвержденной
-    try {
-      final plantation = plantationsList.firstWhere((p) => p.id == id);
-      if (plantation.isChecked == true) {
-        debugPrint("Delete: Plantation $id is checked, cannot delete directly. Use deletePlantationPermanently instead.");
-        deletMessage = "Tasdiqlangan plantatsiyani to'g'ridan-to'g'ri o'chirib bo'lmaydi. O'chirish so'rovi yuborish kerak.";
-        _safeNotifyListeners();
-        return false;
-      }
-    } catch (e) {
-      // Плантация не найдена в списке, продолжаем удаление
-      debugPrint("Delete: Plantation $id not found in list, continuing with deletion");
-    }
-    
     _safeNotifyListeners();
 
     try {
@@ -441,21 +426,6 @@ class HomePageVm extends ChangeNotifier {
       {required int id, String? reason}) async {
     deletMessage = null;
     debugPrint("Delete: Starting permanent deletion request for plantation ID: $id");
-    
-    // Проверяем, не является ли плантация подтвержденной
-    try {
-      final plantation = plantationsList.firstWhere((p) => p.id == id);
-      if (plantation.isChecked == true) {
-        debugPrint("Delete: Plantation $id is checked, cannot delete (even with request).");
-        deletMessage = "Tasdiqlangan plantatsiyani o'chirib bo'lmaydi.";
-        _setDeleting(false);
-        _safeNotifyListeners();
-        return false;
-      }
-    } catch (e) {
-      // Плантация не найдена в списке, продолжаем
-      debugPrint("Delete: Plantation $id not found in list, continuing with deletion request");
-    }
     
     _setDeleting(true);
     _safeNotifyListeners();
