@@ -43,12 +43,12 @@ class AppStrings {
   static const String yerSuvli = "Suvli maydon";
 
   // ===== SUBSIDY TYPES =====
-  static const String subsidiyaLimon = "Limon";
-  static const String subsidiyaShpalier = "Shpalier";
-  static const String subsidiyaKochat = "Ko`chat";
-  static const String subsidiyaQuduq = "Quduq";
-  static const String subsidiyaTomchilatib = "Tomchilatib";
-  static const String subsidiyaMuqobilenergiya = "Muqobilenergiya";
+  static const String subsidiyaTomchilatib = "Tomchilatib sug'orish tizimlari uchun";
+  static const String subsidiyaQuduq = "Quduq/nasos stantsiyalari uchun";
+  static const String subsidiyaKochat = "Ko'chat uchun";
+  static const String subsidiyaShpalier = "Shpalier uchun";
+  static const String subsidiyaLimon = "Limon uchun";
+  static const String subsidiyaMuqobilenergiya = "Muqobil energiya uchun";
 
   // ===== REGIONS =====
   static const String regionTashkent = "Tashkent";
@@ -179,11 +179,11 @@ class AppLocalizedMaps {
   };
 
   static Map<int, String> get subsidyTypes => {
-    1: AppStrings.subsidiyaLimon,
-    2: AppStrings.subsidiyaShpalier,
+    1: AppStrings.subsidiyaTomchilatib,
+    2: AppStrings.subsidiyaQuduq,
     3: AppStrings.subsidiyaKochat,
-    4: AppStrings.subsidiyaQuduq,
-    5: AppStrings.subsidiyaTomchilatib,
+    4: AppStrings.subsidiyaShpalier,
+    5: AppStrings.subsidiyaLimon,
     6: AppStrings.subsidiyaMuqobilenergiya,
   };
 
