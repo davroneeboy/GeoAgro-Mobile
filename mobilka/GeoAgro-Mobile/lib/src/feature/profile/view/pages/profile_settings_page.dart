@@ -12,6 +12,7 @@ import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
+import 'package:agro_employee_public/src/core/services/fcm_service.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/services/permissions_service.dart';
@@ -177,6 +178,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
         actions: [
           TextButton(
             onPressed: () async {
+              await FcmService().deleteToken();
               await AppStorage.clearAllData();
               if (context.mounted) {
                 context.go(AppRouteNames.login);

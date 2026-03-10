@@ -24,6 +24,7 @@ import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as DesignColors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 
@@ -46,10 +47,14 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    FcmService().setUnreadRefreshCallback(() async {
+      await ref.read(notificationsVM).loadUnreadCount();
+    });
     // Загружаем данные только для главной вкладки при первой загрузке
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTabData(0); // Загружаем данные для главной вкладки
       _checkBiometricOffer(); // Предлагаем биометрию после логина
+      FcmService().flushPendingNavigation();
     });
   }
 
@@ -105,6 +110,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void dispose() {
+    FcmService().setUnreadRefreshCallback(null);
     _scrollController.dispose();
     super.dispose();
   }

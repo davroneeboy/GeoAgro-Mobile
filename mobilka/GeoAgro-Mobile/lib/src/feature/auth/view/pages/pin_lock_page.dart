@@ -9,6 +9,7 @@ import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/services/biometric_service.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../../../core/storage/app_storage.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
@@ -127,6 +128,7 @@ class _PinLockPageState extends State<PinLockPage> {
   }
 
   Future<void> _logout() async {
+    await FcmService().deleteToken();
     await _pinService.clearAuthMethod();
     await _biometricService.setBiometricEnabled(false);
     app_setup.biometricEnabled = false;

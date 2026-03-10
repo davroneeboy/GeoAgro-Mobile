@@ -14,6 +14,11 @@ import '../../../localization/app_strings.dart' show AppLocalizedMaps;
 /// Обработчик фоновых сообщений (должен быть top-level функцией)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {
+    // Firebase мог быть уже инициализирован в изоляте.
+  }
   log('Handling background message: ${message.messageId}');
   log('Title: ${message.notification?.title}');
   log('Body: ${message.notification?.body}');

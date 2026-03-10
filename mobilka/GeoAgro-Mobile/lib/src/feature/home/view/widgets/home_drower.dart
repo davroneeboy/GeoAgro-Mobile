@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/setting/setup.dart';
+import 'package:agro_employee_public/src/core/services/fcm_service.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/version/version_check_service.dart';
 import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
@@ -146,6 +147,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     label: "Chiqish",
                     isAccent: true,
                     onTap: () async {
+                      await FcmService().deleteToken();
                       await AppStorage.clearAllData();
                       accessToken = null;
                       if (context.mounted) {

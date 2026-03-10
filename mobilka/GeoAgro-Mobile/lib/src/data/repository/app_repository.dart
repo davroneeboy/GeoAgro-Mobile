@@ -59,6 +59,14 @@ abstract class AppRepo {
   
   Future<String?> getFarmersStatistics({required int districtId});
 
+  // ==== Device tokens (FCM) ====
+  Future<String?> registerDeviceToken({
+    required String token,
+    required String platform,
+    String? appVersion,
+  });
+  Future<String?> removeDeviceToken({required String token});
+
   // ==== Notifications ====
   Future<String?> getNotifications({int limit = 20, int offset = 0, bool? unreadOnly, String? type});
   Future<String?> getUnreadNotificationsCount();

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import '../../../../core/services/biometric_service.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/storage/app_storage.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
@@ -172,6 +173,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
   }
 
   Future<void> _logout() async {
+    await FcmService().deleteToken();
     await PinService.instance.clearAuthMethod();
     await _biometricService.setBiometricEnabled(false);
     app_setup.biometricEnabled = false;

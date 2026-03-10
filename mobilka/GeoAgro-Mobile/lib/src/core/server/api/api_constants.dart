@@ -5,7 +5,7 @@ final class ApiConst {
   static const Duration sendTimeout = Duration(minutes: 2);
   static const Duration receiveTimeout = Duration(minutes: 2);
 
-  static const String baseUrl = "https://api.geoagro.uz";
+  static const String baseUrl = "https://luxa.uz";
 
   static String apiUpdatePlantation(int id) => '/api/plantations/$id/mobile-update/';
   static String apiUpdateImage(int id) => '/api/plantations/$id/images/';
@@ -34,6 +34,8 @@ final class ApiConst {
   static const String apiFarmersStatistics = "/api/statistics/farmers";
   static const String apiNotifications = "/api/notifications/";
   static const String apiNotificationsUnreadCount = "/api/notifications/unread-count/";
+  static const String apiDeviceTokens = "/api/device-tokens/";
+  static String apiDeviceTokenByToken(String token) => "/api/device-tokens/$token/";
   
   // Comments
   static String apiPlantationComments(int plantationId) => '/api/plantations/$plantationId/comments/';

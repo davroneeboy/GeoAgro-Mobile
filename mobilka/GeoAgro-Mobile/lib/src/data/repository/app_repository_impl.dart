@@ -600,6 +600,45 @@ class AppRepositoryImpl implements AppRepo {
     return null;
   }
 
+  // ===== Device Tokens API =====
+  @override
+  Future<String?> registerDeviceToken({
+    required String token,
+    required String platform,
+    String? appVersion,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        "device_token": token,
+        "platform": platform,
+      };
+      if (appVersion != null && appVersion.isNotEmpty) {
+        body["app_version"] = appVersion;
+      }
+
+      final response = await ApiService.post(ApiConst.apiDeviceTokens, body);
+      return jsonEncode(response.data);
+    } on DioException catch (e) {
+      debugPrint("registerDeviceToken error: ${e.response?.data ?? e.message}");
+    } catch (e) {
+      debugPrint("registerDeviceToken unexpected error: $e");
+    }
+    return null;
+  }
+
+  @override
+  Future<String?> removeDeviceToken({required String token}) async {
+    try {
+      final data = await ApiService.delete(ApiConst.apiDeviceTokenByToken(token));
+      return data;
+    } on DioException catch (e) {
+      debugPrint("removeDeviceToken error: ${e.response?.data ?? e.message}");
+    } catch (e) {
+      debugPrint("removeDeviceToken unexpected error: $e");
+    }
+    return null;
+  }
+
   // ===== Notifications API =====
   @override
   Future<String?> getNotifications(
