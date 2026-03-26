@@ -9,7 +9,7 @@ import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -100,7 +100,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
             },
             icon: Icon(
               Icons.person_add_rounded,
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               size: 24.sp,
             ),
             tooltip: "Yangi Fermer Qo'shish",
@@ -138,7 +138,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
               },
               icon: Icon(
                 Icons.person_add_rounded,
-                color: DesignColors.AppColors.accentGreen,
+                color: design_colors.AppColors.accentGreen,
                 size: 24.sp,
               ),
               tooltip: "Yangi Fermer Qo'shish",
@@ -170,7 +170,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
           },
           icon: Icon(
               Icons.person_add_rounded,
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               size: 24.sp,
           ),
             tooltip: "Yangi Fermer Qo'shish",
@@ -183,7 +183,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
                 onRefresh: () async {
                   await vm.getFermers(isLoadMore: false);
                 },
-                color: DesignColors.AppColors.accentGreen,
+                color: design_colors.AppColors.accentGreen,
                 backgroundColor: context.colors.surface,
           child: SingleChildScrollView(
             controller: _scrollController,
@@ -281,7 +281,7 @@ class _SearchSection extends ConsumerWidget {
               FilledButton(
                 onPressed: vm.isSearching ? null : vm.searchByInn,
                 style: FilledButton.styleFrom(
-                  backgroundColor: DesignColors.AppColors.accentGreen,
+                  backgroundColor: design_colors.AppColors.accentGreen,
                   foregroundColor: context.colors.textPrimary,
                   padding: EdgeInsets.all(AppSpacing.md),
                   minimumSize: Size(48.w, 48.h),
@@ -312,7 +312,7 @@ class _SearchSection extends ConsumerWidget {
             Text(
               vm.searchErrorMessage!,
               style: AppTypography.caption(context).copyWith(
-                color: DesignColors.AppColors.error,
+                color: design_colors.AppColors.error,
               ),
             ),
           ],
@@ -356,7 +356,7 @@ class _SearchResultsList extends StatelessWidget {
               fermerModel: farmer,
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -382,7 +382,7 @@ class _FarmersList extends StatelessWidget {
                                     padding: REdgeInsets.all(16.0),
                                     child: Center(
                                       child: CircularProgressIndicator(
-                    color: DesignColors.AppColors.accentGreen,
+                    color: design_colors.AppColors.accentGreen,
                   ),
                                     ),
                                   );

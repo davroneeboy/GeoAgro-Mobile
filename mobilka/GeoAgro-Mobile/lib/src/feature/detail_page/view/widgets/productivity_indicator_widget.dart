@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
@@ -33,11 +33,11 @@ class ProductivityIndicator extends StatelessWidget {
             Expanded(
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: DesignColors.AppColors.accentGreen,
+                  activeTrackColor: design_colors.AppColors.accentGreen,
                   inactiveTrackColor: context.colors.border,
-                  thumbColor: DesignColors.AppColors.accentGreen,
+                  thumbColor: design_colors.AppColors.accentGreen,
                   overlayColor:
-                      DesignColors.AppColors.accentGreen.withOpacity(0.12),
+                      design_colors.AppColors.accentGreen.withValues(alpha: 0.12),
                   trackHeight: 4,
                 ),
                 child: Slider(

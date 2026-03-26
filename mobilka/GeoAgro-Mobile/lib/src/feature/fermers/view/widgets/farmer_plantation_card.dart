@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../data/model/farmer/farmer_plantation_model.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/colors.dart' as design_colors;
 import '../../../../../design_system/theme/spacing.dart';
 import '../../../../../design_system/theme/radius.dart';
 import '../../../../../design_system/theme/typography.dart';
@@ -30,12 +30,12 @@ class FarmerPlantationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
             color: plantation.isChecked 
-                ? DesignColors.AppColors.primary 
+                ? design_colors.AppColors.primary 
                 : (plantation.isRejected == true
-                    ? DesignColors.AppColors.error
+                    ? design_colors.AppColors.error
                     : (!plantation.isChecked && plantation.isRejected != true
-                        ? DesignColors.AppColors.warning
-                        : DesignColors.AppColors.darkOutline)),
+                        ? design_colors.AppColors.warning
+                        : design_colors.AppColors.darkOutline)),
             width: (plantation.isChecked || plantation.isRejected == true || (!plantation.isChecked && plantation.isRejected != true)) ? 2 : 1,
           ),
         ),
@@ -51,7 +51,7 @@ class FarmerPlantationCard extends StatelessWidget {
                       Icon(
                         Icons.tag,
                         size: 20.sp,
-                        color: DesignColors.AppColors.primary,
+                        color: design_colors.AppColors.primary,
                       ),
                       SizedBox(width: AppSpacing.xs),
                       Flexible(
@@ -59,7 +59,7 @@ class FarmerPlantationCard extends StatelessWidget {
                           "ID: ${plantation.id}",
                           style: AppTypography.headlineLarge(context).copyWith(
                             fontWeight: FontWeight.w700,
-                            color: DesignColors.AppColors.primary,
+                            color: design_colors.AppColors.primary,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -74,10 +74,10 @@ class FarmerPlantationCard extends StatelessWidget {
                   height: 12.w,
                   decoration: BoxDecoration(
                     color: plantation.isChecked
-                        ? DesignColors.AppColors.success
+                        ? design_colors.AppColors.success
                         : (plantation.isRejected == true
-                            ? DesignColors.AppColors.error
-                            : DesignColors.AppColors.warning),
+                            ? design_colors.AppColors.error
+                            : design_colors.AppColors.warning),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: context.colors.border,
@@ -100,7 +100,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     icon: Icons.eco,
                     label: "Unumdorlik",
                     value: "${(plantation.fertilityScore ?? 0.0).toStringAsFixed(1)}%",
-                    color: DesignColors.AppColors.primary,
+                    color: design_colors.AppColors.primary,
                   ),
                 ),
                 
@@ -113,7 +113,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     icon: Icons.landscape,
                     label: "Maydon",
                     value: "${plantation.totalArea.toStringAsFixed(1)} ga",
-                    color: DesignColors.AppColors.info,
+                    color: design_colors.AppColors.info,
                   ),
                 ),
               ],
@@ -132,7 +132,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     context: context,
                     icon: Icons.location_on,
                     label: "${plantation.coordinates.length} ta koordinata",
-                    color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    color: design_colors.AppColors.darkOnSurfaceVariant,
                   ),
                 
                 // District
@@ -141,7 +141,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     context: context,
                     icon: Icons.map,
                     label: plantation.districtName!,
-                    color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    color: design_colors.AppColors.darkOnSurfaceVariant,
                   ),
                 
                 // Year established
@@ -150,7 +150,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     context: context,
                     icon: Icons.calendar_today,
                     label: "Yil: ${plantation.gardenEstablishedYear}",
-                    color: DesignColors.AppColors.darkOnSurfaceVariant,
+                    color: design_colors.AppColors.darkOnSurfaceVariant,
                   ),
                 
                 // Is fertile
@@ -159,7 +159,7 @@ class FarmerPlantationCard extends StatelessWidget {
                     context: context,
                     icon: Icons.agriculture,
                     label: "Unumdor",
-                    color: DesignColors.AppColors.primary,
+                    color: design_colors.AppColors.primary,
                   ),
               ],
             ),
@@ -173,14 +173,14 @@ class FarmerPlantationCard extends StatelessWidget {
                     Icon(
                       Icons.person,
                       size: 14.sp,
-                      color: DesignColors.AppColors.darkOnSurfaceVariant,
+                      color: design_colors.AppColors.darkOnSurfaceVariant,
                     ),
                     SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         "Yaratgan: ${plantation.createdBy!.fullName} (${plantation.createdBy!.username})",
                         style: AppTypography.labelSmall(context).copyWith(
-                          color: DesignColors.AppColors.darkOnSurfaceVariant,
+                          color: design_colors.AppColors.darkOnSurfaceVariant,
                         ),
                       ),
                     ),
@@ -197,14 +197,14 @@ class FarmerPlantationCard extends StatelessWidget {
                     Icon(
                       Icons.access_time,
                       size: 14.sp,
-                      color: DesignColors.AppColors.darkOnSurfaceVariant,
+                      color: design_colors.AppColors.darkOnSurfaceVariant,
                     ),
                     SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         "Yaratilgan: ${_formatDate(plantation.createdAt!)}",
                         style: AppTypography.labelSmall(context).copyWith(
-                          color: DesignColors.AppColors.darkOnSurfaceVariant,
+                          color: design_colors.AppColors.darkOnSurfaceVariant,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -223,14 +223,14 @@ class FarmerPlantationCard extends StatelessWidget {
                     Icon(
                       Icons.verified,
                       size: 14.sp,
-                      color: DesignColors.AppColors.primary,
+                      color: design_colors.AppColors.primary,
                     ),
                     SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         "Tasdiqlangan: ${_formatDate(plantation.moderatedAt!)}",
                         style: AppTypography.labelSmall(context).copyWith(
-                          color: DesignColors.AppColors.primary,
+                          color: design_colors.AppColors.primary,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -250,10 +250,10 @@ class FarmerPlantationCard extends StatelessWidget {
                     height: 10.w,
                     decoration: BoxDecoration(
                       color: plantation.isChecked 
-                          ? DesignColors.AppColors.success 
+                          ? design_colors.AppColors.success 
                           : (plantation.isRejected == true 
-                              ? DesignColors.AppColors.error 
-                              : DesignColors.AppColors.warning),
+                              ? design_colors.AppColors.error 
+                              : design_colors.AppColors.warning),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: context.colors.border,
@@ -346,7 +346,7 @@ class FarmerPlantationCard extends StatelessWidget {
           Text(
             label,
             style: AppTypography.labelSmall(context).copyWith(
-              color: DesignColors.AppColors.darkOnSurfaceVariant,
+              color: design_colors.AppColors.darkOnSurfaceVariant,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,

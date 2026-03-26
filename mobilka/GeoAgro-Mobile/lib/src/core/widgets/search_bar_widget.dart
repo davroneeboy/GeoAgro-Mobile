@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 /// A search bar widget with debounce functionality
@@ -153,7 +153,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
                         borderSide: BorderSide(
-                          color: DesignColors.AppColors.accentGreen,
+                          color: design_colors.AppColors.accentGreen,
                           width: 1.5,
                         ),
                       ),

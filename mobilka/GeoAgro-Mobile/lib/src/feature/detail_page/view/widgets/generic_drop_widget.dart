@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
@@ -90,7 +90,7 @@ class GenericDropWidget<T> extends StatelessWidget {
                   width: 10.h,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: DesignColors.AppColors.accentGreen,
+                    color: design_colors.AppColors.accentGreen,
                   ),
                 ),
             ],

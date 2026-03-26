@@ -337,10 +337,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
           if (!mounted || !context.mounted) return;
           // Проверяем, установлен ли PIN
           final hasPinSet = await PinService.instance.isPinSet();
+          if (!mounted || !context.mounted) return;
           if (hasPinSet) {
             // PIN уже есть — идём домой
             app_setup.appPinSet = true;
-            app_setup.authMethod = await PinService.instance.getAuthMethod();
+            final authMethod = await PinService.instance.getAuthMethod();
+            if (!mounted || !context.mounted) return;
+            app_setup.authMethod = authMethod;
             context.go(AppRouteNames.home);
           } else {
             // PIN не установлен — обязательная установка

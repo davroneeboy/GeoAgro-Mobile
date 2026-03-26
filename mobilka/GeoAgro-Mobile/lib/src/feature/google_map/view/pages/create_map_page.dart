@@ -14,7 +14,7 @@ import '../widgets/create_map_page_button_widgets.dart';
 import '../widgets/center_ruler_widget.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/theme/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/theme/radius.dart';
 import 'package:agro_employee_public/design_system/theme/spacing.dart';
 import 'package:agro_employee_public/design_system/theme/typography.dart';
@@ -107,7 +107,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                   horizontal: AppSpacing.lg,
                   vertical: AppSpacing.md,
                 ),
-                backgroundColor: DesignColors.AppColors.primary,
+                backgroundColor: design_colors.AppColors.primary,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -281,7 +281,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                     borderRadius: BorderRadius.circular(AppRadius.card),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withValues(alpha: 0.25),
                         blurRadius: 20,
                         offset: const Offset(0, 12),
                       ),
@@ -299,8 +299,8 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  DesignColors.AppColors.primary,
-                                  DesignColors.AppColors.primaryDark,
+                                  design_colors.AppColors.primary,
+                                  design_colors.AppColors.primaryDark,
                                 ],
                               ),
                               shape: BoxShape.circle,
@@ -359,8 +359,8 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                                 ? Icons.verified_outlined
                                 : Icons.hourglass_bottom_outlined,
                             color: vm.selectedPlantation!.isChecked
-                                ? DesignColors.AppColors.success
-                                : DesignColors.AppColors.warning,
+                                ? design_colors.AppColors.success
+                                : design_colors.AppColors.warning,
                           ),
                           if (vm.selectedPlantation!
                               .getDisplayKonturNumbers()
@@ -437,9 +437,9 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: accent.withOpacity(0.12),
+        color: accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.chip),
-        border: Border.all(color: accent.withOpacity(0.25)),
+        border: Border.all(color: accent.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

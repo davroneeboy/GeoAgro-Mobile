@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
-import '../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -70,7 +70,7 @@ class CustomTextField extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
-                    color: DesignColors.AppColors.error,
+                    color: design_colors.AppColors.error,
                   ),
                 ),
               ],
@@ -95,7 +95,7 @@ class CustomTextField extends StatelessWidget {
                 ? context.colors.textPrimary
                 : context.colors.textSecondary,
           ),
-          cursorColor: DesignColors.AppColors.accentGreen,
+          cursorColor: design_colors.AppColors.accentGreen,
           decoration: InputDecoration(
             fillColor: enabled
                 ? context.colors.surface
@@ -112,7 +112,7 @@ class CustomTextField extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
                 color: errorText != null
-                    ? DesignColors.AppColors.error
+                    ? design_colors.AppColors.error
                     : context.colors.isDark
                         ? context.colors.border
                         : context.colors.border.withValues(alpha: 0.5),
@@ -123,8 +123,8 @@ class CustomTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(
                 color: errorText != null
-                    ? DesignColors.AppColors.error
-                    : DesignColors.AppColors.accentGreen,
+                    ? design_colors.AppColors.error
+                    : design_colors.AppColors.accentGreen,
                 width: 2.0,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),
@@ -140,14 +140,14 @@ class CustomTextField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: DesignColors.AppColors.error,
+                color: design_colors.AppColors.error,
                 width: 1.5,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: DesignColors.AppColors.error,
+                color: design_colors.AppColors.error,
                 width: 2.0,
               ),
               borderRadius: BorderRadius.circular(AppRadii.input),
@@ -166,7 +166,7 @@ class CustomTextField extends StatelessWidget {
             errorText!,
             style: TextStyle(
               fontSize: 12.sp,
-              color: DesignColors.AppColors.error,
+              color: design_colors.AppColors.error,
               fontWeight: FontWeight.w500,
             ),
           ),

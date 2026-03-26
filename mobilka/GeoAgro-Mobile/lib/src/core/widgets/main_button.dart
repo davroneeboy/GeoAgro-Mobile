@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
-import '../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/typography.dart';
 
@@ -86,8 +86,8 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        DesignColors.AppColors.accentGreen,
-                        DesignColors.AppColors.accentGreenDark,
+                        design_colors.AppColors.accentGreen,
+                        design_colors.AppColors.accentGreenDark,
                       ],
                     ),
               color: isDisabled
@@ -98,7 +98,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                   ? null
                   : [
                       BoxShadow(
-                        color: DesignColors.AppColors.accentGreen.withOpacity(0.3),
+                        color: design_colors.AppColors.accentGreen.withValues(alpha: 0.3),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                         spreadRadius: 0,
@@ -170,12 +170,12 @@ class MainButton2 extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDisabled
                   ? context.colors.surface
-                  : DesignColors.AppColors.accentGreen,
+                  : design_colors.AppColors.accentGreen,
               borderRadius: BorderRadius.circular(AppRadii.button),
               border: Border.all(
                 color: isDisabled
                     ? context.colors.border
-                    : DesignColors.AppColors.accentGreen,
+                    : design_colors.AppColors.accentGreen,
                 width: 1.5,
               ),
             ),

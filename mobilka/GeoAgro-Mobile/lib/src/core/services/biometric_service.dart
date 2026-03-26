@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
@@ -176,6 +175,7 @@ class BiometricService {
     String reason = 'Amalni tasdiqlash uchun qurilma qulfini ishlating',
   }) async {
     final availability = await checkAvailability();
+    if (!context.mounted) return false;
     switch (availability) {
       case BiometricAvailability.available:
         return await authenticate(reason: reason);

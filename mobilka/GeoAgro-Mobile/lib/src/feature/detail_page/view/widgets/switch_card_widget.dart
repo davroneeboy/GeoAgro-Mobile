@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 
@@ -47,9 +47,9 @@ class CustomSwitchCard extends StatelessWidget {
               Switch(
                 value: switchValue,
                 onChanged: onChanged,
-                activeColor: DesignColors.AppColors.accentGreen,
+                activeThumbColor: design_colors.AppColors.accentGreen,
                 activeTrackColor:
-                    DesignColors.AppColors.accentGreen.withOpacity(0.5),
+                    design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
                 inactiveThumbColor: context.colors.textSecondary,
                 inactiveTrackColor: context.colors.surfaceVariant,
               ),

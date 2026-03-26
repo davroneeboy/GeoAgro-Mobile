@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 
@@ -36,7 +36,7 @@ class YearWheelPicker extends StatelessWidget {
             label,
             style: AppTypography.headlineSmall(context).copyWith(
               fontSize: 16.sp,
-              color: DesignColors.AppColors.darkTextPrimary,
+              color: design_colors.AppColors.darkTextPrimary,
             ),
           ),
         ),
@@ -46,8 +46,8 @@ class YearWheelPicker extends StatelessWidget {
             width: double.infinity,
             padding: REdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: DesignColors.AppColors.darkSurfaceVariant,
-              border: Border.all(color: DesignColors.AppColors.darkBorder),
+              color: design_colors.AppColors.darkSurfaceVariant,
+              border: Border.all(color: design_colors.AppColors.darkBorder),
               borderRadius: BorderRadius.circular(AppRadii.input),
             ),
             child: Row(
@@ -58,13 +58,13 @@ class YearWheelPicker extends StatelessWidget {
                   style: AppTypography.bodyLarge(context).copyWith(
                     fontSize: 14.sp,
                     color: selectedYear != null
-                        ? DesignColors.AppColors.darkTextPrimary
-                        : DesignColors.AppColors.darkTextTertiary,
+                        ? design_colors.AppColors.darkTextPrimary
+                        : design_colors.AppColors.darkTextTertiary,
                   ),
                 ),
                 Icon(
                   Icons.calendar_today_outlined,
-                  color: DesignColors.AppColors.darkTextSecondary,
+                  color: design_colors.AppColors.darkTextSecondary,
                   size: 20.sp,
                 ),
               ],
@@ -97,7 +97,7 @@ class YearWheelPicker extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: DesignColors.AppColors.darkSurface,
+      backgroundColor: design_colors.AppColors.darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
@@ -128,7 +128,7 @@ class YearWheelPicker extends StatelessWidget {
                         style: AppTypography.headlineMedium(context).copyWith(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
-                          color: DesignColors.AppColors.darkTextPrimary,
+                          color: design_colors.AppColors.darkTextPrimary,
                         ),
                       ),
                       TextButton(
@@ -139,7 +139,7 @@ class YearWheelPicker extends StatelessWidget {
                         child: Text(
                           "Tanlash",
                           style: TextStyle(
-                            color: DesignColors.AppColors.accentGreen,
+                            color: design_colors.AppColors.accentGreen,
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
                           ),
@@ -150,7 +150,7 @@ class YearWheelPicker extends StatelessWidget {
                 ),
                 Divider(
                   height: 1,
-                  color: DesignColors.AppColors.darkBorder,
+                  color: design_colors.AppColors.darkBorder,
                 ),
                 // Колёсико
                 Expanded(
@@ -164,7 +164,7 @@ class YearWheelPicker extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.symmetric(
                           horizontal: BorderSide(
-                            color: DesignColors.AppColors.accentGreen
+                            color: design_colors.AppColors.accentGreen
                                 .withValues(alpha: 0.3),
                             width: 1,
                           ),
@@ -182,7 +182,7 @@ class YearWheelPicker extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 20.sp,
                                 color:
-                                    DesignColors.AppColors.darkTextPrimary,
+                                    design_colors.AppColors.darkTextPrimary,
                               ),
                             ),
                           ),

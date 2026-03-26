@@ -899,7 +899,7 @@ class CreateMapPageVm extends ChangeNotifier {
   Future<void> loadLimitKm() async {
     final storedLimitKm = await AppStorage.$readDouble(key: StorageKey.limitKm);
     _limitKm = storedLimitKm ?? 10.0; // Дефолт 10 км если не установлен
-    debugPrint('📍 Loaded coordinate limit: ${_limitKm} km');
+    debugPrint('📍 Loaded coordinate limit: $_limitKm km');
   }
 
   /// Валидировать координаты с учетом лимита

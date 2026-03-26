@@ -6,7 +6,6 @@ import '../../../core/storage/app_storage.dart';
 import '../../../data/model/token/token_model.dart';
 import '../../../data/model/user/user_info_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
-import '../../../core/services/fcm_service.dart';
 import '../../../core/setting/setup.dart';
 
 class LoginVm extends ChangeNotifier {
@@ -62,9 +61,6 @@ class LoginVm extends ChangeNotifier {
           debugPrint("⚠️ Error in _fetchAndStoreUserInfo, but login was successful: $e");
           // Не прерываем логин, если получение информации о пользователе не удалось
         }
-
-        // После логина привязываем FCM token к текущему пользователю.
-        await FcmService().syncTokenWithBackend();
 
         debugPrint("🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
         errorMessage = null;

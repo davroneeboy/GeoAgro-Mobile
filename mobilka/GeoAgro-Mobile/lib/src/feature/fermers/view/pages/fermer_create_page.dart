@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
@@ -152,13 +152,13 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                       if (!result && context.mounted) {
                         Utils.fireTopSnackBar(
                           vm.errorMessage ?? "Xatolik yuz berdi",
-                          DesignColors.AppColors.error,
+                          design_colors.AppColors.error,
                           context,
                         );
                       } else if (result && context.mounted) {
                         Utils.fireTopSnackBar(
                           "Yangi Fermer Qo'shildi",
-                          DesignColors.AppColors.accentGreen,
+                          design_colors.AppColors.accentGreen,
                           context,
                         );
                         context.pop(true);
@@ -166,7 +166,7 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                     } else {
                       Utils.fireTopSnackBar(
                         "Iltimos, barcha maydonlarni to'g'ri to'ldiring",
-                        DesignColors.AppColors.error,
+                        design_colors.AppColors.error,
                         context,
                       );
                     }

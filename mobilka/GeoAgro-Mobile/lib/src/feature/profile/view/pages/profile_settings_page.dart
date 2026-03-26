@@ -6,13 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
-import 'package:agro_employee_public/src/core/services/fcm_service.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/services/permissions_service.dart';
@@ -138,7 +137,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
             color: context.colors.textPrimary,
           ),
         ),
-        backgroundColor: DesignColors.AppColors.error,
+        backgroundColor: design_colors.AppColors.error,
       ),
     );
   }
@@ -157,7 +156,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("$permissionName ruxsati berilmadi"),
-          backgroundColor: DesignColors.AppColors.error,
+          backgroundColor: design_colors.AppColors.error,
         ),
       );
     } else {
@@ -178,7 +177,6 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
         actions: [
           TextButton(
             onPressed: () async {
-              await FcmService().deleteToken();
               await AppStorage.clearAllData();
               if (context.mounted) {
                 context.go(AppRouteNames.login);
@@ -187,7 +185,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
             child: Text(
               "Chiqish",
               style: AppTypography.body(context).copyWith(
-                color: DesignColors.AppColors.error,
+                color: design_colors.AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -197,12 +195,12 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
-                color: DesignColors.AppColors.accentGreen,
+                color: design_colors.AppColors.accentGreen,
               ),
             )
           : RefreshIndicator(
               onRefresh: _loadUserInfo,
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               backgroundColor: colors.surface,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -301,7 +299,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
               icon,
               size: 20.sp,
               color: isSelected
-                  ? DesignColors.AppColors.accentGreen
+                  ? design_colors.AppColors.accentGreen
                   : colors.textSecondary,
             ),
             SizedBox(width: AppSpacing.md.w),
@@ -317,7 +315,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: DesignColors.AppColors.accentGreen,
+                color: design_colors.AppColors.accentGreen,
                 size: 24.sp,
               ),
           ],
@@ -380,15 +378,15 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [
-                    DesignColors.AppColors.accentGreen,
-                    DesignColors.AppColors.accentGreenDark,
+                    design_colors.AppColors.accentGreen,
+                    design_colors.AppColors.accentGreenDark,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: DesignColors.AppColors.accentGreen.withValues(alpha: 0.3),
+                    color: design_colors.AppColors.accentGreen.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -557,7 +555,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
           children: [
             Icon(
               Icons.support_agent_outlined,
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               size: 24.sp,
             ),
             SizedBox(width: AppSpacing.md.w),
@@ -657,7 +655,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20.sp, color: DesignColors.AppColors.accentGreen),
+          Icon(icon, size: 20.sp, color: design_colors.AppColors.accentGreen),
           SizedBox(width: AppSpacing.md.w),
           Expanded(
             flex: 4,
@@ -701,7 +699,7 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 20.sp, color: DesignColors.AppColors.accentGreen),
+            Icon(icon, size: 20.sp, color: design_colors.AppColors.accentGreen),
             SizedBox(width: AppSpacing.md.w),
             Expanded(
               child: Text(
@@ -717,14 +715,14 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
                 height: 20.sp,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: DesignColors.AppColors.accentGreen,
+                  color: design_colors.AppColors.accentGreen,
                 ),
               )
             else
               Icon(
                 isEnabled ? Icons.check_circle : Icons.circle_outlined,
                 color: isEnabled
-                    ? DesignColors.AppColors.accentGreen
+                    ? design_colors.AppColors.accentGreen
                     : colors.textSecondary,
                 size: 24.sp,
               ),

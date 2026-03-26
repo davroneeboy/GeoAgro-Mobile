@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 
 /// Современная кнопка логина с анимациями в стиле Apple
 class ModernLoginButton extends StatefulWidget {
@@ -80,8 +80,8 @@ class _ModernLoginButtonState extends State<ModernLoginButton>
                 ? null
                 : LinearGradient(
                     colors: [
-                      DesignColors.AppColors.accentGreen,
-                      DesignColors.AppColors.accentGreenDark,
+                      design_colors.AppColors.accentGreen,
+                      design_colors.AppColors.accentGreenDark,
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -92,7 +92,7 @@ class _ModernLoginButtonState extends State<ModernLoginButton>
                 ? null
                 : [
                     BoxShadow(
-                      color: DesignColors.AppColors.accentGreen.withOpacity(0.4),
+                      color: design_colors.AppColors.accentGreen.withValues(alpha: 0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                       spreadRadius: 0,

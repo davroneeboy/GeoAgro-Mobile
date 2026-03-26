@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../../../design_system/tokens/typography.dart';
 
 /// Современный input widget с анимациями в стиле Apple
@@ -96,7 +96,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
             fontSize: isFloatingLabel ? 12.sp : 14.sp,
             fontWeight: isFloatingLabel ? FontWeight.w600 : FontWeight.w500,
             color: _isFocused
-                ? DesignColors.AppColors.accentGreen
+                ? design_colors.AppColors.accentGreen
                 : context.colors.textSecondary,
             letterSpacing: isFloatingLabel ? 0.5 : 0,
             height: 1.4,
@@ -122,7 +122,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
               fontWeight: FontWeight.w500,
               color: context.colors.textPrimary,
             ),
-            cursorColor: DesignColors.AppColors.accentGreen,
+            cursorColor: design_colors.AppColors.accentGreen,
             inputFormatters: widget.keyboardType == TextInputType.emailAddress
                 ? [FilteringTextInputFormatter.deny(RegExp(r'\s'))]
                 : null,
@@ -145,7 +145,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
                   color: _isFocused
-                      ? DesignColors.AppColors.accentGreen
+                      ? design_colors.AppColors.accentGreen
                       : context.colors.border,
                   width: _isFocused ? 2.0 : 1.5,
                 ),
@@ -153,21 +153,21 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: DesignColors.AppColors.accentGreen,
+                  color: design_colors.AppColors.accentGreen,
                   width: 2.0,
                 ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: DesignColors.AppColors.error,
+                  color: design_colors.AppColors.error,
                   width: 1.5,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: DesignColors.AppColors.error,
+                  color: design_colors.AppColors.error,
                   width: 2.0,
                 ),
               ),

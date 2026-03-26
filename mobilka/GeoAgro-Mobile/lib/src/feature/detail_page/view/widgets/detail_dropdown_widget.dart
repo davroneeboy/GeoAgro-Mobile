@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -41,7 +41,7 @@ class DropdownWithLabel extends StatelessWidget {
           SizedBox(height: 10.h),
         ],
         DropdownButtonFormField<int>(
-          value: selectedValue,
+          initialValue: selectedValue,
           style: AppTypography.input(context).copyWith(
             fontSize: 14.sp,
             color: context.colors.textPrimary,
@@ -70,7 +70,7 @@ class DropdownWithLabel extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: DesignColors.AppColors.accentGreen,
+                color: design_colors.AppColors.accentGreen,
                 width: 1.6,
               ),
             ),

@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -38,7 +38,7 @@ class FermerCreatePageInputWidget extends StatelessWidget {
         fontSize: 14.sp,
         fontWeight: FontWeight.w500,
       ),
-      cursorColor: DesignColors.AppColors.accentGreen,
+      cursorColor: design_colors.AppColors.accentGreen,
       keyboardType: textInputType,
       maxLength: maxLength,
       decoration: InputDecoration(
@@ -67,7 +67,7 @@ class FermerCreatePageInputWidget extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: DesignColors.AppColors.accentGreen,
+            color: design_colors.AppColors.accentGreen,
             width: 1.8,
           ),
           borderRadius: BorderRadius.circular(AppRadii.input),

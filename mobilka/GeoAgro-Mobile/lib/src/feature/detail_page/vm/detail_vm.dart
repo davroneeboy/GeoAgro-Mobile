@@ -16,7 +16,7 @@ import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/utils/sanitization_utils.dart';
 import '../../../core/utils/utils.dart';
-import '../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../design_system/theme/colors.dart' as design_colors;
 
 final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
   return DetailVM();
@@ -1112,7 +1112,7 @@ class DetailVM extends ChangeNotifier {
       if (mountedContext != null && mountedContext.mounted) {
         Utils.fireTopSnackBar(
           "Faqat JPEG yoki JPG formatidagi rasmlar qabul qilinadi",
-          DesignColors.AppColors.error,
+          design_colors.AppColors.error,
           mountedContext,
         );
       }

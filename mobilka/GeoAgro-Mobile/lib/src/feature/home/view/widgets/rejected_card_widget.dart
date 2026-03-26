@@ -66,7 +66,7 @@ class RejectedCardWidget extends StatelessWidget {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ],

@@ -6,13 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/setting/setup.dart';
-import 'package:agro_employee_public/src/core/services/fcm_service.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/version/version_check_service.dart';
 import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -147,7 +146,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     label: "Chiqish",
                     isAccent: true,
                     onTap: () async {
-                      await FcmService().deleteToken();
                       await AppStorage.clearAllData();
                       accessToken = null;
                       if (context.mounted) {
@@ -266,8 +264,8 @@ class _ModernDrawerHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            DesignColors.AppColors.accentGreen,
-            DesignColors.AppColors.accentGreenDark.withOpacity(0.8),
+            design_colors.AppColors.accentGreen,
+            design_colors.AppColors.accentGreenDark.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -283,7 +281,7 @@ class _ModernDrawerHeader extends StatelessWidget {
           CircleAvatar(
             radius: 28,
             backgroundColor:
-                context.colors.background.withOpacity(0.2),
+                context.colors.background.withValues(alpha: 0.2),
             child: Text(
               initials,
               style: AppTypography.headline3(context).copyWith(
@@ -313,7 +311,7 @@ class _ModernDrawerHeader extends StatelessWidget {
                   Text(
                     userInfo!.districtName,
                     style: AppTypography.bodySmall(context).copyWith(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                   ),
                   SizedBox(height: AppSpacing.xs),
@@ -324,14 +322,14 @@ class _ModernDrawerHeader extends StatelessWidget {
                       Icon(
                         Icons.phone_outlined,
                         size: 16,
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                       SizedBox(width: AppSpacing.xs),
                       Flexible(
                         child: Text(
                           userInfo!.phoneNumber,
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                           ),
                         ),
                       ),
@@ -376,7 +374,7 @@ class _DrawerActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final backgroundColor = isAccent
-        ? DesignColors.AppColors.accentGreen
+        ? design_colors.AppColors.accentGreen
         : context.colors.surfaceVariant;
     final foregroundColor =
         isAccent ? Colors.white : context.colors.textSecondary;
@@ -396,7 +394,7 @@ class _DrawerActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadii.button),
             border: Border.all(
               color: isAccent
-                  ? DesignColors.AppColors.accentGreenDark
+                  ? design_colors.AppColors.accentGreenDark
                   : context.colors.border,
             ),
           ),

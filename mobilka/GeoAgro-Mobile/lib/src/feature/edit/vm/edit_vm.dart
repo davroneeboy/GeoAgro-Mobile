@@ -11,7 +11,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../view/widget/edit_fruit_bottom_shit.dart';
 
 import '../../../core/setting/setup.dart';
-import '../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../data/model/fruits/fruit_model.dart';
 import '../../../data/model/fruits/fruit_rootstocks_model.dart';
@@ -191,7 +191,7 @@ class EditVM extends ChangeNotifier {
   List<int> imageIds = [];
   List<String> _originalImages = []; // Оригинальный список изображений для отмены изменений
   List<int> _originalImageIds = []; // Оригинальный список ID изображений для отмены изменений
-  List<int> _imagesToDelete = []; // ID изображений, помеченных для удаления
+  final List<int> _imagesToDelete = []; // ID изображений, помеченных для удаления
   late EditPlantationModel plantationModel;
   bool isSaving = false;
   late EditPlantationModel originalPlantationModel;
@@ -1256,7 +1256,7 @@ class EditVM extends ChangeNotifier {
       if (mountedContext != null && mountedContext.mounted) {
         Utils.fireTopSnackBar(
           "Faqat JPEG yoki JPG formatidagi rasmlar qabul qilinadi",
-          DesignColors.AppColors.error,
+          design_colors.AppColors.error,
           mountedContext,
         );
       }

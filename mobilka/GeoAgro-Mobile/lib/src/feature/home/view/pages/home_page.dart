@@ -22,9 +22,8 @@ import '../widgets/home_page_card_widget.dart';
 import '../../vm/home_page_vm.dart';
 import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
-import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 
@@ -47,14 +46,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    FcmService().setUnreadRefreshCallback(() async {
-      await ref.read(notificationsVM).loadUnreadCount();
-    });
     // Загружаем данные только для главной вкладки при первой загрузке
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTabData(0); // Загружаем данные для главной вкладки
       _checkBiometricOffer(); // Предлагаем биометрию после логина
-      FcmService().flushPendingNavigation();
+      ref.read(notificationsVM).startPolling();
     });
   }
 
@@ -110,7 +106,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void dispose() {
-    FcmService().setUnreadRefreshCallback(null);
+    ref.read(notificationsVM).stopPolling();
     _scrollController.dispose();
     super.dispose();
   }
@@ -158,7 +154,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             data: NavigationBarThemeData(
               backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
-              indicatorColor: DesignColors.AppColors.accentGreen.withValues(alpha: 0.12),
+              indicatorColor: design_colors.AppColors.accentGreen.withValues(alpha: 0.12),
               indicatorShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.r),
               ),
@@ -169,7 +165,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ? FontWeight.w600
                       : FontWeight.w500,
                   color: states.contains(WidgetState.selected)
-                      ? DesignColors.AppColors.accentGreen
+                      ? design_colors.AppColors.accentGreen
                       : context.colors.textTertiary,
                 ),
               ),
@@ -177,7 +173,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 (states) => IconThemeData(
                   size: 22.sp,
                   color: states.contains(WidgetState.selected)
-                      ? DesignColors.AppColors.accentGreen
+                      ? design_colors.AppColors.accentGreen
                       : context.colors.textTertiary,
                 ),
               ),
@@ -343,7 +339,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               onRefresh: () async {
                 await vm.getPlantationsModel(isLoadMore: false);
               },
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               backgroundColor: context.colors.surface,
               child: LayoutBuilder(
                 builder: (context, constraints) => SingleChildScrollView(
@@ -364,7 +360,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               onRefresh: () async {
                 await vm.getPlantationsModel(isLoadMore: false);
               },
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               backgroundColor: context.colors.surface,
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -384,7 +380,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 vm.getPlantationsModel(isLoadMore: true);
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: DesignColors.AppColors.accentGreen,
+                          backgroundColor: design_colors.AppColors.accentGreen,
                           foregroundColor: Colors.white,
                           padding: REdgeInsets.symmetric(
                               vertical: 16, horizontal: 32),

@@ -156,7 +156,7 @@ class TokenInterceptor extends Interceptor {
     bool shouldRedirectToLogin = false;
     
     // Helper function to check if message indicates auth error
-    bool _isAuthErrorMessage(String message) {
+    bool isAuthErrorMessage(String message) {
       final lower = message.toLowerCase();
       return lower.contains('пароль был изменён') ||
           lower.contains('password was changed') ||
@@ -200,7 +200,7 @@ class TokenInterceptor extends Interceptor {
       }
       
       // Check if error message indicates auth error
-      if (errorMessage != null && _isAuthErrorMessage(errorMessage)) {
+      if (errorMessage != null && isAuthErrorMessage(errorMessage)) {
         isAuthError = true;
         shouldRedirectToLogin = true;
         log("Auth error detected from message: $errorMessage");

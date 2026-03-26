@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -67,7 +67,7 @@ class FermerPageCardWidget extends ConsumerWidget {
                             Icon(
                               Icons.edit_outlined,
                               size: 18.sp,
-                              color: DesignColors.AppColors.accentGreen,
+                              color: design_colors.AppColors.accentGreen,
                             ),
                           ],
                         ),
@@ -108,7 +108,7 @@ class FermerPageCardWidget extends ConsumerWidget {
             SizedBox(height: AppSpacing.md.h),
             Divider(
               height: 1,
-              color: context.colors.divider.withOpacity(0.6),
+              color: context.colors.divider.withValues(alpha: 0.6),
             ),
             SizedBox(height: AppSpacing.sm.h),
             Wrap(
@@ -177,7 +177,7 @@ class FermerPageCardWidget extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("Fermer nomi muvaffaqiyatli yangilandi"),
-                  backgroundColor: DesignColors.AppColors.success,
+                  backgroundColor: design_colors.AppColors.success,
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -185,7 +185,7 @@ class FermerPageCardWidget extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(vm.updateErrorMessage ?? "Xatolik yuz berdi"),
-                  backgroundColor: DesignColors.AppColors.error,
+                  backgroundColor: design_colors.AppColors.error,
                   duration: const Duration(seconds: 3),
                 ),
               );
@@ -230,7 +230,7 @@ class _InfoPill extends StatelessWidget {
           Icon(
             icon,
             size: 16.sp,
-            color: DesignColors.AppColors.accentGreen,
+            color: design_colors.AppColors.accentGreen,
           ),
           SizedBox(width: AppSpacing.sm.w),
           Column(
@@ -273,10 +273,10 @@ class _InnChip extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.accentGreen.withOpacity(0.1),
+        color: design_colors.AppColors.accentGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadii.lg),
         border: Border.all(
-          color: DesignColors.AppColors.accentGreen.withOpacity(0.4),
+          color: design_colors.AppColors.accentGreen.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -286,7 +286,7 @@ class _InnChip extends StatelessWidget {
           Text(
             "INN",
             style: AppTypography.caption(context).copyWith(
-              color: DesignColors.AppColors.accentGreen,
+              color: design_colors.AppColors.accentGreen,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as DesignColors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
@@ -114,7 +114,7 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
               Text(
                 _errorMessage!,
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: DesignColors.AppColors.error,
+                  color: design_colors.AppColors.error,
                 ),
               ),
             ],
@@ -134,8 +134,8 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
         FilledButton(
           onPressed: widget.isLoading ? null : _handleSave,
           style: FilledButton.styleFrom(
-            backgroundColor: DesignColors.AppColors.accentGreen,
-            disabledBackgroundColor: DesignColors.AppColors.accentGreen.withOpacity(0.5),
+            backgroundColor: design_colors.AppColors.accentGreen,
+            disabledBackgroundColor: design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
           ),
           child: widget.isLoading
               ? SizedBox(

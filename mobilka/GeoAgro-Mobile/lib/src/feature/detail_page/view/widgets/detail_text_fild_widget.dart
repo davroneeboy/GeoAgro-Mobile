@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -64,7 +64,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             suffixText: suffixText,
             suffixStyle: AppTypography.bodyLarge(context).copyWith(
               fontSize: 14.sp,
-              color: DesignColors.AppColors.darkTextSecondary,
+              color: design_colors.AppColors.darkTextSecondary,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
@@ -78,7 +78,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: DesignColors.AppColors.accentGreen,
+                color: design_colors.AppColors.accentGreen,
                 width: 1.6,
               ),
             ),

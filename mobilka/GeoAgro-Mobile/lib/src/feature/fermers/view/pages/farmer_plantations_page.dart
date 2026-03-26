@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/routes/app_route_names.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/colors.dart' as design_colors;
 import '../../../../../design_system/theme/spacing.dart';
 import '../../../../../design_system/theme/radius.dart';
 import '../../../../../design_system/theme/typography.dart';
@@ -66,7 +66,7 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
         child: Icon(
           Icons.search,
           size: 120.sp,
-          color: DesignColors.AppColors.primary,
+          color: design_colors.AppColors.primary,
         ),
       );
     }
@@ -88,13 +88,13 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
             Icon(
               Icons.agriculture_outlined,
               size: 120.sp,
-              color: DesignColors.AppColors.primary,
+              color: design_colors.AppColors.primary,
             ),
             SizedBox(height: 24.h),
             Text(
               "Bu fermerda plantatsiya yo'q",
               style: AppTypography.bodyLarge(context).copyWith(
-                color: DesignColors.AppColors.darkOnBackground,
+                color: design_colors.AppColors.darkOnBackground,
               ),
             ),
           ],
@@ -120,10 +120,10 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
                 bottom: AppSpacing.md,
               ),
               decoration: BoxDecoration(
-                color: DesignColors.AppColors.primaryContainerDark,
+                color: design_colors.AppColors.primaryContainerDark,
                 borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(
-                  color: DesignColors.AppColors.primary.withValues(alpha: 0.3),
+                  color: design_colors.AppColors.primary.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -135,14 +135,14 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
                     widget.farmerName,
                     style: AppTypography.headlineLarge(context).copyWith(
                       fontWeight: FontWeight.w700,
-                      color: DesignColors.AppColors.primaryLight,
+                      color: design_colors.AppColors.primaryLight,
                     ),
                   ),
                   SizedBox(height: AppSpacing.xs),
                   Text(
                     "Jami ${vm.plantations.length} ta plantatsiya",
                     style: AppTypography.bodyLarge(context).copyWith(
-                      color: DesignColors.AppColors.darkOnSurfaceVariant,
+                      color: design_colors.AppColors.darkOnSurfaceVariant,
                     ),
                   ),
                   SizedBox(height: AppSpacing.sm),
