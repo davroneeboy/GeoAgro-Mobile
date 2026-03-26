@@ -5,11 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/setting/setup.dart';
+import '../../../../../localization/app_strings.dart';
 import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/date_utils.dart' as app_date;
 import '../../../../core/widgets/custom_card_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
@@ -118,7 +119,7 @@ class HomePageCardWidget extends StatelessWidget {
     final farmerName = plantation.farmerName ?? "Noma'lum fermer";
     final farmerInn = plantation.farmerInn?.toString();
     final plantationId = plantation.id?.toString() ?? "N/A";
-    final landType = yerTuri[plantation.landType] ?? "Noma'lum";
+    final landType = AppLocalizedMaps.yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
     final chegaraAreaText = (plantation.chegaraArea != null && plantation.chegaraArea! > 0)
         ? "${plantation.chegaraArea!.toStringAsFixed(2)} ga"
@@ -182,9 +183,9 @@ class HomePageCardWidget extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _IdBadge(context: context, id: plantationId),
+                  _idBadge(context: context, id: plantationId),
                   SizedBox(height: AppSpacing.xs),
-                  _StatusBadge(context: context, plantation: plantation),
+                  _statusBadge(context: context, plantation: plantation),
                 ],
               ),
             ],
@@ -194,27 +195,27 @@ class HomePageCardWidget extends StatelessWidget {
             spacing: AppSpacing.md,
             runSpacing: AppSpacing.sm,
             children: [
-              _InfoChip(
+              _infoChip(
                 context: context,
                 icon: Icons.eco_outlined,
                 label: "Yer turi",
                 value: landType,
               ),
-              _InfoChip(
+              _infoChip(
                 context: context,
                 icon: Icons.square_foot_outlined,
                 label: "Maydon",
                 value: areaText,
               ),
               if (chegaraAreaText != null)
-                _InfoChip(
+                _infoChip(
                   context: context,
                   icon: Icons.border_color_outlined,
                   label: "Chegara maydon",
                   value: chegaraAreaText,
                 ),
               if (establishedYear != null)
-                _InfoChip(
+                _infoChip(
                   context: context,
                   icon: Icons.calendar_month_outlined,
                   label: "Bog tashkil topgan yil",
@@ -224,7 +225,7 @@ class HomePageCardWidget extends StatelessWidget {
           ),
           if ((plantation.moderationComments?.isNotEmpty ?? false)) ...[
             SizedBox(height: AppSpacing.lg),
-            _ModerationNote(
+            _moderationNote(
               context: context,
               messages: plantation.moderationComments!
                   .map((comment) => comment.text ?? '')
@@ -298,7 +299,7 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _IdBadge({required BuildContext context, required String id}) {
+  Widget _idBadge({required BuildContext context, required String id}) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -336,16 +337,16 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _StatusBadge({required BuildContext context, required Result plantation}) {
+  Widget _statusBadge({required BuildContext context, required Result plantation}) {
     Color statusColor;
     
     // Проверяем сначала isRejected, потом isChecked
     if (plantation.isRejected == true) {
-      statusColor = DesignColors.AppColors.error;
+      statusColor = design_colors.AppColors.error;
     } else if (plantation.isChecked == true) {
-      statusColor = DesignColors.AppColors.success;
+      statusColor = design_colors.AppColors.success;
     } else {
-      statusColor = DesignColors.AppColors.warning;
+      statusColor = design_colors.AppColors.warning;
     }
 
     return Container(
@@ -362,7 +363,7 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _InfoChip({
+  Widget _infoChip({
     required BuildContext context,
     required IconData icon,
     required String label,
@@ -388,7 +389,7 @@ class HomePageCardWidget extends StatelessWidget {
           Icon(
             icon,
             size: 16.sp,
-            color: DesignColors.AppColors.accentGreen,
+            color: design_colors.AppColors.accentGreen,
           ),
           SizedBox(width: AppSpacing.sm),
           Column(
@@ -417,7 +418,7 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _ModerationNote({
+  Widget _moderationNote({
     required BuildContext context,
     required List<String> messages,
   }) {
@@ -425,10 +426,10 @@ class HomePageCardWidget extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: DesignColors.AppColors.warning.withOpacity(0.08),
+        color: design_colors.AppColors.warning.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadii.sm),
         border: Border.all(
-          color: DesignColors.AppColors.warning.withOpacity(0.3),
+          color: design_colors.AppColors.warning.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -437,7 +438,7 @@ class HomePageCardWidget extends StatelessWidget {
           Icon(
             Icons.info_outline,
             size: 18.sp,
-            color: DesignColors.AppColors.warning,
+            color: design_colors.AppColors.warning,
           ),
           SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -476,7 +477,7 @@ class HomePageCardWidget extends StatelessWidget {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

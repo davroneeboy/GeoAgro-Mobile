@@ -587,9 +587,17 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<String?> getFarmersStatistics({required int districtId}) async {
+  Future<String?> getFarmersStatistics({
+    int? districtId,
+    int? regionId,
+    String? status,
+  }) async {
     try {
-      final params = ApiParams.farmersStatisticsParams(districtId: districtId);
+      final params = ApiParams.farmersStatisticsParams(
+        districtId: districtId,
+        regionId: regionId,
+        status: status,
+      );
       final data = await ApiService.get(ApiConst.apiFarmersStatistics, params);
       return data;
     } on DioException catch (e) {

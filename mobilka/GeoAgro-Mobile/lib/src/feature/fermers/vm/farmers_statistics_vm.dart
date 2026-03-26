@@ -2,16 +2,38 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import '../../../../localization/app_strings.dart';
 
 import '../../../data/model/farmer/farmer_statistics_model.dart';
 import '../../../data/model/farmer/farmer_list_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
+
+enum PlantationStatus { all, approved, rejected, pending }
+
+extension PlantationStatusX on PlantationStatus {
+  String get param => name;
+
+  String get labelUz {
+    switch (this) {
+      case PlantationStatus.all:
+        return "Barchasi";
+      case PlantationStatus.approved:
+        return "Tasdiqlangan";
+      case PlantationStatus.rejected:
+        return "Rad etilgan";
+      case PlantationStatus.pending:
+        return "Ko'rib chiqilmoqda";
+    }
+  }
+}
 
 class FarmersStatisticsVm extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   List<FarmerData>? statistics;
   int? districtId;
+  int? regionId;
+  PlantationStatus selectedStatus = PlantationStatus.all;
 
   final TextEditingController searchInnController = TextEditingController();
   bool isSearching = false;
@@ -29,6 +51,18 @@ class FarmersStatisticsVm extends ChangeNotifier {
     }
   }
 
+  Map<int, String> get regions => AppLocalizedMaps.regions;
+
+  void setStatus(PlantationStatus status) {
+    selectedStatus = status;
+    fetchStatistics();
+  }
+
+  void setRegion(int? id) {
+    regionId = id;
+    fetchStatistics();
+  }
+
   /// Инициализация (вызывается вручную при открытии страницы)
   Future<void> initialize() async {
     if (_isDisposed) {
@@ -43,28 +77,28 @@ class FarmersStatisticsVm extends ChangeNotifier {
     }
     isLoading = true;
     _safeNotifyListeners();
-    debugPrint("📊 FarmersStatisticsVM: Getting district ID...");
-    await _getDistrictId();
+    debugPrint("📊 FarmersStatisticsVM: Getting district/region IDs...");
+    await _getDistrictAndRegionIds();
     
     if (_isDisposed) {
       debugPrint("📊 FarmersStatisticsVM: Disposed after _getDistrictId, aborting");
       return;
     }
     
-    if (districtId != null) {
-      debugPrint("📊 FarmersStatisticsVM: District ID found: $districtId");
+    if (districtId != null || regionId != null) {
+      debugPrint("📊 FarmersStatisticsVM: IDs found: districtId=$districtId, regionId=$regionId");
       await fetchStatistics();
     } else {
-      debugPrint("❌ FarmersStatisticsVM: District ID not found");
+      debugPrint("❌ FarmersStatisticsVM: District/Region IDs not found");
       if (!_isDisposed) {
-        errorMessage = "District ID topilmadi";
+        errorMessage = "Hudud ma'lumoti topilmadi";
         isLoading = false;
         _safeNotifyListeners();
       }
     }
   }
 
-  Future<void> _getDistrictId() async {
+  Future<void> _getDistrictAndRegionIds() async {
     try {
       debugPrint("📊 FarmersStatisticsVM: Calling getUserInfo API...");
       final userInfoData = await _appRepositoryImpl.getUserInfo();
@@ -72,12 +106,14 @@ class FarmersStatisticsVm extends ChangeNotifier {
         debugPrint("📊 FarmersStatisticsVM: getUserInfo response received");
         final userInfo = jsonDecode(userInfoData);
         districtId = userInfo['district_id'];
+        regionId = userInfo['region_id'];
         debugPrint("📊 FarmersStatisticsVM: District ID extracted: $districtId");
+        debugPrint("📊 FarmersStatisticsVM: Region ID extracted: $regionId");
       } else {
         debugPrint("❌ FarmersStatisticsVM: getUserInfo returned null");
       }
     } catch (e) {
-      debugPrint("❌ FarmersStatisticsVM: Error getting district ID: $e");
+      debugPrint("❌ FarmersStatisticsVM: Error getting district/region IDs: $e");
     }
   }
 
@@ -87,8 +123,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
       return;
     }
     
-    if (districtId == null) {
-      debugPrint("❌ FarmersStatisticsVM: Cannot fetch statistics - districtId is null");
+    if (districtId == null && regionId == null) {
+      debugPrint("❌ FarmersStatisticsVM: Cannot fetch statistics - both districtId and regionId are null");
       return;
     }
 
@@ -97,9 +133,12 @@ class FarmersStatisticsVm extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      debugPrint("📊 FarmersStatisticsVM: Fetching statistics for district: $districtId");
+      debugPrint("📊 FarmersStatisticsVM: Fetching statistics for districtId=$districtId, regionId=$regionId, status=${selectedStatus.param}");
       final data = await _appRepositoryImpl.getFarmersStatistics(
-          districtId: districtId!);
+        districtId: districtId,
+        regionId: regionId,
+        status: selectedStatus.param,
+      );
 
       if (_isDisposed) {
         debugPrint("📊 FarmersStatisticsVM: Disposed after getFarmersStatistics, aborting");

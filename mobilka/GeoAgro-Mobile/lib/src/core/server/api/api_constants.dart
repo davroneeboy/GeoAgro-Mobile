@@ -56,7 +56,19 @@ final class ApiParams {
 
   static Map<String, dynamic> emptyParams() => <String, dynamic>{};
   
-  static Map<String, dynamic> farmersStatisticsParams({required int districtId}) => <String, dynamic>{"district_id": districtId};
+  static Map<String, dynamic> farmersStatisticsParams({
+    int? districtId,
+    int? regionId,
+    String? status,
+  }) {
+    final params = <String, dynamic>{};
+    if (districtId != null && districtId > 0) params["district_id"] = districtId;
+    if (regionId != null && regionId > 0) params["region_id"] = regionId;
+    if (status != null && status.isNotEmpty && status != "all") {
+      params["status"] = status;
+    }
+    return params;
+  }
   
   static Map<String, dynamic> pageWithSearchParams({required int page, String? search}) {
     // If search query is provided, DO NOT send page param

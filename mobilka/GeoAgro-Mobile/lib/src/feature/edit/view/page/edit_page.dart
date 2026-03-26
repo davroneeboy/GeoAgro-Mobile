@@ -14,11 +14,11 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/utils/thousands_separator_input_formatter.dart';
-import '../../../../core/setting/setup.dart';
+import '../../../../../localization/app_strings.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/style/app_colors.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/radii.dart';
@@ -105,7 +105,7 @@ class _EditPageState extends ConsumerState<EditPage> {
 
     return PopScope(
       canPop: true,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, _) {
         if (didPop) {
           // Восстанавливаем оригинальный список изображений при выходе
           edit.restoreOriginalImages();
@@ -140,7 +140,7 @@ class _EditPageState extends ConsumerState<EditPage> {
               ),
               DropdownWithLabel(
                   label: "Plantatsiya turi",
-                  items: plantatiopnType,
+                  items: AppLocalizedMaps.plantationTypes,
                   hint: "plantatsiya turi",
                   selectedValue: edit.selectedPlantationType,
                   onChanged: (value) {
@@ -148,7 +148,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                   }),
               if (edit.selectedPlantationType == 1)
                 DropdownWithLabel(
-                  items: bogType,
+                  items: AppLocalizedMaps.bogTypes,
                   hint: "bog' turi tanlanmagan",
                   selectedValue: edit.selectedBogType,
                   onChanged: (value) {
@@ -157,7 +157,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                 ),
               if (edit.selectedPlantationType == 1 && edit.selectedBogType == 1)
                 DropdownWithLabel(
-                  items: bogSubtype,
+                  items: AppLocalizedMaps.bogSubtypes,
                   hint: "intensiv bog` turi tanlanmagan",
                   selectedValue: edit.selectedBogSubtype,
                   onChanged: (value) {
@@ -168,7 +168,7 @@ class _EditPageState extends ConsumerState<EditPage> {
               if (edit.selectedPlantationType == 3)
                 DropdownWithLabel(
                   hint: "issiqxona turi tanlanmagan",
-                  items: issiqxonaType,
+                  items: AppLocalizedMaps.issiqxonaTypes,
                   selectedValue: edit.selectedIssiqxonaType,
                   onChanged: (value) {
                     edit.setIssiqxonaType(value);
@@ -177,7 +177,7 @@ class _EditPageState extends ConsumerState<EditPage> {
               if (edit.selectedPlantationType == 2)
                 DropdownWithLabel(
                   hint: "uzumzor turi tanlanmagan",
-                  items: uzumType,
+                  items: AppLocalizedMaps.uzumTypes,
                   selectedValue: edit.selectedUzumType,
                   onChanged: (value) {
                     edit.setUzumType(value);
@@ -187,7 +187,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                 label: "Yer turi",
                 hint: "yer turi tanlanmagan",
                 
-                items: yerTuri,
+                items: AppLocalizedMaps.yerTuri,
                 selectedValue: edit.selectedYerTuri,
                 onChanged: edit.setYerTuri,
               ),
@@ -248,7 +248,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadii.input),
                           borderSide: BorderSide(
-                            color: DesignColors.AppColors.accentGreen,
+                            color: design_colors.AppColors.accentGreen,
                             width: 1.6,
                           ),
                         ),
@@ -708,7 +708,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: DesignColors.AppColors.accentGreen,
+                      color: design_colors.AppColors.accentGreen,
                       width: 1.6,
                     ),
                   ),

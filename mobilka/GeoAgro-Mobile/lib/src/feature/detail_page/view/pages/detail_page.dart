@@ -1,4 +1,4 @@
-import '../../../../core/setting/setup.dart';
+import '../../../../../localization/app_strings.dart';
 import '../../../../core/widgets/mian_text.dart';
 import '../widgets/add_subsidiya_bottom_shit.dart';
 import '../widgets/border_widget.dart';
@@ -14,7 +14,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
@@ -132,7 +132,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
 
                 DropdownWithLabel(
                     label: "Plantatsiya turi",
-                    items: plantatiopnType,
+                    items: AppLocalizedMaps.plantationTypes,
                     hint: "plantatsiya turi tanlanmagan",
                     selectedValue: detailVm.selectedPlantationType,
                     onChanged: (value) {
@@ -140,7 +140,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                     }),
                 if (detailVm.selectedPlantationType == 1)
                   DropdownWithLabel(
-                    items: bogType,
+                    items: AppLocalizedMaps.bogTypes,
                     hint: "bog' turi tanlanmagan",
                     selectedValue: detailVm.selectedBogType,
                     onChanged: (value) {
@@ -150,7 +150,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 if (detailVm.selectedPlantationType == 1 &&
                     detailVm.selectedBogType == 1)
                   DropdownWithLabel(
-                    items: bogSubtype,
+                    items: AppLocalizedMaps.bogSubtypes,
                     hint: "intensiv bog` turi tanlanmagan",
                     selectedValue: detailVm.selectedBogSubtype,
                     onChanged: (value) {
@@ -161,7 +161,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 if (detailVm.selectedPlantationType == 3)
                   DropdownWithLabel(
                     hint: "issiqxona turi tanlanmagan",
-                    items: issiqxonaType,
+                    items: AppLocalizedMaps.issiqxonaTypes,
                     selectedValue: detailVm.selectedIssiqxonaType,
                     onChanged: (value) {
                       detailVm.setIssiqxonaType(value);
@@ -170,7 +170,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 if (detailVm.selectedPlantationType == 2)
                   DropdownWithLabel(
                     hint: "uzumzor turi tanlanmagan",
-                    items: uzumType,
+                    items: AppLocalizedMaps.uzumTypes,
                     selectedValue: detailVm.selectedUzumType,
                     onChanged: (value) {
                       detailVm.setUzumType(value);
@@ -178,7 +178,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   ),
                 DropdownWithLabel(
                   label: "Yer turi",
-                  items: yerTuri,
+                  items: AppLocalizedMaps.yerTuri,
                   hint: "yer turini tanlanmagan",
                   selectedValue: detailVm.selectedYerType,
                   onChanged: (value) {
@@ -250,7 +250,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppRadii.input),
                             borderSide: BorderSide(
-                              color: DesignColors.AppColors.accentGreen,
+                              color: design_colors.AppColors.accentGreen,
                               width: 1.6,
                             ),
                           ),
@@ -269,7 +269,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       child: ElevatedButton(
                         onPressed: detailVm.addKonturNumber,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: DesignColors.AppColors.accentGreen,
+                          backgroundColor: design_colors.AppColors.accentGreen,
                           foregroundColor: Colors.white,
                           elevation: 4,
                           shape: RoundedRectangleBorder(
@@ -296,9 +296,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ),
                         ),
                         onDeleted: () => detailVm.removeKonturAt(i),
-                        backgroundColor: DesignColors.AppColors.accentGreenDark,
+                        backgroundColor: design_colors.AppColors.accentGreenDark,
                         side: BorderSide(
-                          color: DesignColors.AppColors.accentGreen.withOpacity(0.5),
+                          color: design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
                           width: 1.5,
                         ),
                         deleteIcon: Icon(
@@ -673,13 +673,13 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       ),
                       decoration: BoxDecoration(
                         color: isComplete
-                            ? DesignColors.AppColors.success.withValues(alpha: 0.1)
-                            : DesignColors.AppColors.warning.withValues(alpha: 0.1),
+                            ? design_colors.AppColors.success.withValues(alpha: 0.1)
+                            : design_colors.AppColors.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isComplete
-                              ? DesignColors.AppColors.success
-                              : DesignColors.AppColors.warning,
+                              ? design_colors.AppColors.success
+                              : design_colors.AppColors.warning,
                         ),
                       ),
                       child: Row(
@@ -688,8 +688,8 @@ class DetailPageState extends ConsumerState<DetailPage> {
                             isComplete ? Icons.check_circle : Icons.info_outline,
                             size: 20.sp,
                             color: isComplete
-                                ? DesignColors.AppColors.success
-                                : DesignColors.AppColors.warning,
+                                ? design_colors.AppColors.success
+                                : design_colors.AppColors.warning,
                           ),
                           SizedBox(width: AppSpacing.sm),
                           Expanded(
@@ -700,8 +700,8 @@ class DetailPageState extends ConsumerState<DetailPage> {
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 color: isComplete
-                                    ? DesignColors.AppColors.success
-                                    : DesignColors.AppColors.warning,
+                                    ? design_colors.AppColors.success
+                                    : design_colors.AppColors.warning,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -735,15 +735,15 @@ class DetailPageState extends ConsumerState<DetailPage> {
                     return Container(
                       padding: EdgeInsets.all(16.h),
                       decoration: BoxDecoration(
-                        color: DesignColors.AppColors.accentGreen,
+                        color: design_colors.AppColors.accentGreen,
                         borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
-                          color: DesignColors.AppColors.accentGreenLight.withOpacity(0.5),
+                          color: design_colors.AppColors.accentGreenLight.withValues(alpha: 0.5),
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: DesignColors.AppColors.accentGreen.withOpacity(0.3),
+                            color: design_colors.AppColors.accentGreen.withValues(alpha: 0.3),
                             blurRadius: 8,
                             spreadRadius: 0,
                             offset: const Offset(0, 4),
@@ -820,7 +820,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadii.input),
                     borderSide: BorderSide(
-                      color: DesignColors.AppColors.accentGreen,
+                      color: design_colors.AppColors.accentGreen,
                       width: 1.6,
                     ),
                   ),
@@ -889,7 +889,7 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       padding: const EdgeInsets.symmetric(
                         vertical: AppSpacing.lg,
                       ),
-                      backgroundColor: DesignColors.AppColors.accentGreen,
+                      backgroundColor: design_colors.AppColors.accentGreen,
                     ),
                   ),
                 ),

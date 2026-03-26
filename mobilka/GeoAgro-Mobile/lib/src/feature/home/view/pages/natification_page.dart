@@ -2,12 +2,14 @@ import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/routes/app_route_names.dart';
 import '../../../../data/model/notification/notification_models.dart';
 import '../../../home/vm/notifications_vm.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 
-final notificationsVM = ChangeNotifierProvider.autoDispose<NotificationsVm>((ref) {
+final notificationsVM = ChangeNotifierProvider<NotificationsVm>((ref) {
   return NotificationsVm(AppRepositoryImpl());
 });
 
@@ -47,7 +49,7 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
           if (vm.unreadCount > 0)
             TextButton(
               onPressed: () => ref.read(notificationsVM).markAllAsRead(),
-              child: Text("Hammasini o'qilgan", style: TextStyle(fontSize: 12.sp)),
+              child: Text("Barchasini o'qilgan qilish", style: TextStyle(fontSize: 12.sp)),
             ),
         ],
       ),
@@ -59,7 +61,7 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
                   ? ListView(
                       children: [
                         SizedBox(height: 200.h),
-                        Center(child: Text("Hozircha hechqanday bildirishnoma yo'q", style: TextStyle(fontSize: 16.sp))),
+                        Center(child: Text("Hozircha hech qanday bildirishnoma yo'q", style: TextStyle(fontSize: 16.sp))),
                       ],
                     )
                   : ListView.separated(
@@ -82,6 +84,12 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
                           item: item,
                           onRead: () => ref.read(notificationsVM).markAsRead(item.id),
                           onDelete: () => ref.read(notificationsVM).delete(item.id),
+                          onOpenPlantation: item.hasDeepLink
+                              ? () => context.go(
+                                    "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                                    extra: item.plantationId,
+                                  )
+                              : null,
                         );
                       },
                       separatorBuilder: (_, __) => 12.verticalSpace,
@@ -96,8 +104,14 @@ class _NotificationTile extends StatelessWidget {
   final NotificationItem item;
   final VoidCallback onRead;
   final VoidCallback onDelete;
+  final VoidCallback? onOpenPlantation;
 
-  const _NotificationTile({required this.item, required this.onRead, required this.onDelete});
+  const _NotificationTile({
+    required this.item,
+    required this.onRead,
+    required this.onDelete,
+    this.onOpenPlantation,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,12 +120,31 @@ class _NotificationTile extends StatelessWidget {
       background: Container(color: Colors.redAccent),
       onDismissed: (_) => onDelete(),
       child: ListTile(
+        onTap: onOpenPlantation,
         leading: Icon(
           item.isRead ? Icons.notifications_none : Icons.notifications_active,
           color: item.isRead ? Colors.grey : Colors.orange,
         ),
         title: Text(item.title, style: TextStyle(fontWeight: item.isRead ? FontWeight.w400 : FontWeight.w600)),
-        subtitle: Text(item.message),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item.message),
+            if (item.type == 'plantation_rejected' &&
+                (item.moderationComment ?? '').isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(top: 4.h),
+                child: Text(
+                  "Moderator izohi: ${item.moderationComment}",
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
         trailing: !item.isRead
             ? IconButton(icon: const Icon(Icons.mark_email_read_outlined), onPressed: onRead)
             : null,

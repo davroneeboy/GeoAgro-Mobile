@@ -1,4 +1,4 @@
-import 'package:agro_employee_public/src/core/setting/setup.dart';
+import '../../../../../localization/app_strings.dart';
 import 'package:agro_employee_public/src/data/model/plantation/edit_plantation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -48,7 +48,7 @@ class EditSubsidyList extends StatelessWidget {
                                   SizedBox(height: 8),
                                   _buildRow(
                                     "Subsidiya yonalishi:  ",
-                                    subsidyType[detail.direction] ?? 'Noma’lum',
+                                    AppLocalizedMaps.subsidyTypes[detail.direction] ?? 'Noma’lum',
                                   ),
                                   SizedBox(height: 8),
                                   _buildRow("Subsidiya samaradorligi:  ",

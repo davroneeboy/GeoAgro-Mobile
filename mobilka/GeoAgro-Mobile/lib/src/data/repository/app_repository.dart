@@ -57,7 +57,11 @@ abstract class AppRepo {
   
   Future<String?> getFarmerById(int farmerId);
   
-  Future<String?> getFarmersStatistics({required int districtId});
+  Future<String?> getFarmersStatistics({
+    int? districtId,
+    int? regionId,
+    String? status,
+  });
 
   // ==== Device tokens (FCM) ====
   Future<String?> registerDeviceToken({

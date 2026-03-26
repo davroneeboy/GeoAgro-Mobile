@@ -14,12 +14,13 @@ import '../../../../core/widgets/loading_widget.dart'
 import '../../../../data/model/farmer/farmer_statistics_model.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../data/model/farmer/farmer_list_model.dart';
-import '../../../../../design_system/tokens/colors.dart' as DesignColors;
+import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 import '../../vm/farmers_statistics_vm.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import '../../../../../localization/app_strings.dart';
 
 final farmersStatisticsVM =
     ChangeNotifierProvider.autoDispose<FarmersStatisticsVm>((ref) {
@@ -67,7 +68,7 @@ class _FarmersStatisticsPageState extends ConsumerState<FarmersStatisticsPage> {
         color: context.colors.background,
         child: RefreshIndicator(
           onRefresh: () => vm.refresh(),
-          color: DesignColors.AppColors.accentGreen,
+          color: design_colors.AppColors.accentGreen,
           backgroundColor: context.colors.surface,
           child: _BodyContent(vm: vm),
         ),
@@ -117,6 +118,8 @@ class _BodyContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SearchSection(),
+          SizedBox(height: AppSpacing.lg),
+          const _StatisticsFiltersSection(),
           SizedBox(height: AppSpacing.lg),
           if (vm.searchResults != null) ...[
             _SearchResultsList(vm: vm),
@@ -183,7 +186,7 @@ class _SearchSection extends ConsumerWidget {
               FilledButton(
                 onPressed: vm.isSearching ? null : vm.searchByInn,
                 style: FilledButton.styleFrom(
-                  backgroundColor: DesignColors.AppColors.accentGreen,
+                  backgroundColor: design_colors.AppColors.accentGreen,
                   foregroundColor: context.colors.textPrimary,
                   padding: EdgeInsets.all(AppSpacing.md),
                   minimumSize: Size(48.w, 48.h),
@@ -214,10 +217,85 @@ class _SearchSection extends ConsumerWidget {
             Text(
               vm.searchErrorMessage!,
               style: AppTypography.caption(context).copyWith(
-                color: DesignColors.AppColors.error,
+                color: design_colors.AppColors.error,
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatisticsFiltersSection extends ConsumerWidget {
+  const _StatisticsFiltersSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vm = ref.watch(farmersStatisticsVM);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Filtrlar",
+            style: AppTypography.body(context).copyWith(
+              fontWeight: FontWeight.w700,
+              color: context.colors.textPrimary,
+            ),
+          ),
+          SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<PlantationStatus>(
+            initialValue: vm.selectedStatus,
+            decoration: const InputDecoration(
+              labelText: "Holati",
+              border: OutlineInputBorder(),
+            ),
+            items: PlantationStatus.values
+                .map(
+                  (status) => DropdownMenuItem<PlantationStatus>(
+                    value: status,
+                    child: Text(status.labelUz),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(farmersStatisticsVM.notifier).setStatus(value);
+              }
+            },
+          ),
+          SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<int?>(
+            initialValue: vm.regionId,
+            decoration: const InputDecoration(
+              labelText: "Viloyat",
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              const DropdownMenuItem<int?>(
+                value: null,
+                child: Text("Barcha viloyatlar"),
+              ),
+              ...AppLocalizedMaps.regions.entries.map(
+                (entry) => DropdownMenuItem<int?>(
+                  value: entry.key,
+                  child: Text(entry.value),
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              ref.read(farmersStatisticsVM.notifier).setRegion(value);
+            },
+          ),
         ],
       ),
     );
@@ -369,7 +447,7 @@ class _SearchResultCard extends StatelessWidget {
               if (farmer.phoneNumber != null || farmer.address != null) ...[
                 SizedBox(height: AppSpacing.md),
                 Divider(
-                  color: context.colors.divider.withOpacity(0.6),
+                  color: context.colors.divider.withValues(alpha: 0.6),
                   height: 1,
                 ),
                 SizedBox(height: AppSpacing.md),
@@ -544,7 +622,7 @@ class _SummaryGrid extends StatelessWidget {
         title: "Jami plantatsiyalar",
         value: "$totalPlantations",
         icon: Icons.eco_outlined,
-        accent: DesignColors.AppColors.accentGreen,
+        accent: design_colors.AppColors.accentGreen,
       ),
       _SummaryItem(
         title: "Tasdiqlangan",
@@ -646,7 +724,7 @@ class _SummaryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: item.accent.withOpacity(0.12),
+                    color: item.accent.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -781,7 +859,7 @@ class _FarmerCard extends StatelessWidget {
               ),
               SizedBox(height: AppSpacing.md),
               Divider(
-            color: context.colors.divider.withOpacity(0.6),
+            color: context.colors.divider.withValues(alpha: 0.6),
                 height: 1,
               ),
               SizedBox(height: AppSpacing.md),
@@ -907,7 +985,7 @@ class _MetricPill extends StatelessWidget {
           Icon(
             icon,
             size: 16.sp,
-            color: DesignColors.AppColors.accentGreen,
+            color: design_colors.AppColors.accentGreen,
           ),
           SizedBox(width: AppSpacing.sm),
           Flexible(

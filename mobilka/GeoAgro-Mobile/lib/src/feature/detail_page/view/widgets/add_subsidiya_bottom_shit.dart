@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/setting/setup.dart';
+import '../../../../../localization/app_strings.dart';
 import '../../../../core/utils/thousands_separator_input_formatter.dart';
 import '../../../../core/widgets/year_wheel_picker.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
-    as DesignColors;
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
@@ -57,7 +57,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-          Text("Subsidiya qo\`shish va to\`ldirish", style: textStyle),
+          Text("Subsidiya qo`shish va to`ldirish", style: textStyle),
           SizedBox(height: AppSpacing.lg.h),
           // Год — выбор колёсиком
           YearWheelPicker(
@@ -87,10 +87,10 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
             ],
           ),
           DropdownWithLabel(
-            items: subsidyType,
-            hint: "subsidiya ajratilgan yo\`nalish kiriting",
+            items: AppLocalizedMaps.subsidyTypes,
+            hint: "subsidiya ajratilgan yo`nalish kiriting",
             selectedValue: detailVm.selectedSubsidyType,
-            label: "Subsidiya ajratilgan yo\`nalish",
+            label: "Subsidiya ajratilgan yo`nalish",
             onChanged: (value) {
               detailVm.setSubsidyType(value);
             },
@@ -117,7 +117,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.md,
                     ),
-                    backgroundColor: Colors.red.withOpacity(0.15),
+                    backgroundColor: Colors.red.withValues(alpha: 0.15),
                     foregroundColor: Colors.red,
                   ),
                   child: Text(
@@ -144,7 +144,7 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.md,
                     ),
-                    backgroundColor: DesignColors.AppColors.accentGreen,
+                    backgroundColor: design_colors.AppColors.accentGreen,
                     foregroundColor: Colors.white,
                   ),
                   child: Text(
@@ -191,17 +191,17 @@ class AddSubsidiyaBottomShit extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DesignColors.AppColors.darkSurfaceVariant,
+        backgroundColor: design_colors.AppColors.darkSurfaceVariant,
         title: Text(
           "Xatolik",
           style: AppTypography.headlineMedium(context).copyWith(
-            color: DesignColors.AppColors.darkTextPrimary,
+            color: design_colors.AppColors.darkTextPrimary,
           ),
         ),
         content: Text(
           message,
           style: AppTypography.bodyMedium(context).copyWith(
-            color: DesignColors.AppColors.darkTextSecondary,
+            color: design_colors.AppColors.darkTextSecondary,
           ),
         ),
         actions: [

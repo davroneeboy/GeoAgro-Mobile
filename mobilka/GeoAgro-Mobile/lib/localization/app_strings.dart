@@ -51,18 +51,19 @@ class AppStrings {
   static const String subsidiyaMuqobilenergiya = "Muqobil energiya uchun";
 
   // ===== REGIONS =====
-  static const String regionTashkent = "Tashkent";
-  static const String regionAndijan = "Andijan";
-  static const String regionBukhara = "Bukhara";
-  static const String regionFergana = "Fergana";
-  static const String regionJizzakh = "Jizzakh";
-  static const String regionKashkadarya = "Kashkadarya";
-  static const String regionNavoi = "Navoi";
+  static const String regionTashkent = "Toshkent";
+  static const String regionAndijan = "Andijon";
+  static const String regionBukhara = "Buxoro";
+  static const String regionFergana = "Farg'ona";
+  static const String regionJizzakh = "Jizzax";
+  static const String regionKashkadarya = "Qashqadaryo";
+  static const String regionNavoi = "Navoiy";
   static const String regionNamangan = "Namangan";
-  static const String regionSamarkand = "Samarkand";
-  static const String regionSirdarya = "Sirdarya";
-  static const String regionSurkhandarya = "Surkhandarya";
-  static const String regionKarakalpakstan = "Karakalpakstan";
+  static const String regionSamarkand = "Samarqand";
+  static const String regionSirdarya = "Sirdaryo";
+  static const String regionSurkhandarya = "Surxondaryo";
+  static const String regionKarakalpakstan = "Qoraqalpog'iston";
+  static const String regionKhorezm = "Xorazm";
 
   // ===== VALIDATION ERRORS =====
   static const String errorRequired = "Bu maydon majburiy";
@@ -200,6 +201,7 @@ class AppLocalizedMaps {
     10: AppStrings.regionSirdarya,
     11: AppStrings.regionSurkhandarya,
     12: AppStrings.regionKarakalpakstan,
+    13: AppStrings.regionKhorezm,
   };
 }
 

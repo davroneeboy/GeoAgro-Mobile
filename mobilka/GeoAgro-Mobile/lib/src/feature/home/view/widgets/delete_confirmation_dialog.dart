@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/style/app_colors.dart';
-import '../../../../../design_system/theme/colors.dart' as DesignColors;
+import '../../../../../design_system/theme/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/theme/typography.dart';
 import '../../../../../design_system/theme/spacing.dart';
@@ -49,16 +49,16 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
         ? context.colors.surface
         : Colors.white;
     final textColor = isDark
-        ? DesignColors.AppColors.darkOnSurface
+        ? design_colors.AppColors.darkOnSurface
         : AppColors.c1E1E1E;
     final hintColor = isDark
-        ? DesignColors.AppColors.darkOnSurfaceVariant
+        ? design_colors.AppColors.darkOnSurfaceVariant
         : AppColors.c1E1E1E70;
     final borderColor = isDark
-        ? DesignColors.AppColors.darkOutline
+        ? design_colors.AppColors.darkOutline
         : AppColors.c1E1E1E20;
     final focusedBorderColor = isDark
-        ? DesignColors.AppColors.primary
+        ? design_colors.AppColors.primary
         : AppColors.c28A745;
     final inputFillColor = isDark
         ? context.colors.surfaceVariant

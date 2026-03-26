@@ -2,7 +2,7 @@ import '../../../../data/model/plantation/new_plantation_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/setting/setup.dart';
+import '../../../../../localization/app_strings.dart';
 
 class AddSubsidyList extends StatelessWidget {
   final List<Subsidy> selectedList;
@@ -48,7 +48,7 @@ class AddSubsidyList extends StatelessWidget {
                                   SizedBox(height: 8),
                                   _buildRow(
                                       "Subsidiya yonalishi:  ",
-                                      subsidyType[detail.direction ?? 0] ??
+                                      AppLocalizedMaps.subsidyTypes[detail.direction ?? 0] ??
                                           'Noma’lum'),
                                   SizedBox(height: 8),
                                   _buildRow(
