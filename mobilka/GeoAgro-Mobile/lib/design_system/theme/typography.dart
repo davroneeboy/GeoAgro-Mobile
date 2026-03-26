@@ -56,7 +56,7 @@ class AppTypography {
         fontSize: fontSize34,
         fontWeight: bold,
         height: lineHeightTight,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
         letterSpacing: -0.5,
       );
 
@@ -65,7 +65,7 @@ class AppTypography {
         fontSize: fontSize28,
         fontWeight: bold,
         height: lineHeightTight,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
         letterSpacing: -0.25,
       );
 
@@ -74,7 +74,7 @@ class AppTypography {
         fontSize: fontSize24,
         fontWeight: semibold,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
         letterSpacing: 0,
       );
 

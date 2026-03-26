@@ -1,5 +1,3 @@
-library design_system;
-
 export 'theme/app_theme.dart';
 export 'theme/colors.dart';
 export 'theme/typography.dart';

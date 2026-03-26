@@ -219,40 +219,40 @@ class AppStatusChip extends StatelessWidget {
     switch (type) {
       case AppStatusType.success:
         return _StatusConfig(
-          backgroundColor: AppColors.success.withOpacity(0.1),
-          borderColor: AppColors.success.withOpacity(0.3),
+          backgroundColor: AppColors.success.withValues(alpha: 0.1),
+          borderColor: AppColors.success.withValues(alpha: 0.3),
           textColor: AppColors.successDark,
           iconColor: AppColors.success,
           icon: Icons.check_circle_outline,
         );
       case AppStatusType.warning:
         return _StatusConfig(
-          backgroundColor: AppColors.warning.withOpacity(0.1),
-          borderColor: AppColors.warning.withOpacity(0.3),
+          backgroundColor: AppColors.warning.withValues(alpha: 0.1),
+          borderColor: AppColors.warning.withValues(alpha: 0.3),
           textColor: AppColors.warningDark,
           iconColor: AppColors.warning,
           icon: Icons.warning_amber_outlined,
         );
       case AppStatusType.error:
         return _StatusConfig(
-          backgroundColor: AppColors.error.withOpacity(0.1),
-          borderColor: AppColors.error.withOpacity(0.3),
+          backgroundColor: AppColors.error.withValues(alpha: 0.1),
+          borderColor: AppColors.error.withValues(alpha: 0.3),
           textColor: AppColors.errorDark,
           iconColor: AppColors.error,
           icon: Icons.error_outline,
         );
       case AppStatusType.info:
         return _StatusConfig(
-          backgroundColor: AppColors.info.withOpacity(0.1),
-          borderColor: AppColors.info.withOpacity(0.3),
+          backgroundColor: AppColors.info.withValues(alpha: 0.1),
+          borderColor: AppColors.info.withValues(alpha: 0.3),
           textColor: AppColors.infoDark,
           iconColor: AppColors.info,
           icon: Icons.info_outline,
         );
       case AppStatusType.pending:
         return _StatusConfig(
-          backgroundColor: AppColors.warning.withOpacity(0.1),
-          borderColor: AppColors.warning.withOpacity(0.3),
+          backgroundColor: AppColors.warning.withValues(alpha: 0.1),
+          borderColor: AppColors.warning.withValues(alpha: 0.3),
           textColor: AppColors.warningDark,
           iconColor: AppColors.warning,
           icon: Icons.schedule_outlined,
@@ -311,10 +311,10 @@ class AppTag extends StatelessWidget {
         vertical: AppSpacing.xs / 2,
       ),
       decoration: BoxDecoration(
-        color: effectiveColor.withOpacity(0.1),
+        color: effectiveColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(
-          color: effectiveColor.withOpacity(0.3),
+          color: effectiveColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),

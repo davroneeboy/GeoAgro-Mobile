@@ -49,11 +49,11 @@ class AppColors {
   static const Color black = Color(0xFF000000);
 
   static Color withOpacity(Color color, double opacity) {
-    return color.withOpacity(opacity);
+    return color.withValues(alpha: opacity);
   }
 
-  static Color lightOverlay(double opacity) => lightOnBackground.withOpacity(opacity);
-  static Color darkOverlay(double opacity) => darkOnBackground.withOpacity(opacity);
+  static Color lightOverlay(double opacity) => lightOnBackground.withValues(alpha: opacity);
+  static Color darkOverlay(double opacity) => darkOnBackground.withValues(alpha: opacity);
 
   static const Color accentGreen = primary;
   static const Color darkTextPrimary = darkOnBackground;

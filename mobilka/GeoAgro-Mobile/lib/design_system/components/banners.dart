@@ -122,32 +122,32 @@ class AppBanner extends StatelessWidget {
     switch (type) {
       case AppBannerType.error:
         return _BannerConfig(
-          backgroundColor: AppColors.error.withOpacity(0.1),
-          borderColor: AppColors.error.withOpacity(0.3),
+          backgroundColor: AppColors.error.withValues(alpha: 0.1),
+          borderColor: AppColors.error.withValues(alpha: 0.3),
           textColor: AppColors.errorDark,
           iconColor: AppColors.error,
           icon: Icons.error_outline,
         );
       case AppBannerType.warning:
         return _BannerConfig(
-          backgroundColor: AppColors.warning.withOpacity(0.1),
-          borderColor: AppColors.warning.withOpacity(0.3),
+          backgroundColor: AppColors.warning.withValues(alpha: 0.1),
+          borderColor: AppColors.warning.withValues(alpha: 0.3),
           textColor: AppColors.warningDark,
           iconColor: AppColors.warning,
           icon: Icons.warning_amber_outlined,
         );
       case AppBannerType.info:
         return _BannerConfig(
-          backgroundColor: AppColors.info.withOpacity(0.1),
-          borderColor: AppColors.info.withOpacity(0.3),
+          backgroundColor: AppColors.info.withValues(alpha: 0.1),
+          borderColor: AppColors.info.withValues(alpha: 0.3),
           textColor: AppColors.infoDark,
           iconColor: AppColors.info,
           icon: Icons.info_outline,
         );
       case AppBannerType.success:
         return _BannerConfig(
-          backgroundColor: AppColors.success.withOpacity(0.1),
-          borderColor: AppColors.success.withOpacity(0.3),
+          backgroundColor: AppColors.success.withValues(alpha: 0.1),
+          borderColor: AppColors.success.withValues(alpha: 0.3),
           textColor: AppColors.successDark,
           iconColor: AppColors.success,
           icon: Icons.check_circle_outline,

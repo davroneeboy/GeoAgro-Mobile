@@ -36,7 +36,7 @@ class AppTypography {
         fontWeight: bold,
         height: lineHeightTight,
         fontFamily: fontFamilyDisplay,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   static TextStyle headline2(BuildContext context) => TextStyle(
@@ -44,35 +44,35 @@ class AppTypography {
         fontWeight: bold,
         height: lineHeightTight,
         fontFamily: fontFamilyDisplay,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   static TextStyle headline3(BuildContext context) => TextStyle(
         fontSize: fontSize2xl,
         fontWeight: semibold,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   static TextStyle title(BuildContext context) => TextStyle(
         fontSize: fontSizeXl,
         fontWeight: semibold,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   static TextStyle bodyLarge(BuildContext context) => TextStyle(
         fontSize: fontSizeBase,
         fontWeight: regular,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   static TextStyle body(BuildContext context) => TextStyle(
         fontSize: fontSizeBase,
         fontWeight: regular,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   static TextStyle bodySmall(BuildContext context) => TextStyle(
@@ -113,7 +113,7 @@ class AppTypography {
         fontSize: fontSizeLg,
         fontWeight: semibold,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   /// Headline Small (16px, Semibold) — emphasized text
@@ -121,7 +121,7 @@ class AppTypography {
         fontSize: fontSizeBase,
         fontWeight: semibold,
         height: lineHeightNormal,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       );
 
   /// Body Medium (14px, Regular) — alias for bodySmall

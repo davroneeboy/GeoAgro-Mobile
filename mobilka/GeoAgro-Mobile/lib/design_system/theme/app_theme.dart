@@ -261,8 +261,8 @@ class AppTheme {
         indicatorColor: AppColors.primaryContainer,
         elevation: 0,
         height: AppSpacing.bottomNavBarHeight,
-        labelTextStyle: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -279,8 +279,8 @@ class AppTheme {
             letterSpacing: 0.5,
           );
         }),
-        iconTheme: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return const IconThemeData(
               color: AppColors.primary,
               size: 24,
@@ -408,14 +408,14 @@ class AppTheme {
       
       // Switch
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.lightOutlineVariant;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primaryLight;
           }
           return AppColors.lightOutline;
@@ -424,13 +424,13 @@ class AppTheme {
       
       // Checkbox
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return Colors.transparent;
         }),
-        checkColor: MaterialStateProperty.all(AppColors.white),
+        checkColor: WidgetStateProperty.all(AppColors.white),
         side: const BorderSide(
           color: AppColors.lightOutline,
           width: 2,
@@ -442,8 +442,8 @@ class AppTheme {
       
       // Radio
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.lightOutline;
@@ -708,8 +708,8 @@ class AppTheme {
         indicatorColor: AppColors.primaryContainerDark,
         elevation: 0,
         height: AppSpacing.bottomNavBarHeight,
-        labelTextStyle: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -726,8 +726,8 @@ class AppTheme {
             letterSpacing: 0.5,
           );
         }),
-        iconTheme: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return const IconThemeData(
               color: AppColors.primary,
               size: 24,
@@ -855,14 +855,14 @@ class AppTheme {
       
       // Switch
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.darkOutlineVariant;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primaryLight;
           }
           return AppColors.darkOutline;
@@ -871,13 +871,13 @@ class AppTheme {
       
       // Checkbox
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return Colors.transparent;
         }),
-        checkColor: MaterialStateProperty.all(AppColors.white),
+        checkColor: WidgetStateProperty.all(AppColors.white),
         side: const BorderSide(
           color: AppColors.darkOutline,
           width: 2,
@@ -889,8 +889,8 @@ class AppTheme {
       
       // Radio
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.darkOutline;
@@ -921,10 +921,8 @@ class AppTheme {
         onErrorContainer: AppColors.errorDark,
         surface: AppColors.lightSurface,
         onSurface: AppColors.lightOnSurface,
-        surfaceVariant: AppColors.lightSurfaceVariant,
+        surfaceContainerHighest: AppColors.lightSurfaceVariant,
         onSurfaceVariant: AppColors.lightOnSurfaceVariant,
-        background: AppColors.lightBackground,
-        onBackground: AppColors.lightOnBackground,
         outline: AppColors.lightOutline,
         outlineVariant: AppColors.lightOutlineVariant,
         shadow: AppColors.black,
@@ -952,10 +950,8 @@ class AppTheme {
         onErrorContainer: AppColors.errorLight,
         surface: AppColors.darkSurface,
         onSurface: AppColors.darkOnSurface,
-        surfaceVariant: AppColors.darkSurfaceVariant,
+        surfaceContainerHighest: AppColors.darkSurfaceVariant,
         onSurfaceVariant: AppColors.darkOnSurfaceVariant,
-        background: AppColors.darkBackground,
-        onBackground: AppColors.darkOnBackground,
         outline: AppColors.darkOutline,
         outlineVariant: AppColors.darkOutlineVariant,
         shadow: AppColors.black,
@@ -976,21 +972,21 @@ class AppTheme {
         fontSize: 34,
         fontWeight: FontWeight.w700,
         height: 1.2,
-        color: colorScheme.onBackground,
+        color: colorScheme.onSurface,
         letterSpacing: -0.5,
       ),
       displayMedium: GoogleFonts.inter(
         fontSize: 28,
         fontWeight: FontWeight.w700,
         height: 1.2,
-        color: colorScheme.onBackground,
+        color: colorScheme.onSurface,
         letterSpacing: -0.25,
       ),
       displaySmall: GoogleFonts.inter(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         height: 1.4,
-        color: colorScheme.onBackground,
+        color: colorScheme.onSurface,
         letterSpacing: 0,
       ),
       

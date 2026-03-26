@@ -18,7 +18,7 @@ class AppShadows {
   /// Elevation 1 - Subtle lift (e.g., resting cards)
   static List<BoxShadow> elevation1Light = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.04),
+      color: AppColors.black.withValues(alpha: 0.04),
       blurRadius: 2,
       offset: const Offset(0, 1),
       spreadRadius: 0,
@@ -28,7 +28,7 @@ class AppShadows {
   /// Elevation 2 - Light lift (e.g., hovering cards, chips)
   static List<BoxShadow> elevation2Light = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.06),
+      color: AppColors.black.withValues(alpha: 0.06),
       blurRadius: 4,
       offset: const Offset(0, 2),
       spreadRadius: 0,
@@ -38,13 +38,13 @@ class AppShadows {
   /// Elevation 3 - Moderate lift (e.g., floating action button)
   static List<BoxShadow> elevation3Light = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.08),
+      color: AppColors.black.withValues(alpha: 0.08),
       blurRadius: 8,
       offset: const Offset(0, 4),
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: AppColors.black.withOpacity(0.02),
+      color: AppColors.black.withValues(alpha: 0.02),
       blurRadius: 2,
       offset: const Offset(0, 1),
       spreadRadius: 0,
@@ -54,13 +54,13 @@ class AppShadows {
   /// Elevation 4 - High lift (e.g., dialogs, modals)
   static List<BoxShadow> elevation4Light = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.10),
+      color: AppColors.black.withValues(alpha: 0.10),
       blurRadius: 12,
       offset: const Offset(0, 6),
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: AppColors.black.withOpacity(0.04),
+      color: AppColors.black.withValues(alpha: 0.04),
       blurRadius: 4,
       offset: const Offset(0, 2),
       spreadRadius: 0,
@@ -70,13 +70,13 @@ class AppShadows {
   /// Elevation 5 - Maximum lift (e.g., bottom sheets, navigation drawer)
   static List<BoxShadow> elevation5Light = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.12),
+      color: AppColors.black.withValues(alpha: 0.12),
       blurRadius: 16,
       offset: const Offset(0, 8),
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: AppColors.black.withOpacity(0.06),
+      color: AppColors.black.withValues(alpha: 0.06),
       blurRadius: 6,
       offset: const Offset(0, 3),
       spreadRadius: 0,
@@ -91,7 +91,7 @@ class AppShadows {
   /// Elevation 1 - Subtle lift (dark theme)
   static List<BoxShadow> elevation1Dark = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.20),
+      color: AppColors.black.withValues(alpha: 0.20),
       blurRadius: 3,
       offset: const Offset(0, 1),
       spreadRadius: 0,
@@ -101,7 +101,7 @@ class AppShadows {
   /// Elevation 2 - Light lift (dark theme)
   static List<BoxShadow> elevation2Dark = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.24),
+      color: AppColors.black.withValues(alpha: 0.24),
       blurRadius: 5,
       offset: const Offset(0, 2),
       spreadRadius: 0,
@@ -111,13 +111,13 @@ class AppShadows {
   /// Elevation 3 - Moderate lift (dark theme)
   static List<BoxShadow> elevation3Dark = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.28),
+      color: AppColors.black.withValues(alpha: 0.28),
       blurRadius: 10,
       offset: const Offset(0, 4),
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: AppColors.black.withOpacity(0.12),
+      color: AppColors.black.withValues(alpha: 0.12),
       blurRadius: 3,
       offset: const Offset(0, 1),
       spreadRadius: 0,
@@ -127,13 +127,13 @@ class AppShadows {
   /// Elevation 4 - High lift (dark theme)
   static List<BoxShadow> elevation4Dark = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.32),
+      color: AppColors.black.withValues(alpha: 0.32),
       blurRadius: 14,
       offset: const Offset(0, 6),
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: AppColors.black.withOpacity(0.16),
+      color: AppColors.black.withValues(alpha: 0.16),
       blurRadius: 5,
       offset: const Offset(0, 2),
       spreadRadius: 0,
@@ -143,13 +143,13 @@ class AppShadows {
   /// Elevation 5 - Maximum lift (dark theme)
   static List<BoxShadow> elevation5Dark = [
     BoxShadow(
-      color: AppColors.black.withOpacity(0.36),
+      color: AppColors.black.withValues(alpha: 0.36),
       blurRadius: 18,
       offset: const Offset(0, 8),
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: AppColors.black.withOpacity(0.20),
+      color: AppColors.black.withValues(alpha: 0.20),
       blurRadius: 7,
       offset: const Offset(0, 3),
       spreadRadius: 0,
