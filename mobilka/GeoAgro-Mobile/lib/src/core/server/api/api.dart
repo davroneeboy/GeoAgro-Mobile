@@ -95,7 +95,7 @@ class ApiService {
     } catch (e) {
       l.w("⚠️ API: Failed to get app version: $e");
       // Если не удалось получить версию, используем fallback
-      headers.putIfAbsent("flutter-version", () => "3.3.0");
+      headers.putIfAbsent("flutter-version", () => "4.0.0");
     }
 
     return headers;
