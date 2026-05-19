@@ -5,7 +5,7 @@ final class ApiConst {
   static const Duration sendTimeout = Duration(minutes: 2);
   static const Duration receiveTimeout = Duration(minutes: 2);
 
-  static const String baseUrl = "https://luxa.uz";
+  static const String baseUrl = "https://api.geoagro.uz";
 
   static String apiUpdatePlantation(int id) => '/api/plantations/$id/mobile-update/';
   static String apiUpdateImage(int id) => '/api/plantations/$id/images/';
