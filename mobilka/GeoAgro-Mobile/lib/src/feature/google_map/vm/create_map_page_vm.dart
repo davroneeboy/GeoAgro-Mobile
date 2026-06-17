@@ -14,6 +14,7 @@ import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/services/district_boundary_service.dart';
 import 'dart:convert';
+
 List<LatLng> polygoneCoordinates = [];
 
 class CreateMapPageVm extends ChangeNotifier {
@@ -273,21 +274,24 @@ class CreateMapPageVm extends ChangeNotifier {
         return;
       }
 
-      debugPrint('📊 CreateMapPageVm: Loading boundaries for district_id: $districtId, region_id: $regionId');
-      
+      debugPrint(
+          '📊 CreateMapPageVm: Loading boundaries for district_id: $districtId, region_id: $regionId');
+
       // Загружаем границы района (с fallback на область, если API не вернул данные)
       final boundaries = await DistrictBoundaryService.loadDistrictBoundaries(
         districtId,
         regionId: regionId,
       );
-      
+
       if (boundaries.isNotEmpty) {
         regionBoundaries.clear();
         regionBoundaries.addAll(boundaries);
-        debugPrint('✅ CreateMapPageVm: Loaded ${boundaries.length} boundary polygons');
+        debugPrint(
+            '✅ CreateMapPageVm: Loaded ${boundaries.length} boundary polygons');
         _safeNotifyListeners();
       } else {
-        debugPrint('⚠️ CreateMapPageVm: No boundaries loaded for district_id: $districtId');
+        debugPrint(
+            '⚠️ CreateMapPageVm: No boundaries loaded for district_id: $districtId');
       }
     } catch (e) {
       debugPrint('❌ CreateMapPageVm: Error loading district boundaries: $e');
@@ -942,7 +946,8 @@ class CreateMapPageVm extends ChangeNotifier {
     try {
       if (isLocationPermissionGranted) {
         final position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high);
+            locationSettings:
+                const LocationSettings(accuracy: LocationAccuracy.high));
         currentLocation = LatLng(position.latitude, position.longitude);
         centerPoint = currentLocation; // Обновляем центральную точку
         debugPrint(
