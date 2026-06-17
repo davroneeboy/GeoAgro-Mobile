@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
@@ -8,7 +9,8 @@ import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/style/app_colors.dart';
 import '../../vm/plantation_map_view_vm.dart';
 
-final plantationMapViewVM = ChangeNotifierProvider.autoDispose.family<PlantationMapViewVm, int>((ref, id) {
+final plantationMapViewVM = ChangeNotifierProvider.autoDispose
+    .family<PlantationMapViewVm, int>((ref, id) {
   return PlantationMapViewVm(id);
 });
 
@@ -17,7 +19,8 @@ class PlantationMapViewPage extends ConsumerStatefulWidget {
   const PlantationMapViewPage({super.key, required this.plantationId});
 
   @override
-  ConsumerState<PlantationMapViewPage> createState() => _PlantationMapViewPageState();
+  ConsumerState<PlantationMapViewPage> createState() =>
+      _PlantationMapViewPageState();
 }
 
 class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
@@ -33,7 +36,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(plantationMapViewVM(widget.plantationId));
-    
+
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: const CustomAppBarWidget(
@@ -41,7 +44,8 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
         canPop: true,
       ),
       body: vm.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.c28A745))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.c28A745))
           : vm.errorMessage != null
               ? Center(
                   child: Padding(
@@ -49,12 +53,14 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64.sp, color: AppColors.cE60C0C),
+                        Icon(Icons.error_outline,
+                            size: 64.sp, color: AppColors.cE60C0C),
                         16.verticalSpace,
                         Text(
                           vm.errorMessage!,
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16.sp, color: AppColors.c1E1E1E),
+                          style: TextStyle(
+                              fontSize: 16.sp, color: AppColors.c1E1E1E),
                         ),
                         24.verticalSpace,
                         ElevatedButton.icon(
@@ -87,9 +93,10 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                       polylines: vm.polylines,
                       markers: vm.markers,
                     ),
-                    
+
                     // Area and perimeter info overlay
-                    if (vm.currentPlantation != null && vm.currentPlantation!.coordinates.isNotEmpty)
+                    if (vm.currentPlantation != null &&
+                        vm.currentPlantation!.coordinates.isNotEmpty)
                       Positioned(
                         top: 16.h,
                         left: 16.w,
@@ -97,7 +104,8 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w, vertical: 8.h),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(8.r),
@@ -120,7 +128,8 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                             ),
                             8.verticalSpace,
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w, vertical: 8.h),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(8.r),
@@ -144,13 +153,14 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                           ],
                         ),
                       ),
-                    
+
                     // Legend at the bottom
                     Positioned(
                       bottom: 16.h,
                       left: 16.w,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 12.h),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(8.r),
@@ -213,4 +223,3 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
     );
   }
 }
-

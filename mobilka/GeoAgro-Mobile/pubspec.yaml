@@ -26,7 +26,7 @@ dependencies:
   google_maps_flutter: ^2.10.0
 
   # Statemagment
-  flutter_riverpod: ^2.6.1
+  flutter_riverpod: ^3.3.2
 
   # Storage
   flutter_secure_storage: ^10.3.1

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,7 +45,7 @@ class _RejectedVm extends ChangeNotifier {
   Future<void> fetch({bool isLoadMore = false, String? search}) async {
     if ((!canLoadNext && isLoadMore) || (isLoadMore && isFetchingMore)) return;
     if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) return;
-    
+
     if (search != _searchQuery && !isLoadMore) {
       _searchQuery = search;
     }
@@ -61,8 +62,10 @@ class _RejectedVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final query = ApiParams.pageWithSearchParams(page: currentPage, search: _searchQuery);
-      final data = await ApiService.get(ApiConst.apiPlantationsFormeRejected, query);
+      final query = ApiParams.pageWithSearchParams(
+          page: currentPage, search: _searchQuery);
+      final data =
+          await ApiService.get(ApiConst.apiPlantationsFormeRejected, query);
       if (data == null) {
         errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
@@ -71,7 +74,8 @@ class _RejectedVm extends ChangeNotifier {
 
         list.addAll(incomingItems);
 
-        debugPrint("REJECTED PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
+        debugPrint(
+            "REJECTED PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
         debugPrint("Total plantations: ${list.length}");
 
         currentPage++;
@@ -122,12 +126,14 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
             SearchBarWidget(
               key: const ValueKey('recheck_search'),
               onSearchChanged: (query) {
-                vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.fetch(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
           ],
         ),
-        body: Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
+        body:
+            Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
       );
     }
     if (vm.errorMessage != null) {
@@ -139,7 +145,8 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
             SearchBarWidget(
               key: const ValueKey('recheck_search'),
               onSearchChanged: (query) {
-                vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.fetch(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
           ],
@@ -178,7 +185,8 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
                     height: constraints.maxHeight,
                     child: const EmptyStateWidget(
                       message: "Rad etilgan plantatsiyalar topilmadi",
-                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+                      subMessage:
+                          "Ma'lumotlarni yangilash uchun pastga torting",
                     ),
                   ),
                 ),
@@ -188,19 +196,23 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
                 controller: _scrollController,
                 separatorBuilder: (_, __) => 16.verticalSpace,
                 padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: vm.list.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
+                itemCount: vm.list.length +
+                    ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == vm.list.length && !vm.isSearching) {
                     return Container(
                       margin: REdgeInsets.symmetric(vertical: 16),
                       child: ElevatedButton(
-                        onPressed: vm.isFetchingMore ? null : () {
-                          vm.fetch(isLoadMore: true);
-                        },
+                        onPressed: vm.isFetchingMore
+                            ? null
+                            : () {
+                                vm.fetch(isLoadMore: true);
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.c28A745,
                           foregroundColor: Colors.white,
-                          padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                          padding: REdgeInsets.symmetric(
+                              vertical: 16, horizontal: 32),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -218,10 +230,12 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
                                     ),
                                   ),
                                   8.horizontalSpace,
-                                  Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
+                                  Text("Yuklanmoqda...",
+                                      style: TextStyle(fontSize: 16.sp)),
                                 ],
                               )
-                            : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
+                            : Text("Qolganlarini ko'rish",
+                                style: TextStyle(fontSize: 16.sp)),
                       ),
                     );
                   }
@@ -229,7 +243,9 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
                   return InkWell(
                     onTap: () {
                       if (plantation.id != null) {
-                        context.go("${AppRouteNames.home}${AppRouteNames.plantationView}", extra: plantation.id);
+                        context.go(
+                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                            extra: plantation.id);
                       }
                     },
                     child: HomePageCardWidget(
@@ -247,5 +263,3 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
     );
   }
 }
-
-

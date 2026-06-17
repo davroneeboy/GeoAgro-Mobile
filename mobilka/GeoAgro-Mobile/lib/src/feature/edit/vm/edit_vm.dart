@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:agro_employee_public/src/data/model/plantation/edit_plantation.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,7 +21,6 @@ import '../../../core/utils/thousands_separator_input_formatter.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/utils/sanitization_utils.dart';
 import '../../../core/utils/utils.dart';
-
 
 final editVm = ChangeNotifierProvider.autoDispose<EditVM>((ref) {
   return EditVM();
@@ -41,12 +41,14 @@ final switchEfficiency = StateProvider<bool>((ref) => false);
 
 class EditVM extends ChangeNotifier {
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
-  
+
   // Вспомогательная функция для форматирования чисел без .0
   String formatNumber(dynamic value) {
     if (value == null) return "0";
     if (value is double) {
-      return value == value.toInt().toDouble() ? value.toInt().toString() : value.toString();
+      return value == value.toInt().toDouble()
+          ? value.toInt().toString()
+          : value.toString();
     }
     if (value is int) {
       return value.toString();
@@ -61,10 +63,10 @@ class EditVM extends ChangeNotifier {
   // Получить все изображения (существующие + новые)
   List<String> getAllImages() {
     List<String> allImages = [];
-    
+
     // Добавляем существующие изображения
     allImages.addAll(images);
-    
+
     // Добавляем новые изображения
     for (var mapEntry in _imageFiles.entries) {
       if (mapEntry.value != null) {
@@ -91,11 +93,13 @@ class EditVM extends ChangeNotifier {
   // Списки для хранения нескольких резервуаров каждого типа
   final List<TextEditingController> reservoirsBetonliVolumes = [];
   final List<TextEditingController> reservoirsQoplamaliVolumes = [];
-  
+
   // Старые контроллеры для обратной совместимости
-  late final TextEditingController reservoirsBetonliVolume = TextEditingController();
-  late final TextEditingController reservoirsQoplamaliVolume = TextEditingController();
-  
+  late final TextEditingController reservoirsBetonliVolume =
+      TextEditingController();
+  late final TextEditingController reservoirsQoplamaliVolume =
+      TextEditingController();
+
   // Инициализация: добавляем один контроллер по умолчанию
   void initializeReservoirs() {
     if (reservoirsBetonliVolumes.isEmpty) {
@@ -105,16 +109,18 @@ class EditVM extends ChangeNotifier {
       reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
     }
   }
-  
+
   // Методы для управления списками резервуаров
   void addBetonReservoir() {
     reservoirsBetonliVolumes.add(TextEditingController());
     notifyListeners();
   }
-  
+
   void removeBetonReservoir(int index) {
     // Всегда оставляем хотя бы один контроллер
-    if (index >= 0 && index < reservoirsBetonliVolumes.length && reservoirsBetonliVolumes.length > 1) {
+    if (index >= 0 &&
+        index < reservoirsBetonliVolumes.length &&
+        reservoirsBetonliVolumes.length > 1) {
       final controller = reservoirsBetonliVolumes[index];
       // Если это основной контроллер, заменяем его на следующий
       if (controller == reservoirsBetonliVolume) {
@@ -134,15 +140,17 @@ class EditVM extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   void addQoplamaliReservoir() {
     reservoirsQoplamaliVolumes.add(TextEditingController());
     notifyListeners();
   }
-  
+
   void removeQoplamaliReservoir(int index) {
     // Всегда оставляем хотя бы один контроллер
-    if (index >= 0 && index < reservoirsQoplamaliVolumes.length && reservoirsQoplamaliVolumes.length > 1) {
+    if (index >= 0 &&
+        index < reservoirsQoplamaliVolumes.length &&
+        reservoirsQoplamaliVolumes.length > 1) {
       final controller = reservoirsQoplamaliVolumes[index];
       // Если это основной контроллер, заменяем его на следующий
       if (controller == reservoirsQoplamaliVolume) {
@@ -162,6 +170,7 @@ class EditVM extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   TextEditingController cultivatedArea = TextEditingController();
   TextEditingController sxema1 = TextEditingController();
   TextEditingController sxema2 = TextEditingController();
@@ -173,25 +182,31 @@ class EditVM extends ChangeNotifier {
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
   bool _isSpecialUser = false; // Флаг специального пользователя
-  bool get isSpecialUser => _isSpecialUser; // Геттер для проверки специального пользователя
+  bool get isSpecialUser =>
+      _isSpecialUser; // Геттер для проверки специального пользователя
   File? getImageFile(int cardId) => _imageFiles[cardId];
   int? _uploadingIndex;
   bool _isUploadingImage = false;
-  bool isUploadingAt(int index) => _isUploadingImage && _uploadingIndex == index;
+  bool isUploadingAt(int index) =>
+      _isUploadingImage && _uploadingIndex == index;
   List<FruitArea> selectedDetails = [];
   List<FruitArea> selectedFruitVerityRoot = [];
   final TextEditingController selectedDateController = TextEditingController();
   TextEditingController tonnaController = TextEditingController();
   final switchIqtisodiy = StateProvider<bool>((ref) => false);
-  TextEditingController economicInefficientAreaController = TextEditingController();
+  TextEditingController economicInefficientAreaController =
+      TextEditingController();
   bool isLoading = true;
   bool isLoading2 = false;
   String? errorMessage;
   List<String> images = [];
   List<int> imageIds = [];
-  List<String> _originalImages = []; // Оригинальный список изображений для отмены изменений
-  List<int> _originalImageIds = []; // Оригинальный список ID изображений для отмены изменений
-  final List<int> _imagesToDelete = []; // ID изображений, помеченных для удаления
+  List<String> _originalImages =
+      []; // Оригинальный список изображений для отмены изменений
+  List<int> _originalImageIds =
+      []; // Оригинальный список ID изображений для отмены изменений
+  final List<int> _imagesToDelete =
+      []; // ID изображений, помеченных для удаления
   late EditPlantationModel plantationModel;
   bool isSaving = false;
   late EditPlantationModel originalPlantationModel;
@@ -200,7 +215,7 @@ class EditVM extends ChangeNotifier {
   FruitRootstocksModel? selectedFruitRoot;
   List<FruitVarietyModel> fruitVerityList = [];
   List<FruitRootstocksModel> fruitRootList = [];
- 
+
   // --- Missing state fields ---
   DateTime? _selectedDate;
   DateTime? _selectedDate2;
@@ -212,9 +227,9 @@ class EditVM extends ChangeNotifier {
 
   int? _selectedEnergy;
   int? get selectedEnergy => _selectedEnergy;
- 
+
   // -------- Helpers: change detection for minimal PATCH --------
-  
+
   Map<String, dynamic>? _currentTypesMap() {
     if (_selectedPlantationType == null) return null;
     final map = <String, dynamic>{
@@ -232,7 +247,8 @@ class EditVM extends ChangeNotifier {
   }
 
   Map<String, dynamic>? _originalTypesMap() {
-    final originalType = originalPlantationModel.types?.plantationType ?? originalPlantationModel.plantationType;
+    final originalType = originalPlantationModel.types?.plantationType ??
+        originalPlantationModel.plantationType;
     if (originalType == null) return null;
     final map = <String, dynamic>{
       "plantation_type": originalType,
@@ -252,12 +268,18 @@ class EditVM extends ChangeNotifier {
     final list = <Map<String, dynamic>>[];
     // 1: Mahalliy
     final mah = ref.watch(switchInvestmentMahhalliy)
-        ? (int.tryParse(investmentMahhalliyAmount.text.replaceAll(RegExp(r'[^0-9]'), ''))?.toDouble() ?? 0.0)
+        ? (int.tryParse(investmentMahhalliyAmount.text
+                    .replaceAll(RegExp(r'[^0-9]'), ''))
+                ?.toDouble() ??
+            0.0)
         : 0.0;
     list.add({"invest_type": 1, "investment_amount": mah});
     // 2: Xorijiy
     final xor = ref.watch(switchInvestmentXorjiy)
-        ? (int.tryParse(investmentXorijiyAmount.text.replaceAll(RegExp(r'[^0-9]'), ''))?.toDouble() ?? 0.0)
+        ? (int.tryParse(investmentXorijiyAmount.text
+                    .replaceAll(RegExp(r'[^0-9]'), ''))
+                ?.toDouble() ??
+            0.0)
         : 0.0;
     list.add({"invest_type": 2, "investment_amount": xor});
     return list;
@@ -274,7 +296,11 @@ class EditVM extends ChangeNotifier {
       final betonArea = double.tryParse(trellisBetonInstalledArea.text) ?? 0.0;
       final betonCount = int.tryParse(trellisBetonCount.text) ?? 0;
       if (betonArea > 0 || betonCount > 0) {
-    t.add({"trellis_type": 2, "trellis_installed_area": betonArea, "trellis_count": betonCount});
+        t.add({
+          "trellis_type": 2,
+          "trellis_installed_area": betonArea,
+          "trellis_count": betonCount
+        });
       }
     }
 
@@ -283,7 +309,11 @@ class EditVM extends ChangeNotifier {
       final temirArea = double.tryParse(trellisTemirInstalledArea.text) ?? 0.0;
       final temirCount = int.tryParse(trellisTemirCount.text) ?? 0;
       if (temirArea > 0 || temirCount > 0) {
-    t.add({"trellis_type": 1, "trellis_installed_area": temirArea, "trellis_count": temirCount});
+        t.add({
+          "trellis_type": 1,
+          "trellis_installed_area": temirArea,
+          "trellis_count": temirCount
+        });
       }
     }
 
@@ -302,7 +332,8 @@ class EditVM extends ChangeNotifier {
         if (beton > 0) {
           res.add({
             "reservoir_type": 1,
-            "reservoir_volume": beton.toStringAsFixed(1), // Строка, как ожидает бэкенд
+            "reservoir_volume":
+                beton.toStringAsFixed(1), // Строка, как ожидает бэкенд
           });
         }
       }
@@ -315,7 +346,8 @@ class EditVM extends ChangeNotifier {
         if (qop > 0) {
           res.add({
             "reservoir_type": 2,
-            "reservoir_volume": qop.toStringAsFixed(1), // Строка, как ожидает бэкенд
+            "reservoir_volume":
+                qop.toStringAsFixed(1), // Строка, как ожидает бэкенд
           });
         }
       }
@@ -334,8 +366,10 @@ class EditVM extends ChangeNotifier {
     final body = <String, dynamic>{};
 
     // garden_established_year
-    final currentYear = _selectedDate?.year ?? originalPlantationModel.gardenEstablishedYear;
-    if (_intChanged(currentYear, originalPlantationModel.gardenEstablishedYear)) {
+    final currentYear =
+        _selectedDate?.year ?? originalPlantationModel.gardenEstablishedYear;
+    if (_intChanged(
+        currentYear, originalPlantationModel.gardenEstablishedYear)) {
       body["garden_established_year"] = currentYear;
     }
 
@@ -370,7 +404,8 @@ class EditVM extends ChangeNotifier {
     final parsedNotUsable = notUsableArea.text.isNotEmpty
         ? double.tryParse(notUsableArea.text.replaceAll(',', '.'))
         : null;
-    if (_doubleChanged(parsedNotUsable, originalPlantationModel.notUsableArea)) {
+    if (_doubleChanged(
+        parsedNotUsable, originalPlantationModel.notUsableArea)) {
       if (parsedNotUsable != null) {
         body["not_usable_area"] = parsedNotUsable;
       }
@@ -388,7 +423,7 @@ class EditVM extends ChangeNotifier {
         ? (double.tryParse(irrigationAreaController.text) ?? 0.0)
         : 0.0;
     body["irrigation_area"] = curIrrArea;
-    
+
     final curIrrCount = ref.watch(switchTomchi)
         ? (int.tryParse(irrigationSystemsCount.text) ?? 0)
         : 0;
@@ -403,12 +438,12 @@ class EditVM extends ChangeNotifier {
     final origRes = (originalPlantationModel.reservoirs ?? [])
         .map((r) => {
               "reservoir_type": r.reservoirType,
-              "reservoir_volume": r.reservoirVolume != null 
-                  ? r.reservoirVolume.toString() 
+              "reservoir_volume": r.reservoirVolume != null
+                  ? r.reservoirVolume.toString()
                   : "0.0",
             })
         .toList();
-    
+
     // Отправляем резервуары, если:
     // 1. Переключатель включен (даже если список пустой - для очистки на сервере)
     // 2. Или текущие резервуары отличаются от оригинальных
@@ -443,14 +478,15 @@ class EditVM extends ChangeNotifier {
   }
 
   bool _isLoadingDetail = false;
-  
+
   Future<void> getPlantationDetail(WidgetRef ref, int id) async {
     // Предотвращаем повторную загрузку, если уже идет загрузка
     if (_isLoadingDetail) {
-      debugPrint('[edit] getPlantationDetail: Already loading, skipping duplicate call');
+      debugPrint(
+          '[edit] getPlantationDetail: Already loading, skipping duplicate call');
       return;
     }
-    
+
     _isLoadingDetail = true;
     errorMessage = null;
     isLoading = true;
@@ -462,9 +498,10 @@ class EditVM extends ChangeNotifier {
         plantationModel = EditPlantationModel.fromJson(jsonData);
         originalPlantationModel = EditPlantationModel.fromJson(jsonData);
         unumdorlikValue = plantationModel.fertilityScore?.toDouble() ?? 0;
-        
+
         // Логируем для отладки
-        debugPrint('[edit] getPlantationDetail: totalArea=${plantationModel.totalArea}');
+        debugPrint(
+            '[edit] getPlantationDetail: totalArea=${plantationModel.totalArea}');
         // Prefill core fields (format 2.0 -> 2, keep decimals like 2.02)
         notUsableArea.text = DecimalInputFormatter.formatBackendNumber(
           plantationModel.notUsableArea,
@@ -485,10 +522,12 @@ class EditVM extends ChangeNotifier {
         // Prefill year
         if (plantationModel.gardenEstablishedYear != null) {
           _selectedDate = DateTime(plantationModel.gardenEstablishedYear!);
-          selectedDateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+          selectedDateController.text =
+              DateFormat('yyyy-MM-dd').format(_selectedDate!);
         }
         // Prefill types
-        _selectedPlantationType = plantationModel.types?.plantationType ?? plantationModel.plantationType;
+        _selectedPlantationType = plantationModel.types?.plantationType ??
+            plantationModel.plantationType;
         if (_selectedPlantationType == 1) {
           _selectedBogType = plantationModel.types?.typeChoice;
           _selectedBogSubtype = plantationModel.types?.subtype;
@@ -501,7 +540,8 @@ class EditVM extends ChangeNotifier {
         _selectedYerTuriMap = plantationModel.landType;
 
         // Fertility
-        ref.read(switchIsFertile.notifier).state = plantationModel.isFertile ?? false;
+        ref.read(switchIsFertile.notifier).state =
+            plantationModel.isFertile ?? false;
 
         // Prefill investments switches and amounts
         double mah = 0.0;
@@ -509,10 +549,14 @@ class EditVM extends ChangeNotifier {
         for (final inv in plantationModel.investments ?? []) {
           if (inv.investType == 1) {
             final v = inv.investmentAmount;
-            if (v != null) mah = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+            if (v != null) {
+              mah = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+            }
           } else if (inv.investType == 2) {
             final v = inv.investmentAmount;
-            if (v != null) xor = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+            if (v != null) {
+              xor = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+            }
           }
         }
         ref.read(switchInvestmentMahhalliy.notifier).state = mah > 0;
@@ -521,11 +565,15 @@ class EditVM extends ChangeNotifier {
         investmentXorijiyAmount.text = xor > 0 ? xor.toStringAsFixed(0) : '';
 
         // Prefill irrigation (Tomchi)
-        final hasIrr = (plantationModel.irrigationArea != null && plantationModel.irrigationArea! > 0) ||
-            (plantationModel.irrigationSystemsCount != null && plantationModel.irrigationSystemsCount! > 0);
+        final hasIrr = (plantationModel.irrigationArea != null &&
+                plantationModel.irrigationArea! > 0) ||
+            (plantationModel.irrigationSystemsCount != null &&
+                plantationModel.irrigationSystemsCount! > 0);
         ref.read(switchTomchi.notifier).state = hasIrr;
-        irrigationAreaController.text = (plantationModel.irrigationArea ?? 0).toString();
-        irrigationSystemsCount.text = (plantationModel.irrigationSystemsCount ?? 0).toString();
+        irrigationAreaController.text =
+            (plantationModel.irrigationArea ?? 0).toString();
+        irrigationSystemsCount.text =
+            (plantationModel.irrigationSystemsCount ?? 0).toString();
 
         // Prefill trellises
         bool hasAnyTrellis = false;
@@ -557,27 +605,29 @@ class EditVM extends ChangeNotifier {
         initializeReservoirs();
         reservoirsBetonliVolumes.clear();
         reservoirsQoplamaliVolumes.clear();
-        
+
         // Группируем резервуары по типам
         final List<double> betonVolumes = [];
         final List<double> qopVolumes = [];
-        
+
         for (final r in plantationModel.reservoirs ?? []) {
           if (r.reservoirType == 1) {
             final v = r.reservoirVolume;
             if (v != null) {
-              final vol = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+              final vol =
+                  (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
               if (vol > 0) betonVolumes.add(vol);
             }
           } else if (r.reservoirType == 2) {
             final v = r.reservoirVolume;
             if (v != null) {
-              final vol = (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+              final vol =
+                  (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
               if (vol > 0) qopVolumes.add(vol);
             }
           }
         }
-        
+
         // Заполняем списки контроллеров
         if (betonVolumes.isEmpty) {
           reservoirsBetonliVolumes.add(reservoirsBetonliVolume);
@@ -587,12 +637,13 @@ class EditVM extends ChangeNotifier {
               reservoirsBetonliVolume.text = betonVolumes[i].toStringAsFixed(0);
               reservoirsBetonliVolumes.add(reservoirsBetonliVolume);
             } else {
-              final controller = TextEditingController(text: betonVolumes[i].toStringAsFixed(0));
+              final controller = TextEditingController(
+                  text: betonVolumes[i].toStringAsFixed(0));
               reservoirsBetonliVolumes.add(controller);
             }
           }
         }
-        
+
         if (qopVolumes.isEmpty) {
           reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
         } else {
@@ -601,15 +652,19 @@ class EditVM extends ChangeNotifier {
               reservoirsQoplamaliVolume.text = qopVolumes[i].toStringAsFixed(0);
               reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
             } else {
-              final controller = TextEditingController(text: qopVolumes[i].toStringAsFixed(0));
+              final controller =
+                  TextEditingController(text: qopVolumes[i].toStringAsFixed(0));
               reservoirsQoplamaliVolumes.add(controller);
             }
           }
         }
-        
-        ref.read(switchReservoirsBeton.notifier).state = betonVolumes.isNotEmpty;
-        ref.read(switchReservoirsQoplamali.notifier).state = qopVolumes.isNotEmpty;
-        ref.read(switchReservoirs.notifier).state = (betonVolumes.isNotEmpty || qopVolumes.isNotEmpty);
+
+        ref.read(switchReservoirsBeton.notifier).state =
+            betonVolumes.isNotEmpty;
+        ref.read(switchReservoirsQoplamali.notifier).state =
+            qopVolumes.isNotEmpty;
+        ref.read(switchReservoirs.notifier).state =
+            (betonVolumes.isNotEmpty || qopVolumes.isNotEmpty);
 
         // Prefill subsidies
         selectedEditSubsidy = (plantationModel.subsidies ?? []).toList();
@@ -624,7 +679,9 @@ class EditVM extends ChangeNotifier {
 
         // Prefill kontur numbers
         try {
-          final imgs = (jsonData is Map<String, dynamic>) ? jsonData['kontur_number'] : null;
+          final imgs = (jsonData is Map<String, dynamic>)
+              ? jsonData['kontur_number']
+              : null;
           konturNumbers = [];
           if (imgs is List) {
             for (final e in imgs) {
@@ -633,7 +690,7 @@ class EditVM extends ChangeNotifier {
             }
           }
         } catch (_) {}
-              } else {
+      } else {
         errorMessage = "Ma'lumotni olishda xatolik";
       }
     } catch (e) {
@@ -647,7 +704,8 @@ class EditVM extends ChangeNotifier {
 
   String? validateFields(WidgetRef ref) {
     // 1) Bog`ning barpo etilgan vaqti
-    if (_selectedDate == null && originalPlantationModel.gardenEstablishedYear == null) {
+    if (_selectedDate == null &&
+        originalPlantationModel.gardenEstablishedYear == null) {
       return "Bog`ning barpo etilgan vaqti tanlanmagan";
     }
     // 2) Plantatsiya turi
@@ -688,15 +746,21 @@ class EditVM extends ChangeNotifier {
     final xorOn = ref.read(switchInvestmentXorjiy);
     double mah = 0.0, xor = 0.0;
     if (mahOn) {
-      mah = (int.tryParse(investmentMahhalliyAmount.text.replaceAll(RegExp(r'[^0-9]'), ''))?.toDouble() ?? 0.0);
+      mah = (int.tryParse(investmentMahhalliyAmount.text
+                  .replaceAll(RegExp(r'[^0-9]'), ''))
+              ?.toDouble() ??
+          0.0);
     }
     if (xorOn) {
-      xor = (int.tryParse(investmentXorijiyAmount.text.replaceAll(RegExp(r'[^0-9]'), ''))?.toDouble() ?? 0.0);
+      xor = (int.tryParse(investmentXorijiyAmount.text
+                  .replaceAll(RegExp(r'[^0-9]'), ''))
+              ?.toDouble() ??
+          0.0);
     }
     if ((mahOn && mah <= 0) && (xorOn && xor <= 0) || (!mahOn && !xorOn)) {
       return "Kamida bitta investitsiya miqdorini kiriting (Mahalliy yoki Xorijiy)";
     }
-        // 8) Rasm - динамическая проверка количества фотографий
+    // 8) Rasm - динамическая проверка количества фотографий
     // TODO: Disabled for edit page — photo count validation is only required on create page
     // final minPhotosRequired = calculateMinimumPhotosRequired(ref);
     // final totalImages = images.length + _imageFiles.values.where((f) => f != null).length;
@@ -707,22 +771,25 @@ class EditVM extends ChangeNotifier {
     if (selectedDetails.isEmpty) {
       return "Kamida bitta meva maydoni qo'shing";
     }
-    
+
     // 10) Проверка разницы между площадью полигона (chegaraArea) и общей площадью плантации (не более 15%)
-    final polygonArea = plantationModel.chegaraArea ?? originalPlantationModel.chegaraArea;
+    final polygonArea =
+        plantationModel.chegaraArea ?? originalPlantationModel.chegaraArea;
     if (polygonArea != null && polygonArea > 0) {
       final totalArea = getTotalArea(ref);
       if (totalArea > 0) {
         // Вычисляем разницу в процентах
-        final difference = ((polygonArea - totalArea).abs() / polygonArea) * 100;
-        debugPrint('[edit] validateFields: polygonArea (chegaraArea) = $polygonArea, totalArea = $totalArea, difference = ${difference.toStringAsFixed(2)}%');
-        
+        final difference =
+            ((polygonArea - totalArea).abs() / polygonArea) * 100;
+        debugPrint(
+            '[edit] validateFields: polygonArea (chegaraArea) = $polygonArea, totalArea = $totalArea, difference = ${difference.toStringAsFixed(2)}%');
+
         if (difference > 15.0) {
           return 'Poligon maydoni va kiritilgan maydon o\'rtasidagi farq 15% dan oshib ketdi. Farq: ${difference.toStringAsFixed(1)}%. Iltimos, ma\'lumotlarni tekshiring.';
         }
       }
     }
-    
+
     return null;
   }
 
@@ -784,21 +851,22 @@ class EditVM extends ChangeNotifier {
   Future<bool> editPlantation(WidgetRef ref, int id) async {
     // Защита от множественных вызовов
     if (isSaving) {
-      debugPrint('editPlantation: Already in progress, ignoring duplicate call');
+      debugPrint(
+          'editPlantation: Already in progress, ignoring duplicate call');
       return false;
     }
-    
+
     errorMessage = null;
     isSaving = true;
     notifyListeners();
- 
+
     final body = _buildPatchBody(ref);
     try {
       // Диагностика: показываем финальное тело PATCH
       // ignore: avoid_print
       print('[edit] PATCH body => ${jsonEncode(body)}');
     } catch (_) {}
-    
+
     if (body.isEmpty) {
       // Нечего отправлять — изменений нет
       isSaving = false;
@@ -822,21 +890,22 @@ class EditVM extends ChangeNotifier {
         // Попробуем достать человекочитаемое сообщение
         final data = response.data;
         String message = "Xatolik yuz berdi";
-        
+
         debugPrint('[edit] Error response data: $data');
-        
+
         if (data is Map<String, dynamic>) {
           // Проверяем различные варианты структуры ошибки
           if (data["message"] is String) {
             message = data["message"] as String;
-          } else if (data["non_field_errors"] is List && (data["non_field_errors"] as List).isNotEmpty) {
+          } else if (data["non_field_errors"] is List &&
+              (data["non_field_errors"] as List).isNotEmpty) {
             message = (data["non_field_errors"][0]).toString();
           } else if (data["error"] is String) {
             // Обрабатываем случай когда error это строка с JSON
             try {
               final errorStr = data["error"] as String;
               debugPrint('[edit] Error string: $errorStr');
-              
+
               // Парсим строку как JSON
               final errorMap = jsonDecode(errorStr) as Map<String, dynamic>;
               if (errorMap["non_field_errors"] is List) {
@@ -854,7 +923,8 @@ class EditVM extends ChangeNotifier {
               debugPrint('[edit] Error parsing error string: $e');
               message = data["error"].toString();
             }
-          } else if (data["error"] is Map && (data["error"]["non_field_errors"] is List)) {
+          } else if (data["error"] is Map &&
+              (data["error"]["non_field_errors"] is List)) {
             final list = data["error"]["non_field_errors"] as List;
             if (list.isNotEmpty) {
               final errorDetail = list[0];
@@ -866,14 +936,14 @@ class EditVM extends ChangeNotifier {
             }
           }
         }
-        
+
         debugPrint('[edit] Final error message: $message');
         errorMessage = message;
         return false;
       }
     } catch (e) {
       // Улучшенная обработка ошибок
-      if (e.toString().contains('SocketException') || 
+      if (e.toString().contains('SocketException') ||
           e.toString().contains('HandshakeException') ||
           e.toString().contains('Connection refused') ||
           e.toString().contains('Network is unreachable')) {
@@ -985,7 +1055,7 @@ class EditVM extends ChangeNotifier {
     if (!plantationSuccess) {
       return false;
     }
-    
+
     // Удаляем помеченные изображения
     for (final imageId in _imagesToDelete) {
       try {
@@ -996,14 +1066,14 @@ class EditVM extends ChangeNotifier {
       }
     }
     _imagesToDelete.clear();
-    
+
     // Затем загружаем новые изображения
     bool imagesSuccess = await uploadImage();
-    
+
     // Обновляем оригинальный список изображений после успешного сохранения
     _originalImages = List<String>.from(images);
     _originalImageIds = List<int>.from(imageIds);
-    
+
     // Если был введен комментарий, добавляем его после успешного обновления плантации
     final rawCommentsText = commentsController.text.trim();
     if (rawCommentsText.isNotEmpty) {
@@ -1016,12 +1086,16 @@ class EditVM extends ChangeNotifier {
         final commentResponse = await _appRepositoryImpl.addPlantationComment(
           plantationId: id,
           body: commentsText,
-          isModeration: false, // Явно указываем, что это обычный комментарий при редактировании
+          isModeration:
+              false, // Явно указываем, что это обычный комментарий при редактировании
         );
-        debugPrint("📥 EditVM: Comment response status: ${commentResponse.statusCode}");
+        debugPrint(
+            "📥 EditVM: Comment response status: ${commentResponse.statusCode}");
         debugPrint("📥 EditVM: Comment response data: ${commentResponse.data}");
-        if (commentResponse.statusCode != 200 && commentResponse.statusCode != 201) {
-          debugPrint("⚠️ EditVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was updated");
+        if (commentResponse.statusCode != 200 &&
+            commentResponse.statusCode != 201) {
+          debugPrint(
+              "⚠️ EditVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was updated");
         } else {
           debugPrint("✅ EditVM: Comment added successfully");
         }
@@ -1031,30 +1105,33 @@ class EditVM extends ChangeNotifier {
         // Не прерываем процесс, плантация уже обновлена
       }
     }
-    
+
     return plantationSuccess && imagesSuccess;
   }
 
-  Future<bool> editPlantationWithImages(WidgetRef ref, int id, List<String> newImages) async {
+  Future<bool> editPlantationWithImages(
+      WidgetRef ref, int id, List<String> newImages) async {
     // Защита от множественных вызовов
     if (isSaving) {
-      debugPrint('editPlantationWithImages: Already in progress, ignoring duplicate call');
+      debugPrint(
+          'editPlantationWithImages: Already in progress, ignoring duplicate call');
       return false;
     }
-    
+
     errorMessage = null;
     isSaving = true;
     notifyListeners();
 
     final body = <String, dynamic>{};
-    
+
     // Garden established year - всегда отправляем текущее значение
     if (_selectedDate != null) {
       body["garden_established_year"] = _selectedDate!.year;
     } else if (originalPlantationModel.gardenEstablishedYear != null) {
-      body["garden_established_year"] = originalPlantationModel.gardenEstablishedYear;
+      body["garden_established_year"] =
+          originalPlantationModel.gardenEstablishedYear;
     }
-    
+
     // Plantation types - всегда отправляем текущие значения
     if (_selectedPlantationType != null) {
       final types = {
@@ -1070,44 +1147,48 @@ class EditVM extends ChangeNotifier {
       }
       body["types"] = types;
     }
-    
+
     // Total area - не отправляем (автоматически вычисляется бэкендом)
-    
+
     // Land type - всегда отправляем текущее значение
     if (_selectedYerTuriMap != null) {
       body["land_type"] = _selectedYerTuriMap;
     }
-    
+
     // Fertility score - всегда отправляем текущее значение
     body["fertility_score"] = unumdorlikValue;
-    
+
     // Not usable area - всегда отправляем текущее значение
     if (notUsableArea.text.isNotEmpty) {
-      body["not_usable_area"] = int.tryParse(notUsableArea.text.replaceAll(RegExp(r'[^0-9]'), ''))?.toDouble() ?? 0.0;
+      body["not_usable_area"] =
+          int.tryParse(notUsableArea.text.replaceAll(RegExp(r'[^0-9]'), ''))
+                  ?.toDouble() ??
+              0.0;
     } else if (originalPlantationModel.notUsableArea != null) {
       body["not_usable_area"] = originalPlantationModel.notUsableArea;
     }
-    
+
     // Empty area - всегда отправляем текущее значение
     if (emptyArea.text.isNotEmpty) {
-      body["empty_area"] = double.tryParse(emptyArea.text.replaceAll(',', '.')) ?? 0.0;
+      body["empty_area"] =
+          double.tryParse(emptyArea.text.replaceAll(',', '.')) ?? 0.0;
     } else if (originalPlantationModel.emptyArea != null) {
       body["empty_area"] = originalPlantationModel.emptyArea;
     }
-    
+
     // is_fertile - всегда отправляем
     body["is_fertile"] = ref.read(switchIsFertile);
-    
+
     // investments - всегда отправляем
     final curInv = _currentInvestments(ref);
     body["investments"] = curInv;
-    
+
     // irrigation - всегда отправляем
     final curIrrArea = ref.watch(switchTomchi)
         ? (double.tryParse(irrigationAreaController.text) ?? 0.0)
         : 0.0;
     body["irrigation_area"] = curIrrArea;
-    
+
     final curIrrCount = ref.watch(switchTomchi)
         ? (int.tryParse(irrigationSystemsCount.text) ?? 0)
         : 0;
@@ -1132,18 +1213,20 @@ class EditVM extends ChangeNotifier {
     }
 
     try {
-      final response = await _appRepositoryImpl.editPlantation(id: id, body: body);
+      final response =
+          await _appRepositoryImpl.editPlantation(id: id, body: body);
       if (response.statusCode != 200 && response.statusCode != 201) {
         // Используем ту же логику парсинга ошибок, что и в editPlantation
         final data = response.data;
         String message = "Xatolik yuz berdi";
-        
+
         debugPrint('[editWithImages] Error response data: $data');
-        
+
         if (data is Map<String, dynamic>) {
           if (data["message"] is String) {
             message = data["message"] as String;
-          } else if (data["non_field_errors"] is List && (data["non_field_errors"] as List).isNotEmpty) {
+          } else if (data["non_field_errors"] is List &&
+              (data["non_field_errors"] as List).isNotEmpty) {
             message = (data["non_field_errors"][0]).toString();
           } else if (data["error"] is String) {
             try {
@@ -1163,7 +1246,8 @@ class EditVM extends ChangeNotifier {
             } catch (e) {
               message = data["error"].toString();
             }
-          } else if (data["error"] is Map && (data["error"]["non_field_errors"] is List)) {
+          } else if (data["error"] is Map &&
+              (data["error"]["non_field_errors"] is List)) {
             final list = data["error"]["non_field_errors"] as List;
             if (list.isNotEmpty) {
               final errorDetail = list[0];
@@ -1175,7 +1259,7 @@ class EditVM extends ChangeNotifier {
             }
           }
         }
-        
+
         errorMessage = message;
         return false;
       }
@@ -1199,16 +1283,17 @@ class EditVM extends ChangeNotifier {
 
   /// Загрузить информацию о пользователе (isSpecialUser) из storage
   Future<void> loadUserInfo() async {
-    _isSpecialUser = await AppStorage.$readBool(key: StorageKey.isSpecialUser) ?? false;
+    _isSpecialUser =
+        await AppStorage.$readBool(key: StorageKey.isSpecialUser) ?? false;
   }
 
   /// Показать диалог выбора источника изображения (Camera/Gallery)
   Future<void> showImagePicker(BuildContext context, int cardId) async {
     // Загружаем информацию о пользователе перед показом диалога
     await loadUserInfo();
-    
+
     if (!context.mounted) return;
-    
+
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {
@@ -1249,7 +1334,7 @@ class EditVM extends ChangeNotifier {
   }) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile == null) return null;
-    
+
     // Валидация формата изображения
     if (!Utils.isValidImageFormat(pickedFile.path)) {
       final mountedContext = context;
@@ -1283,8 +1368,8 @@ class EditVM extends ChangeNotifier {
       }
       // Fallback to legacy batch
       if (resp.statusCode == 405) {
-        final legacy = await _appRepositoryImpl.editImage(
-            id: plantationId, images: [pickedFile.path]);
+        final legacy = await _appRepositoryImpl
+            .editImage(id: plantationId, images: [pickedFile.path]);
         if (legacy != null) {
           await refreshDetailImages();
           return 'Rasm muvaffaqiyatli yuklandi';
@@ -1307,8 +1392,10 @@ class EditVM extends ChangeNotifier {
   }
 
   /// Старый метод для обратной совместимости
-  Future<String?> pickImageFromCamera(int cardId, {BuildContext? context}) async {
-    return await pickImage(cardId: cardId, source: ImageSource.camera, context: context);
+  Future<String?> pickImageFromCamera(int cardId,
+      {BuildContext? context}) async {
+    return await pickImage(
+        cardId: cardId, source: ImageSource.camera, context: context);
   }
 
   Future<void> getFruit() async {
@@ -1390,33 +1477,35 @@ class EditVM extends ChangeNotifier {
   void editDetailAt(int index, WidgetRef ref, BuildContext context) async {
     if (index >= 0 && index < selectedDetails.length) {
       final fruitArea = selectedDetails[index];
-      
+
       // Заполняем поля данными существующего фрукта
       selectedFruit = fruitList.firstWhere(
         (fruit) => fruit.id == fruitArea.fruit,
         orElse: () => fruitList.first,
       );
-      
+
       // Устанавливаем switcher в зависимости от типа фрукта
-      ref.read(switchIqtisodiy.notifier).state = fruitArea.iqtisodiysamarasiz ?? false;
-      
+      ref.read(switchIqtisodiy.notifier).state =
+          fruitArea.iqtisodiysamarasiz ?? false;
+
       if (fruitArea.iqtisodiysamarasiz == true) {
         // Экономически неэффективная площадь
-        economicInefficientAreaController.text = fruitArea.economicInefficientArea?.toString() ?? "0.0";
+        economicInefficientAreaController.text =
+            fruitArea.economicInefficientArea?.toString() ?? "0.0";
       } else {
         // Обычная посадка
         selectedFruitRoot = fruitRootList.firstWhere(
           (root) => root.id == fruitArea.rootstock,
           orElse: () => fruitRootList.first,
         );
-        
+
         if (fruitArea.plantedYear != null) {
           _selectedDate2 = DateTime(fruitArea.plantedYear!);
         }
-        
+
         cultivatedArea.text = fruitArea.area?.toString() ?? "0.0";
         tonnaController.text = fruitArea.weight?.toString() ?? "";
-        
+
         if (fruitArea.schema != null && fruitArea.schema!.contains('X')) {
           final parts = fruitArea.schema!.split('X');
           if (parts.length == 2) {
@@ -1424,17 +1513,17 @@ class EditVM extends ChangeNotifier {
             sxema2.text = parts[1];
           }
         }
-        
+
         ref.read(switchFenced.notifier).state = fruitArea.fenced ?? false;
       }
-      
+
       // Удаляем фрукт из списка (будет добавлен заново после редактирования)
       selectedDetails.removeAt(index);
       selectedFruitVerityRoot.removeAt(index);
-      
+
       // Загружаем данные фруктов
       await getFruit();
-      
+
       // Открываем модальное окно для редактирования
       if (context.mounted) {
         await showModalBottomSheet(
@@ -1448,15 +1537,16 @@ class EditVM extends ChangeNotifier {
           isScrollControlled: true,
           builder: (context) {
             return FractionallySizedBox(
-                heightFactor: 0.9, child: EditFruitBottomShit(viewModelm: this));
+                heightFactor: 0.9,
+                child: EditFruitBottomShit(viewModelm: this));
           },
         );
-        
+
         // Если модальное окно закрыто, очищаем поля
         ref.read(switchFenced.notifier).state = false;
         resetFields(ref);
       }
-      
+
       notifyListeners();
     }
   }
@@ -1480,8 +1570,9 @@ class EditVM extends ChangeNotifier {
 
     // Экономически неэффективная площадь
     if (isIqtisodiy) {
-      final econ = double.tryParse(
-              economicInefficientAreaController.text.trim().replaceAll(',', '.')) ??
+      final econ = double.tryParse(economicInefficientAreaController.text
+              .trim()
+              .replaceAll(',', '.')) ??
           0.0;
 
       final fa = FruitArea(
@@ -1514,8 +1605,10 @@ class EditVM extends ChangeNotifier {
         sxema1.text.isNotEmpty &&
         sxema2.text.isNotEmpty) {
       final year = selectedDate2!.year.toString();
-      final areaVal = double.tryParse(cultivatedArea.text.trim().replaceAll(',', '.')) ?? 0.0;
-      
+      final areaVal =
+          double.tryParse(cultivatedArea.text.trim().replaceAll(',', '.')) ??
+              0.0;
+
       final fa = FruitArea(
         fruit: selectedFruit?.id,
         variety: selectedFruitVariety?.id,
@@ -1528,13 +1621,15 @@ class EditVM extends ChangeNotifier {
         schema: "${sxema1.text}X${sxema2.text}",
         weight: tonnaController.text.trim().isEmpty
             ? null
-            : double.tryParse(tonnaController.text.trim().replaceAll(',', '.')) ?? 0.0,
+            : double.tryParse(
+                    tonnaController.text.trim().replaceAll(',', '.')) ??
+                0.0,
         fenced: ref.read(switchFenced),
         hundredweight: null,
         kochatSoni: null,
         iqtisodiysamarasiz: false,
       );
-      
+
       selectedFruitVerityRoot.add(fa);
       selectedDetails.add(fa);
       _resetFieldsInternal();
@@ -1600,8 +1695,8 @@ class EditVM extends ChangeNotifier {
   void removeDetail(int index) {
     if (index < selectedDetails.length) {
       selectedDetails.removeAt(index);
-    notifyListeners();
-  }
+      notifyListeners();
+    }
   }
 
   void addDetail(FruitArea fruitArea) {
@@ -1641,7 +1736,6 @@ class EditVM extends ChangeNotifier {
     _selectedDate2 = null;
     notifyListeners();
   }
-
 
   void setYerTuri(int? yerTuri) {
     _selectedYerTuriMap = yerTuri;
@@ -1712,10 +1806,11 @@ class EditVM extends ChangeNotifier {
   double getTotalArea(WidgetRef ref) {
     // empty_area
     final empty = double.tryParse(emptyArea.text.replaceAll(',', '.')) ?? 0.0;
-    
-    // not_usable_area  
-    final notUsable = double.tryParse(notUsableArea.text.replaceAll(',', '.')) ?? 0.0;
-    
+
+    // not_usable_area
+    final notUsable =
+        double.tryParse(notUsableArea.text.replaceAll(',', '.')) ?? 0.0;
+
     // economic_inefficient_area (сумма всех экономически неэффективных площадей)
     double economicInefficient = 0.0;
     for (final fruitArea in selectedDetails) {
@@ -1723,7 +1818,7 @@ class EditVM extends ChangeNotifier {
         economicInefficient += fruitArea.economicInefficientArea ?? 0.0;
       }
     }
-    
+
     // planted_area (сумма всех обычных площадей)
     double planted = 0.0;
     for (final fruitArea in selectedDetails) {
@@ -1731,18 +1826,20 @@ class EditVM extends ChangeNotifier {
         planted += fruitArea.area ?? 0.0;
       }
     }
-    
+
     // Добавляем текущий фрукт, если он заполняется
     final isIqtisodiy = ref.read(switchIqtisodiy);
     if (isIqtisodiy) {
-      economicInefficient += double.tryParse(economicInefficientAreaController.text.replaceAll(',', '.')) ?? 0.0;
+      economicInefficient += double.tryParse(
+              economicInefficientAreaController.text.replaceAll(',', '.')) ??
+          0.0;
     } else {
-      planted += double.tryParse(cultivatedArea.text.replaceAll(',', '.')) ?? 0.0;
+      planted +=
+          double.tryParse(cultivatedArea.text.replaceAll(',', '.')) ?? 0.0;
     }
-    
+
     return empty + notUsable + economicInefficient + planted;
   }
-
 
   void setInvestmentMahhalliyAmount(String value) {
     investmentMahhalliyAmount.text = value;
@@ -1857,7 +1954,8 @@ class EditVM extends ChangeNotifier {
         images = model.images ?? images;
         // обновим ids если пришли
         try {
-          final imgs = (decoded is Map<String, dynamic>) ? decoded['images'] : null;
+          final imgs =
+              (decoded is Map<String, dynamic>) ? decoded['images'] : null;
           if (imgs is List) {
             imageIds = [];
             for (final e in imgs) {
@@ -1875,14 +1973,14 @@ class EditVM extends ChangeNotifier {
 
   Future<String?> removeExistingImage(int index) async {
     if (index >= images.length) return null;
-    
+
     // Не удаляем сразу на сервере, только помечаем для удаления
     // Удаление произойдет только при сохранении
     if (index < imageIds.length) {
       // Сохраняем ID изображения для удаления при сохранении
       _imagesToDelete.add(imageIds[index]);
     }
-    
+
     // Локально убираем из списка (только для отображения)
     images.removeAt(index);
     if (index < imageIds.length) {
@@ -1891,7 +1989,7 @@ class EditVM extends ChangeNotifier {
     notifyListeners();
     return "Rasm o'chirildi";
   }
-  
+
   /// Восстановить оригинальный список изображений (при отмене изменений)
   void restoreOriginalImages() {
     images = List<String>.from(_originalImages);
@@ -1934,5 +2032,3 @@ class EditVM extends ChangeNotifier {
     super.dispose();
   }
 }
-
-

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'remote_controller.dart';
 import '../tools/assets.dart';
 import '../style/app_colors.dart';
 
-final remoteControllerVM = ChangeNotifierProvider.autoDispose<RemoteController>((ref) {
+final remoteControllerVM =
+    ChangeNotifierProvider.autoDispose<RemoteController>((ref) {
   return RemoteController();
 });
 
@@ -48,7 +50,10 @@ class RemoteListiner extends ConsumerWidget {
           ),
           content: Text(
             "Ilova Yaratuvchilari Tomonidan Block Holatiga Tushdi",
-            style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.w500),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
         );

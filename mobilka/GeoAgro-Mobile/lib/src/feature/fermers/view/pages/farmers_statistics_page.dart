@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -9,8 +10,7 @@ import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_state_widget.dart';
-import '../../../../core/widgets/loading_widget.dart'
-    hide EmptyStateWidget;
+import '../../../../core/widgets/loading_widget.dart' hide EmptyStateWidget;
 import '../../../../data/model/farmer/farmer_statistics_model.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../data/model/farmer/farmer_list_model.dart';
@@ -44,12 +44,14 @@ class _FarmersStatisticsPageState extends ConsumerState<FarmersStatisticsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint("📊 FarmersStatisticsPage: PostFrameCallback executing");
       final vm = ref.read(farmersStatisticsVM);
-      debugPrint("📊 FarmersStatisticsPage: statistics=${vm.statistics}, isLoading=${vm.isLoading}");
+      debugPrint(
+          "📊 FarmersStatisticsPage: statistics=${vm.statistics}, isLoading=${vm.isLoading}");
       if (vm.statistics == null && !vm.isLoading) {
         debugPrint("📊 FarmersStatisticsPage: Calling initialize()");
         vm.initialize();
       } else {
-        debugPrint("⚠️ FarmersStatisticsPage: Skipping initialize - statistics exists or is loading");
+        debugPrint(
+            "⚠️ FarmersStatisticsPage: Skipping initialize - statistics exists or is loading");
       }
     });
   }
@@ -62,7 +64,8 @@ class _FarmersStatisticsPageState extends ConsumerState<FarmersStatisticsPage> {
       appBar: CustomAppBarWidget(
         title: "Fermerlar kesimida statistika",
         canPop: true,
-        onBackPressed: () => context.go('/farmers'), // Переход на страницу фермеров
+        onBackPressed: () =>
+            context.go('/farmers'), // Переход на страницу фермеров
       ),
       body: Container(
         color: context.colors.background,
@@ -155,7 +158,7 @@ class _SearchSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [ 
+            children: [
               Expanded(
                 child: CustomTextField(
                   controller: vm.searchInnController,
@@ -459,7 +462,7 @@ class _SearchResultCard extends StatelessWidget {
                         Icon(
                           Icons.phone,
                           size: 16.sp,
-                        color: context.colors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                         SizedBox(width: AppSpacing.sm),
                         Text(
@@ -747,7 +750,7 @@ class _SummaryCard extends StatelessWidget {
                     Text(
                       item.title,
                       style: AppTypography.caption(context).copyWith(
-                color: context.colors.textTertiary,
+                        color: context.colors.textTertiary,
                       ),
                     ),
                   ],
@@ -844,7 +847,7 @@ class _FarmerCard extends StatelessWidget {
                               ? "Oxirgi qo'shilgan: ${_formatDate(farmer.lastAddedPlantations!)}"
                               : "Yangilangan ma'lumot mavjud emas",
                           style: AppTypography.caption(context).copyWith(
-                  color: context.colors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
                       ],
@@ -859,7 +862,7 @@ class _FarmerCard extends StatelessWidget {
               ),
               SizedBox(height: AppSpacing.md),
               Divider(
-            color: context.colors.divider.withValues(alpha: 0.6),
+                color: context.colors.divider.withValues(alpha: 0.6),
                 height: 1,
               ),
               SizedBox(height: AppSpacing.md),

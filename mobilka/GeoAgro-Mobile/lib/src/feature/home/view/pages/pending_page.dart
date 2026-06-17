@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,13 +45,15 @@ class _PendingVm extends ChangeNotifier {
 
   Future<void> fetch({bool isLoadMore = false, String? search}) async {
     if ((!canLoadNext && isLoadMore) || (isLoadMore && isFetchingMore)) return;
-    if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) return; // disable pagination while searching
-    
+    if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) {
+      return; // disable pagination while searching
+    }
+
     // If search query changed, reset pagination
     if (search != _searchQuery && !isLoadMore) {
       _searchQuery = search;
     }
-    
+
     errorMessage = null;
     if (!isLoadMore) {
       isLoading = true;
@@ -63,35 +66,37 @@ class _PendingVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final query = ApiParams.pageWithSearchParams(page: currentPage, search: _searchQuery);
+      final query = ApiParams.pageWithSearchParams(
+          page: currentPage, search: _searchQuery);
       final data = await ApiService.get(ApiConst.apiPlantationsPending, query);
       if (data == null) {
         errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
         final model = PlantationsListModel.fromJson(jsonDecode(data));
         final incomingItems = model.results ?? [];
-        
+
         list.addAll(incomingItems);
-        
+
         // Сортируем по дате создания (новые сверху)
         list.sort((a, b) {
           if (a.createdAt == null && b.createdAt == null) return 0;
           if (a.createdAt == null) return 1;
           if (b.createdAt == null) return -1;
-          
+
           final dateA = DateTime.tryParse(a.createdAt!);
           final dateB = DateTime.tryParse(b.createdAt!);
-          
+
           if (dateA == null && dateB == null) return 0;
           if (dateA == null) return 1;
           if (dateB == null) return -1;
-          
+
           return dateB.compareTo(dateA); // Новые сверху
         });
-        
-        debugPrint("PENDING PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
+
+        debugPrint(
+            "PENDING PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
         debugPrint("Total plantations: ${list.length}");
-        
+
         currentPage++;
         canLoadNext = model.next != null;
       }
@@ -145,12 +150,14 @@ class _PendingPageState extends ConsumerState<PendingPage> {
             SearchBarWidget(
               key: const ValueKey('pending_search'),
               onSearchChanged: (query) {
-                vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.fetch(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
           ],
         ),
-        body: Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
+        body:
+            Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
       );
     }
     if (vm.errorMessage != null) {
@@ -162,7 +169,8 @@ class _PendingPageState extends ConsumerState<PendingPage> {
             SearchBarWidget(
               key: const ValueKey('pending_search'),
               onSearchChanged: (query) {
-                vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.fetch(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
           ],
@@ -199,7 +207,8 @@ class _PendingPageState extends ConsumerState<PendingPage> {
                     height: constraints.maxHeight,
                     child: const EmptyStateWidget(
                       message: "Ko'rib chiqilayotgan plantatsiyalar topilmadi",
-                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+                      subMessage:
+                          "Ma'lumotlarni yangilash uchun pastga torting",
                     ),
                   ),
                 ),
@@ -209,20 +218,24 @@ class _PendingPageState extends ConsumerState<PendingPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 separatorBuilder: (_, __) => 16.verticalSpace,
                 padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: vm.list.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
+                itemCount: vm.list.length +
+                    ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == vm.list.length && !vm.isSearching) {
                     // Кнопка "Qolganlarini ko'rish"
                     return Container(
                       margin: REdgeInsets.symmetric(vertical: 16),
                       child: ElevatedButton(
-                        onPressed: vm.isFetchingMore ? null : () {
-                          vm.loadMore();
-                        },
+                        onPressed: vm.isFetchingMore
+                            ? null
+                            : () {
+                                vm.loadMore();
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.c28A745,
                           foregroundColor: Colors.white,
-                          padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                          padding: REdgeInsets.symmetric(
+                              vertical: 16, horizontal: 32),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -240,10 +253,12 @@ class _PendingPageState extends ConsumerState<PendingPage> {
                                     ),
                                   ),
                                   8.horizontalSpace,
-                                  Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
+                                  Text("Yuklanmoqda...",
+                                      style: TextStyle(fontSize: 16.sp)),
                                 ],
                               )
-                            : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
+                            : Text("Qolganlarini ko'rish",
+                                style: TextStyle(fontSize: 16.sp)),
                       ),
                     );
                   }
@@ -251,13 +266,16 @@ class _PendingPageState extends ConsumerState<PendingPage> {
                   return InkWell(
                     onTap: () {
                       if (plantation.id != null) {
-                        context.go("${AppRouteNames.home}${AppRouteNames.plantationView}", extra: plantation.id);
+                        context.go(
+                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                            extra: plantation.id);
                       }
                     },
                     child: HomePageCardWidget(
                       plantation: plantation,
                       showEditButton: true,
-                      customProvider: sharedHomePageVM, // Use shared provider for deletion
+                      customProvider:
+                          sharedHomePageVM, // Use shared provider for deletion
                       onDeleteSuccess: () {
                         // Обновляем список после успешного удаления
                         ref.read(pendingPageVM.notifier).fetch();
@@ -270,5 +288,3 @@ class _PendingPageState extends ConsumerState<PendingPage> {
     );
   }
 }
-
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +15,8 @@ import '../widgets/farmer_plantation_card.dart';
 import '../../vm/farmer_plantations_vm.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
-final farmerPlantationsVm = ChangeNotifierProvider.autoDispose<FarmerPlantationsVm>((ref) {
+final farmerPlantationsVm =
+    ChangeNotifierProvider.autoDispose<FarmerPlantationsVm>((ref) {
   return FarmerPlantationsVm();
 });
 
@@ -31,7 +33,8 @@ class FarmerPlantationsPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<FarmerPlantationsPage> createState() => _FarmerPlantationsPageState();
+  ConsumerState<FarmerPlantationsPage> createState() =>
+      _FarmerPlantationsPageState();
 }
 
 class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
@@ -41,8 +44,8 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     // Load farmer plantations when page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(
-        farmerInn: widget.farmerInn,
-      );
+            farmerInn: widget.farmerInn,
+          );
     });
   }
 
@@ -60,7 +63,8 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, FarmerPlantationsVm vm) {
+  Widget _buildContent(
+      BuildContext context, WidgetRef ref, FarmerPlantationsVm vm) {
     if (vm.isLoading) {
       return Center(
         child: Icon(
@@ -74,9 +78,10 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
     if (vm.errorMessage != null) {
       return ErrorStateWidget(
         errorMessage: vm.errorMessage ?? "Kutilmagan xatolik",
-        onTap: () => ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(
-          farmerInn: widget.farmerInn,
-        ),
+        onTap: () =>
+            ref.read(farmerPlantationsVm.notifier).getFarmerPlantations(
+                  farmerInn: widget.farmerInn,
+                ),
       );
     }
 
@@ -151,7 +156,7 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
             ),
           ),
         ),
-        
+
         // Plantations list
         SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -202,7 +207,8 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return child;
   }
 

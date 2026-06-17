@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/setting/setup.dart';
@@ -23,8 +24,7 @@ import 'delete_confirmation_dialog.dart';
 class HomePageCardWidget extends StatelessWidget {
   final Result plantation;
   final bool showEditButton;
-  final AutoDisposeChangeNotifierProvider<HomePageVm>?
-      customProvider; // Fix type
+  final ChangeNotifierProvider<HomePageVm>? customProvider;
   final VoidCallback? onDeleteSuccess; // Callback for successful deletion
 
   const HomePageCardWidget({
@@ -112,18 +112,21 @@ class HomePageCardWidget extends StatelessWidget {
         username != null &&
         plantation.createdByUsername == username;
     final isChecked = plantation.isChecked ?? false;
-    final canEdit = showEditButton && (matchesById || matchesByUsername) && !isChecked;
+    final canEdit =
+        showEditButton && (matchesById || matchesByUsername) && !isChecked;
     // return InkWell(
     //   onTap: onPressed,
     //   child: CustomCardWidget(
     final farmerName = plantation.farmerName ?? "Noma'lum fermer";
     final farmerInn = plantation.farmerInn?.toString();
     final plantationId = plantation.id?.toString() ?? "N/A";
-    final landType = AppLocalizedMaps.yerTuri[plantation.landType] ?? "Noma'lum";
+    final landType =
+        AppLocalizedMaps.yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
-    final chegaraAreaText = (plantation.chegaraArea != null && plantation.chegaraArea! > 0)
-        ? "${plantation.chegaraArea!.toStringAsFixed(2)} ga"
-        : null;
+    final chegaraAreaText =
+        (plantation.chegaraArea != null && plantation.chegaraArea! > 0)
+            ? "${plantation.chegaraArea!.toStringAsFixed(2)} ga"
+            : null;
     final establishedYear = plantation.gardenEstablishedYear != null
         ? "${plantation.gardenEstablishedYear} yil"
         : null;
@@ -321,14 +324,14 @@ class HomePageCardWidget extends StatelessWidget {
           Text(
             "ID",
             style: AppTypography.caption(context).copyWith(
-          color: context.colors.textTertiary,
+              color: context.colors.textTertiary,
               letterSpacing: 0.4,
             ),
           ),
           Text(
             id,
             style: AppTypography.bodySmall(context).copyWith(
-          color: context.colors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -337,9 +340,10 @@ class HomePageCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _statusBadge({required BuildContext context, required Result plantation}) {
+  Widget _statusBadge(
+      {required BuildContext context, required Result plantation}) {
     Color statusColor;
-    
+
     // Проверяем сначала isRejected, потом isChecked
     if (plantation.isRejected == true) {
       statusColor = design_colors.AppColors.error;
@@ -449,7 +453,7 @@ class HomePageCardWidget extends StatelessWidget {
                   "Tafsilot",
                   style: AppTypography.bodySmall(context).copyWith(
                     fontWeight: FontWeight.w600,
-                  color: context.colors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 SizedBox(height: AppSpacing.xs),
@@ -570,7 +574,8 @@ class HomePageCardWidget extends StatelessWidget {
             Navigator.of(dialogContext).pop();
             if (!context.mounted) return;
             // Подтверждение через блокировку устройства
-            final confirmed = await BiometricService.instance.confirmCriticalAction(
+            final confirmed =
+                await BiometricService.instance.confirmCriticalAction(
               context: context,
               reason: "Plantatsiyani o'chirish uchun tasdiqlang",
             );
@@ -615,7 +620,8 @@ class HomePageCardWidget extends StatelessWidget {
       if (result) {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text(vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
+            content: Text(
+                vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
             backgroundColor: AppColors.c28A745,
             duration: const Duration(seconds: 3),
           ),
@@ -647,5 +653,4 @@ class HomePageCardWidget extends StatelessWidget {
       }
     }
   }
-
 }

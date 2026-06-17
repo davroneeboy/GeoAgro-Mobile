@@ -8,6 +8,7 @@ import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -22,6 +23,7 @@ import 'package:intl/intl.dart';
 import '../pages/home_page.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
   return _PlantationViewVm(id);
@@ -118,7 +120,8 @@ class _PlantationViewVm extends ChangeNotifier {
       if (data != null) {
         final json = jsonDecode(data) as Map<String, dynamic>;
         // Пробуем разные возможные поля для имени
-        final fullName = json['full_name'] ?? json['display_name'] ?? json['name'];
+        final fullName =
+            json['full_name'] ?? json['display_name'] ?? json['name'];
         final firstName = json['first_name']?.toString() ?? '';
         final lastName = json['last_name']?.toString() ?? '';
 
@@ -152,7 +155,7 @@ class PlantationViewPage extends ConsumerStatefulWidget {
 class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
   bool _hasTriedToLoadMapCoordinates = false;
   bool _hasTriedToInitializeFromDetail = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -173,16 +176,18 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       debugPrint("[PlantationViewPage] Plantation ID is null");
       return;
     }
-    
+
     try {
-      debugPrint("[PlantationViewPage] Trying to initialize map from detail for ID: $plantationId");
+      debugPrint(
+          "[PlantationViewPage] Trying to initialize map from detail for ID: $plantationId");
       final repo = AppRepositoryImpl();
       final data = await repo.getPlantationDetail(id: plantationId);
       if (data != null) {
-        debugPrint("[PlantationViewPage] Got detail data, length: ${data.length}");
+        debugPrint(
+            "[PlantationViewPage] Got detail data, length: ${data.length}");
         final jsonData = jsonDecode(data);
         debugPrint("[PlantationViewPage] Parsed JSON, keys: ${jsonData.keys}");
-        
+
         if (jsonData['coordinates'] != null) {
           debugPrint("[PlantationViewPage] Coordinates found in response");
           final mapVm = ref.read(plantationMapMiniVM(widget.id));
@@ -304,25 +309,30 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     }
   }
 
-  Widget _buildCommentsList(BuildContext context, List<Comment> comments, bool isDark) {
+  Widget _buildCommentsList(
+      BuildContext context, List<Comment> comments, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...comments.map((comment) => _buildCommentCard(context, comment, isDark)),
+        ...comments
+            .map((comment) => _buildCommentCard(context, comment, isDark)),
       ],
     );
   }
 
-  Widget _buildModerationCommentsList(BuildContext context, List<_ModerationCommentDisplay> comments, bool isDark) {
+  Widget _buildModerationCommentsList(BuildContext context,
+      List<_ModerationCommentDisplay> comments, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...comments.map((comment) => _buildModerationCommentCard(context, comment, isDark)),
+        ...comments.map(
+            (comment) => _buildModerationCommentCard(context, comment, isDark)),
       ],
     );
   }
 
-  Widget _buildModerationCommentCard(BuildContext context, _ModerationCommentDisplay comment, bool isDark) {
+  Widget _buildModerationCommentCard(
+      BuildContext context, _ModerationCommentDisplay comment, bool isDark) {
     String formattedDate = '';
     if (comment.timestamp != null) {
       try {
@@ -333,17 +343,17 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       }
     }
 
-      return Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(16.h),
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: design_colors.AppColors.warning.withValues(alpha: 0.5),
-            width: 1.5,
-          ),
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(16.h),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: design_colors.AppColors.warning.withValues(alpha: 0.5),
+          width: 1.5,
         ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -477,7 +487,6 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final detailVm = ref.watch(plantationViewVM(widget.id));
@@ -500,24 +509,26 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     if (!isLoading && !hasError && plantation != null) {
       // Пытаемся использовать координаты из детальной информации для немедленного отображения
       // Только если еще не пытались инициализировать и карта не загружена
-      if (!_hasTriedToInitializeFromDetail && 
-          mapVm.currentPlantation == null && 
+      if (!_hasTriedToInitializeFromDetail &&
+          mapVm.currentPlantation == null &&
           !mapVm.isLoading) {
         _hasTriedToInitializeFromDetail = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // Пытаемся получить координаты из ответа API детальной информации
           _tryInitializeMapFromDetail(plantation.id);
-          
+
           // Также загружаем координаты через стандартный endpoint, если инициализация не удалась
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mapVm.currentPlantation == null && !mapVm.isLoading && !_hasTriedToLoadMapCoordinates) {
+            if (mapVm.currentPlantation == null &&
+                !mapVm.isLoading &&
+                !_hasTriedToLoadMapCoordinates) {
               _hasTriedToLoadMapCoordinates = true;
               mapVm.loadRelatedPlantations();
             }
           });
         });
       }
-      
+
       baseEntries = _buildBaseEntries(context, plantation, mapVm);
       summaryCard = _buildSummaryCard(
         context: context,
@@ -549,14 +560,13 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.error_outline, size: 48,
-                        color: design_colors.AppColors.error),
+                    Icon(Icons.error_outline,
+                        size: 48, color: design_colors.AppColors.error),
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       detailVm.errorMessage ?? "Xatolik yuz berdi",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: context.colors.textSecondary),
+                      style: TextStyle(color: context.colors.textSecondary),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     FilledButton(
@@ -640,7 +650,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       if (plantation.plantationType != null)
         _InfoEntry(
           "Plantatsiya turi",
-          AppLocalizedMaps.plantationTypes[plantation.plantationType] ?? "Noma'lum",
+          AppLocalizedMaps.plantationTypes[plantation.plantationType] ??
+              "Noma'lum",
           Icons.category_outlined,
         ),
       if (_resolveTypeChoiceLabel(plantation) != null)
@@ -700,7 +711,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           plantation.irrigationSystemsCount.toString(),
           Icons.precision_manufacturing_outlined,
         ),
-      if (plantation.konturNumber != null && plantation.konturNumber!.isNotEmpty)
+      if (plantation.konturNumber != null &&
+          plantation.konturNumber!.isNotEmpty)
         _InfoEntry(
           "Kontur raqamlari",
           plantation.konturNumber!.join(", "),
@@ -723,7 +735,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         : "Plantatsiya #${plantation.id ?? widget.id}";
 
     final descriptionParts = <String>[];
-    final typeLabel = AppLocalizedMaps.plantationTypes[plantation.plantationType];
+    final typeLabel =
+        AppLocalizedMaps.plantationTypes[plantation.plantationType];
     if (typeLabel != null) descriptionParts.add(typeLabel);
     final direction = _resolveTypeChoiceLabel(plantation);
     if (direction != null) descriptionParts.add(direction);
@@ -756,73 +769,73 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     ];
 
     return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
-          ),
-          borderRadius: BorderRadius.circular(AppRadii.card),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
         ),
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTypography.headline3(context).copyWith(
-                          color: Colors.white,
-                        ),
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.headline3(context).copyWith(
+                        color: Colors.white,
                       ),
-                      if (descriptionParts.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          descriptionParts.join(" • "),
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: Colors.white.withValues(alpha: 0.72),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(AppRadii.button),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.verified, size: 18, color: Colors.white),
-                      const SizedBox(width: AppSpacing.xs),
+                    ),
+                    if (descriptionParts.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
-                        statusData.key,
+                        descriptionParts.join(" • "),
                         style: AppTypography.bodySmall(context).copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.72),
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            _buildSummaryHighlights(context, highlightEntries),
-          ],
-        ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(AppRadii.button),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified, size: 18, color: Colors.white),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      statusData.key,
+                      style: AppTypography.bodySmall(context).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          _buildSummaryHighlights(context, highlightEntries),
+        ],
+      ),
     );
   }
 
@@ -838,12 +851,16 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     final sections = <_DetailSection>[];
 
     // Секция с информацией о подтверждении/модерации — первой
-    if (plantation.moderatedAt != null || plantation.moderatedBy != null ||
-        plantation.createdAt != null || plantation.createdBy != null) {
-      final createdByDisplay = detailVm.createdByName ?? 
+    if (plantation.moderatedAt != null ||
+        plantation.moderatedBy != null ||
+        plantation.createdAt != null ||
+        plantation.createdBy != null) {
+      final createdByDisplay = detailVm.createdByName ??
           (plantation.createdBy != null ? 'ID: ${plantation.createdBy}' : null);
-      final moderatedByDisplay = detailVm.moderatedByName ?? 
-          (plantation.moderatedBy != null ? 'ID: ${plantation.moderatedBy}' : null);
+      final moderatedByDisplay = detailVm.moderatedByName ??
+          (plantation.moderatedBy != null
+              ? 'ID: ${plantation.moderatedBy}'
+              : null);
 
       final moderationEntries = <_InfoEntry>[
         if (createdByDisplay != null)
@@ -1004,7 +1021,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                       if (subsidy.direction != null)
                         _InfoEntry(
                           "Yo'nalish",
-                          AppLocalizedMaps.subsidyTypes[subsidy.direction] ?? "Noma'lum",
+                          AppLocalizedMaps.subsidyTypes[subsidy.direction] ??
+                              "Noma'lum",
                           Icons.category_outlined,
                         ),
                       if (subsidy.year != null)
@@ -1059,10 +1077,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ?.where((comment) => comment.isModeration == true)
         .toList();
     final moderationCommentsFromField = plantation.moderationComments;
-    
+
     // Объединяем комментарии модерации из обоих источников
     final allModerationComments = <_ModerationCommentDisplay>[];
-    
+
     // Добавляем из comments где is_moderation: true
     if (moderationCommentsFromComments != null) {
       for (var comment in moderationCommentsFromComments) {
@@ -1074,7 +1092,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ));
       }
     }
-    
+
     // Добавляем из moderation_comment
     if (moderationCommentsFromField != null) {
       for (var comment in moderationCommentsFromField) {
@@ -1088,13 +1106,14 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         }
       }
     }
-    
+
     if (allModerationComments.isNotEmpty) {
       sections.add(
         _DetailSection(
           title: "Moderatsiya izohlari",
           icon: Icons.gavel_outlined,
-          content: _buildModerationCommentsList(context, allModerationComments, isDark),
+          content: _buildModerationCommentsList(
+              context, allModerationComments, isDark),
         ),
       );
     }
@@ -1105,11 +1124,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           .where((fruit) => fruit.iqtisodiysamarasiz == true)
           .toList();
       final hasInefficientAreas = inefficientFruits.isNotEmpty;
-      final totalInefficientArea = inefficientFruits
-          .fold<double>(
-            0.0,
-            (sum, fruit) => sum + (fruit.economicInefficientArea ?? 0.0),
-          );
+      final totalInefficientArea = inefficientFruits.fold<double>(
+        0.0,
+        (sum, fruit) => sum + (fruit.economicInefficientArea ?? 0.0),
+      );
 
       sections.add(
         _DetailSection(
@@ -1220,10 +1238,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     // если ХОТЯ БЫ ОДИН источник подтверждает статус, используем его.
     // Это решает проблему, когда detail API возвращает is_checked: false,
     // а list/map API корректно возвращает is_checked: true.
-    final bool isRejected =
-        (editPlantation?.isRejected == true) || (relatedPlantation?.isRejected == true);
-    final bool isChecked =
-        (editPlantation?.isChecked == true) || (relatedPlantation?.isChecked == true);
+    final bool isRejected = (editPlantation?.isRejected == true) ||
+        (relatedPlantation?.isRejected == true);
+    final bool isChecked = (editPlantation?.isChecked == true) ||
+        (relatedPlantation?.isChecked == true);
 
     debugPrint('_resolveStatus: isChecked=$isChecked, isRejected=$isRejected '
         '(edit.isChecked=${editPlantation?.isChecked}, '
@@ -1282,7 +1300,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
-      color: context.colors.surfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
         border: context.colors.cardBorder,
         boxShadow: context.colors.cardShadow,
@@ -1462,7 +1480,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     EditPlantationModel plantation,
     PlantationMapViewVm mapVm,
   ) {
-    final isChecked = plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
+    final isChecked =
+        plantation.isChecked ?? mapVm.currentPlantation?.isChecked ?? false;
 
     if (isChecked) {
       // Подтверждённую плантацию удалить нельзя — показываем модальное окно
@@ -1510,7 +1529,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             Navigator.of(dialogContext).pop();
             if (!context.mounted) return;
             // Подтверждение через блокировку устройства
-            final confirmed = await BiometricService.instance.confirmCriticalAction(
+            final confirmed =
+                await BiometricService.instance.confirmCriticalAction(
               context: context,
               reason: "Plantatsiyani o'chirish uchun tasdiqlang",
             );
@@ -1538,13 +1558,14 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         id: plantationId,
         reason: reason,
       );
-      
+
       if (context.mounted) {
         debugPrint("Delete: Result: $result, deletMessage: ${vm.deletMessage}");
         if (result) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
+              content: Text(vm.deletMessage ??
+                  "O'chirish so'rovi moderatsiyaga yuborildi"),
               backgroundColor: design_colors.AppColors.success,
               duration: const Duration(seconds: 2),
             ),
@@ -1553,7 +1574,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             context.pop();
           }
         } else {
-          final errorMessage = vm.deletMessage ?? "O'chirishda xatolik yuz berdi";
+          final errorMessage =
+              vm.deletMessage ?? "O'chirishda xatolik yuz berdi";
           debugPrint("Delete: Showing error message: $errorMessage");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1584,7 +1606,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
-      color: context.colors.surfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadii.card),
         border: context.colors.cardBorder,
         boxShadow: context.colors.cardShadow,
@@ -1638,7 +1660,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (index > 0) Divider(height: 32, color: context.colors.border),
+                if (index > 0)
+                  Divider(height: 32, color: context.colors.border),
                 _buildInfoGrid(context, items),
               ],
             );
@@ -1680,9 +1703,8 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 border: context.colors.isDark
                     ? Border.all(color: context.colors.border, width: 1)
                     : null,
-                boxShadow: context.colors.isDark
-                    ? null
-                    : context.colors.cardShadow,
+                boxShadow:
+                    context.colors.isDark ? null : context.colors.cardShadow,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadii.sm - 1),
@@ -1783,20 +1805,22 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
       builder: (context, constraints) {
         final spacing = AppSpacing.md;
         final availableWidth = constraints.maxWidth;
-        
+
         // Минимальная ширина для одного элемента (примерно 140-160px)
         final minTileWidth = 140.0;
-        
+
         // Вычисляем, помещаются ли все элементы в одну строку
         // Если ширина каждого элемента при размещении в одну строку >= minTileWidth, используем один столбец
         // Если нет - используем два столбца
         final singleRowWidth = availableWidth / effectiveEntries.length;
-        final useTwoColumns = singleRowWidth < minTileWidth && effectiveEntries.length > 1;
-        
+        final useTwoColumns =
+            singleRowWidth < minTileWidth && effectiveEntries.length > 1;
+
         // Вычисляем ширину элемента
         final tileWidth = useTwoColumns
             ? (availableWidth - spacing) / 2
-            : (availableWidth - (spacing * (effectiveEntries.length - 1))) / effectiveEntries.length;
+            : (availableWidth - (spacing * (effectiveEntries.length - 1))) /
+                effectiveEntries.length;
 
         return Wrap(
           spacing: spacing,
@@ -1951,7 +1975,8 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = entry.statusColor ?? design_colors.AppColors.accentGreen;
+    final accentColor =
+        entry.statusColor ?? design_colors.AppColors.accentGreen;
     final backgroundColor = context.colors.surfaceElevated;
     final labelStyle = AppTypography.caption(context).copyWith(
       fontWeight: FontWeight.w500,
@@ -1966,9 +1991,8 @@ class _InfoTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: context.colors.isDark
-            ? backgroundColor
-            : context.colors.background,
+        color:
+            context.colors.isDark ? backgroundColor : context.colors.background,
         borderRadius: BorderRadius.circular(AppRadii.sm),
         border: context.colors.isDark
             ? Border.all(color: context.colors.border)

@@ -9,6 +9,7 @@ import 'package:agro_employee_public/src/data/model/fruits/fruit_verity_modell.d
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:l/l.dart';
 
 import '../../../data/model/plantation/new_plantation_model.dart';
@@ -25,19 +26,21 @@ final detailVM = ChangeNotifierProvider.autoDispose<DetailVM>((ref) {
 class DetailVM extends ChangeNotifier {
   bool postLoading = false;
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
-  
+
   // Вспомогательная функция для форматирования чисел без .0
   String formatNumber(dynamic value) {
     if (value == null) return "0";
     if (value is double) {
-      return value == value.toInt().toDouble() ? value.toInt().toString() : value.toString();
+      return value == value.toInt().toDouble()
+          ? value.toInt().toString()
+          : value.toString();
     }
     if (value is int) {
       return value.toString();
     }
     return value.toString();
   }
-  
+
   String _norm(String v) => v.replaceAll(',', '.');
   String _onlyDigitsDot(String v) => v.replaceAll(RegExp(r'[^0-9.]'), '');
   String _onlyAlphaNum(String v) => v.replaceAll(RegExp(r'[^0-9a-zA-Z]'), '');
@@ -57,11 +60,11 @@ class DetailVM extends ChangeNotifier {
   TextEditingController trellisBetonCount = TextEditingController();
   TextEditingController reservoirsQoplamaliVolume = TextEditingController();
   TextEditingController reservoirsBetonliVolume = TextEditingController();
-  
+
   // Списки для хранения нескольких резервуаров каждого типа
   final List<TextEditingController> reservoirsBetonliVolumes = [];
   final List<TextEditingController> reservoirsQoplamaliVolumes = [];
-  
+
   // Инициализация: добавляем один контроллер по умолчанию
   void initializeReservoirs() {
     if (reservoirsBetonliVolumes.isEmpty) {
@@ -71,16 +74,18 @@ class DetailVM extends ChangeNotifier {
       reservoirsQoplamaliVolumes.add(reservoirsQoplamaliVolume);
     }
   }
-  
+
   // Методы для управления списками резервуаров
   void addBetonReservoir() {
     reservoirsBetonliVolumes.add(TextEditingController());
     notifyListeners();
   }
-  
+
   void removeBetonReservoir(int index) {
     // Всегда оставляем хотя бы один контроллер
-    if (index >= 0 && index < reservoirsBetonliVolumes.length && reservoirsBetonliVolumes.length > 1) {
+    if (index >= 0 &&
+        index < reservoirsBetonliVolumes.length &&
+        reservoirsBetonliVolumes.length > 1) {
       final controller = reservoirsBetonliVolumes[index];
       // Если это основной контроллер, заменяем его на следующий
       if (controller == reservoirsBetonliVolume) {
@@ -100,15 +105,17 @@ class DetailVM extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   void addQoplamaliReservoir() {
     reservoirsQoplamaliVolumes.add(TextEditingController());
     notifyListeners();
   }
-  
+
   void removeQoplamaliReservoir(int index) {
     // Всегда оставляем хотя бы один контроллер
-    if (index >= 0 && index < reservoirsQoplamaliVolumes.length && reservoirsQoplamaliVolumes.length > 1) {
+    if (index >= 0 &&
+        index < reservoirsQoplamaliVolumes.length &&
+        reservoirsQoplamaliVolumes.length > 1) {
       final controller = reservoirsQoplamaliVolumes[index];
       // Если это основной контроллер, заменяем его на следующий
       if (controller == reservoirsQoplamaliVolume) {
@@ -128,7 +135,7 @@ class DetailVM extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   TextEditingController cultivatedArea = TextEditingController();
   TextEditingController sxema1 = TextEditingController();
   TextEditingController sxema2 = TextEditingController();
@@ -145,7 +152,8 @@ class DetailVM extends ChangeNotifier {
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
   bool _isSpecialUser = false; // Флаг специального пользователя
-  bool get isSpecialUser => _isSpecialUser; // Геттер для проверки специального пользователя
+  bool get isSpecialUser =>
+      _isSpecialUser; // Геттер для проверки специального пользователя
   final switchTomchi = StateProvider<bool>((ref) => false);
   final switchFenced = StateProvider<bool>((ref) => false);
   final switchIsFertile = StateProvider<bool>((ref) => false);
@@ -160,18 +168,19 @@ class DetailVM extends ChangeNotifier {
   final switchInvestmentXorjiy = StateProvider<bool>((ref) => false);
   final switchInvestmentMahhalliy = StateProvider<bool>((ref) => false);
   final switchIqtisodiy = StateProvider<bool>((ref) => false);
-  TextEditingController economicInefficientAreaController = TextEditingController();
+  TextEditingController economicInefficientAreaController =
+      TextEditingController();
   DateTime? get selectedDate => _selectedDate;
   DateTime? get selectedDate2 => _selectedDate2;
   DateTime? get selectedDate3 => _selectedDate3;
   File? getImageFile(int cardId) => _imageFiles[cardId];
-  
+
   /// Удаляет изображение по индексу
   void removeImage(int cardId) {
     _imageFiles.remove(cardId);
     notifyListeners();
   }
-  
+
   bool isLoading = false;
   bool isLoading2 = false;
   List<FruitArea> selectedDetails = [];
@@ -196,7 +205,7 @@ class DetailVM extends ChangeNotifier {
       debugPrint('createPt: Already in progress, ignoring duplicate call');
       return false;
     }
-    
+
     postLoading = true;
     notifyListeners();
     late String tomchiArea;
@@ -231,10 +240,12 @@ class DetailVM extends ChangeNotifier {
     }
     // Investitsiya qiymatlari: butun sonlar, maskani olib tashlaymiz
     String digitsOnly(String v) => v.replaceAll(RegExp(r'[^0-9]'), '');
-    investmentMahhalliy =
-        isInvestmentMahhalliy ? digitsOnly(investmentMahhalliyAmount.text.trim()) : "0";
-    investmentXorjiy =
-        isInvestmentXorijiy ? digitsOnly(investmentXorijiyAmount.text.trim()) : "0";
+    investmentMahhalliy = isInvestmentMahhalliy
+        ? digitsOnly(investmentMahhalliyAmount.text.trim())
+        : "0";
+    investmentXorjiy = isInvestmentXorijiy
+        ? digitsOnly(investmentXorijiyAmount.text.trim())
+        : "0";
     mockInvestments = [
       if (isInvestmentMahhalliy)
         Investment(
@@ -337,7 +348,7 @@ class DetailVM extends ChangeNotifier {
     }).toList();
 
     try {
-       var mockGarden = Garden(
+      var mockGarden = Garden(
         gardenEstablishedYear: "${_selectedDate?.year.toString() ?? 0}",
         district: "$districtId",
         farmer: "$farmerId",
@@ -375,17 +386,21 @@ class DetailVM extends ChangeNotifier {
       jsonData.remove('moderation_comment');
       // Добавляем user_location (всегда валиден, так как передается из карты)
       p.log("🔍 DetailVM createPt: START - userLocation value: $userLocation");
-      p.log("🔍 DetailVM createPt: userLocation type: ${userLocation.runtimeType}");
-      p.log("🔍 DetailVM createPt: userLocation keys: ${userLocation.keys.toList()}");
-      p.log("🔍 DetailVM createPt: userLocation['latitude']: ${userLocation['latitude']}");
-      p.log("🔍 DetailVM createPt: userLocation['longitude']: ${userLocation['longitude']}");
+      p.log(
+          "🔍 DetailVM createPt: userLocation type: ${userLocation.runtimeType}");
+      p.log(
+          "🔍 DetailVM createPt: userLocation keys: ${userLocation.keys.toList()}");
+      p.log(
+          "🔍 DetailVM createPt: userLocation['latitude']: ${userLocation['latitude']}");
+      p.log(
+          "🔍 DetailVM createPt: userLocation['longitude']: ${userLocation['longitude']}");
       try {
         final lat = (userLocation['latitude'] as num).toDouble();
         final lng = (userLocation['longitude'] as num).toDouble();
         p.log("🔍 DetailVM createPt: Parsed lat: $lat, lng: $lng");
-        
+
         p.log("🔍 DetailVM: Parsed coordinates - lat: $lat, lng: $lng");
-        
+
         // Валидация координат
         if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
           // Отправляем user_location как объект (Map), как в Postman
@@ -394,11 +409,15 @@ class DetailVM extends ChangeNotifier {
             'latitude': lat,
             'longitude': lng,
           };
-          p.log("✅ DetailVM: user_location added as object: ${jsonData['user_location']}");
-          p.log("✅ DetailVM: user_location in jsonData type: ${jsonData['user_location'].runtimeType}");
+          p.log(
+              "✅ DetailVM: user_location added as object: ${jsonData['user_location']}");
+          p.log(
+              "✅ DetailVM: user_location in jsonData type: ${jsonData['user_location'].runtimeType}");
         } else {
-          p.log("❌ DetailVM: Invalid coordinates: lat=$lat, lng=$lng, not adding user_location");
-          p.log("❌ DetailVM: Validation failed - lat range: ${lat >= -90 && lat <= 90}, lng range: ${lng >= -180 && lng <= 180}");
+          p.log(
+              "❌ DetailVM: Invalid coordinates: lat=$lat, lng=$lng, not adding user_location");
+          p.log(
+              "❌ DetailVM: Validation failed - lat range: ${lat >= -90 && lat <= 90}, lng range: ${lng >= -180 && lng <= 180}");
         }
       } catch (e, stackTrace) {
         p.log("❌ DetailVM: Error parsing user_location: $e");
@@ -410,9 +429,11 @@ class DetailVM extends ChangeNotifier {
       }
       p.log("📦 DetailVM: Full JSON body before sending:");
       p.log("📦 DetailVM: ${jsonEncode(jsonData)}");
-      p.log("📦 DetailVM: user_location in jsonData: ${jsonData['user_location']}");
+      p.log(
+          "📦 DetailVM: user_location in jsonData: ${jsonData['user_location']}");
       if (jsonData['user_location'] != null) {
-        p.log("📦 DetailVM: user_location type: ${jsonData['user_location'].runtimeType}");
+        p.log(
+            "📦 DetailVM: user_location type: ${jsonData['user_location'].runtimeType}");
       }
       final response = await _appRepositoryImpl.postCreatePlantationWithImages(
           body: jsonData, image: images);
@@ -421,12 +442,13 @@ class DetailVM extends ChangeNotifier {
         final rawCommentsText = commentsController.text.trim();
         if (rawCommentsText.isNotEmpty) {
           // Санитизация комментария для защиты от XSS
-          final commentsText = SanitizationUtils.sanitizeComment(rawCommentsText);
+          final commentsText =
+              SanitizationUtils.sanitizeComment(rawCommentsText);
           try {
             // Получаем ID созданной плантации из ответа
             dynamic responseData = response.data;
             int? plantationId;
-            
+
             // Если responseData - строка, пытаемся распарсить её как JSON
             if (responseData is String) {
               try {
@@ -435,40 +457,51 @@ class DetailVM extends ChangeNotifier {
                 p.log("⚠️ DetailVM: Failed to parse responseData as JSON: $e");
               }
             }
-            
+
             if (responseData is Map<String, dynamic>) {
               plantationId = responseData['id'] as int?;
             }
-            
+
             if (plantationId != null) {
-              p.log("✅ DetailVM: Extracted plantation ID: $plantationId, adding comment...");
+              p.log(
+                  "✅ DetailVM: Extracted plantation ID: $plantationId, adding comment...");
               p.log("📤 DetailVM: Sending comment with isModeration: false");
               p.log("📤 DetailVM: Comment text: $commentsText");
-              final commentResponse = await _appRepositoryImpl.addPlantationComment(
+              final commentResponse =
+                  await _appRepositoryImpl.addPlantationComment(
                 plantationId: plantationId,
                 body: commentsText,
-                isModeration: false, // Явно указываем, что это обычный комментарий при создании
+                isModeration:
+                    false, // Явно указываем, что это обычный комментарий при создании
               );
-              p.log("📥 DetailVM: Comment response status: ${commentResponse.statusCode}");
-              p.log("📥 DetailVM: Comment response data: ${commentResponse.data}");
-              if (commentResponse.statusCode != 200 && commentResponse.statusCode != 201) {
-                p.log("⚠️ DetailVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was created");
+              p.log(
+                  "📥 DetailVM: Comment response status: ${commentResponse.statusCode}");
+              p.log(
+                  "📥 DetailVM: Comment response data: ${commentResponse.data}");
+              if (commentResponse.statusCode != 200 &&
+                  commentResponse.statusCode != 201) {
+                p.log(
+                    "⚠️ DetailVM: Failed to add comment (status: ${commentResponse.statusCode}), but plantation was created");
               } else {
                 p.log("✅ DetailVM: Comment added successfully");
                 // Проверяем, не дублируется ли комментарий в moderation_comment
                 if (commentResponse.data is Map<String, dynamic>) {
-                  final responseData = commentResponse.data as Map<String, dynamic>;
+                  final responseData =
+                      commentResponse.data as Map<String, dynamic>;
                   if (responseData.containsKey('moderation_comment')) {
                     final modComments = responseData['moderation_comment'];
                     if (modComments is List && modComments.isNotEmpty) {
-                      p.log("⚠️ DetailVM: WARNING - Comment was duplicated in moderation_comment by server!");
-                      p.log("⚠️ DetailVM: This is a server-side issue - server automatically syncs comments to moderation_comment");
+                      p.log(
+                          "⚠️ DetailVM: WARNING - Comment was duplicated in moderation_comment by server!");
+                      p.log(
+                          "⚠️ DetailVM: This is a server-side issue - server automatically syncs comments to moderation_comment");
                     }
                   }
                 }
               }
             } else {
-              p.log("⚠️ DetailVM: Could not extract plantation ID from response to add comment. Response data: $responseData");
+              p.log(
+                  "⚠️ DetailVM: Could not extract plantation ID from response to add comment. Response data: $responseData");
             }
           } catch (e, stackTrace) {
             p.log("⚠️ DetailVM: Error adding comment: $e");
@@ -482,7 +515,7 @@ class DetailVM extends ChangeNotifier {
         dynamic responseData = response.data;
         p.log("Response Data type: ${responseData.runtimeType}");
         p.log("Response Data: $responseData");
-        
+
         // Если responseData - строка, пытаемся распарсить её как JSON
         if (responseData is String) {
           try {
@@ -497,10 +530,10 @@ class DetailVM extends ChangeNotifier {
             return false;
           }
         }
-        
+
         // Пытаемся извлечь детальное сообщение об ошибке
         String? detailedError;
-        
+
         // Безопасная проверка и приведение к Map
         Map<String, dynamic>? errorMap;
         if (responseData is Map) {
@@ -511,11 +544,12 @@ class DetailVM extends ChangeNotifier {
             errorMap = null;
           }
         }
-        
+
         if (errorMap != null) {
           // Проверяем различные форматы ошибок от сервера
           if (errorMap['subsidies'] != null) {
-            errorMessage = "Subsidiya raqamlari notog`ri yoki oldin ro'yxatdan o'tgan";
+            errorMessage =
+                "Subsidiya raqamlari notog`ri yoki oldin ro'yxatdan o'tgan";
             return false;
           } else if (errorMap['message'] != null) {
             detailedError = errorMap['message'].toString();
@@ -549,7 +583,8 @@ class DetailVM extends ChangeNotifier {
               if (entry.value is String && entry.value.toString().isNotEmpty) {
                 detailedError = entry.value.toString();
                 break;
-              } else if (entry.value is List && (entry.value as List).isNotEmpty) {
+              } else if (entry.value is List &&
+                  (entry.value as List).isNotEmpty) {
                 detailedError = (entry.value as List)[0].toString();
                 break;
               }
@@ -559,7 +594,7 @@ class DetailVM extends ChangeNotifier {
           // Если это просто строка, используем её как сообщение об ошибке
           detailedError = responseData;
         }
-        
+
         errorMessage = detailedError ?? "Yaratishda xatolik yuz berdi";
         p.log("Error message: $errorMessage");
         return false;
@@ -607,7 +642,7 @@ class DetailVM extends ChangeNotifier {
     if (_selectedDate == null) {
       return 'Vaqt tanlanmagan, vaqtni to`ldiring';
     }
-    
+
     if (selectedPlantationType == null) {
       return 'Plantatsiya turi tanlanmagan, tanlovni bajaring';
     }
@@ -646,22 +681,26 @@ class DetailVM extends ChangeNotifier {
       return "Ochiq maydon manfiy bo'lishi mumkin emas";
     }
     // Kontur raqami majburiy: kamida bitta qiymat (harflar/raqamlar) bo'lishi shart
-    final konturForValidation = konturNumbers
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final konturForValidation =
+        konturNumbers.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     if (konturForValidation.isEmpty) {
       return 'Kontur raqami kamida bittasi kiritilishi shart';
     }
     if (isInvitsitsiyaXorijiy) {
       if (investmentXorijiyAmount.text.trim().isEmpty ||
-          int.tryParse(investmentXorijiyAmount.text.trim().replaceAll(RegExp(r'[^0-9]'), '')) == null) {
+          int.tryParse(investmentXorijiyAmount.text
+                  .trim()
+                  .replaceAll(RegExp(r'[^0-9]'), '')) ==
+              null) {
         return 'Xorjiy ajratilgan investitsiyani noto‘g‘ri yoki bo‘sh, to‘ldiring';
       }
     }
     if (isInvitsitsiyaMaxalliy) {
       if (investmentMahhalliyAmount.text.trim().isEmpty ||
-          int.tryParse(investmentMahhalliyAmount.text.trim().replaceAll(RegExp(r'[^0-9]'), '')) == null) {
+          int.tryParse(investmentMahhalliyAmount.text
+                  .trim()
+                  .replaceAll(RegExp(r'[^0-9]'), '')) ==
+              null) {
         return 'Maxalliy ajratilgan investitsiyani noto‘g‘ri yoki bo‘sh, to‘ldiring';
       }
     }
@@ -739,29 +778,32 @@ class DetailVM extends ChangeNotifier {
     if (selectedDetails.isEmpty) {
       return 'Meva maydoni tanlanmagan, tanlovni bajaring';
     }
-    
+
     // Проверка разницы между площадью полигона и общей площадью плантации (не более 15%)
     if (polygonArea != null && polygonArea! > 0) {
       final totalArea = getTotalArea(ref);
       if (totalArea > 0) {
         // Вычисляем разницу в процентах
-        final difference = ((polygonArea! - totalArea).abs() / polygonArea!) * 100;
-        p.log("🔍 DetailVM validateFields: polygonArea = $polygonArea, totalArea = $totalArea, difference = ${difference.toStringAsFixed(2)}%");
-        
+        final difference =
+            ((polygonArea! - totalArea).abs() / polygonArea!) * 100;
+        p.log(
+            "🔍 DetailVM validateFields: polygonArea = $polygonArea, totalArea = $totalArea, difference = ${difference.toStringAsFixed(2)}%");
+
         if (difference > 15.0) {
           return 'Poligon maydoni va kiritilgan maydon o\'rtasidagi farq 15% dan oshib ketdi. Farq: ${difference.toStringAsFixed(1)}%. Iltimos, ma\'lumotlarni tekshiring.';
         }
       }
     }
-    
+
     // Динамическая проверка количества фотографий
     final minPhotosRequired = calculateMinimumPhotosRequired(ref);
-    final uploadedImagesCount = _imageFiles.values.where((file) => file != null).length;
-    
+    final uploadedImagesCount =
+        _imageFiles.values.where((file) => file != null).length;
+
     if (uploadedImagesCount < minPhotosRequired) {
       return 'Kamida $minPhotosRequired ta rasm yuklash kerak. Hozir: $uploadedImagesCount ta.\n${getPhotoRequirementDetails(ref)}';
     }
-    
+
     return null;
   }
 
@@ -778,8 +820,9 @@ class DetailVM extends ChangeNotifier {
     // Экономически неэффективная площадь
     if (isIqtisodiy) {
       // print('[detail] addSelectedDetail: Processing iqtisodiy mode');
-      final econ = double.tryParse(
-              economicInefficientAreaController.text.trim().replaceAll(',', '.')) ??
+      final econ = double.tryParse(economicInefficientAreaController.text
+              .trim()
+              .replaceAll(',', '.')) ??
           0.0;
 
       final fa = FruitArea(
@@ -821,12 +864,14 @@ class DetailVM extends ChangeNotifier {
         varietyName: selectedFruitVariety?.name,
         rootstockName: selectedFruitRoot?.name,
         plantedYear: year,
-        area: double.tryParse(cultivatedArea.text.trim().replaceAll(',', '.')) ??
-            0.0,
+        area:
+            double.tryParse(cultivatedArea.text.trim().replaceAll(',', '.')) ??
+                0.0,
         schema: "${sxema1.text}X${sxema2.text}",
         weight: tonnaController.text.trim().isEmpty
             ? null
-            : double.tryParse(tonnaController.text.trim().replaceAll(',', '.')) ??
+            : double.tryParse(
+                    tonnaController.text.trim().replaceAll(',', '.')) ??
                 0.0,
         fenced: ref.read(switchFenced),
         iqtisodiysamarasiz: false,
@@ -884,7 +929,8 @@ class DetailVM extends ChangeNotifier {
 
   /// Загрузить информацию о пользователе (isSpecialUser) из storage
   Future<void> loadUserInfo() async {
-    _isSpecialUser = await AppStorage.$readBool(key: StorageKey.isSpecialUser) ?? false;
+    _isSpecialUser =
+        await AppStorage.$readBool(key: StorageKey.isSpecialUser) ?? false;
     p.log('🔍 Loaded isSpecialUser: $_isSpecialUser');
   }
 
@@ -892,9 +938,9 @@ class DetailVM extends ChangeNotifier {
   Future<void> showImagePicker(BuildContext context, int cardId) async {
     // Загружаем информацию о пользователе перед показом диалога
     await loadUserInfo();
-    
+
     if (!context.mounted) return;
-    
+
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {
@@ -926,117 +972,122 @@ class DetailVM extends ChangeNotifier {
       await pickImage(cardId: cardId, source: source, context: context);
     }
   }
-  
+
   /// Выбрать изображение из галереи
   Future<void> pickImageFromGallery(int cardId, {BuildContext? context}) async {
-    await pickImage(cardId: cardId, source: ImageSource.gallery, context: context);
+    await pickImage(
+        cardId: cardId, source: ImageSource.gallery, context: context);
   }
-  
+
   /// Сфотографировать изображение
   Future<void> pickImageFromCamera(int cardId, {BuildContext? context}) async {
-    await pickImage(cardId: cardId, source: ImageSource.camera, context: context);
+    await pickImage(
+        cardId: cardId, source: ImageSource.camera, context: context);
   }
 
   /// Calculates minimum required photos based on plantation type, fruits count, and land type
-  /// 
+  ///
   /// Logic:
   /// - Base: 1 photo for any plantation
   /// - +1 photo for each added fruit
   /// - +1 photo if land type is Lalmi (unirrigated/yaroqsiz)
   int calculateMinimumPhotosRequired([WidgetRef? ref]) {
     int minPhotos = 1; // Base photo for plantation
-    
+
     // Add 1 photo for each fruit
     minPhotos += selectedDetails.length;
-    
+
     // Add 1 photo if land type is Lalmi (1 = yaroqsiz/unirrigated)
     if (selectedYerType == 1) {
       minPhotos += 1;
     }
-    
+
     // Add 1 photo if ochiq maydon (empty field) is greater than 0
     // If value is 0, no photo required. If value >= 0.1, photo is required
     final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
     if (emptyAreaValue > 0) {
       minPhotos += 1;
     }
-    
+
     // Add 1 photo if tomchilab sug'orish (drip irrigation) is enabled
     if (ref != null) {
       final isTomchiEnabled = ref.read(switchTomchi);
       if (isTomchiEnabled) {
         minPhotos += 1;
       }
-      
+
       // Add 1 photo if shpaller (trellis) is enabled
       final isShpaller = ref.read(switchTrellis);
       if (isShpaller) {
         minPhotos += 1;
       }
-      
+
       // Add 1 photo if suv havzasi (reservoir) is enabled
       final isReservoir = ref.read(switchReservoir);
       if (isReservoir) {
         minPhotos += 1;
       }
-      
-      debugPrint("📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0}, tomchi: ${isTomchiEnabled ? 1 : 0}, shpaller: ${isShpaller ? 1 : 0}, suv havzasi: ${isReservoir ? 1 : 0})");
+
+      debugPrint(
+          "📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0}, tomchi: ${isTomchiEnabled ? 1 : 0}, shpaller: ${isShpaller ? 1 : 0}, suv havzasi: ${isReservoir ? 1 : 0})");
     } else {
-      debugPrint("📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0})");
+      debugPrint(
+          "📸 Minimum photos required: $minPhotos (base: 1, fruits: ${selectedDetails.length}, lalmi: ${selectedYerType == 1 ? 1 : 0}, ochiq maydon: ${emptyAreaValue > 0 ? 1 : 0})");
     }
-    
+
     return minPhotos;
   }
-  
+
   /// Returns detailed explanation of photo requirements
   String getPhotoRequirementDetails([WidgetRef? ref]) {
     final details = <String>[];
-    
+
     details.add("• Asosiy plantatsiya: 1 ta rasm");
-    
+
     if (selectedDetails.isNotEmpty) {
-      details.add("• Mevalar (${selectedDetails.length} ta): ${selectedDetails.length} ta rasm");
+      details.add(
+          "• Mevalar (${selectedDetails.length} ta): ${selectedDetails.length} ta rasm");
     }
-    
+
     if (selectedYerType == 1) {
       details.add("• Lalmi (yaroqsiz) maydon: 1 ta rasm");
     }
-    
+
     final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
     if (emptyAreaValue > 0) {
       details.add("• Ochiq maydon: 1 ta rasm");
     }
-    
+
     if (ref != null) {
       final isTomchiEnabled = ref.read(switchTomchi);
       if (isTomchiEnabled) {
         details.add("• Tomchilab sug'orish: 1 ta rasm");
       }
-      
+
       final isShpaller = ref.read(switchTrellis);
       if (isShpaller) {
         details.add("• Shpaller: 1 ta rasm");
       }
-      
+
       final isReservoir = ref.read(switchReservoir);
       if (isReservoir) {
         details.add("• Suv havzasi: 1 ta rasm");
       }
     }
-    
+
     return details.join('\n');
   }
-  
+
   /// Возвращает описание того, что нужно сфотографировать для указанного индекса фото
   String getPhotoDescription(int index, [WidgetRef? ref]) {
     int currentIndex = 0;
-    
+
     // Фото 0: Asosiy plantatsiya
     if (index == currentIndex) {
       return "Asosiy plantatsiya";
     }
     currentIndex++;
-    
+
     // Фото 1, 2, 3...: Фрукты
     for (int i = 0; i < selectedDetails.length; i++) {
       if (index == currentIndex) {
@@ -1045,7 +1096,7 @@ class DetailVM extends ChangeNotifier {
       }
       currentIndex++;
     }
-    
+
     // Фото для Lalmi (если применимо)
     if (selectedYerType == 1) {
       if (index == currentIndex) {
@@ -1053,7 +1104,7 @@ class DetailVM extends ChangeNotifier {
       }
       currentIndex++;
     }
-    
+
     // Фото для Ochiq maydon (если применимо)
     final emptyAreaValue = double.tryParse(_norm(emptyArea.text.trim())) ?? 0.0;
     if (emptyAreaValue > 0) {
@@ -1062,7 +1113,7 @@ class DetailVM extends ChangeNotifier {
       }
       currentIndex++;
     }
-    
+
     // Фото для Tomchi (если применимо)
     if (ref != null) {
       final isTomchiEnabled = ref.read(switchTomchi);
@@ -1072,7 +1123,7 @@ class DetailVM extends ChangeNotifier {
         }
         currentIndex++;
       }
-      
+
       // Фото для Shpaller (если применимо)
       final isShpaller = ref.read(switchTrellis);
       if (isShpaller) {
@@ -1081,7 +1132,7 @@ class DetailVM extends ChangeNotifier {
         }
         currentIndex++;
       }
-      
+
       // Фото для Suv havzasi (если применимо)
       final isReservoir = ref.read(switchReservoir);
       if (isReservoir) {
@@ -1091,12 +1142,11 @@ class DetailVM extends ChangeNotifier {
         currentIndex++;
       }
     }
-    
+
     // Если индекс выходит за пределы требуемых фото, возвращаем общее описание
     return "Qo'shimcha rasm";
   }
-  
-      
+
   /// Основной метод для выбора изображения
   Future<void> pickImage({
     required int cardId,
@@ -1105,7 +1155,7 @@ class DetailVM extends ChangeNotifier {
   }) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile == null) return;
-    
+
     // Валидация формата изображения
     if (!Utils.isValidImageFormat(pickedFile.path)) {
       final mountedContext = context;
@@ -1118,7 +1168,7 @@ class DetailVM extends ChangeNotifier {
       }
       return;
     }
-    
+
     _imageFiles[cardId] = File(pickedFile.path);
     notifyListeners();
   }
@@ -1233,8 +1283,6 @@ class DetailVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  
-
   int? _selectedSubsidyType;
   int? get selectedSubsidyType => _selectedSubsidyType;
   void setSubsidyType(int? subsidyType) {
@@ -1254,11 +1302,10 @@ class DetailVM extends ChangeNotifier {
     this.polygonArea = polygonArea;
     p.log("✅ DetailVM setValue: userLocation received: $userLocation");
     p.log("✅ DetailVM setValue: userLocation stored: ${this.userLocation}");
-    p.log("✅ DetailVM setValue: userLocation type: ${this.userLocation.runtimeType}");
+    p.log(
+        "✅ DetailVM setValue: userLocation type: ${this.userLocation.runtimeType}");
     p.log("✅ DetailVM setValue: polygonArea received: $polygonArea");
   }
-
-  
 
   void setTonna(String value) {
     tonnaController.text = value;
@@ -1315,7 +1362,6 @@ class DetailVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  
   void setNotUsableArea(String value) {
     String cleaned = _onlyDigitsDot(_norm(value.replaceAll('-', '')));
     final dot = cleaned.indexOf('.');
@@ -1364,10 +1410,11 @@ class DetailVM extends ChangeNotifier {
   double getTotalArea(WidgetRef ref) {
     // empty_area
     final empty = double.tryParse(emptyArea.text.replaceAll(',', '.')) ?? 0.0;
-    
-    // not_usable_area  
-    final notUsable = double.tryParse(notUsableArea.text.replaceAll(',', '.')) ?? 0.0;
-    
+
+    // not_usable_area
+    final notUsable =
+        double.tryParse(notUsableArea.text.replaceAll(',', '.')) ?? 0.0;
+
     // economic_inefficient_area (сумма всех экономически неэффективных площадей)
     double economicInefficient = 0.0;
     for (final fruitArea in selectedDetails) {
@@ -1375,7 +1422,7 @@ class DetailVM extends ChangeNotifier {
         economicInefficient += fruitArea.economicInefficientArea ?? 0.0;
       }
     }
-    
+
     // planted_area (сумма всех обычных площадей)
     double planted = 0.0;
     for (final fruitArea in selectedDetails) {
@@ -1383,21 +1430,24 @@ class DetailVM extends ChangeNotifier {
         planted += fruitArea.area ?? 0.0;
       }
     }
-    
+
     // Добавляем текущий фрукт, если он заполняется
     final isIqtisodiy = ref.read(switchIqtisodiy);
     if (isIqtisodiy) {
-      economicInefficient += double.tryParse(economicInefficientAreaController.text.replaceAll(',', '.')) ?? 0.0;
+      economicInefficient += double.tryParse(
+              economicInefficientAreaController.text.replaceAll(',', '.')) ??
+          0.0;
     } else {
-      planted += double.tryParse(cultivatedArea.text.replaceAll(',', '.')) ?? 0.0;
+      planted +=
+          double.tryParse(cultivatedArea.text.replaceAll(',', '.')) ?? 0.0;
     }
-    
+
     return empty + notUsable + economicInefficient + planted;
   }
 
   void setTomchiSystemsCount(String value) {
     tomchiSystemsCount.text = value;
-   
+
     notifyListeners();
   }
 

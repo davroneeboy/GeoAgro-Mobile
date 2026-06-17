@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/routes/app_route_names.dart';
@@ -76,7 +77,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                     // currentLocation всегда должен быть установлен при инициализации карты
                     // Используем его напрямую, если null - используем дефолтное местоположение
                     final locationToUse = vm.currentLocation ?? vm.uzbLatLng;
-                    
+
                     // Формируем userLocation для передачи (всегда передаем, не может быть null)
                     final userLocationMap = {
                       "latitude": locationToUse.latitude,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
@@ -9,7 +10,8 @@ import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
 import 'package:agro_employee_public/src/core/widgets/error_state_widget.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -54,7 +56,8 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint("🌾 FermersPage: PostFrameCallback executing");
       final vm = ref.read(fermerPageVM);
-      debugPrint("🌾 FermersPage: fermersList.length=${vm.fermersList.length}, isLoading=${vm.isLoading}");
+      debugPrint(
+          "🌾 FermersPage: fermersList.length=${vm.fermersList.length}, isLoading=${vm.isLoading}");
       // Инициализируем ViewModel (автоматически вызовет getFermers() если нужно)
       vm.initialize();
     });
@@ -64,7 +67,10 @@ class _FermersPageState extends ConsumerState<FermersPage> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final vm = ref.read(fermerPageVM);
-      if (vm.canLoad && !vm.isFetchingMore && !vm.isLoading && vm.searchResults == null) {
+      if (vm.canLoad &&
+          !vm.isFetchingMore &&
+          !vm.isLoading &&
+          vm.searchResults == null) {
         vm.getFermers(isLoadMore: true);
       }
     }
@@ -85,28 +91,28 @@ class _FermersPageState extends ConsumerState<FermersPage> {
       return Scaffold(
         backgroundColor: context.colors.background,
         appBar: CustomAppBarWidget(
-        title: "Fermerlar",
-        canPop: true,
-        onBackPressed: () => context.go('/'), // Переход на главную страницу
-        actions: [
-          IconButton(
-            onPressed: () async {
-              final result = await context.push<bool?>(
-                "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
-              );
-              if (result == true && mounted) {
-                await ref.read(fermerPageVM).getFermers(isLoadMore: false);
-              }
-            },
-            icon: Icon(
-              Icons.person_add_rounded,
-              color: design_colors.AppColors.accentGreen,
-              size: 24.sp,
+          title: "Fermerlar",
+          canPop: true,
+          onBackPressed: () => context.go('/'), // Переход на главную страницу
+          actions: [
+            IconButton(
+              onPressed: () async {
+                final result = await context.push<bool?>(
+                  "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
+                );
+                if (result == true && mounted) {
+                  await ref.read(fermerPageVM).getFermers(isLoadMore: false);
+                }
+              },
+              icon: Icon(
+                Icons.person_add_rounded,
+                color: design_colors.AppColors.accentGreen,
+                size: 24.sp,
+              ),
+              tooltip: "Yangi Fermer Qo'shish",
             ),
-            tooltip: "Yangi Fermer Qo'shish",
-          ),
-        ],
-      ),
+          ],
+        ),
         body: Center(
           child: Lottie.asset(
             'assets/lotties/search.json',
@@ -159,7 +165,7 @@ class _FermersPageState extends ConsumerState<FermersPage> {
         canPop: true,
         onBackPressed: () => context.go('/'), // Переход на главную страницу
         actions: [
-        IconButton(
+          IconButton(
             onPressed: () async {
               final result = await context.push<bool?>(
                 "/${AppRouteNames.farmers}/${AppRouteNames.createFarmers}",
@@ -167,33 +173,33 @@ class _FermersPageState extends ConsumerState<FermersPage> {
               if (result == true && mounted) {
                 await vm.getFermers(isLoadMore: false);
               }
-          },
-          icon: Icon(
+            },
+            icon: Icon(
               Icons.person_add_rounded,
               color: design_colors.AppColors.accentGreen,
               size: 24.sp,
-          ),
+            ),
             tooltip: "Yangi Fermer Qo'shish",
           ),
         ],
-              ),
+      ),
       body: Padding(
-              padding: REdgeInsets.symmetric(horizontal: 14),
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  await vm.getFermers(isLoadMore: false);
-                },
-                color: design_colors.AppColors.accentGreen,
-                backgroundColor: context.colors.surface,
+        padding: REdgeInsets.symmetric(horizontal: 14),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await vm.getFermers(isLoadMore: false);
+          },
+          color: design_colors.AppColors.accentGreen,
+          backgroundColor: context.colors.surface,
           child: SingleChildScrollView(
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  children: [
+            child: Column(
+              children: [
                 // Search Section
                 _SearchSection(),
                 SizedBox(height: AppSpacing.lg),
-                
+
                 // Show search results or regular list
                 if (vm.searchResults != null) ...[
                   _SearchResultsList(vm: vm),
@@ -229,7 +235,7 @@ class _SearchSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.watch(fermerPageVM);
-    
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -266,7 +272,9 @@ class _SearchSection extends ConsumerWidget {
                             )
                           : null,
                       onChanged: (newValue) {
-                        ref.read(fermerPageVM.notifier).onSearchChanged(newValue);
+                        ref
+                            .read(fermerPageVM.notifier)
+                            .onSearchChanged(newValue);
                       },
                       onSubmitted: (value) {
                         if (value.isNotEmpty && !vm.isSearching) {
@@ -377,33 +385,33 @@ class _FarmersList extends StatelessWidget {
         ...List.generate(
           vm.fermersList.length + (vm.isFetchingMore ? 1 : 0),
           (index) {
-                                if (index == vm.fermersList.length) {
-                                  return Padding(
-                                    padding: REdgeInsets.all(16.0),
-                                    child: Center(
-                                      child: CircularProgressIndicator(
+            if (index == vm.fermersList.length) {
+              return Padding(
+                padding: REdgeInsets.all(16.0),
+                child: Center(
+                  child: CircularProgressIndicator(
                     color: design_colors.AppColors.accentGreen,
                   ),
-                                    ),
-                                  );
-                                }
+                ),
+              );
+            }
 
             final farmer = vm.fermersList[index];
             return Padding(
               padding: EdgeInsets.only(bottom: AppSpacing.md),
               child: FermerPageCardWidget(
-                                  onPressed: () {
-                                    context.push(
-                                        "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}",
+                onPressed: () {
+                  context.push(
+                    "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}",
                     extra: farmer.id,
                   );
-                                  },
-                                  fermerModel: farmer,
+                },
+                fermerModel: farmer,
               ),
-                                );
-                              },
-                    ),
-                  ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
