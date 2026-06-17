@@ -529,13 +529,13 @@ class _OverviewHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalFarmers = statistics.length;
-    final uzumzorArea = statistics.fold<double>(
+    final totalArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.uzumzorArea ?? 0),
+      (sum, farmer) => sum + (farmer.totalArea ?? 0),
     );
-    final bogArea = statistics.fold<double>(
+    final plantedArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.bogArea ?? 0),
+      (sum, farmer) => sum + (farmer.plantedArea ?? 0),
     );
 
     return Container(
@@ -573,7 +573,7 @@ class _OverviewHeader extends StatelessWidget {
           ),
           SizedBox(height: AppSpacing.xs),
           Text(
-            "Uzumzor maydoni: ${uzumzorArea.toStringAsFixed(1)} ga • Bog maydoni: ${bogArea.toStringAsFixed(1)} ga",
+            "Umumiy maydon: ${totalArea.toStringAsFixed(1)} ga • Ekilgan: ${plantedArea.toStringAsFixed(1)} ga",
             style: AppTypography.bodySmall(context).copyWith(
               color: context.colors.textSecondary,
             ),
@@ -599,21 +599,29 @@ class _SummaryGrid extends StatelessWidget {
       0,
       (sum, farmer) => sum + (farmer.approvedPlantations ?? 0),
     );
-    final pendingPlantations = statistics.fold<int>(
-      0,
-      (sum, farmer) => sum + (farmer.pendingPlantations ?? 0),
-    );
     final rejectedPlantations = statistics.fold<int>(
       0,
       (sum, farmer) => sum + (farmer.rejectedPlantations ?? 0),
     );
-    final uzumzorArea = statistics.fold<double>(
-      0.0,
-      (sum, farmer) => sum + (farmer.uzumzorArea ?? 0.0),
+    final fruitGardens = statistics.fold<int>(
+      0,
+      (sum, farmer) => sum + (farmer.fruitGardenCount ?? 0),
     );
-    final bogArea = statistics.fold<double>(
+    final vineyards = statistics.fold<int>(
+      0,
+      (sum, farmer) => sum + (farmer.vineyardCount ?? 0),
+    );
+    final totalArea = statistics.fold<double>(
       0.0,
-      (sum, farmer) => sum + (farmer.bogArea ?? 0.0),
+      (sum, farmer) => sum + (farmer.totalArea ?? 0.0),
+    );
+    final plantedArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.plantedArea ?? 0.0),
+    );
+    final approvedArea = statistics.fold<double>(
+      0.0,
+      (sum, farmer) => sum + (farmer.approvedArea ?? 0.0),
     );
 
     final items = [
@@ -633,15 +641,6 @@ class _SummaryGrid extends StatelessWidget {
         },
       ),
       _SummaryItem(
-        title: "Ko'rib chiqilmoqda",
-        value: "$pendingPlantations",
-        icon: Icons.pending_actions_outlined,
-        accent: const Color(0xFFFBBF24),
-        onTap: () {
-          context.push("${AppRouteNames.home}${AppRouteNames.pendingPage}");
-        },
-      ),
-      _SummaryItem(
         title: "Rad etilgan",
         value: "$rejectedPlantations",
         icon: Icons.highlight_off_outlined,
@@ -651,16 +650,34 @@ class _SummaryGrid extends StatelessWidget {
         },
       ),
       _SummaryItem(
-        title: "Uzumzor maydoni",
-        value: "${uzumzorArea.toStringAsFixed(1)} ga",
+        title: "Mevazorlar",
+        value: "$fruitGardens",
+        icon: Icons.park_outlined,
+        accent: const Color(0xFF10B981),
+      ),
+      _SummaryItem(
+        title: "Uzumzorlar",
+        value: "$vineyards",
         icon: Icons.landscape_outlined,
         accent: const Color(0xFF38E3A8),
       ),
       _SummaryItem(
-        title: "Bog maydoni",
-        value: "${bogArea.toStringAsFixed(1)} ga",
-        icon: Icons.park_outlined,
-        accent: const Color(0xFF10B981),
+        title: "Umumiy maydon",
+        value: "${totalArea.toStringAsFixed(1)} ga",
+        icon: Icons.map_outlined,
+        accent: const Color(0xFF8B5CF6),
+      ),
+      _SummaryItem(
+        title: "Ekilgan maydon",
+        value: "${plantedArea.toStringAsFixed(1)} ga",
+        icon: Icons.grass_outlined,
+        accent: const Color(0xFF06B6D4),
+      ),
+      _SummaryItem(
+        title: "Tasdiqlangan maydon",
+        value: "${approvedArea.toStringAsFixed(1)} ga",
+        icon: Icons.check_circle_outline,
+        accent: const Color(0xFF38BDF8),
       ),
     ];
 
@@ -883,26 +900,38 @@ class _FarmerCard extends StatelessWidget {
                       icon: Icons.check_circle_outlined,
                     ),
                     _MetricPill(
-                      label: "Ko'rib chiqilmoqda",
-                      value: "${farmer.pendingPlantations ?? 0}",
-                      icon: Icons.schedule_outlined,
-                    ),
-                    _MetricPill(
                       label: "Rad etilgan",
                       value: "${farmer.rejectedPlantations ?? 0}",
                       icon: Icons.highlight_off_outlined,
                     ),
                     _MetricPill(
-                      label: "Uzumzor maydoni",
-                      value:
-                          "${(farmer.uzumzorArea ?? 0).toStringAsFixed(1)} ga",
+                      label: "Mevazorlar",
+                      value: "${farmer.fruitGardenCount ?? 0}",
+                      icon: Icons.park_outlined,
+                    ),
+                    _MetricPill(
+                      label: "Uzumzorlar",
+                      value: "${farmer.vineyardCount ?? 0}",
                       icon: Icons.landscape_outlined,
                     ),
                     _MetricPill(
-                      label: "Bog maydoni",
-                      value: "${(farmer.bogArea ?? 0).toStringAsFixed(1)} ga",
-                      icon: Icons.park_outlined,
+                      label: "Umumiy maydon",
+                      value: "${(farmer.totalArea ?? 0).toStringAsFixed(1)} ga",
+                      icon: Icons.map_outlined,
                     ),
+                    _MetricPill(
+                      label: "Ekilgan",
+                      value:
+                          "${(farmer.plantedArea ?? 0).toStringAsFixed(1)} ga",
+                      icon: Icons.grass_outlined,
+                    ),
+                    if ((farmer.approvePercent ?? 0) > 0)
+                      _MetricPill(
+                        label: "Tasdiqlash %",
+                        value:
+                            "${(farmer.approvePercent ?? 0).toStringAsFixed(0)}%",
+                        icon: Icons.percent_outlined,
+                      ),
                   ];
 
                   // Вычисляем, помещаются ли все элементы в одну строку
