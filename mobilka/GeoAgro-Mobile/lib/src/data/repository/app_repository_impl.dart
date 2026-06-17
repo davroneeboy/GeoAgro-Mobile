@@ -76,43 +76,53 @@ class AppRepositoryImpl implements AppRepo {
         } catch (e) {
           // Если не JSON, проверяем строку на наличие ошибок
           final dataLower = dataStr.toLowerCase();
-          if (dataLower.contains("error") || 
+          if (dataLower.contains("error") ||
               dataLower.contains("{error") ||
               dataLower.contains("no plantation") ||
               dataLower.contains("matches") ||
               dataLower.contains("query")) {
-            debugPrint("deletePlantationModel: Error detected in string response: $data");
+            debugPrint(
+                "deletePlantationModel: Error detected in string response: $data");
             return dataStr;
           }
-          debugPrint("deletePlantationModel: Success response (not JSON): $data");
+          debugPrint(
+              "deletePlantationModel: Success response (not JSON): $data");
           return dataStr;
         }
       }
       debugPrint("deletePlantationModel: Response is null");
       return null;
     } on DioException catch (e) {
-      debugPrint("deletePlantationModel: DioException - Status: ${e.response?.statusCode}");
-      debugPrint("deletePlantationModel: DioException - Data: ${e.response?.data ?? e.message}");
-      
+      debugPrint(
+          "deletePlantationModel: DioException - Status: ${e.response?.statusCode}");
+      debugPrint(
+          "deletePlantationModel: DioException - Data: ${e.response?.data ?? e.message}");
+
       // Обработка ошибки 403 (Forbidden)
       if (e.response?.statusCode == 403) {
-        debugPrint("deletePlantationModel: 403 Forbidden detected, returning FORBIDDEN_403");
+        debugPrint(
+            "deletePlantationModel: 403 Forbidden detected, returning FORBIDDEN_403");
         return "FORBIDDEN_403";
       }
-      
+
       // Если ответ содержит данные, проверяем их на наличие информации об ошибке 403
       if (e.response?.data != null) {
         try {
           final errorData = e.response!.data;
           if (errorData is Map) {
             final detail = errorData["detail"]?.toString().toLowerCase() ?? "";
-            if (detail.contains("forbidden") || detail.contains("ruxsat") || detail.contains("доступ")) {
+            if (detail.contains("forbidden") ||
+                detail.contains("ruxsat") ||
+                detail.contains("доступ")) {
               debugPrint("deletePlantationModel: 403 detected in error data");
               return "FORBIDDEN_403";
             }
           } else if (errorData is String) {
             final errorStr = errorData.toLowerCase();
-            if (errorStr.contains("forbidden") || errorStr.contains("ruxsat") || errorStr.contains("доступ") || errorStr.contains("403")) {
+            if (errorStr.contains("forbidden") ||
+                errorStr.contains("ruxsat") ||
+                errorStr.contains("доступ") ||
+                errorStr.contains("403")) {
               debugPrint("deletePlantationModel: 403 detected in error string");
               return "FORBIDDEN_403";
             }
@@ -142,31 +152,39 @@ class AppRepositoryImpl implements AppRepo {
       if (response != null) {
         debugPrint("deletePlantation: Response status: ${response.statusCode}");
         debugPrint("deletePlantation: Response data: ${response.data}");
-        
+
         // Проверяем статус код
         if (response.statusCode == 200 || response.statusCode == 201) {
           return jsonEncode(response.data);
         } else {
           // Проверяем статус код 403
           if (response.statusCode == 403) {
-            debugPrint("deletePlantation: 403 Forbidden detected in response status");
+            debugPrint(
+                "deletePlantation: 403 Forbidden detected in response status");
             return "FORBIDDEN_403";
           }
-          
+
           // Проверяем данные ответа на наличие информации об ошибке 403
           if (response.data != null) {
             try {
               final responseData = response.data;
               if (responseData is Map) {
-                final detail = responseData["detail"]?.toString().toLowerCase() ?? "";
-                if (detail.contains("forbidden") || detail.contains("ruxsat") || detail.contains("доступ")) {
+                final detail =
+                    responseData["detail"]?.toString().toLowerCase() ?? "";
+                if (detail.contains("forbidden") ||
+                    detail.contains("ruxsat") ||
+                    detail.contains("доступ")) {
                   debugPrint("deletePlantation: 403 detected in response data");
                   return "FORBIDDEN_403";
                 }
               } else if (responseData is String) {
                 final responseStr = responseData.toLowerCase();
-                if (responseStr.contains("forbidden") || responseStr.contains("ruxsat") || responseStr.contains("доступ") || responseStr.contains("403")) {
-                  debugPrint("deletePlantation: 403 detected in response string");
+                if (responseStr.contains("forbidden") ||
+                    responseStr.contains("ruxsat") ||
+                    responseStr.contains("доступ") ||
+                    responseStr.contains("403")) {
+                  debugPrint(
+                      "deletePlantation: 403 detected in response string");
                   return "FORBIDDEN_403";
                 }
               }
@@ -174,7 +192,7 @@ class AppRepositoryImpl implements AppRepo {
               // Игнорируем ошибки парсинга
             }
           }
-          
+
           // Возвращаем данные об ошибке
           return jsonEncode(response.data);
         }
@@ -182,29 +200,38 @@ class AppRepositoryImpl implements AppRepo {
       debugPrint("deletePlantation: Response is null");
       return null;
     } on DioException catch (e) {
-      debugPrint("deletePlantation: DioException - Status: ${e.response?.statusCode}");
-      debugPrint("deletePlantation: DioException - Data: ${e.response?.data ?? e.message}");
-      
+      debugPrint(
+          "deletePlantation: DioException - Status: ${e.response?.statusCode}");
+      debugPrint(
+          "deletePlantation: DioException - Data: ${e.response?.data ?? e.message}");
+
       // Обработка ошибки 403 (Forbidden)
       if (e.response?.statusCode == 403) {
         debugPrint("deletePlantation: 403 Forbidden detected in DioException");
         return "FORBIDDEN_403";
       }
-      
+
       // Если ответ содержит данные, проверяем их на наличие информации об ошибке 403
       if (e.response?.data != null) {
         try {
           final errorData = e.response!.data;
           if (errorData is Map) {
             final detail = errorData["detail"]?.toString().toLowerCase() ?? "";
-            if (detail.contains("forbidden") || detail.contains("ruxsat") || detail.contains("доступ")) {
-              debugPrint("deletePlantation: 403 detected in DioException error data");
+            if (detail.contains("forbidden") ||
+                detail.contains("ruxsat") ||
+                detail.contains("доступ")) {
+              debugPrint(
+                  "deletePlantation: 403 detected in DioException error data");
               return "FORBIDDEN_403";
             }
           } else if (errorData is String) {
             final errorStr = errorData.toLowerCase();
-            if (errorStr.contains("forbidden") || errorStr.contains("ruxsat") || errorStr.contains("доступ") || errorStr.contains("403")) {
-              debugPrint("deletePlantation: 403 detected in DioException error string");
+            if (errorStr.contains("forbidden") ||
+                errorStr.contains("ruxsat") ||
+                errorStr.contains("доступ") ||
+                errorStr.contains("403")) {
+              debugPrint(
+                  "deletePlantation: 403 detected in DioException error string");
               return "FORBIDDEN_403";
             }
           }
@@ -212,7 +239,7 @@ class AppRepositoryImpl implements AppRepo {
           // Игнорируем ошибки парсинга
         }
       }
-      
+
       // Возвращаем данные об ошибке для обработки в ViewModel
       if (e.response?.data != null) {
         return jsonEncode(e.response!.data);
@@ -228,7 +255,7 @@ class AppRepositoryImpl implements AppRepo {
   Future<String?> getPlantationDetail({required int id}) async {
     try {
       final data = await ApiService.get(
-          "${ApiConst.apiPlantations}$id/mobile", ApiParams.emptyParams());
+          "${ApiConst.apiPlantations}$id/", ApiParams.emptyParams());
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
@@ -325,7 +352,8 @@ class AppRepositoryImpl implements AppRepo {
       }
       return data;
     } on DioException catch (e) {
-      debugPrint("❌ Server error in getFermersList: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
+      debugPrint(
+          "❌ Server error in getFermersList: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
       debugPrint("❌ Request URL: ${ApiConst.baseUrl}${ApiConst.apiFermers}");
       debugPrint("❌ Request params: ${ApiParams.pageParams(page: page ?? 1)}");
     } catch (e) {
@@ -357,19 +385,22 @@ class AppRepositoryImpl implements AppRepo {
       final fullUrl = "${ApiConst.baseUrl}$url";
       debugPrint("getFarmerPlantations: Full URL: $fullUrl");
       debugPrint("getFarmerPlantations: farmerInn=$farmerInn");
-      
+
       final data = await ApiService.get(
         url,
         ApiParams.emptyParams(),
       );
-      
-      debugPrint("getFarmerPlantations: Response received: ${data?.substring(0, data.length > 200 ? 200 : data.length)}");
+
+      debugPrint(
+          "getFarmerPlantations: Response received: ${data?.substring(0, data.length > 200 ? 200 : data.length)}");
       return data;
     } on DioException catch (e) {
-      debugPrint("getFarmerPlantations: Server error: ${e.response?.statusCode}");
-      debugPrint("getFarmerPlantations: Error data: ${e.response?.data ?? e.message}");
+      debugPrint(
+          "getFarmerPlantations: Server error: ${e.response?.statusCode}");
+      debugPrint(
+          "getFarmerPlantations: Error data: ${e.response?.data ?? e.message}");
       debugPrint("getFarmerPlantations: Request URL: ${e.requestOptions.uri}");
-      
+
       // Обработка ошибки 403 (Forbidden)
       if (e.response?.statusCode == 403) {
         return "FORBIDDEN_403";
@@ -381,11 +412,14 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<ApiResponse> updateFarmer({required int id, required Map<String, dynamic> data}) async {
+  Future<ApiResponse> updateFarmer(
+      {required int id, required Map<String, dynamic> data}) async {
     try {
       debugPrint("UpdateFarmer: Updating farmer $id with data: $data");
-      final response = await ApiService.putWithResponse(ApiConst.apiUpdateFarmer(id), data);
-      debugPrint("UpdateFarmer: Response status: ${response.statusCode}, data: ${response.data}");
+      final response =
+          await ApiService.putWithResponse(ApiConst.apiUpdateFarmer(id), data);
+      debugPrint(
+          "UpdateFarmer: Response status: ${response.statusCode}, data: ${response.data}");
       return response;
     } catch (e) {
       debugPrint("UpdateFarmer: Error: $e");
@@ -637,7 +671,8 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> removeDeviceToken({required String token}) async {
     try {
-      final data = await ApiService.delete(ApiConst.apiDeviceTokenByToken(token));
+      final data =
+          await ApiService.delete(ApiConst.apiDeviceTokenByToken(token));
       return data;
     } on DioException catch (e) {
       debugPrint("removeDeviceToken error: ${e.response?.data ?? e.message}");
@@ -740,21 +775,24 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
-  Future<ApiResponse> addPlantationComment({required int plantationId, required String body, bool isModeration = false}) async {
+  Future<ApiResponse> addPlantationComment(
+      {required int plantationId,
+      required String body,
+      bool isModeration = false}) async {
     try {
       final requestData = {"body": body, "is_moderation": isModeration};
       log("📤 Adding comment to plantation $plantationId:");
       log("📤 Request data: ${jsonEncode(requestData)}");
       log("📤 is_moderation value: $isModeration (type: ${isModeration.runtimeType})");
-      
+
       final response = await ApiService.post(
         ApiConst.apiPlantationComments(plantationId),
         requestData,
       );
-      
+
       log("📥 Comment response status: ${response.statusCode}");
       log("📥 Comment response data: ${response.data}");
-      
+
       return response;
     } catch (e) {
       log("Error adding comment: $e");
