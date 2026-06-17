@@ -99,17 +99,6 @@ class _BodyContent extends StatelessWidget {
     }
 
     final statistics = vm.statistics;
-    if (statistics == null || statistics.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: const EmptyStateWidget(
-            subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
-          ),
-        ),
-      );
-    }
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -126,6 +115,13 @@ class _BodyContent extends StatelessWidget {
           SizedBox(height: AppSpacing.lg),
           if (vm.searchResults != null) ...[
             _SearchResultsList(vm: vm),
+          ] else if (statistics == null || statistics.isEmpty) ...[
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.4,
+              child: const EmptyStateWidget(
+                subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+              ),
+            ),
           ] else ...[
             _OverviewHeader(statistics: statistics),
             SizedBox(height: AppSpacing.sectionSpacing),
