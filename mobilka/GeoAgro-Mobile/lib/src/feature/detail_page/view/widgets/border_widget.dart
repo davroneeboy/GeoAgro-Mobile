@@ -10,11 +10,12 @@ class BorderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      borderType: BorderType.RRect,
-      radius: Radius.circular(12.r),
-      padding: REdgeInsets.all(10),
-      strokeWidth: 1,
-      color: Colors.grey,
+      options: RoundedRectDottedBorderOptions(
+        radius: Radius.circular(12.r),
+        padding: REdgeInsets.all(10),
+        strokeWidth: 1,
+        color: Colors.grey,
+      ),
       child: Column(
         children: children,
       ),

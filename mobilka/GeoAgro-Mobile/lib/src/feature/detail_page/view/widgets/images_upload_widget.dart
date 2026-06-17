@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ImageUploadListWidget extends StatelessWidget {
-  final Function(BuildContext, int) showImagePicker; // Обновлено: принимает context
+  final Function(BuildContext, int)
+      showImagePicker; // Обновлено: принимает context
   final Function(int) getImageFile;
   final Function(int)? removeImage; // Новый параметр для удаления
   final Function(int)? getPhotoDescription; // Описание для каждого фото
-  final Future<void> Function(int, {BuildContext? context})? pickImageFromGallery; // Выбрать из галереи
-  final Future<void> Function(int, {BuildContext? context})? pickImageFromCamera; // Сфотографировать
+  final Future<void> Function(int, {BuildContext? context})?
+      pickImageFromGallery; // Выбрать из галереи
+  final Future<void> Function(int, {BuildContext? context})?
+      pickImageFromCamera; // Сфотографировать
   final List<String>? images;
   final int itemCount; // Количество полей для отображения
   final bool isSpecialUser; // Флаг специального пользователя
@@ -41,8 +44,8 @@ class ImageUploadListWidget extends StatelessWidget {
               : null;
           final hasImage = uploadedImage != null || networkImage != null;
 
-          final photoDescription = getPhotoDescription != null 
-              ? getPhotoDescription!(index) 
+          final photoDescription = getPhotoDescription != null
+              ? getPhotoDescription!(index)
               : 'Rasm ${index + 1}';
 
           return Padding(
@@ -63,18 +66,22 @@ class ImageUploadListWidget extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   ListTile(
-                                    leading: const Icon(Icons.delete_outline, color: Colors.red),
+                                    leading: const Icon(Icons.delete_outline,
+                                        color: Colors.red),
                                     title: const Text('O\'chirish'),
                                     onTap: () {
                                       Navigator.pop(context);
                                       showDialog(
                                         context: context,
                                         builder: (context) => AlertDialog(
-                                          title: const Text('Rasmni o\'chirish'),
-                                          content: const Text('Bu rasmni o\'chirmoqchimisiz?'),
+                                          title:
+                                              const Text('Rasmni o\'chirish'),
+                                          content: const Text(
+                                              'Bu rasmni o\'chirmoqchimisiz?'),
                                           actions: [
                                             TextButton(
-                                              onPressed: () => Navigator.pop(context),
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
                                               child: const Text('Bekor qilish'),
                                             ),
                                             TextButton(
@@ -82,7 +89,9 @@ class ImageUploadListWidget extends StatelessWidget {
                                                 removeImage!(index);
                                                 Navigator.pop(context);
                                               },
-                                              child: const Text('O\'chirish', style: TextStyle(color: Colors.red)),
+                                              child: const Text('O\'chirish',
+                                                  style: TextStyle(
+                                                      color: Colors.red)),
                                             ),
                                           ],
                                         ),
@@ -98,7 +107,8 @@ class ImageUploadListWidget extends StatelessWidget {
                                       onTap: () {
                                         Navigator.pop(context);
                                         if (pickImageFromGallery != null) {
-                                          pickImageFromGallery!(index, context: context);
+                                          pickImageFromGallery!(index,
+                                              context: context);
                                         } else {
                                           showImagePicker(context, index);
                                         }
@@ -111,7 +121,8 @@ class ImageUploadListWidget extends StatelessWidget {
                                     onTap: () {
                                       Navigator.pop(context);
                                       if (pickImageFromCamera != null) {
-                                        pickImageFromCamera!(index, context: context);
+                                        pickImageFromCamera!(index,
+                                            context: context);
                                       } else {
                                         showImagePicker(context, index);
                                       }
@@ -131,11 +142,12 @@ class ImageUploadListWidget extends StatelessWidget {
                       ),
                       padding: EdgeInsets.zero,
                       child: DottedBorder(
-                        borderType: BorderType.RRect,
-                        radius: Radius.circular(16.r),
-                        color: Colors.grey,
-                        strokeWidth: 2,
-                        dashPattern: const [8, 4],
+                        options: RoundedRectDottedBorderOptions(
+                          radius: Radius.circular(16.r),
+                          color: Colors.grey,
+                          strokeWidth: 2,
+                          dashPattern: const [8, 4],
+                        ),
                         child: Container(
                           width: 160.w,
                           height: 120.h,
@@ -163,11 +175,14 @@ class ImageUploadListWidget extends StatelessWidget {
                                             return child;
                                           } else {
                                             return Center(
-                                              child: CircularProgressIndicator(color: Colors.blue,),
+                                              child: CircularProgressIndicator(
+                                                color: Colors.blue,
+                                              ),
                                             );
                                           }
                                         },
-                                        errorBuilder: (context, error, stackTrace) {
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
                                           return Center(
                                             child: Icon(Icons.broken_image),
                                           );
@@ -175,7 +190,8 @@ class ImageUploadListWidget extends StatelessWidget {
                                       ),
                                     )
                                   : Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.add_a_photo_outlined,
@@ -194,27 +210,27 @@ class ImageUploadListWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                ],
-              ),
-              // Подпись под фото
-              SizedBox(height: 4.h),
-              SizedBox(
-                width: 160.w,
-                child: Text(
-                  photoDescription,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  ],
                 ),
-              ),
-            ],
-          ),
-        );
+                // Подпись под фото
+                SizedBox(height: 4.h),
+                SizedBox(
+                  width: 160.w,
+                  child: Text(
+                    photoDescription,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

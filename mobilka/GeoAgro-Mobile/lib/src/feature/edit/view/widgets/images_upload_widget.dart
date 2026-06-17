@@ -25,7 +25,7 @@ class EditImageUploadListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Используем переданное количество слотов
     final totalSlots = itemCount;
-    
+
     return SizedBox(
       height: 122.h,
       child: ListView.builder(
@@ -33,9 +33,10 @@ class EditImageUploadListWidget extends StatelessWidget {
         itemCount: totalSlots,
         itemBuilder: (context, index) {
           File? uploadedImage = getImageFile(index);
-          String? networkImage = (existingImages != null && existingImages!.length > index)
-              ? existingImages![index]
-              : null;
+          String? networkImage =
+              (existingImages != null && existingImages!.length > index)
+                  ? existingImages![index]
+                  : null;
 
           return Padding(
             padding: REdgeInsets.only(right: 16.0, left: 2),
@@ -51,7 +52,8 @@ class EditImageUploadListWidget extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ListTile(
-                              leading: const Icon(Icons.delete, color: Colors.red),
+                              leading:
+                                  const Icon(Icons.delete, color: Colors.red),
                               title: const Text('O\'chirish'),
                               onTap: () => Navigator.pop(context, 'delete'),
                             ),
@@ -66,7 +68,7 @@ class EditImageUploadListWidget extends StatelessWidget {
                       );
                     },
                   );
-                  
+
                   if (action == 'delete') {
                     final msg = await removeExistingImage!(index);
                     if (context.mounted && msg != null && msg.isNotEmpty) {
@@ -92,11 +94,12 @@ class EditImageUploadListWidget extends StatelessWidget {
               ),
               padding: EdgeInsets.zero,
               child: DottedBorder(
-                borderType: BorderType.RRect,
-                radius: Radius.circular(16.r),
-                color: Colors.grey,
-                strokeWidth: 2,
-                dashPattern: const [8, 4],
+                options: RoundedRectDottedBorderOptions(
+                  radius: Radius.circular(16.r),
+                  color: Colors.grey,
+                  strokeWidth: 2,
+                  dashPattern: const [8, 4],
+                ),
                 child: Container(
                   width: 160.w,
                   height: 120.h,
@@ -125,16 +128,21 @@ class EditImageUploadListWidget extends StatelessWidget {
                             child: Image.network(
                               networkImage,
                               fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
                                 return Container(
                                   color: Colors.grey.shade100,
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
                                       strokeWidth: 2,
                                     ),
                                   ),
@@ -182,7 +190,8 @@ class EditImageUploadListWidget extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16.r),
                             ),
                             child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
                             ),
                           ),
                         ),
