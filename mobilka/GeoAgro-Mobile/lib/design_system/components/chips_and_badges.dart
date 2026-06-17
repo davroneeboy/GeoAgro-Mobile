@@ -6,7 +6,7 @@ import '../theme/radius.dart';
 import '../theme/typography.dart';
 
 /// Design System Chips and Badges
-/// 
+///
 /// Small UI elements for status, filters, and tags:
 /// - AppChip - Filter/choice chip
 /// - AppBadge - Notification badge
@@ -139,7 +139,8 @@ class AppBadge extends StatelessWidget {
           : (count != null && count! > 0)
               ? Text(count! > 99 ? '99+' : count.toString())
               : null,
-      isLabelVisible: showBadge && (label != null || (count != null && count! > 0)),
+      isLabelVisible:
+          showBadge && (label != null || (count != null && count! > 0)),
       backgroundColor: backgroundColor ?? AppColors.error,
       textColor: textColor ?? AppColors.white,
       alignment: alignment,
@@ -322,7 +323,7 @@ class AppTag extends StatelessWidget {
         label,
         style: AppTypography.labelSmall(context).copyWith(
           color: effectiveColor,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -339,4 +340,3 @@ class AppTag extends StatelessWidget {
     return container;
   }
 }
-

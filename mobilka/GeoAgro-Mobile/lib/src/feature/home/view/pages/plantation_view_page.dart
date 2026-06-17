@@ -368,7 +368,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 child: Text(
                   "Moderatsiya",
                   style: TextStyle(
-                    fontSize: 11.sp,
+                    fontSize: 12.sp,
                     color: design_colors.AppColors.warning,
                     fontWeight: FontWeight.w600,
                   ),
@@ -445,7 +445,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                   child: Text(
                     "Moderatsiya",
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 12.sp,
                       color: Colors.orange,
                       fontWeight: FontWeight.w600,
                     ),

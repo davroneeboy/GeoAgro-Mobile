@@ -163,7 +163,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               labelTextStyle: WidgetStateProperty.resolveWith(
                 (states) => TextStyle(
-                  fontSize: 11.sp,
+                  fontSize: 12.sp,
                   fontWeight: states.contains(WidgetState.selected)
                       ? FontWeight.w600
                       : FontWeight.w500,

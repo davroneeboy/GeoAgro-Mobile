@@ -222,7 +222,7 @@ class ImageUploadListWidget extends StatelessWidget {
                     photoDescription,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 12.sp,
                       color: Colors.grey[600],
                       fontWeight: FontWeight.w500,
                     ),
