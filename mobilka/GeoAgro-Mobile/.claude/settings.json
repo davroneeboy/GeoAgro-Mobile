@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter pub get*)",
+      "Bash(flutter analyze*)",
+      "Bash(flutter test*)",
+      "Bash(dart format*)",
+      "Bash(dart fix --apply*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "PowerShell(flutter pub get*)",
+      "PowerShell(flutter analyze*)",
+      "PowerShell(flutter test*)",
+      "PowerShell(dart format*)",
+      "PowerShell(dart fix --apply*)",
+      "PowerShell(git status*)",
+      "PowerShell(git log*)",
+      "PowerShell(git diff*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$j = $input | ConvertFrom-Json; $f = $j.tool_input.file_path; if (-not $f) { $f = $j.tool_response.filePath }; if ($f -and $f -match '\\.dart$') { dart format \"$f\" 2>$null }",
+            "timeout": 30,
+            "statusMessage": "Formatting Dart file..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$j = $input | ConvertFrom-Json; $f = $j.tool_input.file_path; if (-not $f) { $f = $j.tool_response.filePath }; if ($f -and $f -match 'pubspec\\.yaml$') { flutter pub get 2>$null }",
+            "timeout": 120,
+            "statusMessage": "Running flutter pub get..."
+          }
+        ]
+      }
+    ]
+  }
+}
