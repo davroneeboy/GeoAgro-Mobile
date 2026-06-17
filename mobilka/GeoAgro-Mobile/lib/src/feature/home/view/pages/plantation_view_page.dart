@@ -1695,47 +1695,51 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
         ),
         itemBuilder: (context, index) {
           final imageUrl = images[index];
-          return GestureDetector(
-            onTap: () => _showImageDialog(context, imageUrl),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadii.sm),
-                border: context.colors.isDark
-                    ? Border.all(color: context.colors.border, width: 1)
-                    : null,
-                boxShadow:
-                    context.colors.isDark ? null : context.colors.cardShadow,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadii.sm - 1),
-                child: Image.network(
-                  imageUrl,
-                  semanticLabel: "Plantatsiya rasmi",
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: context.colors.surface,
-                      alignment: Alignment.center,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          design_colors.AppColors.accentGreen,
+          return Semantics(
+            button: true,
+            label: "Rasmni ochish",
+            child: GestureDetector(
+              onTap: () => _showImageDialog(context, imageUrl),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadii.sm),
+                  border: context.colors.isDark
+                      ? Border.all(color: context.colors.border, width: 1)
+                      : null,
+                  boxShadow:
+                      context.colors.isDark ? null : context.colors.cardShadow,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadii.sm - 1),
+                  child: Image.network(
+                    imageUrl,
+                    semanticLabel: "Plantatsiya rasmi",
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: context.colors.surface,
+                        alignment: Alignment.center,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            design_colors.AppColors.accentGreen,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: context.colors.surface,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.broken_image_outlined,
-                        color: context.colors.textSecondary,
-                        size: 32,
-                      ),
-                    );
-                  },
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: context.colors.surface,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          color: context.colors.textSecondary,
+                          size: 32,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

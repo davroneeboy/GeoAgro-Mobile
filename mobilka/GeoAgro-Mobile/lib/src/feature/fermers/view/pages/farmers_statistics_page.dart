@@ -390,128 +390,132 @@ class _SearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        final farmerId = farmer.id ?? 0;
-        final farmerInn = farmer.inn ?? farmer.id ?? 0;
-        final farmerName = farmer.name ?? 'Fermer';
-        final route =
-            "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
-        context.push(route);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.colors.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          border: context.colors.cardBorder,
-          boxShadow: context.colors.cardShadow,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          farmer.name ?? "Noma'lum fermer",
-                          style: AppTypography.title(context).copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (farmer.inn != null) ...[
-                          SizedBox(height: AppSpacing.xs),
+    return Semantics(
+      button: true,
+      label: "Fermer ma'lumotlari",
+      child: GestureDetector(
+        onTap: () {
+          final farmerId = farmer.id ?? 0;
+          final farmerInn = farmer.inn ?? farmer.id ?? 0;
+          final farmerName = farmer.name ?? 'Fermer';
+          final route =
+              "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
+          context.push(route);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: context.colors.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            border: context.colors.cardBorder,
+            boxShadow: context.colors.cardShadow,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            "INN: ${farmer.inn}",
-                            style: AppTypography.caption(context).copyWith(
-                              color: context.colors.textTertiary,
+                            farmer.name ?? "Noma'lum fermer",
+                            style: AppTypography.title(context).copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (farmer.inn != null) ...[
+                            SizedBox(height: AppSpacing.xs),
+                            Text(
+                              "INN: ${farmer.inn}",
+                              style: AppTypography.caption(context).copyWith(
+                                color: context.colors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16.sp,
+                      color: context.colors.textTertiary,
+                    ),
+                  ],
+                ),
+                if (farmer.phoneNumber != null || farmer.address != null) ...[
+                  SizedBox(height: AppSpacing.md),
+                  Divider(
+                    color: context.colors.divider.withValues(alpha: 0.6),
+                    height: 1,
+                  ),
+                  SizedBox(height: AppSpacing.md),
+                  if (farmer.phoneNumber != null)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.phone,
+                            size: 16.sp,
+                            color: context.colors.textSecondary,
+                          ),
+                          SizedBox(width: AppSpacing.sm),
+                          Text(
+                            farmer.phoneNumber!,
+                            style: AppTypography.bodySmall(context).copyWith(
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 16.sp,
-                    color: context.colors.textTertiary,
-                  ),
-                ],
-              ),
-              if (farmer.phoneNumber != null || farmer.address != null) ...[
-                SizedBox(height: AppSpacing.md),
-                Divider(
-                  color: context.colors.divider.withValues(alpha: 0.6),
-                  height: 1,
-                ),
-                SizedBox(height: AppSpacing.md),
-                if (farmer.phoneNumber != null)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: Row(
+                  if (farmer.address != null)
+                    Row(
                       children: [
                         Icon(
-                          Icons.phone,
+                          Icons.location_on,
                           size: 16.sp,
                           color: context.colors.textSecondary,
                         ),
                         SizedBox(width: AppSpacing.sm),
-                        Text(
-                          farmer.phoneNumber!,
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: context.colors.textSecondary,
+                        Expanded(
+                          child: Text(
+                            farmer.address!,
+                            style: AppTypography.bodySmall(context).copyWith(
+                              color: context.colors.textSecondary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                if (farmer.address != null)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16.sp,
-                        color: context.colors.textSecondary,
-                      ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          farmer.address!,
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: context.colors.textSecondary,
+                  if (farmer.createdBy != null) ...[
+                    SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          size: 16.sp,
+                          color: context.colors.textSecondary,
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            "Yaratgan: ${farmer.createdBy!.fullName} (${farmer.createdBy!.username})",
+                            style: AppTypography.bodySmall(context).copyWith(
+                              color: context.colors.textSecondary,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                if (farmer.createdBy != null) ...[
-                  SizedBox(height: AppSpacing.xs),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 16.sp,
-                        color: context.colors.textSecondary,
-                      ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          "Yaratgan: ${farmer.createdBy!.fullName} (${farmer.createdBy!.username})",
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: context.colors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -635,7 +639,7 @@ class _SummaryGrid extends StatelessWidget {
         title: "Tasdiqlangan",
         value: "$approvedPlantations",
         icon: Icons.verified_outlined,
-        accent: const Color(0xFF38BDF8),
+        accent: design_colors.AppColors.chartBlue,
         onTap: () {
           context.push("${AppRouteNames.home}${AppRouteNames.approvedPage}");
         },
@@ -644,7 +648,7 @@ class _SummaryGrid extends StatelessWidget {
         title: "Rad etilgan",
         value: "$rejectedPlantations",
         icon: Icons.highlight_off_outlined,
-        accent: const Color(0xFFF87171),
+        accent: design_colors.AppColors.chartRed,
         onTap: () {
           context.push("${AppRouteNames.home}${AppRouteNames.recheckPage}");
         },
@@ -653,31 +657,31 @@ class _SummaryGrid extends StatelessWidget {
         title: "Mevazorlar",
         value: "$fruitGardens",
         icon: Icons.park_outlined,
-        accent: const Color(0xFF10B981),
+        accent: design_colors.AppColors.chartEmerald,
       ),
       _SummaryItem(
         title: "Uzumzorlar",
         value: "$vineyards",
         icon: Icons.landscape_outlined,
-        accent: const Color(0xFF38E3A8),
+        accent: design_colors.AppColors.chartMint,
       ),
       _SummaryItem(
         title: "Umumiy maydon",
         value: "${totalArea.toStringAsFixed(1)} ga",
         icon: Icons.map_outlined,
-        accent: const Color(0xFF8B5CF6),
+        accent: design_colors.AppColors.chartPurple,
       ),
       _SummaryItem(
         title: "Ekilgan maydon",
         value: "${plantedArea.toStringAsFixed(1)} ga",
         icon: Icons.grass_outlined,
-        accent: const Color(0xFF06B6D4),
+        accent: design_colors.AppColors.chartTeal,
       ),
       _SummaryItem(
         title: "Tasdiqlangan maydon",
         value: "${approvedArea.toStringAsFixed(1)} ga",
         icon: Icons.check_circle_outline,
-        accent: const Color(0xFF38BDF8),
+        accent: design_colors.AppColors.chartBlue,
       ),
     ];
 
@@ -815,152 +819,157 @@ class _FarmerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        final farmerId = farmer.id ?? 0;
-        final farmerInn = farmer.inn ?? farmer.id ?? 0;
-        final farmerName = farmer.name ?? 'Fermer';
-        final route =
-            "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
+    return Semantics(
+      button: true,
+      label: "Fermer statistikasi",
+      child: GestureDetector(
+        onTap: () {
+          final farmerId = farmer.id ?? 0;
+          final farmerInn = farmer.inn ?? farmer.id ?? 0;
+          final farmerName = farmer.name ?? 'Fermer';
+          final route =
+              "/${AppRouteNames.farmers}/${AppRouteNames.farmerPlantations}?id=$farmerId&inn=$farmerInn&name=${Uri.encodeComponent(farmerName)}";
 
-        debugPrint(
-            'FarmersStatisticsPage: Navigating to farmer plantations: $route');
-        debugPrint(
-            'FarmersStatisticsPage: farmerId=$farmerId, farmerInn=$farmerInn');
-        context.push(route);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.colors.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          border: context.colors.cardBorder,
-          boxShadow: context.colors.cardShadow,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          farmer.name ?? "Noma'lum fermer",
-                          style: AppTypography.title(context).copyWith(
-                            fontWeight: FontWeight.w700,
+          debugPrint(
+              'FarmersStatisticsPage: Navigating to farmer plantations: $route');
+          debugPrint(
+              'FarmersStatisticsPage: farmerId=$farmerId, farmerInn=$farmerInn');
+          context.push(route);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: context.colors.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            border: context.colors.cardBorder,
+            boxShadow: context.colors.cardShadow,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            farmer.name ?? "Noma'lum fermer",
+                            style: AppTypography.title(context).copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: AppSpacing.xs),
-                        Text(
-                          farmer.lastAddedPlantations?.isNotEmpty == true
-                              ? "Oxirgi qo'shilgan: ${_formatDate(farmer.lastAddedPlantations!)}"
-                              : "Yangilangan ma'lumot mavjud emas",
-                          style: AppTypography.caption(context).copyWith(
-                            color: context.colors.textTertiary,
+                          SizedBox(height: AppSpacing.xs),
+                          Text(
+                            farmer.lastAddedPlantations?.isNotEmpty == true
+                                ? "Oxirgi qo'shilgan: ${_formatDate(farmer.lastAddedPlantations!)}"
+                                : "Yangilangan ma'lumot mavjud emas",
+                            style: AppTypography.caption(context).copyWith(
+                              color: context.colors.textTertiary,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 16.sp,
-                    color: context.colors.textTertiary,
-                  ),
-                ],
-              ),
-              SizedBox(height: AppSpacing.md),
-              Divider(
-                color: context.colors.divider.withValues(alpha: 0.6),
-                height: 1,
-              ),
-              SizedBox(height: AppSpacing.md),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final spacing = AppSpacing.lg;
-                  final availableWidth = constraints.maxWidth;
-
-                  // Минимальная ширина для одного элемента (примерно 140-160px)
-                  final minTileWidth = 140.0;
-
-                  // Список всех метрик
-                  final metrics = [
-                    _MetricPill(
-                      label: "Plantatsiyalar",
-                      value: "${farmer.totalPlantations ?? 0}",
-                      icon: Icons.forest_outlined,
-                    ),
-                    _MetricPill(
-                      label: "Tasdiqlangan",
-                      value: "${farmer.approvedPlantations ?? 0}",
-                      icon: Icons.check_circle_outlined,
-                    ),
-                    _MetricPill(
-                      label: "Rad etilgan",
-                      value: "${farmer.rejectedPlantations ?? 0}",
-                      icon: Icons.highlight_off_outlined,
-                    ),
-                    _MetricPill(
-                      label: "Mevazorlar",
-                      value: "${farmer.fruitGardenCount ?? 0}",
-                      icon: Icons.park_outlined,
-                    ),
-                    _MetricPill(
-                      label: "Uzumzorlar",
-                      value: "${farmer.vineyardCount ?? 0}",
-                      icon: Icons.landscape_outlined,
-                    ),
-                    _MetricPill(
-                      label: "Umumiy maydon",
-                      value: "${(farmer.totalArea ?? 0).toStringAsFixed(1)} ga",
-                      icon: Icons.map_outlined,
-                    ),
-                    _MetricPill(
-                      label: "Ekilgan",
-                      value:
-                          "${(farmer.plantedArea ?? 0).toStringAsFixed(1)} ga",
-                      icon: Icons.grass_outlined,
-                    ),
-                    if ((farmer.approvePercent ?? 0) > 0)
-                      _MetricPill(
-                        label: "Tasdiqlash %",
-                        value:
-                            "${(farmer.approvePercent ?? 0).toStringAsFixed(0)}%",
-                        icon: Icons.percent_outlined,
+                        ],
                       ),
-                  ];
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16.sp,
+                      color: context.colors.textTertiary,
+                    ),
+                  ],
+                ),
+                SizedBox(height: AppSpacing.md),
+                Divider(
+                  color: context.colors.divider.withValues(alpha: 0.6),
+                  height: 1,
+                ),
+                SizedBox(height: AppSpacing.md),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final spacing = AppSpacing.lg;
+                    final availableWidth = constraints.maxWidth;
 
-                  // Вычисляем, помещаются ли все элементы в одну строку
-                  // Если ширина каждого элемента при размещении в одну строку >= minTileWidth, используем один столбец
-                  // Если нет - используем два столбца
-                  final singleRowWidth = availableWidth / metrics.length;
-                  final useTwoColumns =
-                      singleRowWidth < minTileWidth && metrics.length > 1;
+                    // Минимальная ширина для одного элемента (примерно 140-160px)
+                    final minTileWidth = 140.0;
 
-                  // Вычисляем ширину элемента
-                  final tileWidth = useTwoColumns
-                      ? (availableWidth - spacing) / 2
-                      : (availableWidth - (spacing * (metrics.length - 1))) /
-                          metrics.length;
+                    // Список всех метрик
+                    final metrics = [
+                      _MetricPill(
+                        label: "Plantatsiyalar",
+                        value: "${farmer.totalPlantations ?? 0}",
+                        icon: Icons.forest_outlined,
+                      ),
+                      _MetricPill(
+                        label: "Tasdiqlangan",
+                        value: "${farmer.approvedPlantations ?? 0}",
+                        icon: Icons.check_circle_outlined,
+                      ),
+                      _MetricPill(
+                        label: "Rad etilgan",
+                        value: "${farmer.rejectedPlantations ?? 0}",
+                        icon: Icons.highlight_off_outlined,
+                      ),
+                      _MetricPill(
+                        label: "Mevazorlar",
+                        value: "${farmer.fruitGardenCount ?? 0}",
+                        icon: Icons.park_outlined,
+                      ),
+                      _MetricPill(
+                        label: "Uzumzorlar",
+                        value: "${farmer.vineyardCount ?? 0}",
+                        icon: Icons.landscape_outlined,
+                      ),
+                      _MetricPill(
+                        label: "Umumiy maydon",
+                        value:
+                            "${(farmer.totalArea ?? 0).toStringAsFixed(1)} ga",
+                        icon: Icons.map_outlined,
+                      ),
+                      _MetricPill(
+                        label: "Ekilgan",
+                        value:
+                            "${(farmer.plantedArea ?? 0).toStringAsFixed(1)} ga",
+                        icon: Icons.grass_outlined,
+                      ),
+                      if ((farmer.approvePercent ?? 0) > 0)
+                        _MetricPill(
+                          label: "Tasdiqlash %",
+                          value:
+                              "${(farmer.approvePercent ?? 0).toStringAsFixed(0)}%",
+                          icon: Icons.percent_outlined,
+                        ),
+                    ];
 
-                  return Wrap(
-                    spacing: spacing,
-                    runSpacing: AppSpacing.sm,
-                    alignment: WrapAlignment.start,
-                    children: metrics.map((metric) {
-                      return SizedBox(
-                        width: tileWidth,
-                        child: metric,
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ],
+                    // Вычисляем, помещаются ли все элементы в одну строку
+                    // Если ширина каждого элемента при размещении в одну строку >= minTileWidth, используем один столбец
+                    // Если нет - используем два столбца
+                    final singleRowWidth = availableWidth / metrics.length;
+                    final useTwoColumns =
+                        singleRowWidth < minTileWidth && metrics.length > 1;
+
+                    // Вычисляем ширину элемента
+                    final tileWidth = useTwoColumns
+                        ? (availableWidth - spacing) / 2
+                        : (availableWidth - (spacing * (metrics.length - 1))) /
+                            metrics.length;
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: AppSpacing.sm,
+                      alignment: WrapAlignment.start,
+                      children: metrics.map((metric) {
+                        return SizedBox(
+                          width: tileWidth,
+                          child: metric,
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -20,137 +20,142 @@ class FermerPageCardWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: () {
-        debugPrint(
-          'FermerPageCardWidget: Card tapped for farmer: ${fermerModel.name}',
-        );
-        onPressed();
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: context.colors.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          border: context.colors.cardBorder,
-          boxShadow: context.colors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          _showEditNameDialog(context, ref);
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                fermerModel.name ?? "Noma'lum fermer",
-                                style: AppTypography.title(context).copyWith(
-                                  fontSize: 20.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: context.colors.textPrimary,
-                                  height: 1.25,
+    return Semantics(
+      button: true,
+      label: "Fermer kartasi",
+      child: GestureDetector(
+        onTap: () {
+          debugPrint(
+            'FermerPageCardWidget: Card tapped for farmer: ${fermerModel.name}',
+          );
+          onPressed();
+        },
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: context.colors.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            border: context.colors.cardBorder,
+            boxShadow: context.colors.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            _showEditNameDialog(context, ref);
+                          },
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  fermerModel.name ?? "Noma'lum fermer",
+                                  style: AppTypography.title(context).copyWith(
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: context.colors.textPrimary,
+                                    height: 1.25,
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: AppSpacing.xs),
-                            Icon(
-                              Icons.edit_outlined,
-                              size: 18.sp,
-                              color: design_colors.AppColors.accentGreen,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: AppSpacing.xs.h),
-                      if (fermerModel.inn != null ||
-                          fermerModel.id != null) ...[
-                        Wrap(
-                          spacing: AppSpacing.sm.w,
-                          runSpacing: 0,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (fermerModel.inn != null)
-                              _InnChip(
-                                inn: fermerModel.inn.toString(),
+                              SizedBox(width: AppSpacing.xs),
+                              Icon(
+                                Icons.edit_outlined,
+                                size: 18.sp,
+                                color: design_colors.AppColors.accentGreen,
                               ),
-                            if (fermerModel.id != null)
-                              _IdLabel(
-                                id: fermerModel.id!.toString(),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
-                        SizedBox(height: AppSpacing.sm.h),
+                        SizedBox(height: AppSpacing.xs.h),
+                        if (fermerModel.inn != null ||
+                            fermerModel.id != null) ...[
+                          Wrap(
+                            spacing: AppSpacing.sm.w,
+                            runSpacing: 0,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (fermerModel.inn != null)
+                                _InnChip(
+                                  inn: fermerModel.inn.toString(),
+                                ),
+                              if (fermerModel.id != null)
+                                _IdLabel(
+                                  id: fermerModel.id!.toString(),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: AppSpacing.sm.h),
+                        ],
+                        Text(
+                          fermerModel.address?.isNotEmpty == true
+                              ? fermerModel.address!
+                              : "Manzil ma'lum emas",
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: context.colors.textTertiary,
+                          ),
+                        ),
                       ],
-                      Text(
-                        fermerModel.address?.isNotEmpty == true
-                            ? fermerModel.address!
-                            : "Manzil ma'lum emas",
-                        style: AppTypography.bodySmall(context).copyWith(
-                          color: context.colors.textTertiary,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSpacing.md.h),
-            Divider(
-              height: 1,
-              color: context.colors.divider.withValues(alpha: 0.6),
-            ),
-            SizedBox(height: AppSpacing.sm.h),
-            Wrap(
-              spacing: AppSpacing.md.w,
-              runSpacing: AppSpacing.sm.h,
-              children: [
-                _InfoPill(
-                  icon: Icons.badge_outlined,
-                  title: "Direktor",
-                  value: fermerModel.directorName?.isNotEmpty == true
-                      ? fermerModel.directorName!
-                      : "Ko'rsatilmagan",
-                ),
-                _InfoPill(
-                  icon: Icons.account_balance_outlined,
-                  title: "Asoschi",
-                  value: fermerModel.founderName?.isNotEmpty == true
-                      ? fermerModel.founderName!
-                      : "Ko'rsatilmagan",
-                ),
-                if (fermerModel.phoneNumber?.isNotEmpty == true)
+                ],
+              ),
+              SizedBox(height: AppSpacing.md.h),
+              Divider(
+                height: 1,
+                color: context.colors.divider.withValues(alpha: 0.6),
+              ),
+              SizedBox(height: AppSpacing.sm.h),
+              Wrap(
+                spacing: AppSpacing.md.w,
+                runSpacing: AppSpacing.sm.h,
+                children: [
                   _InfoPill(
-                    icon: Icons.phone_outlined,
-                    title: "Telefon",
-                    value: fermerModel.phoneNumber!,
+                    icon: Icons.badge_outlined,
+                    title: "Direktor",
+                    value: fermerModel.directorName?.isNotEmpty == true
+                        ? fermerModel.directorName!
+                        : "Ko'rsatilmagan",
                   ),
-                if (fermerModel.establishedYear != null)
                   _InfoPill(
-                    icon: Icons.calendar_month_outlined,
-                    title: "Tashkil topgan yil",
-                    value: fermerModel.establishedYear.toString(),
+                    icon: Icons.account_balance_outlined,
+                    title: "Asoschi",
+                    value: fermerModel.founderName?.isNotEmpty == true
+                        ? fermerModel.founderName!
+                        : "Ko'rsatilmagan",
                   ),
-                if (fermerModel.createdBy != null)
-                  _InfoPill(
-                    icon: Icons.person_outline,
-                    title: "Yaratgan",
-                    value: "${fermerModel.createdBy!.fullName} (${fermerModel.createdBy!.username})",
-                  ),
-              ],
-            ),
-            SizedBox(height: AppSpacing.md.h),
-          ],
+                  if (fermerModel.phoneNumber?.isNotEmpty == true)
+                    _InfoPill(
+                      icon: Icons.phone_outlined,
+                      title: "Telefon",
+                      value: fermerModel.phoneNumber!,
+                    ),
+                  if (fermerModel.establishedYear != null)
+                    _InfoPill(
+                      icon: Icons.calendar_month_outlined,
+                      title: "Tashkil topgan yil",
+                      value: fermerModel.establishedYear.toString(),
+                    ),
+                  if (fermerModel.createdBy != null)
+                    _InfoPill(
+                      icon: Icons.person_outline,
+                      title: "Yaratgan",
+                      value:
+                          "${fermerModel.createdBy!.fullName} (${fermerModel.createdBy!.username})",
+                    ),
+                ],
+              ),
+              SizedBox(height: AppSpacing.md.h),
+            ],
+          ),
         ),
       ),
     );
@@ -159,7 +164,7 @@ class FermerPageCardWidget extends ConsumerWidget {
   void _showEditNameDialog(BuildContext context, WidgetRef ref) {
     final vm = ref.read(fermerPageVM);
     final currentName = fermerModel.name ?? "";
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => EditFarmerNameDialog(
@@ -170,7 +175,7 @@ class FermerPageCardWidget extends ConsumerWidget {
             id: fermerModel.id!,
             newName: newName,
           );
-          
+
           if (dialogContext.mounted) {
             if (success) {
               Navigator.of(dialogContext).pop();

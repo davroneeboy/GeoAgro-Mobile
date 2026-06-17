@@ -63,65 +63,69 @@ class _ModernLoginButtonState extends State<ModernLoginButton>
   Widget build(BuildContext context) {
     final isDisabled = !widget.isEnabled || widget.isLoading;
 
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      onTap: widget.isEnabled && !widget.isLoading ? widget.onPressed : null,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          width: double.infinity,
-          height: 56.h,
-          decoration: BoxDecoration(
-            gradient: isDisabled
-                ? null
-                : LinearGradient(
-                    colors: [
-                      design_colors.AppColors.accentGreen,
-                      design_colors.AppColors.accentGreenDark,
+    return Semantics(
+      button: true,
+      label: "Kirish tugmasi",
+      child: GestureDetector(
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        onTap: widget.isEnabled && !widget.isLoading ? widget.onPressed : null,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            width: double.infinity,
+            height: 56.h,
+            decoration: BoxDecoration(
+              gradient: isDisabled
+                  ? null
+                  : LinearGradient(
+                      colors: [
+                        design_colors.AppColors.accentGreen,
+                        design_colors.AppColors.accentGreenDark,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+              color: isDisabled ? context.colors.surfaceVariant : null,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: isDisabled
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: design_colors.AppColors.accentGreen
+                            .withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                        spreadRadius: 0,
+                      ),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            color: isDisabled ? context.colors.surfaceVariant : null,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: isDisabled
-                ? null
-                : [
-                    BoxShadow(
-                      color: design_colors.AppColors.accentGreen.withValues(alpha: 0.4),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                      spreadRadius: 0,
+            ),
+            child: Center(
+              child: widget.isLoading
+                  ? SizedBox(
+                      width: 24.w,
+                      height: 24.h,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      widget.text,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.2,
+                      ),
                     ),
-                  ],
-          ),
-          child: Center(
-            child: widget.isLoading
-                ? SizedBox(
-                    width: 24.w,
-                    height: 24.h,
-                    child: const CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Text(
-                    widget.text,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
+            ),
           ),
         ),
       ),
     );
   }
 }
-
