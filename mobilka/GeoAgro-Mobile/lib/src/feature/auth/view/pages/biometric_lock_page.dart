@@ -234,6 +234,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
       borderRadius: BorderRadius.circular(24),
       child: Image.asset(
         Assets.gerbImg,
+        semanticLabel: "GeoAgro gerbi",
         height: 100.h,
         fit: BoxFit.contain,
       ),
@@ -277,14 +278,13 @@ class _BiometricLockPageState extends State<BiometricLockPage>
             shape: BoxShape.circle,
             color: context.colors.surfaceVariant,
             border: Border.all(
-              color: design_colors.AppColors.accentGreen
-                  .withValues(alpha: 0.5),
+              color: design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: design_colors.AppColors.accentGreen
-                    .withValues(alpha: 0.15),
+                color:
+                    design_colors.AppColors.accentGreen.withValues(alpha: 0.15),
                 blurRadius: 24,
                 spreadRadius: 4,
               ),

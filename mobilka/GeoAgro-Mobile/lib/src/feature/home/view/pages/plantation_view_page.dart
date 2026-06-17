@@ -1710,6 +1710,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 borderRadius: BorderRadius.circular(AppRadii.sm - 1),
                 child: Image.network(
                   imageUrl,
+                  semanticLabel: "Plantatsiya rasmi",
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
@@ -1895,6 +1896,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             InteractiveViewer(
               child: Image.network(
                 imageUrl,
+                semanticLabel: "Plantatsiya rasmi",
                 fit: BoxFit.contain,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;

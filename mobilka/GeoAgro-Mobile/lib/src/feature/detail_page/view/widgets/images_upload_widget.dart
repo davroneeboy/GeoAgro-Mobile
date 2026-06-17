@@ -160,6 +160,7 @@ class ImageUploadListWidget extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(16.r),
                                   child: Image.file(
                                     uploadedImage,
+                                    semanticLabel: "Yuklangan rasm",
                                     fit: BoxFit.cover,
                                   ),
                                 )
@@ -168,6 +169,7 @@ class ImageUploadListWidget extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(16.r),
                                       child: Image.network(
                                         networkImage,
+                                        semanticLabel: "Plantatsiya rasmi",
                                         fit: BoxFit.fill,
                                         loadingBuilder:
                                             (context, child, loadingProgress) {

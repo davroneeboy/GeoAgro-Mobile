@@ -162,6 +162,7 @@ class _PinLockPageState extends State<PinLockPage> {
                 borderRadius: BorderRadius.circular(24),
                 child: Image.asset(
                   Assets.gerbImg,
+                  semanticLabel: "GeoAgro gerbi",
                   height: 64.h,
                   fit: BoxFit.contain,
                 ),
@@ -196,8 +197,7 @@ class _PinLockPageState extends State<PinLockPage> {
               ),
               SizedBox(height: 16.h),
               // Кнопка биометрии (если доступна)
-              if (_biometricAvailable)
-                _buildBiometricButton(),
+              if (_biometricAvailable) _buildBiometricButton(),
               const Spacer(),
               // Нижние кнопки
               Padding(
@@ -241,8 +241,8 @@ class _PinLockPageState extends State<PinLockPage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
-                color: design_colors.AppColors.accentGreen
-                    .withValues(alpha: 0.4),
+                color:
+                    design_colors.AppColors.accentGreen.withValues(alpha: 0.4),
               ),
             ),
             child: Row(

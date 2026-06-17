@@ -156,6 +156,7 @@ class _PinSetupPageState extends State<PinSetupPage> {
                 borderRadius: BorderRadius.circular(24),
                 child: Image.asset(
                   Assets.gerbImg,
+                  semanticLabel: "GeoAgro gerbi",
                   height: 72.h,
                   fit: BoxFit.contain,
                 ),
@@ -163,9 +164,7 @@ class _PinSetupPageState extends State<PinSetupPage> {
               SizedBox(height: 20.h),
               // Заголовок
               Text(
-                _isConfirmStep
-                    ? "PIN-kodni tasdiqlang"
-                    : "PIN-kod o'rnating",
+                _isConfirmStep ? "PIN-kodni tasdiqlang" : "PIN-kod o'rnating",
                 style: AppTypography.headline2(context).copyWith(
                   fontSize: 22.sp,
                   fontWeight: FontWeight.w700,

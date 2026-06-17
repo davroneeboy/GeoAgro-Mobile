@@ -201,6 +201,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             borderRadius: BorderRadius.circular(24),
             child: Image.asset(
               Assets.gerbImg,
+              semanticLabel: "GeoAgro gerbi",
               height: 120.h,
               fit: BoxFit.contain,
             ),
