@@ -15,9 +15,7 @@ class PinService {
   static const String _authMethodKey = 'auth_method';
   static const int pinLength = 4;
 
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   // ─── Хеширование ────────────────────────────────────────
 

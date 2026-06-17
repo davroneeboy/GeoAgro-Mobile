@@ -2,12 +2,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:developer' as developer;
 
-enum StorageKey { 
-  accessToken, 
-  refreshToken, 
-  isBlocked, 
-  districtId, 
-  username, 
+enum StorageKey {
+  accessToken,
+  refreshToken,
+  isBlocked,
+  districtId,
+  username,
   userId,
   isSpecialUser, // Специальный пользователь (может загружать фото с галереи)
   limitKm, // Лимит координат в км
@@ -21,11 +21,8 @@ class AppStorage {
   AppStorage._internal();
 
   static final AppStorage _service = AppStorage._internal();
-  static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
-  );
+  static final FlutterSecureStorage _secureStorage =
+      const FlutterSecureStorage();
 
   // Keys for secure storage (sensitive data)
   static const String _secureKeyAccessToken = 'access_token';
@@ -36,11 +33,13 @@ class AppStorage {
   }
 
   // ===== SECURE STORAGE METHODS (for tokens) =====
-  
+
   /// Read access token from secure storage
-  static Future<String?> $readSecureToken({required bool isRefreshToken}) async {
+  static Future<String?> $readSecureToken(
+      {required bool isRefreshToken}) async {
     try {
-      final key = isRefreshToken ? _secureKeyRefreshToken : _secureKeyAccessToken;
+      final key =
+          isRefreshToken ? _secureKeyRefreshToken : _secureKeyAccessToken;
       return await _secureStorage.read(key: key);
     } catch (e) {
       developer.log('Error reading secure token: $e');
@@ -54,7 +53,8 @@ class AppStorage {
     required String value,
   }) async {
     try {
-      final key = isRefreshToken ? _secureKeyRefreshToken : _secureKeyAccessToken;
+      final key =
+          isRefreshToken ? _secureKeyRefreshToken : _secureKeyAccessToken;
       await _secureStorage.write(key: key, value: value);
     } catch (e) {
       developer.log('Error writing secure token: $e');
@@ -72,34 +72,39 @@ class AppStorage {
   }
 
   // ===== MIGRATION: Move tokens from SharedPreferences to Secure Storage =====
-  
+
   /// Migrate tokens from SharedPreferences to SecureStorage
   /// This is a one-time migration for backward compatibility
   static Future<void> _migrateTokensIfNeeded() async {
     try {
       final prefs = await _getPrefs();
-      
+
       // Check if tokens exist in SharedPreferences
       final oldAccessToken = prefs.getString(StorageKey.accessToken.name);
       final oldRefreshToken = prefs.getString(StorageKey.refreshToken.name);
-      
+
       // Check if tokens already migrated (exist in secure storage)
-      final newAccessToken = await _secureStorage.read(key: _secureKeyAccessToken);
-      
+      final newAccessToken =
+          await _secureStorage.read(key: _secureKeyAccessToken);
+
       // If old tokens exist and new ones don't, migrate
-      if ((oldAccessToken != null || oldRefreshToken != null) && newAccessToken == null) {
-        developer.log('Migrating tokens from SharedPreferences to SecureStorage...');
-        
+      if ((oldAccessToken != null || oldRefreshToken != null) &&
+          newAccessToken == null) {
+        developer
+            .log('Migrating tokens from SharedPreferences to SecureStorage...');
+
         if (oldAccessToken != null) {
-          await _secureStorage.write(key: _secureKeyAccessToken, value: oldAccessToken);
+          await _secureStorage.write(
+              key: _secureKeyAccessToken, value: oldAccessToken);
           developer.log('Access token migrated');
         }
-        
+
         if (oldRefreshToken != null) {
-          await _secureStorage.write(key: _secureKeyRefreshToken, value: oldRefreshToken);
+          await _secureStorage.write(
+              key: _secureKeyRefreshToken, value: oldRefreshToken);
           developer.log('Refresh token migrated');
         }
-        
+
         // Remove old tokens from SharedPreferences after successful migration
         await prefs.remove(StorageKey.accessToken.name);
         await prefs.remove(StorageKey.refreshToken.name);
@@ -123,13 +128,14 @@ class AppStorage {
       await _migrateTokensIfNeeded();
       return await $readSecureToken(isRefreshToken: true);
     }
-    
+
     // Non-sensitive data uses SharedPreferences
     final prefs = await _getPrefs();
     return prefs.getString(key.name);
   }
 
-  static Future<void> $write({required StorageKey key, required String value}) async {
+  static Future<void> $write(
+      {required StorageKey key, required String value}) async {
     // Handle token keys specially
     if (key == StorageKey.accessToken) {
       await $writeSecureToken(isRefreshToken: false, value: value);
@@ -139,7 +145,7 @@ class AppStorage {
       await $writeSecureToken(isRefreshToken: true, value: value);
       return;
     }
-    
+
     // Non-sensitive data uses SharedPreferences
     final prefs = await _getPrefs();
     await prefs.setString(key.name, value);
@@ -150,7 +156,8 @@ class AppStorage {
     return prefs.getBool(key.name);
   }
 
-  static Future<void> $writeBool({required StorageKey key, required bool value}) async {
+  static Future<void> $writeBool(
+      {required StorageKey key, required bool value}) async {
     final prefs = await _getPrefs();
     await prefs.setBool(key.name, value);
   }
@@ -160,7 +167,8 @@ class AppStorage {
     return prefs.getInt(key.name);
   }
 
-  static Future<void> $writeInt({required StorageKey key, required int value}) async {
+  static Future<void> $writeInt(
+      {required StorageKey key, required int value}) async {
     final prefs = await _getPrefs();
     await prefs.setInt(key.name, value);
   }
@@ -171,7 +179,8 @@ class AppStorage {
     return value;
   }
 
-  static Future<void> $writeDouble({required StorageKey key, required double value}) async {
+  static Future<void> $writeDouble(
+      {required StorageKey key, required double value}) async {
     final prefs = await _getPrefs();
     await prefs.setDouble(key.name, value);
   }
@@ -181,7 +190,7 @@ class AppStorage {
     try {
       // Clear secure storage
       await $deleteSecureTokens();
-      
+
       // Clear SharedPreferences
       final prefs = await _getPrefs();
       await prefs.clear();
@@ -196,7 +205,7 @@ class AppStorage {
       await $deleteSecureTokens();
       return;
     }
-    
+
     // Non-sensitive data
     final prefs = await _getPrefs();
     await prefs.remove(key.name);

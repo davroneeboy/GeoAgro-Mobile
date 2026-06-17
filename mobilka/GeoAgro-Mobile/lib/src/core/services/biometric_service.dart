@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:flutter/services.dart';
 import '../storage/app_storage.dart';
 
@@ -8,8 +7,10 @@ import '../storage/app_storage.dart';
 enum BiometricAvailability {
   /// Устройство поддерживает и готово к аутентификации.
   available,
+
   /// На устройстве нет ни пароля, ни биометрии.
   noSecuritySetup,
+
   /// Ранее было включено, но пользователь убрал блокировку с устройства.
   securityRemoved,
 }
@@ -99,11 +100,9 @@ class BiometricService {
     try {
       final result = await _auth.authenticate(
         localizedReason: reason,
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false, // разрешаем PIN/пароль как fallback
-          useErrorDialogs: true,
-        ),
+        biometricOnly: false,
+        sensitiveTransaction: true,
+        persistAcrossBackgrounding: true,
       );
       debugPrint('BiometricService.authenticate result: $result');
       return result;
@@ -112,11 +111,9 @@ class BiometricService {
         'BiometricService.authenticate PlatformException: '
         'code=${e.code}, message=${e.message}',
       );
-      // Обрабатываем специфические ошибки
-      if (e.code == auth_error.notAvailable ||
-          e.code == auth_error.notEnrolled ||
-          e.code == auth_error.passcodeNotSet) {
-        // На устройстве нет блокировки или биометрии — не падаем
+      if (e.code == 'NotAvailable' ||
+          e.code == 'NotEnrolled' ||
+          e.code == 'PasscodeNotSet') {
         return false;
       }
       return false;
