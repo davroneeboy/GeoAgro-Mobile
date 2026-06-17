@@ -689,7 +689,9 @@ class EditVM extends ChangeNotifier {
               if (v != null && v.isNotEmpty) konturNumbers.add(v);
             }
           }
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('⚠️ EditVM.loadDetail: konturNumbers parse error: $e');
+        }
       } else {
         errorMessage = "Ma'lumotni olishda xatolik";
       }
@@ -862,10 +864,10 @@ class EditVM extends ChangeNotifier {
 
     final body = _buildPatchBody(ref);
     try {
-      // Диагностика: показываем финальное тело PATCH
-      // ignore: avoid_print
-      print('[edit] PATCH body => ${jsonEncode(body)}');
-    } catch (_) {}
+      debugPrint('[edit] PATCH body => ${jsonEncode(body)}');
+    } catch (e) {
+      debugPrint('⚠️ EditVM: PATCH body debug print failed: $e');
+    }
 
     if (body.isEmpty) {
       // Нечего отправлять — изменений нет
@@ -1947,12 +1949,14 @@ class EditVM extends ChangeNotifier {
       final id = plantationModel.id;
       if (id == null) return;
       final data = await _appRepositoryImpl.getPlantationDetail(id: id);
-      if (data == null) return;
+      if (data == null) {
+        debugPrint('❌ EditVM.refreshDetailImages: detail returned null');
+        return;
+      }
       final decoded = jsonDecode(data);
       try {
         final model = EditPlantationModel.fromJson(decoded);
         images = model.images ?? images;
-        // обновим ids если пришли
         try {
           final imgs =
               (decoded is Map<String, dynamic>) ? decoded['images'] : null;
@@ -1965,10 +1969,19 @@ class EditVM extends ChangeNotifier {
               }
             }
           }
-        } catch (_) {}
-      } catch (_) {}
+        } catch (e) {
+          debugPrint(
+              '⚠️ EditVM.refreshDetailImages: image IDs parse error: $e');
+        }
+      } catch (e) {
+        debugPrint('❌ EditVM.refreshDetailImages: model parse error: $e');
+      }
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('❌ EditVM.refreshDetailImages: network error: $e');
+      errorMessage = "Rasmlarni yangilashda xatolik yuz berdi";
+      notifyListeners();
+    }
   }
 
   Future<String?> removeExistingImage(int index) async {
