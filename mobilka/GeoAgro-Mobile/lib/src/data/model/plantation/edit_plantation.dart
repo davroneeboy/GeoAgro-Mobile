@@ -32,6 +32,7 @@ class EditPlantationModel {
   bool? isFertile;
   bool? isChecked;
   bool? isRejected;
+  bool? isDeleting;
   int? irrigationSystemsCount;
   String? qarorRaqami;
   int? qarorType;
@@ -65,6 +66,7 @@ class EditPlantationModel {
     this.isFertile,
     this.isChecked,
     this.isRejected,
+    this.isDeleting,
     this.irrigationSystemsCount,
     this.qarorRaqami,
     this.qarorType,
@@ -99,6 +101,7 @@ class EditPlantationModel {
     bool? isFertile,
     bool? isChecked,
     bool? isRejected,
+    bool? isDeleting,
     int? irrigationSystemsCount,
     String? qarorRaqami,
     int? qarorType,
@@ -133,6 +136,7 @@ class EditPlantationModel {
         isFertile: isFertile ?? this.isFertile,
         isChecked: isChecked ?? this.isChecked,
         isRejected: isRejected ?? this.isRejected,
+        isDeleting: isDeleting ?? this.isDeleting,
         irrigationSystemsCount:
             irrigationSystemsCount ?? this.irrigationSystemsCount,
         qarorRaqami: qarorRaqami ?? this.qarorRaqami,
@@ -169,6 +173,7 @@ class EditPlantationModel {
         isFertile: json["is_fertile"],
         isChecked: _parseBool(json["is_checked"]),
         isRejected: _parseBool(json["is_rejected"]) ?? false,
+        isDeleting: _parseBool(json["is_deleting"]) ?? false,
         irrigationSystemsCount: json["irrigation_systems_count"],
         qarorRaqami: json["qaror_raqami"],
         qarorType: json["qaror_type"],
@@ -269,6 +274,7 @@ class EditPlantationModel {
         "is_fertile": isFertile,
         "is_checked": isChecked,
         "is_rejected": isRejected,
+        "is_deleting": isDeleting,
         "irrigation_systems_count": irrigationSystemsCount,
         "qaror_raqami": qarorRaqami,
         "qaror_type": qarorType,

@@ -1238,15 +1238,19 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
     // если ХОТЯ БЫ ОДИН источник подтверждает статус, используем его.
     // Это решает проблему, когда detail API возвращает is_checked: false,
     // а list/map API корректно возвращает is_checked: true.
+    final bool isDeleting = editPlantation?.isDeleting == true;
     final bool isRejected = (editPlantation?.isRejected == true) ||
         (relatedPlantation?.isRejected == true);
     final bool isChecked = (editPlantation?.isChecked == true) ||
         (relatedPlantation?.isChecked == true);
 
-    debugPrint('_resolveStatus: isChecked=$isChecked, isRejected=$isRejected '
-        '(edit.isChecked=${editPlantation?.isChecked}, '
-        'related.isChecked=${relatedPlantation?.isChecked})');
+    debugPrint('_resolveStatus: isChecked=$isChecked, isRejected=$isRejected, '
+        'isDeleting=$isDeleting');
 
+    if (isDeleting) {
+      return MapEntry(
+          "O'chirish so'rovi yuborilgan", design_colors.AppColors.error);
+    }
     if (isRejected) {
       return MapEntry("Rad etilgan", design_colors.AppColors.error);
     }
