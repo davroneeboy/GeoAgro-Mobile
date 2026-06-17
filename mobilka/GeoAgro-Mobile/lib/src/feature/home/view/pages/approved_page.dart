@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,13 +45,15 @@ class _ApprovedVm extends ChangeNotifier {
 
   Future<void> fetch({bool isLoadMore = false, String? search}) async {
     if ((!canLoadNext && isLoadMore) || (isLoadMore && isFetchingMore)) return;
-    if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) return; // disable pagination while searching
-    
+    if (isLoadMore && (_searchQuery?.isNotEmpty ?? false)) {
+      return; // disable pagination while searching
+    }
+
     // If search query changed, reset pagination
     if (search != _searchQuery && !isLoadMore) {
       _searchQuery = search;
     }
-    
+
     errorMessage = null;
     if (!isLoadMore) {
       currentPage = 1;
@@ -63,20 +66,23 @@ class _ApprovedVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final query = ApiParams.pageWithSearchParams(page: currentPage, search: _searchQuery);
-      final data = await ApiService.get(ApiConst.apiPlantationsFormeApproved, query);
+      final query = ApiParams.pageWithSearchParams(
+          page: currentPage, search: _searchQuery);
+      final data =
+          await ApiService.get(ApiConst.apiPlantationsFormeApproved, query);
       if (data == null) {
         errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
         final model = PlantationsListModel.fromJson(jsonDecode(data));
         final incomingItems = model.results ?? [];
-        
+
         // Просто добавляем все приходящие данные в массив
         list.addAll(incomingItems);
-        
-        debugPrint("APPROVED PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
+
+        debugPrint(
+            "APPROVED PAGE $currentPage: Added ${incomingItems.length} plantations (search: $_searchQuery)");
         debugPrint("Total plantations: ${list.length}");
-        
+
         currentPage++;
         canLoadNext = model.next != null;
       }
@@ -116,7 +122,7 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(approvedPageVM); // Use approvedPageVM for display
-    
+
     if (vm.isLoading) {
       return Scaffold(
         appBar: CustomAppBarWidget(
@@ -126,7 +132,8 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
             SearchBarWidget(
               key: const ValueKey('approved_search'),
               onSearchChanged: (query) {
-                vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.fetch(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
               onExpansionChanged: (isExpanded) {
                 setState(() {
@@ -136,7 +143,8 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
             ),
           ],
         ),
-        body: Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
+        body:
+            Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
       );
     }
     if (vm.errorMessage != null) {
@@ -148,7 +156,8 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
             SearchBarWidget(
               key: const ValueKey('approved_search'),
               onSearchChanged: (query) {
-                vm.fetch(isLoadMore: false, search: query.isEmpty ? null : query);
+                vm.fetch(
+                    isLoadMore: false, search: query.isEmpty ? null : query);
               },
               onExpansionChanged: (isExpanded) {
                 setState(() {
@@ -194,7 +203,8 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
                     height: constraints.maxHeight,
                     child: const EmptyStateWidget(
                       message: "Tasdiqlangan plantatsiyalar topilmadi",
-                      subMessage: "Ma'lumotlarni yangilash uchun pastga torting",
+                      subMessage:
+                          "Ma'lumotlarni yangilash uchun pastga torting",
                     ),
                   ),
                 ),
@@ -204,20 +214,24 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
                 controller: _controller,
                 separatorBuilder: (_, __) => 16.verticalSpace,
                 padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: vm.list.length + ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
+                itemCount: vm.list.length +
+                    ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == vm.list.length && !vm.isSearching) {
                     // Кнопка "Qolganlarini ko'rish"
                     return Container(
                       margin: REdgeInsets.symmetric(vertical: 16),
                       child: ElevatedButton(
-                        onPressed: vm.isFetchingMore ? null : () {
-                          vm.fetch(isLoadMore: true);
-                        },
+                        onPressed: vm.isFetchingMore
+                            ? null
+                            : () {
+                                vm.fetch(isLoadMore: true);
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.c28A745,
                           foregroundColor: Colors.white,
-                          padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                          padding: REdgeInsets.symmetric(
+                              vertical: 16, horizontal: 32),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -235,10 +249,12 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
                                     ),
                                   ),
                                   8.horizontalSpace,
-                                  Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
+                                  Text("Yuklanmoqda...",
+                                      style: TextStyle(fontSize: 16.sp)),
                                 ],
                               )
-                            : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
+                            : Text("Qolganlarini ko'rish",
+                                style: TextStyle(fontSize: 16.sp)),
                       ),
                     );
                   }
@@ -246,13 +262,16 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
                   return InkWell(
                     onTap: () {
                       if (plantation.id != null) {
-                        context.go("${AppRouteNames.home}${AppRouteNames.plantationView}", extra: plantation.id);
+                        context.go(
+                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                            extra: plantation.id);
                       }
                     },
                     child: HomePageCardWidget(
                       plantation: plantation,
                       showEditButton: true,
-                      customProvider: sharedHomePageVM, // Use shared provider for deletion
+                      customProvider:
+                          sharedHomePageVM, // Use shared provider for deletion
                       onDeleteSuccess: () {
                         // Обновляем список после успешного удаления
                         ref.read(approvedPageVM.notifier).fetch();
@@ -265,5 +284,3 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
     );
   }
 }
-
-

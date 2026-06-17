@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
@@ -73,7 +75,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.founderNameError,
                   maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -86,7 +89,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.directorNameError,
                   maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -111,7 +115,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.addressError,
                   maxLength: 200,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s,.-]')),
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s,.-]')),
                     LengthLimitingTextInputFormatter(200),
                   ],
                 ),
@@ -179,5 +184,4 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
       ),
     );
   }
-
 }

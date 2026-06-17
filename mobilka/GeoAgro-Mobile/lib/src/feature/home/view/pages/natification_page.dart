@@ -1,6 +1,7 @@
 import 'package:agro_employee_public/src/core/widgets/custom_app_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -49,7 +50,8 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
           if (vm.unreadCount > 0)
             TextButton(
               onPressed: () => ref.read(notificationsVM).markAllAsRead(),
-              child: Text("Barchasini o'qilgan qilish", style: TextStyle(fontSize: 12.sp)),
+              child: Text("Barchasini o'qilgan qilish",
+                  style: TextStyle(fontSize: 12.sp)),
             ),
         ],
       ),
@@ -61,20 +63,30 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
                   ? ListView(
                       children: [
                         SizedBox(height: 200.h),
-                        Center(child: Text("Hozircha hech qanday bildirishnoma yo'q", style: TextStyle(fontSize: 16.sp))),
+                        Center(
+                            child: Text(
+                                "Hozircha hech qanday bildirishnoma yo'q",
+                                style: TextStyle(fontSize: 16.sp))),
                       ],
                     )
                   : ListView.separated(
                       controller: _controller,
-                      padding: REdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding:
+                          REdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       itemBuilder: (context, index) {
                         if (index == vm.notifications.length) {
                           return Padding(
                             padding: REdgeInsets.symmetric(vertical: 16),
                             child: ElevatedButton(
-                              onPressed: vm.isFetchingMore ? null : () => ref.read(notificationsVM).fetchMore(),
+                              onPressed: vm.isFetchingMore
+                                  ? null
+                                  : () => ref.read(notificationsVM).fetchMore(),
                               child: vm.isFetchingMore
-                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2))
                                   : const Text("Yana yuklash"),
                             ),
                           );
@@ -82,8 +94,10 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
                         final item = vm.notifications[index];
                         return _NotificationTile(
                           item: item,
-                          onRead: () => ref.read(notificationsVM).markAsRead(item.id),
-                          onDelete: () => ref.read(notificationsVM).delete(item.id),
+                          onRead: () =>
+                              ref.read(notificationsVM).markAsRead(item.id),
+                          onDelete: () =>
+                              ref.read(notificationsVM).delete(item.id),
                           onOpenPlantation: item.hasDeepLink
                               ? () => context.go(
                                     "${AppRouteNames.home}${AppRouteNames.plantationView}",
@@ -125,7 +139,9 @@ class _NotificationTile extends StatelessWidget {
           item.isRead ? Icons.notifications_none : Icons.notifications_active,
           color: item.isRead ? Colors.grey : Colors.orange,
         ),
-        title: Text(item.title, style: TextStyle(fontWeight: item.isRead ? FontWeight.w400 : FontWeight.w600)),
+        title: Text(item.title,
+            style: TextStyle(
+                fontWeight: item.isRead ? FontWeight.w400 : FontWeight.w600)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -146,7 +162,9 @@ class _NotificationTile extends StatelessWidget {
           ],
         ),
         trailing: !item.isRead
-            ? IconButton(icon: const Icon(Icons.mark_email_read_outlined), onPressed: onRead)
+            ? IconButton(
+                icon: const Icon(Icons.mark_email_read_outlined),
+                onPressed: onRead)
             : null,
       ),
     );

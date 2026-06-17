@@ -1,4 +1,5 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import 'package:flutter_riverpod/legacy.dart';
 
 import "../routes/router_config.dart";
 import "package:flutter/material.dart";
@@ -29,7 +30,9 @@ class AppMaterialContext extends ConsumerWidget {
 
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
-            routerConfig: isBlocked ? RouterConfigService.blocRouter : RouterConfigService.router,
+            routerConfig: isBlocked
+                ? RouterConfigService.blocRouter
+                : RouterConfigService.router,
             theme: themeNotifier.getTheme(Brightness.light),
             darkTheme: themeNotifier.getTheme(Brightness.dark),
             themeMode: themeNotifier.themeMode,

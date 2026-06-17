@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
@@ -136,7 +137,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           border: context.colors.cardBorder,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: context.colors.isDark ? 0.08 : 0.06),
+              color: Colors.black
+                  .withValues(alpha: context.colors.isDark ? 0.08 : 0.06),
               blurRadius: context.colors.isDark ? 24 : 16,
               offset: const Offset(0, 4),
             ),
@@ -154,7 +156,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             data: NavigationBarThemeData(
               backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
-              indicatorColor: design_colors.AppColors.accentGreen.withValues(alpha: 0.12),
+              indicatorColor:
+                  design_colors.AppColors.accentGreen.withValues(alpha: 0.12),
               indicatorShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.r),
               ),
