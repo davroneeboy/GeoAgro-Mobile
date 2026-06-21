@@ -27,6 +27,7 @@ class RejectedCardWidget extends StatelessWidget {
     return CustomCardWidget(
       horizontal: 16,
       vertical: 16,
+      variant: CardVariant.accent,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

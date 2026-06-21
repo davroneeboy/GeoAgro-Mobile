@@ -136,6 +136,7 @@ class HomePageCardWidget extends StatelessWidget {
     return CustomCardWidget(
       horizontal: AppSpacing.lg,
       vertical: AppSpacing.lg,
+      variant: CardVariant.elevated,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
