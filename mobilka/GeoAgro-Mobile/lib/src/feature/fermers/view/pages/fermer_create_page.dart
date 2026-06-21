@@ -62,7 +62,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.nameError,
                   maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s]')),
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s'ʻʼ\-]")),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -76,7 +77,7 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
-                        RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                        RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s'ʻʼ\-]")),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -84,13 +85,13 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                 CustomTextField(
                   label: "Rahbar",
                   controller: vm.directorName,
-                  hintText: "Eshmatov Toshmet 2",
+                  hintText: "Eshmatov Toshmet",
                   isRequired: true,
                   errorText: vm.directorNameError,
                   maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
-                        RegExp(r'[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]')),
+                        RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s'ʻʼ\-]")),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/core/widgets/custom_text_field.dart';
@@ -48,30 +49,32 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
       });
       return;
     }
-    
+
     if (newName.length < 2) {
       setState(() {
         _errorMessage = "Fermer nomi kamida 2 ta belgi bo'lishi kerak";
       });
       return;
     }
-    
+
     // Проверка на кириллицу
     if (RegExp(r'[а-яА-ЯёЁ]').hasMatch(newName)) {
       setState(() {
-        _errorMessage = "Fermer nomi faqat lotin harflaridan iborat bo'lishi kerak (kirill harflari qabul qilinmaydi)";
+        _errorMessage =
+            "Fermer nomi faqat lotin harflaridan iborat bo'lishi kerak (kirill harflari qabul qilinmaydi)";
       });
       return;
     }
-    
+
     // Проверка на наличие только латиницы и пробелов
     if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(newName)) {
       setState(() {
-        _errorMessage = "Fermer nomi faqat lotin harflari va probellaridan iborat bo'lishi kerak";
+        _errorMessage =
+            "Fermer nomi faqat lotin harflari va probellaridan iborat bo'lishi kerak";
       });
       return;
     }
-    
+
     if (newName == widget.currentName) {
       Navigator.of(context).pop();
       return;
@@ -106,7 +109,8 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
               isRequired: true,
               enabled: !widget.isLoading,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                FilteringTextInputFormatter.allow(
+                    RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s'ʻʼ\-]")),
               ],
             ),
             if (_errorMessage != null) ...[
@@ -123,7 +127,8 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: widget.isLoading ? null : () => Navigator.of(context).pop(),
+          onPressed:
+              widget.isLoading ? null : () => Navigator.of(context).pop(),
           child: Text(
             "Bekor qilish",
             style: AppTypography.body(context).copyWith(
@@ -135,7 +140,8 @@ class _EditFarmerNameDialogState extends State<EditFarmerNameDialog> {
           onPressed: widget.isLoading ? null : _handleSave,
           style: FilledButton.styleFrom(
             backgroundColor: design_colors.AppColors.accentGreen,
-            disabledBackgroundColor: design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
+            disabledBackgroundColor:
+                design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
           ),
           child: widget.isLoading
               ? SizedBox(
