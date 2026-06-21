@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/services/analytics_service.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../data/model/token/token_model.dart';
 import '../../../data/model/user/user_info_model.dart';
@@ -28,12 +29,12 @@ class LoginVm extends ChangeNotifier {
     // Валидация перед отправкой запроса
     final trimmedUsername = userNameC.text.trim();
     final trimmedPassword = passwordC.text.trim();
-    
+
     if (trimmedUsername.isEmpty || trimmedPassword.isEmpty) {
       errorMessage = "Noto'g'ri foydalanuvchi nomi yoki parol";
       return false;
     }
-    
+
     _setLoading(true);
     try {
       debugPrint("🔐 Login attempt for: $trimmedUsername");
@@ -52,17 +53,21 @@ class LoginVm extends ChangeNotifier {
 
         username = trimmedUsername;
         accessToken = _tokenModel.access;
-        debugPrint("🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
+        debugPrint(
+            "🔐 LoginVM: accessToken updated in memory. Length: ${accessToken?.length}");
         debugPrint("🚀 Login successful, now fetching user info...");
         try {
           await _fetchAndStoreUserInfo();
           debugPrint("✅ User info fetch completed");
         } catch (e) {
-          debugPrint("⚠️ Error in _fetchAndStoreUserInfo, but login was successful: $e");
+          debugPrint(
+              "⚠️ Error in _fetchAndStoreUserInfo, but login was successful: $e");
           // Не прерываем логин, если получение информации о пользователе не удалось
         }
 
-        debugPrint("🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
+        debugPrint(
+            "🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
+        AnalyticsService.logLogin();
         errorMessage = null;
         debugPrint("✅ LoginVM: Returning true from login()");
         return true;
@@ -84,8 +89,10 @@ class LoginVm extends ChangeNotifier {
   }
 
   Future<void> _putTokensToStorage() async {
-    await AppStorage.$write(key: StorageKey.accessToken, value: _tokenModel.access);
-    await AppStorage.$write(key: StorageKey.refreshToken, value: _tokenModel.refresh);
+    await AppStorage.$write(
+        key: StorageKey.accessToken, value: _tokenModel.access);
+    await AppStorage.$write(
+        key: StorageKey.refreshToken, value: _tokenModel.refresh);
   }
 
   Future<void> _fetchAndStoreUserInfo() async {
@@ -126,11 +133,13 @@ class LoginVm extends ChangeNotifier {
           debugPrint("🔍 App version check: server=${userInfo.flutterVersion}");
         }
 
-        await AppStorage.$writeBool(key: StorageKey.isSpecialUser, value: userInfo.isSpecialUser);
+        await AppStorage.$writeBool(
+            key: StorageKey.isSpecialUser, value: userInfo.isSpecialUser);
         debugPrint("💾 Stored isSpecialUser: ${userInfo.isSpecialUser}");
 
         if (userInfo.limitKm != null) {
-          await AppStorage.$writeDouble(key: StorageKey.limitKm, value: userInfo.limitKm!);
+          await AppStorage.$writeDouble(
+              key: StorageKey.limitKm, value: userInfo.limitKm!);
           debugPrint("💾 Stored limitKm: ${userInfo.limitKm} km");
         } else {
           await AppStorage.$delete(key: StorageKey.limitKm);

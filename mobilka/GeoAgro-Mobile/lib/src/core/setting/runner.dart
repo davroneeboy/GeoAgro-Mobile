@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:developer";
 import "package:flutter/foundation.dart";
 import "package:flutter/services.dart";
+import "package:firebase_crashlytics/firebase_crashlytics.dart";
 
 import "setup.dart";
 import "app.dart";
@@ -21,6 +22,12 @@ void run() {
           error: details.exception,
           stackTrace: details.stack,
         );
+        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      };
+
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
       };
 
       try {
@@ -38,6 +45,7 @@ void run() {
         error: error,
         stackTrace: stackTrace,
       );
+      FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true);
     },
   );
 }

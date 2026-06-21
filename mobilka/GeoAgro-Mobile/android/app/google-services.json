@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "1061291508662",
-    "project_id": "agro-employee",
-    "storage_bucket": "agro-employee.firebasestorage.app"
+    "project_number": "408414865595",
+    "project_id": "geoagro-48cf5",
+    "storage_bucket": "geoagro-48cf5.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1061291508662:android:c6e4d2c5b85a81971b3717",
-        "android_client_info": {
-          "package_name": "com.agro_platfrom_employee.agro_platfrom_employee"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBWSFaRnXO7HxfGd7Ypr5nBIHekTXSLYAA"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1061291508662:android:aaf80d17f06653791b3717",
+        "mobilesdk_app_id": "1:408414865595:android:eced412cdc342db4b5019e",
         "android_client_info": {
           "package_name": "com.example.agro_employee_public"
         }
@@ -34,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBWSFaRnXO7HxfGd7Ypr5nBIHekTXSLYAA"
+          "current_key": "AIzaSyD4gm5IucqyheypHiGZticQCLI6i8ViBlo"
         }
       ],
       "services": {
