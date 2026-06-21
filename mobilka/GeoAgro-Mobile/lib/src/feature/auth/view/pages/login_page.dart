@@ -316,9 +316,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
       isLoading: vm.isLoading,
       isEnabled: !vm.isLoading,
       onPressed: () async {
-        // Скрываем клавиатуру ДО обработки нажатия,
-        // чтобы первый тап не «проглатывался» при скрытии клавиатуры
-        FocusManager.instance.primaryFocus?.unfocus();
+        final currentFocus = FocusManager.instance.primaryFocus;
+        if (currentFocus != null && currentFocus.hasFocus) {
+          currentFocus.unfocus();
+          await Future.delayed(const Duration(milliseconds: 50));
+          if (!mounted) return;
+        }
         if (!vm.formKey.currentState!.validate()) {
           Utils.fireTopSnackBar(
             "Iltimos, ma'lumotlarni to'g'ri kiriting.",
