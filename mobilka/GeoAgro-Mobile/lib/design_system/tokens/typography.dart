@@ -6,8 +6,8 @@ class AppTypography {
   AppTypography._();
 
   // Font families
-  static const String fontFamily = 'SF Pro Text'; // Fallback to system font
-  static const String fontFamilyDisplay = 'SF Pro Display'; // For headlines
+  static const String fontFamily = 'Inter'; // Body text
+  static const String fontFamilyDisplay = 'Plus Jakarta Sans'; // Headlines
 
   // Font sizes
   static const double fontSizeXs = 12.0;
@@ -130,4 +130,3 @@ class AppTypography {
   /// Label Large (16px, Medium) — alias for button
   static TextStyle labelLarge(BuildContext context) => button(context);
 }
-

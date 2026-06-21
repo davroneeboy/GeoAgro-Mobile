@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Design System Typography
-/// 
+///
 /// Uses Inter font family with Material 3 type scale
 /// Scale: 12, 14, 16, 18, 20, 24, 28, 34
 /// Weights: 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
@@ -13,14 +13,18 @@ class AppTypography {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // FONT FAMILY
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
-  /// Primary font family (Inter)
+
+  /// Body font family (Inter)
   static String get fontFamily => GoogleFonts.inter().fontFamily ?? 'Inter';
+
+  /// Display font family (Plus Jakarta Sans) — used for hero titles and page headers
+  static String get fontFamilyDisplay =>
+      GoogleFonts.plusJakartaSans().fontFamily ?? 'Plus Jakarta Sans';
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // FONT SIZES
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   static const double fontSize12 = 12.0;
   static const double fontSize14 = 14.0;
   static const double fontSize16 = 16.0;
@@ -33,7 +37,7 @@ class AppTypography {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // FONT WEIGHTS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   static const FontWeight regular = FontWeight.w400;
   static const FontWeight medium = FontWeight.w500;
   static const FontWeight semibold = FontWeight.w600;
@@ -42,7 +46,7 @@ class AppTypography {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // LINE HEIGHTS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   static const double lineHeightTight = 1.2;
   static const double lineHeightNormal = 1.4;
   static const double lineHeightRelaxed = 1.6;
@@ -52,7 +56,8 @@ class AppTypography {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   /// Display Large (34px, Bold, Tight) - Hero titles
-  static TextStyle displayLarge(BuildContext context) => GoogleFonts.inter(
+  static TextStyle displayLarge(BuildContext context) =>
+      GoogleFonts.plusJakartaSans(
         fontSize: fontSize34,
         fontWeight: bold,
         height: lineHeightTight,
@@ -61,7 +66,8 @@ class AppTypography {
       );
 
   /// Display Medium (28px, Bold, Tight) - Page titles
-  static TextStyle displayMedium(BuildContext context) => GoogleFonts.inter(
+  static TextStyle displayMedium(BuildContext context) =>
+      GoogleFonts.plusJakartaSans(
         fontSize: fontSize28,
         fontWeight: bold,
         height: lineHeightTight,
@@ -70,7 +76,8 @@ class AppTypography {
       );
 
   /// Display Small (24px, Semibold, Normal) - Section headers
-  static TextStyle displaySmall(BuildContext context) => GoogleFonts.inter(
+  static TextStyle displaySmall(BuildContext context) =>
+      GoogleFonts.plusJakartaSans(
         fontSize: fontSize24,
         fontWeight: semibold,
         height: lineHeightNormal,
@@ -239,4 +246,3 @@ class AppTypography {
     );
   }
 }
-
