@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 class ImageUploadListWidget extends StatelessWidget {
   final Function(BuildContext, int)
@@ -152,7 +153,7 @@ class ImageUploadListWidget extends StatelessWidget {
                           width: 160.w,
                           height: 120.h,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.colors.surface,
                             borderRadius: BorderRadius.circular(16.r),
                           ),
                           child: uploadedImage != null

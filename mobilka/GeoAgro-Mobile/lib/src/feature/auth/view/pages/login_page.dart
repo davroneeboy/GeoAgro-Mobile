@@ -378,7 +378,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 width: 44.w,
                 height: 44.h,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.colors.surface,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(

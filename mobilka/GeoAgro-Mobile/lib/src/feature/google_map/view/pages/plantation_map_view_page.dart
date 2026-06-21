@@ -111,11 +111,12 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                               padding: EdgeInsets.symmetric(
                                   horizontal: 16.w, vertical: 8.h),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: context.colors.surface
+                                    .withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(8.r),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black12,
+                                    color: context.colors.border,
                                     blurRadius: 4,
                                     offset: Offset(0, 2),
                                   ),
@@ -124,7 +125,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                               child: Text(
                                 'Maydon: ${vm.currentPlantation!.totalArea?.toStringAsFixed(2) ?? 0} GA',
                                 style: TextStyle(
-                                  color: Colors.black,
+                                  color: context.colors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16.sp,
                                 ),
@@ -135,11 +136,12 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                               padding: EdgeInsets.symmetric(
                                   horizontal: 16.w, vertical: 8.h),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: context.colors.surface
+                                    .withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(8.r),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black12,
+                                    color: context.colors.border,
                                     blurRadius: 4,
                                     offset: Offset(0, 2),
                                   ),
@@ -148,7 +150,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                               child: Text(
                                 'Узунлик: ${vm.calculatePerimeter(vm.currentPlantation!.coordinates).toStringAsFixed(2)} м',
                                 style: TextStyle(
-                                  color: Colors.black,
+                                  color: context.colors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16.sp,
                                 ),
@@ -166,11 +168,11 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 16.w, vertical: 12.h),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: context.colors.surface.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(8.r),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black12,
+                              color: context.colors.border,
                               blurRadius: 4,
                               offset: Offset(0, 2),
                             ),

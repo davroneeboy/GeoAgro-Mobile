@@ -6,8 +6,6 @@ import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
 
-import '../../../../core/style/app_colors.dart';
-
 class LoginInputWidget extends StatelessWidget {
   final String hintText;
   final String validatorText;
@@ -37,8 +35,10 @@ class LoginInputWidget extends StatelessWidget {
         }
       },
       style: TextStyle(
-          color: AppColors.black, fontSize: 16.sp, fontWeight: FontWeight.w500),
-      cursorColor: AppColors.black,
+          color: context.colors.textPrimary,
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w500),
+      cursorColor: context.colors.textPrimary,
       decoration: InputDecoration(
         contentPadding: REdgeInsets.only(top: 8, bottom: 8, left: 16),
         enabledBorder: OutlineInputBorder(

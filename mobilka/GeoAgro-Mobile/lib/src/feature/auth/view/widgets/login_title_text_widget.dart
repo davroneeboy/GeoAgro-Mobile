@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 class LoginTitleTextWidget extends StatelessWidget {
   const LoginTitleTextWidget({super.key});
@@ -13,10 +12,9 @@ class LoginTitleTextWidget extends StatelessWidget {
         textAlign: TextAlign.center,
         text: TextSpan(
           style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black
-          ),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: context.colors.textPrimary),
           children: const [
             TextSpan(
               text: "Qishloq xo'jaligi vazirligi huzuridagi\n",

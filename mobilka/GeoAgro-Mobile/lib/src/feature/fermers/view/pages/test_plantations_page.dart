@@ -44,7 +44,7 @@ class TestPlantationsPage extends StatelessWidget {
               'Farmer: $farmerName',
               style: TextStyle(
                 fontSize: 18.sp,
-                color: Colors.black87,
+                color: context.colors.textPrimary,
               ),
             ),
             SizedBox(height: 10.h),

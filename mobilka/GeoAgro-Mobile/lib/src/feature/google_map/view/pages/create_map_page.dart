@@ -141,7 +141,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: context.colors.surface.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
@@ -160,7 +160,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -179,7 +179,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: context.colors.surface.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
@@ -194,7 +194,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -230,7 +230,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: context.colors.surface.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
@@ -256,7 +256,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                       'Plantatsiyalar yuklanmoqda...',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.black87,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                   ],
@@ -413,7 +413,7 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.black87,
+              color: context.colors.textPrimary,
             ),
           ),
         ],
