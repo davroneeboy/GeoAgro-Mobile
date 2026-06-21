@@ -13,6 +13,8 @@ import '../../../../core/tools/assets.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 import '../../../../core/services/pin_service.dart';
 import '../../../home/view/pages/home_page.dart' show homePageVM;
+import '../../../fermers/view/pages/fermers_page.dart' show fermerPageVM;
+import '../../../home/view/pages/natification_page.dart' show notificationsVM;
 import '../widgets/modern_login_input_widget.dart';
 import '../widgets/modern_login_button.dart';
 import '../../../../core/routes/app_route_names.dart';
@@ -352,6 +354,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
             if (!mounted || !context.mounted) return;
             app_setup.authMethod = authMethod;
             ref.invalidate(homePageVM);
+            ref.invalidate(fermerPageVM);
+            ref.invalidate(notificationsVM);
             context.go(AppRouteNames.home);
           } else {
             // PIN не установлен — обязательная установка
