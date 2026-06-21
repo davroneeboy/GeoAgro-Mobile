@@ -6,7 +6,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import '../../../../core/widgets/custom_app_bar_widget.dart';
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import '../../vm/plantation_map_view_vm.dart';
 
 final plantationMapViewVM = ChangeNotifierProvider.autoDispose
@@ -44,8 +45,9 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
         canPop: true,
       ),
       body: vm.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.c28A745))
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: design_colors.AppColors.accentGreen))
           : vm.errorMessage != null
               ? Center(
                   child: Padding(
@@ -54,13 +56,14 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.error_outline,
-                            size: 64.sp, color: AppColors.cE60C0C),
+                            size: 64.sp, color: design_colors.AppColors.error),
                         16.verticalSpace,
                         Text(
                           vm.errorMessage!,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 16.sp, color: AppColors.c1E1E1E),
+                              fontSize: 16.sp,
+                              color: context.colors.textPrimary),
                         ),
                         24.verticalSpace,
                         ElevatedButton.icon(
@@ -68,7 +71,8 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                           icon: const Icon(Icons.refresh),
                           label: const Text("Qayta urinish"),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.c28A745,
+                            backgroundColor:
+                                design_colors.AppColors.accentGreen,
                             foregroundColor: Colors.white,
                           ),
                         ),
@@ -176,7 +180,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _buildLegendItem(
-                              color: AppColors.c28A745,
+                              color: design_colors.AppColors.accentGreen,
                               label: "Тасдиқланган",
                             ),
                             16.horizontalSpace,
@@ -186,7 +190,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                             ),
                             16.horizontalSpace,
                             _buildLegendItem(
-                              color: AppColors.cE60C0C,
+                              color: design_colors.AppColors.error,
                               label: "Рад этилган",
                             ),
                           ],
@@ -216,7 +220,7 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
           style: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
-            color: AppColors.c1E1E1E,
+            color: context.colors.textPrimary,
           ),
         ),
       ],

@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
@@ -156,8 +157,9 @@ class _PendingPageState extends ConsumerState<PendingPage> {
             ),
           ],
         ),
-        body:
-            Center(child: CircularProgressIndicator(color: AppColors.c28A745)),
+        body: Center(
+            child: CircularProgressIndicator(
+                color: design_colors.AppColors.accentGreen)),
       );
     }
     if (vm.errorMessage != null) {
@@ -197,7 +199,7 @@ class _PendingPageState extends ConsumerState<PendingPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async => ref.read(pendingPageVM.notifier).fetch(),
-        color: AppColors.c28A745,
+        color: design_colors.AppColors.accentGreen,
         backgroundColor: context.colors.background,
         child: vm.list.isEmpty
             ? LayoutBuilder(
@@ -232,7 +234,7 @@ class _PendingPageState extends ConsumerState<PendingPage> {
                                 vm.loadMore();
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.c28A745,
+                          backgroundColor: design_colors.AppColors.accentGreen,
                           foregroundColor: Colors.white,
                           padding: REdgeInsets.symmetric(
                               vertical: 16, horizontal: 32),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
-import '../style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 
 class UpdateRequiredDialog extends StatelessWidget {
   final String currentVersion;
@@ -50,7 +52,7 @@ class UpdateRequiredDialog extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
-                color: AppColors.c1E1E1E,
+                color: context.colors.textPrimary,
               ),
             ),
             16.verticalSpace,
@@ -58,7 +60,7 @@ class UpdateRequiredDialog extends StatelessWidget {
               "Ilovangizning yangi versiyasi mavjud. Eng so'nggi funksiyalar va xavfsizlik yangilanishlaridan foydalanish uchun ilovani yangilang.",
               style: TextStyle(
                 fontSize: 14.sp,
-                color: AppColors.c666666,
+                color: context.colors.textTertiary,
                 height: 1.4,
               ),
             ),
@@ -66,7 +68,7 @@ class UpdateRequiredDialog extends StatelessWidget {
             Container(
               padding: REdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.cF7F7F7,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Column(
@@ -79,7 +81,7 @@ class UpdateRequiredDialog extends StatelessWidget {
                         "Joriy versiya:",
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: AppColors.c666666,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                       Text(
@@ -100,7 +102,7 @@ class UpdateRequiredDialog extends StatelessWidget {
                         "Kerakli versiya:",
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: AppColors.c666666,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                       Text(
@@ -108,7 +110,7 @@ class UpdateRequiredDialog extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.c28A745,
+                          color: design_colors.AppColors.accentGreen,
                         ),
                       ),
                     ],
@@ -129,14 +131,14 @@ class UpdateRequiredDialog extends StatelessWidget {
               "Keyinroq",
               style: TextStyle(
                 fontSize: 14.sp,
-                color: AppColors.c666666,
+                color: context.colors.textTertiary,
               ),
             ),
           ),
           ElevatedButton(
             onPressed: () => _openAppStore(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.c28A745,
+              backgroundColor: design_colors.AppColors.accentGreen,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.r),
@@ -159,10 +161,11 @@ class UpdateRequiredDialog extends StatelessWidget {
   Future<void> _openAppStore(BuildContext context) async {
     try {
       // Для Android - Google Play Store
-      const androidUrl = 'https://play.google.com/store/apps/details?id=uz.luxa.geoagro';
-      
+      const androidUrl =
+          'https://play.google.com/store/apps/details?id=uz.luxa.geoagro';
+
       final Uri url = Uri.parse(androidUrl);
-      
+
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {

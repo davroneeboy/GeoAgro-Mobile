@@ -10,7 +10,6 @@ import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../vm/create_map_page_vm.dart';
-import '../../../../core/style/app_colors.dart';
 import '../widgets/create_map_page_button_widgets.dart';
 import '../widgets/center_ruler_widget.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
@@ -57,19 +56,19 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             child: FilledButton.icon(
               onPressed: () async {
                 if (vm.polylineCoordinates.length < 3) {
-                  Utils.fireTopSnackBar(
-                      "Madyon to'gri kiritilmadi", AppColors.cE60C0C, context);
+                  Utils.fireTopSnackBar("Madyon to'gri kiritilmadi",
+                      design_colors.AppColors.error, context);
                 } else {
                   // Валидация координат с учетом limit_km (включает проверку currentLocation)
                   final validationError = vm.validateCoordinatesWithLimit(
                       vm.polylineCoordinates, vm.currentLocation);
                   if (validationError != null) {
-                    Utils.fireTopSnackBar(
-                        validationError, AppColors.cE60C0C, context);
+                    Utils.fireTopSnackBar(validationError,
+                        design_colors.AppColors.error, context);
                   } else if (vm.checkPolygonOverlap()) {
                     Utils.fireTopSnackBar(
                         "Plantatsiya boshqa plantatsiyalar ustiga chizilgan. Iltimos, boshqa joy tanlang",
-                        AppColors.cE60C0C,
+                        design_colors.AppColors.error,
                         context);
                   } else {
                     final value = vm.cordinatesConverter();

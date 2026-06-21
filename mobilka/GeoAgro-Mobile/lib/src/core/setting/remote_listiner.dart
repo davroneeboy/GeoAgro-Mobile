@@ -6,7 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'remote_controller.dart';
 import '../tools/assets.dart';
-import '../style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 
 final remoteControllerVM =
     ChangeNotifierProvider.autoDispose<RemoteController>((ref) {
@@ -43,7 +44,7 @@ class RemoteListiner extends ConsumerWidget {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.cE60C0C,
+          backgroundColor: design_colors.AppColors.error,
           title: SvgPicture.asset(
             Assets.warningSvg,
             colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),

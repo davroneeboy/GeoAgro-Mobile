@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
-import '../../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import '../../../../core/widgets/custom_card_widget.dart';
 import '../../../../core/widgets/custom_driver.dart';
 import '../../../../core/widgets/custom_list_tile_widget.dart';
@@ -12,27 +14,35 @@ class RejectedCardWidget extends StatelessWidget {
   final Result plantation;
   final VoidCallback onEdit;
 
-  const RejectedCardWidget({super.key, required this.plantation, required this.onEdit});
+  const RejectedCardWidget(
+      {super.key, required this.plantation, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
-    final canEdit = (plantation.createdById != null && plantation.createdById == userId) ||
-        (plantation.createdByUsername != null && username != null && plantation.createdByUsername == username);
+    final canEdit =
+        (plantation.createdById != null && plantation.createdById == userId) ||
+            (plantation.createdByUsername != null &&
+                username != null &&
+                plantation.createdByUsername == username);
     return CustomCardWidget(
       horizontal: 16,
       vertical: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomListTileWidget(title: "Fermer", contextText: plantation.farmerName ?? "Noma'lum"),
+          CustomListTileWidget(
+              title: "Fermer",
+              contextText: plantation.farmerName ?? "Noma'lum"),
           10.verticalSpace,
           const CustomDriver(),
           10.verticalSpace,
-          CustomListTileWidget(title: "Yer maydoni", contextText: "${plantation.totalArea} ga"),
+          CustomListTileWidget(
+              title: "Yer maydoni", contextText: "${plantation.totalArea} ga"),
           10.verticalSpace,
           const CustomDriver(),
           10.verticalSpace,
-          CustomListTileWidget(title: "ID", contextText: "${plantation.id ?? 'N/A'}"),
+          CustomListTileWidget(
+              title: "ID", contextText: "${plantation.id ?? 'N/A'}"),
           10.verticalSpace,
           const CustomDriver(),
           10.verticalSpace,
@@ -44,7 +54,10 @@ class RejectedCardWidget extends StatelessWidget {
               children: [
                 Text(
                   "Tafsilot",
-                  style: TextStyle(fontSize: 16.sp, color: AppColors.c1E1E1E, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      fontSize: 16.sp,
+                      color: context.colors.textPrimary,
+                      fontWeight: FontWeight.w600),
                 ),
                 10.verticalSpace,
                 ...plantation.moderationComments!.map((comment) {
@@ -55,14 +68,20 @@ class RejectedCardWidget extends StatelessWidget {
                       children: [
                         Text(
                           "• ",
-                          style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              color: context.colors.textSecondary,
+                              fontWeight: FontWeight.w500),
                         ),
-                Expanded(
-                  child: Text(
+                        Expanded(
+                          child: Text(
                             comment.text ?? '',
-                    style: TextStyle(fontSize: 15.sp, color: AppColors.c1E1E1E70, fontWeight: FontWeight.w500),
-                  ),
-                ),
+                            style: TextStyle(
+                                fontSize: 15.sp,
+                                color: context.colors.textSecondary,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -76,12 +95,13 @@ class RejectedCardWidget extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.c28A745,
+                  backgroundColor: design_colors.AppColors.accentGreen,
                   minimumSize: Size(double.infinity, 44.h),
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
                 ),
                 onPressed: onEdit,
-                child: Text("Tahrirlash", style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+                child: Text("Tahrirlash",
+                    style: TextStyle(color: Colors.white, fontSize: 16.sp)),
               ),
             ),
         ],
@@ -89,5 +109,3 @@ class RejectedCardWidget extends StatelessWidget {
     );
   }
 }
-
-

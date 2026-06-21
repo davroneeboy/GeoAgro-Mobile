@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/style/app_colors.dart';
 import '../../../../../design_system/theme/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../../design_system/theme/typography.dart';
@@ -21,7 +20,8 @@ class DeleteConfirmationDialog extends StatefulWidget {
   });
 
   @override
-  State<DeleteConfirmationDialog> createState() => _DeleteConfirmationDialogState();
+  State<DeleteConfirmationDialog> createState() =>
+      _DeleteConfirmationDialogState();
 }
 
 class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
@@ -45,24 +45,15 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark
-        ? context.colors.surface
-        : Colors.white;
-    final textColor = isDark
-        ? design_colors.AppColors.darkOnSurface
-        : AppColors.c1E1E1E;
-    final hintColor = isDark
-        ? design_colors.AppColors.darkOnSurfaceVariant
-        : AppColors.c1E1E1E70;
-    final borderColor = isDark
-        ? design_colors.AppColors.darkOutline
-        : AppColors.c1E1E1E20;
+    final backgroundColor = isDark ? context.colors.surface : Colors.white;
+    final textColor = context.colors.textPrimary;
+    final hintColor = context.colors.textSecondary;
+    final borderColor = context.colors.border;
     final focusedBorderColor = isDark
         ? design_colors.AppColors.primary
-        : AppColors.c28A745;
-    final inputFillColor = isDark
-        ? context.colors.surfaceVariant
-        : Colors.white;
+        : design_colors.AppColors.accentGreen;
+    final inputFillColor =
+        isDark ? context.colors.surfaceVariant : Colors.white;
 
     return AlertDialog(
       backgroundColor: backgroundColor,
@@ -136,7 +127,7 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
               child: FilledButton(
                 onPressed: widget.isDeleting ? null : widget.onCancel,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.cE60C0C,
+                  backgroundColor: design_colors.AppColors.error,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                   shape: RoundedRectangleBorder(
@@ -155,11 +146,12 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
             SizedBox(width: AppSpacing.md),
             Expanded(
               child: FilledButton(
-                onPressed: widget.isDeleting || _reasonController.text.trim().isEmpty 
-                    ? null 
-                    : () => widget.onConfirm(_reasonController.text.trim()),
+                onPressed:
+                    widget.isDeleting || _reasonController.text.trim().isEmpty
+                        ? null
+                        : () => widget.onConfirm(_reasonController.text.trim()),
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.c28A745,
+                  backgroundColor: design_colors.AppColors.accentGreen,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                   shape: RoundedRectangleBorder(
@@ -172,7 +164,8 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
                         width: 20.h,
                         child: const CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : Text(

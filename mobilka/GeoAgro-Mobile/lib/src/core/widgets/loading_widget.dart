@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
-import '../style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 
 class LoadingWidget extends StatelessWidget {
   final String? message;
@@ -192,7 +194,7 @@ class ErrorWidget extends StatelessWidget {
             Icon(
               Icons.error_outline,
               size: 64.sp,
-              color: AppColors.cE60C0C,
+              color: design_colors.AppColors.error,
             ),
             SizedBox(height: 16.h),
             // Error message
@@ -211,7 +213,7 @@ class ErrorWidget extends StatelessWidget {
               ElevatedButton(
                 onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.cE60C0C,
+                  backgroundColor: design_colors.AppColors.error,
                   foregroundColor: Colors.white,
                   padding: REdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
@@ -286,7 +288,7 @@ class EmptyStateWidget extends StatelessWidget {
               ElevatedButton(
                 onPressed: onAction,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.c1E1E1E,
+                  backgroundColor: context.colors.textPrimary,
                   foregroundColor: Colors.white,
                   padding: REdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
@@ -301,4 +303,4 @@ class EmptyStateWidget extends StatelessWidget {
       ),
     );
   }
-} 
+}

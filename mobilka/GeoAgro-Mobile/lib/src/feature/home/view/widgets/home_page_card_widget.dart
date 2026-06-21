@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/setting/setup.dart';
 import '../../../../../localization/app_strings.dart';
-import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/date_utils.dart' as app_date;
 import '../../../../core/widgets/custom_card_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
@@ -42,7 +41,7 @@ class HomePageCardWidget extends StatelessWidget {
   //     builder: (BuildContext context) {
   //       return AlertDialog(
   //         backgroundColor: AppColors.white,
-  //         title: Icon(Icons.info_sharp, color: AppColors.c28A745, size: 20.sp),
+  //         title: Icon(Icons.info_sharp, color: AppColors.accentGreen, size: 20.sp),
   //         content: Text(
   //           "Haqiqatdan o'chirib tashlamoqchimisiz",
   //           style: TextStyle(color: AppColors.c1E1E1E70, fontSize: 14.sp),
@@ -59,20 +58,20 @@ class HomePageCardWidget extends StatelessWidget {
   //                 Utils.fireTopSnackBar(
   //                     vm.deletMessage ??
   //                         "Malumotlar o'chirish uchun yuborildi.",
-  //                     AppColors.c28A745,
+  //                     AppColors.accentGreen,
   //                     context);
   //                 context.pop();
   //               } else {
   //                 if (context.mounted) {
   //                   Utils.fireTopSnackBar(
   //                       vm.deletMessage ?? "Xatolik yuz berdi",
-  //                       AppColors.cE60C0C,
+  //                       AppColors.error,
   //                       context);
   //                   context.pop();
   //                 }
   //               }
   //             },
-  //             color: AppColors.c28A745,
+  //             color: AppColors.accentGreen,
   //             shape: RoundedRectangleBorder(
   //                 borderRadius: BorderRadius.circular(8.r)),
   //             elevation: 0,
@@ -87,7 +86,7 @@ class HomePageCardWidget extends StatelessWidget {
   //             onPressed: () {
   //               context.pop();
   //             },
-  //             color: AppColors.cE60C0C,
+  //             color: AppColors.error,
   //             shape: RoundedRectangleBorder(
   //                 borderRadius: BorderRadius.circular(8.r)),
   //             elevation: 0,
@@ -267,7 +266,7 @@ class HomePageCardWidget extends StatelessWidget {
                     },
                     style: FilledButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 14.h),
-                      backgroundColor: AppColors.c28A745,
+                      backgroundColor: design_colors.AppColors.accentGreen,
                       foregroundColor: Colors.white,
                     ),
                     child: const Text("Tahrirlash"),
@@ -287,7 +286,7 @@ class HomePageCardWidget extends StatelessWidget {
                               ),
                       style: FilledButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 14.h),
-                        backgroundColor: AppColors.cE60C0C,
+                        backgroundColor: design_colors.AppColors.error,
                         foregroundColor: Colors.white,
                       ),
                       child: const Text("O'chirish"),
@@ -622,7 +621,7 @@ class HomePageCardWidget extends StatelessWidget {
           SnackBar(
             content: Text(
                 vm.deletMessage ?? "O'chirish so'rovi moderatsiyaga yuborildi"),
-            backgroundColor: AppColors.c28A745,
+            backgroundColor: design_colors.AppColors.accentGreen,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -631,7 +630,7 @@ class HomePageCardWidget extends StatelessWidget {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(vm.deletMessage ?? "O'chirishda xatolik yuz berdi"),
-            backgroundColor: AppColors.cE60C0C,
+            backgroundColor: design_colors.AppColors.error,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -646,7 +645,7 @@ class HomePageCardWidget extends StatelessWidget {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text("Kutilmagan xatolik: ${e.toString()}"),
-            backgroundColor: AppColors.cE60C0C,
+            backgroundColor: design_colors.AppColors.error,
             duration: const Duration(seconds: 3),
           ),
         );

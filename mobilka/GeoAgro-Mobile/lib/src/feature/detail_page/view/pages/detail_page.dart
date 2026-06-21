@@ -20,7 +20,6 @@ import '../../../../../design_system/tokens/radii.dart';
 import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 
-import '../../../../core/style/app_colors.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 
@@ -54,20 +53,25 @@ class DetailPageState extends ConsumerState<DetailPage> {
         'longitude': (location['longitude'] as num).toDouble(),
       };
       debugPrint("✅ DetailPage: Parsed userLocation: $userLocation");
-      debugPrint("✅ DetailPage: userLocation type: ${userLocation.runtimeType}");
-      debugPrint("✅ DetailPage: userLocation['latitude']: ${userLocation['latitude']}");
-      debugPrint("✅ DetailPage: userLocation['longitude']: ${userLocation['longitude']}");
+      debugPrint(
+          "✅ DetailPage: userLocation type: ${userLocation.runtimeType}");
+      debugPrint(
+          "✅ DetailPage: userLocation['latitude']: ${userLocation['latitude']}");
+      debugPrint(
+          "✅ DetailPage: userLocation['longitude']: ${userLocation['longitude']}");
     } catch (e) {
       debugPrint("❌ DetailPage: Error parsing userLocation: $e");
-      debugPrint("❌ DetailPage: widget.model['userLocation']: ${widget.model['userLocation']}");
+      debugPrint(
+          "❌ DetailPage: widget.model['userLocation']: ${widget.model['userLocation']}");
       // В случае ошибки используем дефолтное местоположение
       userLocation = {
         'latitude': 41.311081,
         'longitude': 69.240562,
       };
     }
-    
-    debugPrint("📤 DetailPage: Calling setValue with userLocation: $userLocation");
+
+    debugPrint(
+        "📤 DetailPage: Calling setValue with userLocation: $userLocation");
     final vm = ref.read(detailVM);
     final polygonArea = widget.model["polygonArea"] as double?;
     debugPrint("📤 DetailPage: polygonArea from model: $polygonArea");
@@ -110,7 +114,8 @@ class DetailPageState extends ConsumerState<DetailPage> {
           left: AppSpacing.screenPadding,
           right: AppSpacing.screenPadding,
           top: AppSpacing.screenPadding,
-          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.screenPadding,
+          bottom: MediaQuery.of(context).viewInsets.bottom +
+              AppSpacing.screenPadding,
         ),
         child: Container(
           decoration: BoxDecoration(
@@ -243,7 +248,8 @@ class DetailPageState extends ConsumerState<DetailPage> {
                             borderSide: BorderSide(
                               color: context.colors.isDark
                                   ? context.colors.border
-                                  : context.colors.border.withValues(alpha: 0.5),
+                                  : context.colors.border
+                                      .withValues(alpha: 0.5),
                               width: 1.2,
                             ),
                           ),
@@ -296,9 +302,11 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ),
                         ),
                         onDeleted: () => detailVm.removeKonturAt(i),
-                        backgroundColor: design_colors.AppColors.accentGreenDark,
+                        backgroundColor:
+                            design_colors.AppColors.accentGreenDark,
                         side: BorderSide(
-                          color: design_colors.AppColors.accentGreen.withValues(alpha: 0.5),
+                          color: design_colors.AppColors.accentGreen
+                              .withValues(alpha: 0.5),
                           width: 1.5,
                         ),
                         deleteIcon: Icon(
@@ -517,15 +525,21 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           .read(detailVm.switchReservoirsQoplamali.notifier)
                           .state = false;
                       // Очищаем дополнительные контроллеры (кроме основных)
-                      for (int i = detailVm.reservoirsBetonliVolumes.length - 1; i >= 0; i--) {
+                      for (int i = detailVm.reservoirsBetonliVolumes.length - 1;
+                          i >= 0;
+                          i--) {
                         final controller = detailVm.reservoirsBetonliVolumes[i];
                         if (controller != detailVm.reservoirsBetonliVolume) {
                           controller.dispose();
                           detailVm.reservoirsBetonliVolumes.removeAt(i);
                         }
                       }
-                      for (int i = detailVm.reservoirsQoplamaliVolumes.length - 1; i >= 0; i--) {
-                        final controller = detailVm.reservoirsQoplamaliVolumes[i];
+                      for (int i =
+                              detailVm.reservoirsQoplamaliVolumes.length - 1;
+                          i >= 0;
+                          i--) {
+                        final controller =
+                            detailVm.reservoirsQoplamaliVolumes[i];
                         if (controller != detailVm.reservoirsQoplamaliVolume) {
                           controller.dispose();
                           detailVm.reservoirsQoplamaliVolumes.removeAt(i);
@@ -546,29 +560,38 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ref
                               .read(detailVm.switchReservoirsBeton.notifier)
                               .state = value;
-                          if (value && detailVm.reservoirsBetonliVolumes.isEmpty) {
+                          if (value &&
+                              detailVm.reservoirsBetonliVolumes.isEmpty) {
                             detailVm.initializeReservoirs();
                           }
                         },
                         childWidgets: [
                           if (isReservoirsBeton) ...[
-                            ...List.generate(detailVm.reservoirsBetonliVolumes.length, (index) {
+                            ...List.generate(
+                                detailVm.reservoirsBetonliVolumes.length,
+                                (index) {
                               return Padding(
-                                padding: REdgeInsets.only(top: index == 0 ? 10 : 16),
+                                padding:
+                                    REdgeInsets.only(top: index == 0 ? 10 : 16),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: CustomTextFieldWithLabel(
-                                        controller: detailVm.reservoirsBetonliVolumes[index],
+                                        controller: detailVm
+                                            .reservoirsBetonliVolumes[index],
                                         onTextChanged: (_) {},
                                         hintText: "suv havzasi hajmi m³",
                                         keyboardType: TextInputType.number,
                                       ),
                                     ),
-                                    if (detailVm.reservoirsBetonliVolumes.length > 1)
+                                    if (detailVm
+                                            .reservoirsBetonliVolumes.length >
+                                        1)
                                       IconButton(
-                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                        onPressed: () => detailVm.removeBetonReservoir(index),
+                                        icon: const Icon(Icons.delete_outline,
+                                            color: Colors.red),
+                                        onPressed: () => detailVm
+                                            .removeBetonReservoir(index),
                                       ),
                                   ],
                                 ),
@@ -593,31 +616,40 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ref
                               .read(detailVm.switchReservoirsQoplamali.notifier)
                               .state = value;
-                          if (value && detailVm.reservoirsQoplamaliVolumes.isEmpty) {
+                          if (value &&
+                              detailVm.reservoirsQoplamaliVolumes.isEmpty) {
                             detailVm.initializeReservoirs();
                           }
                         },
                         childWidgets: [
                           if (isReservoirsQoplamali) ...[
-                            ...List.generate(detailVm.reservoirsQoplamaliVolumes.length, (index) {
+                            ...List.generate(
+                                detailVm.reservoirsQoplamaliVolumes.length,
+                                (index) {
                               return Padding(
-                                padding: REdgeInsets.only(top: index == 0 ? 10 : 16),
+                                padding:
+                                    REdgeInsets.only(top: index == 0 ? 10 : 16),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: CustomTextFieldWithLabel(
-                                        controller: detailVm.reservoirsQoplamaliVolumes[index],
+                                        controller: detailVm
+                                            .reservoirsQoplamaliVolumes[index],
                                         onTextChanged: (_) {},
                                         hintText: "suv havzasi hajmi m³",
                                         keyboardType: TextInputType.number,
                                       ),
                                     ),
-                                    if (detailVm.reservoirsQoplamaliVolumes.length > 1)
+                                    if (detailVm
+                                            .reservoirsQoplamaliVolumes.length >
+                                        1)
                                       Padding(
                                         padding: REdgeInsets.only(left: 8),
                                         child: IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                          onPressed: () => detailVm.removeQoplamaliReservoir(index),
+                                          icon: const Icon(Icons.delete_outline,
+                                              color: Colors.red),
+                                          onPressed: () => detailVm
+                                              .removeQoplamaliReservoir(index),
                                         ),
                                       ),
                                   ],
@@ -658,14 +690,17 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 // Photo requirements indicator
                 Consumer(
                   builder: (context, ref, child) {
-                    final requiredPhotos = detailVm.calculateMinimumPhotosRequired(ref);
-                    final itemCount = requiredPhotos > 4 ? requiredPhotos : 4; // Минимум 4 поля
+                    final requiredPhotos =
+                        detailVm.calculateMinimumPhotosRequired(ref);
+                    final itemCount = requiredPhotos > 4
+                        ? requiredPhotos
+                        : 4; // Минимум 4 поля
                     // Подсчитываем все загруженные фотографии (проверяем все поля до itemCount)
                     final uploadedPhotos = List.generate(itemCount, (i) => i)
                         .where((i) => detailVm.getImageFile(i) != null)
                         .length;
                     final isComplete = uploadedPhotos >= requiredPhotos;
-                    
+
                     return Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: AppSpacing.md,
@@ -673,8 +708,10 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       ),
                       decoration: BoxDecoration(
                         color: isComplete
-                            ? design_colors.AppColors.success.withValues(alpha: 0.1)
-                            : design_colors.AppColors.warning.withValues(alpha: 0.1),
+                            ? design_colors.AppColors.success
+                                .withValues(alpha: 0.1)
+                            : design_colors.AppColors.warning
+                                .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isComplete
@@ -685,7 +722,9 @@ class DetailPageState extends ConsumerState<DetailPage> {
                       child: Row(
                         children: [
                           Icon(
-                            isComplete ? Icons.check_circle : Icons.info_outline,
+                            isComplete
+                                ? Icons.check_circle
+                                : Icons.info_outline,
                             size: 20.sp,
                             color: isComplete
                                 ? design_colors.AppColors.success
@@ -714,13 +753,17 @@ class DetailPageState extends ConsumerState<DetailPage> {
                 SizedBox(height: 12.h),
                 Consumer(
                   builder: (context, ref, child) {
-                    final requiredPhotos = detailVm.calculateMinimumPhotosRequired(ref);
-                    final itemCount = requiredPhotos > 4 ? requiredPhotos : 4; // Минимум 4 поля
+                    final requiredPhotos =
+                        detailVm.calculateMinimumPhotosRequired(ref);
+                    final itemCount = requiredPhotos > 4
+                        ? requiredPhotos
+                        : 4; // Минимум 4 поля
                     return ImageUploadListWidget(
                       showImagePicker: detailVm.showImagePicker,
                       getImageFile: detailVm.getImageFile,
                       removeImage: detailVm.removeImage,
-                      getPhotoDescription: (index) => detailVm.getPhotoDescription(index, ref),
+                      getPhotoDescription: (index) =>
+                          detailVm.getPhotoDescription(index, ref),
                       pickImageFromGallery: detailVm.pickImageFromGallery,
                       pickImageFromCamera: detailVm.pickImageFromCamera,
                       itemCount: itemCount,
@@ -738,12 +781,14 @@ class DetailPageState extends ConsumerState<DetailPage> {
                         color: design_colors.AppColors.accentGreen,
                         borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
-                          color: design_colors.AppColors.accentGreenLight.withValues(alpha: 0.5),
+                          color: design_colors.AppColors.accentGreenLight
+                              .withValues(alpha: 0.5),
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: design_colors.AppColors.accentGreen.withValues(alpha: 0.3),
+                            color: design_colors.AppColors.accentGreen
+                                .withValues(alpha: 0.3),
                             blurRadius: 8,
                             spreadRadius: 0,
                             offset: const Offset(0, 4),
@@ -780,58 +825,59 @@ class DetailPageState extends ConsumerState<DetailPage> {
                           ),
                         ],
                       ),
-                  );
-                },
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              MainText(text: "Izohlar (ixtiyoriy)"),
-              SizedBox(height: 10.h),
-              TextField(
-                controller: detailVm.commentsController,
-                maxLines: 4,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
-                inputFormatters: [
-                  // Разрешаем буквы (латиница, кириллица, узбекские символы), цифры, пробелы и основные знаки препинания
-                  // Запрещаем специальные символы: < > { } [ ] | \ / & % $ # @ * ^ ~ ` и другие
-                  FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s.,!?:;\-''""()]")),
-                ],
-                style: AppTypography.input(context).copyWith(
-                  fontSize: 14.sp,
-                  color: context.colors.textPrimary,
+                    );
+                  },
                 ),
-                decoration: InputDecoration(
-                  hintText: "Izoh kiriting (qo'shiladi yaratilgandan keyin)",
-                  filled: true,
-                  fillColor: context.colors.surfaceVariant,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.inputPaddingHorizontal,
-                    vertical: AppSpacing.inputPaddingVertical,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadii.input),
-                    borderSide: BorderSide(
-                      color: context.colors.isDark
-                          ? context.colors.border
-                          : context.colors.border.withValues(alpha: 0.5),
-                      width: 1.2,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadii.input),
-                    borderSide: BorderSide(
-                      color: design_colors.AppColors.accentGreen,
-                      width: 1.6,
-                    ),
-                  ),
-                  hintStyle: AppTypography.bodySmall(context).copyWith(
+                const SizedBox(height: AppSpacing.xxl),
+                MainText(text: "Izohlar (ixtiyoriy)"),
+                SizedBox(height: 10.h),
+                TextField(
+                  controller: detailVm.commentsController,
+                  maxLines: 4,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  inputFormatters: [
+                    // Разрешаем буквы (латиница, кириллица, узбекские символы), цифры, пробелы и основные знаки препинания
+                    // Запрещаем специальные символы: < > { } [ ] | \ / & % $ # @ * ^ ~ ` и другие
+                    FilteringTextInputFormatter.allow(RegExp(
+                        r"[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s.,!?:;\-''" "()]")),
+                  ],
+                  style: AppTypography.input(context).copyWith(
                     fontSize: 14.sp,
-                    color: context.colors.textSecondary,
+                    color: context.colors.textPrimary,
                   ),
-                  isDense: true,
+                  decoration: InputDecoration(
+                    hintText: "Izoh kiriting (qo'shiladi yaratilgandan keyin)",
+                    filled: true,
+                    fillColor: context.colors.surfaceVariant,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.inputPaddingHorizontal,
+                      vertical: AppSpacing.inputPaddingVertical,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadii.input),
+                      borderSide: BorderSide(
+                        color: context.colors.isDark
+                            ? context.colors.border
+                            : context.colors.border.withValues(alpha: 0.5),
+                        width: 1.2,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadii.input),
+                      borderSide: BorderSide(
+                        color: design_colors.AppColors.accentGreen,
+                        width: 1.6,
+                      ),
+                    ),
+                    hintStyle: AppTypography.bodySmall(context).copyWith(
+                      fontSize: 14.sp,
+                      color: context.colors.textSecondary,
+                    ),
+                    isDense: true,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xxl),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
@@ -841,10 +887,13 @@ class DetailPageState extends ConsumerState<DetailPage> {
                             String? validationMessage =
                                 detailVm.validateFields(ref);
                             if (validationMessage == null) {
-                              final responseServer = await detailVm.createPt(ref);
+                              final responseServer =
+                                  await detailVm.createPt(ref);
                               if (responseServer && context.mounted) {
-                                Utils.fireTopSnackBar(detailVm.errorMessage ?? "",
-                                    AppColors.c28A745, context);
+                                Utils.fireTopSnackBar(
+                                    detailVm.errorMessage ?? "",
+                                    design_colors.AppColors.accentGreen,
+                                    context);
 
                                 // Обновляем список плантаций на главной странице перед переходом
                                 try {
@@ -859,14 +908,15 @@ class DetailPageState extends ConsumerState<DetailPage> {
                               } else {
                                 if (context.mounted) {
                                   Utils.fireTopSnackBar(
-                                      detailVm.errorMessage ?? "Xatolik yuz berdi",
-                                      AppColors.cE60C0C,
+                                      detailVm.errorMessage ??
+                                          "Xatolik yuz berdi",
+                                      design_colors.AppColors.error,
                                       context);
                                 }
                               }
                             } else {
-                              Utils.fireTopSnackBar(
-                                  validationMessage, AppColors.cE60C0C, context);
+                              Utils.fireTopSnackBar(validationMessage,
+                                  design_colors.AppColors.error, context);
                             }
                           },
                     icon: detailVm.postLoading

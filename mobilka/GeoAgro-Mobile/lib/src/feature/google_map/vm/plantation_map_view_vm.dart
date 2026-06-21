@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../core/style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/services/district_boundary_service.dart';
+
 class PlantationMapViewVm extends ChangeNotifier {
   final AppRepositoryImpl _repo = AppRepositoryImpl();
   final int plantationId;
@@ -25,11 +27,11 @@ class PlantationMapViewVm extends ChangeNotifier {
   final Set<Polygon> regionBoundaries = {}; // Границы области пользователя
 
   LatLng initialPosition = const LatLng(41.311081, 69.240562);
-  
+
   bool _isDisposed = false;
 
   PlantationMapViewVm(this.plantationId);
-  
+
   void _safeNotifyListeners() {
     if (!_isDisposed) {
       notifyListeners();
@@ -38,17 +40,17 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    
+
     // Загружаем границы области пользователя
     loadRegionBoundaries();
-    
+
     _safeNotifyListeners();
   }
 
   /// Загружает границы района пользователя на основе его district_id
   Future<void> loadRegionBoundaries() async {
     if (_isDisposed) return;
-    
+
     try {
       // Получаем district_id и region_id из API
       final userInfoData = await _repo.getUserInfo();
@@ -68,26 +70,30 @@ class PlantationMapViewVm extends ChangeNotifier {
 
       if (_isDisposed) return;
 
-      debugPrint('📊 PlantationMapViewVm: Loading boundaries for district_id: $districtId, region_id: $regionId');
-      
+      debugPrint(
+          '📊 PlantationMapViewVm: Loading boundaries for district_id: $districtId, region_id: $regionId');
+
       // Загружаем границы района (с fallback на область, если API не вернул данные)
       final boundaries = await DistrictBoundaryService.loadDistrictBoundaries(
         districtId,
         regionId: regionId,
       );
-      
+
       if (_isDisposed) return;
-      
+
       if (boundaries.isNotEmpty) {
         regionBoundaries.clear();
         regionBoundaries.addAll(boundaries);
-        debugPrint('✅ PlantationMapViewVm: Loaded ${boundaries.length} boundary polygons');
+        debugPrint(
+            '✅ PlantationMapViewVm: Loaded ${boundaries.length} boundary polygons');
         _safeNotifyListeners();
       } else {
-        debugPrint('⚠️ PlantationMapViewVm: No boundaries loaded for district_id: $districtId');
+        debugPrint(
+            '⚠️ PlantationMapViewVm: No boundaries loaded for district_id: $districtId');
       }
     } catch (e) {
-      debugPrint('❌ PlantationMapViewVm: Error loading district boundaries: $e');
+      debugPrint(
+          '❌ PlantationMapViewVm: Error loading district boundaries: $e');
     }
   }
 
@@ -97,11 +103,12 @@ class PlantationMapViewVm extends ChangeNotifier {
     try {
       debugPrint("[PlantationMapViewVm] initializeFromDetailData called");
       debugPrint("[PlantationMapViewVm] jsonData keys: ${jsonData.keys}");
-      
+
       if (jsonData['coordinates'] != null && jsonData['coordinates'] is List) {
         final coordinates = jsonData['coordinates'] as List<dynamic>;
-        debugPrint("[PlantationMapViewVm] Found ${coordinates.length} coordinates");
-        
+        debugPrint(
+            "[PlantationMapViewVm] Found ${coordinates.length} coordinates");
+
         if (coordinates.isEmpty) {
           debugPrint("[PlantationMapViewVm] Coordinates list is empty");
           return;
@@ -114,7 +121,8 @@ class PlantationMapViewVm extends ChangeNotifier {
             if (coord is Map<String, dynamic>) {
               final coordObj = PlantationCoordinate.fromJson(coord);
               coords.add(coordObj);
-              debugPrint("[PlantationMapViewVm] Parsed coordinate: lat=${coordObj.latitude}, lng=${coordObj.longitude}");
+              debugPrint(
+                  "[PlantationMapViewVm] Parsed coordinate: lat=${coordObj.latitude}, lng=${coordObj.longitude}");
             }
           } catch (e) {
             debugPrint("[PlantationMapViewVm] Error parsing coordinate: $e");
@@ -129,10 +137,10 @@ class PlantationMapViewVm extends ChangeNotifier {
         // Парсим is_checked и is_rejected с поддержкой разных типов
         final rawIsChecked = jsonData['is_checked'];
         final rawIsRejected = jsonData['is_rejected'];
-        
+
         bool isChecked = false;
         bool isRejected = false;
-        
+
         if (rawIsChecked != null) {
           if (rawIsChecked is bool) {
             isChecked = rawIsChecked;
@@ -142,7 +150,7 @@ class PlantationMapViewVm extends ChangeNotifier {
             isChecked = rawIsChecked != 0;
           }
         }
-        
+
         if (rawIsRejected != null) {
           if (rawIsRejected is bool) {
             isRejected = rawIsRejected;
@@ -152,8 +160,9 @@ class PlantationMapViewVm extends ChangeNotifier {
             isRejected = rawIsRejected != 0;
           }
         }
-        
-        debugPrint('[PlantationMapViewVm] Parsed plantation ${jsonData['id']}: isChecked=$rawIsChecked (parsed: $isChecked), isRejected=$rawIsRejected (parsed: $isRejected)');
+
+        debugPrint(
+            '[PlantationMapViewVm] Parsed plantation ${jsonData['id']}: isChecked=$rawIsChecked (parsed: $isChecked), isRejected=$rawIsRejected (parsed: $isRejected)');
 
         final plantation = RelatedPlantation(
           id: jsonData['id'] as int? ?? plantationId,
@@ -161,20 +170,23 @@ class PlantationMapViewVm extends ChangeNotifier {
           isChecked: isChecked,
           isRejected: isRejected,
           coordinates: coords,
-          fertilityScore: (jsonData['fertility_score'] as num?)?.toDouble() ?? 0.0,
+          fertilityScore:
+              (jsonData['fertility_score'] as num?)?.toDouble() ?? 0.0,
           totalArea: (jsonData['total_area'] as num?)?.toDouble() ?? 0.0,
         );
 
         currentPlantation = plantation;
         relatedPlantations = [plantation];
 
-        debugPrint("[PlantationMapViewVm] Initialized from detail data with ${coords.length} coordinates");
-        debugPrint("[PlantationMapViewVm] Plantation ID: ${plantation.id}, Name: ${plantation.name}");
+        debugPrint(
+            "[PlantationMapViewVm] Initialized from detail data with ${coords.length} coordinates");
+        debugPrint(
+            "[PlantationMapViewVm] Plantation ID: ${plantation.id}, Name: ${plantation.name}");
 
         _drawPlantationsOnMap();
         _centerMapOnCurrentPlantation();
         _safeNotifyListeners();
-        
+
         // Дополнительное обновление после небольшой задержки
         Future.delayed(const Duration(milliseconds: 300), () {
           _safeNotifyListeners();
@@ -184,14 +196,15 @@ class PlantationMapViewVm extends ChangeNotifier {
         debugPrint("[PlantationMapViewVm] No coordinates found in jsonData");
       }
     } catch (e, stackTrace) {
-      debugPrint("[PlantationMapViewVm] Error initializing from detail data: $e");
+      debugPrint(
+          "[PlantationMapViewVm] Error initializing from detail data: $e");
       debugPrint("[PlantationMapViewVm] Stack trace: $stackTrace");
     }
   }
 
   Future<void> loadRelatedPlantations() async {
     if (_isDisposed) return;
-    
+
     isLoading = true;
     errorMessage = null;
     _safeNotifyListeners();
@@ -199,11 +212,11 @@ class PlantationMapViewVm extends ChangeNotifier {
     try {
       final loaded = await _loadFromRelatedEndpoint();
       if (_isDisposed) return;
-      
+
       if (!loaded) {
         final fallbackLoaded = await _loadFromUserMap();
         if (_isDisposed) return;
-        
+
         if (!fallbackLoaded) {
           errorMessage = "Ma'lumotlar topilmadi";
         }
@@ -212,14 +225,14 @@ class PlantationMapViewVm extends ChangeNotifier {
       isLoading = false;
       // Убеждаемся, что карта обновится после загрузки
       _safeNotifyListeners();
-      
+
       // Дополнительное обновление после небольшой задержки для гарантии отображения
       Future.delayed(const Duration(milliseconds: 100), () {
         _safeNotifyListeners();
       });
     } catch (e) {
       if (_isDisposed) return;
-      
+
       errorMessage = "Xatolik: $e";
       isLoading = false;
       _safeNotifyListeners();
@@ -255,12 +268,12 @@ class PlantationMapViewVm extends ChangeNotifier {
 
     _drawPlantationsOnMap();
     _centerMapOnCurrentPlantation();
-    
+
     // Дополнительное обновление для гарантии отображения полигона
     Future.delayed(const Duration(milliseconds: 200), () {
       _safeNotifyListeners();
     });
-    
+
     return true;
   }
 
@@ -292,12 +305,12 @@ class PlantationMapViewVm extends ChangeNotifier {
 
     _drawPlantationsOnMap();
     _centerMapOnCurrentPlantation();
-    
+
     // Дополнительное обновление для гарантии отображения полигона
     Future.delayed(const Duration(milliseconds: 200), () {
       _safeNotifyListeners();
     });
-    
+
     return true;
   }
 
@@ -307,7 +320,8 @@ class PlantationMapViewVm extends ChangeNotifier {
     markers.clear();
     circles.clear();
 
-    debugPrint("[PlantationMapViewVm] Drawing ${relatedPlantations.length} plantations on map");
+    debugPrint(
+        "[PlantationMapViewVm] Drawing ${relatedPlantations.length} plantations on map");
 
     for (final plantation in relatedPlantations) {
       if (plantation.coordinates.isEmpty) {
@@ -384,14 +398,16 @@ class PlantationMapViewVm extends ChangeNotifier {
       // Маркеры убраны по запросу пользователя
     }
 
-    debugPrint("[PlantationMapViewVm] Total polygons: ${polygons.length}, polylines: ${polylines.length}, markers: ${markers.length}, circles: ${circles.length}");
-    
+    debugPrint(
+        "[PlantationMapViewVm] Total polygons: ${polygons.length}, polylines: ${polylines.length}, markers: ${markers.length}, circles: ${circles.length}");
+
     // Принудительно обновляем карту после отрисовки полигонов
     _safeNotifyListeners();
-    
+
     // Дополнительное обновление после небольшой задержки для гарантии отображения
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (!_isDisposed && (polygons.isNotEmpty || polylines.isNotEmpty || markers.isNotEmpty)) {
+      if (!_isDisposed &&
+          (polygons.isNotEmpty || polylines.isNotEmpty || markers.isNotEmpty)) {
         _safeNotifyListeners();
         debugPrint("[PlantationMapViewVm] Force update after drawing polygons");
       }
@@ -400,9 +416,9 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   Color _getPlantationColor(RelatedPlantation plantation) {
     if (plantation.isChecked == true) {
-      return AppColors.c28A745; // Green - approved
+      return design_colors.AppColors.accentGreen; // Green - approved
     } else if (plantation.isRejected == true) {
-      return AppColors.cE60C0C; // Red - rejected
+      return design_colors.AppColors.error; // Red - rejected
     } else {
       // Если оба false - значит на модерации (Ko'rib chiqilmoqda)
       return const Color(0xFFF59E0B); // Warning color - pending (желтый)
@@ -410,15 +426,16 @@ class PlantationMapViewVm extends ChangeNotifier {
   }
 
   void _centerMapOnCurrentPlantation() {
-    if (currentPlantation == null ||
-        currentPlantation!.coordinates.isEmpty) {
-      debugPrint("[PlantationMapViewVm] Cannot center map: currentPlantation is null or has no coordinates");
+    if (currentPlantation == null || currentPlantation!.coordinates.isEmpty) {
+      debugPrint(
+          "[PlantationMapViewVm] Cannot center map: currentPlantation is null or has no coordinates");
       return;
     }
 
     final coords = currentPlantation!.coordinates;
-    debugPrint("[PlantationMapViewVm] Centering map on ${coords.length} coordinates");
-    
+    debugPrint(
+        "[PlantationMapViewVm] Centering map on ${coords.length} coordinates");
+
     double minLat = coords.first.latitude;
     double maxLat = coords.first.latitude;
     double minLng = coords.first.longitude;
@@ -436,8 +453,10 @@ class PlantationMapViewVm extends ChangeNotifier {
       (minLng + maxLng) / 2,
     );
 
-    debugPrint("[PlantationMapViewVm] Map center: lat=${center.latitude}, lng=${center.longitude}");
-    debugPrint("[PlantationMapViewVm] Bounds: minLat=$minLat, maxLat=$maxLat, minLng=$minLng, maxLng=$maxLng");
+    debugPrint(
+        "[PlantationMapViewVm] Map center: lat=${center.latitude}, lng=${center.longitude}");
+    debugPrint(
+        "[PlantationMapViewVm] Bounds: minLat=$minLat, maxLat=$maxLat, minLng=$minLng, maxLng=$maxLng");
 
     // Обновляем initialPosition сразу для немедленного отображения
     initialPosition = center;
@@ -451,19 +470,21 @@ class PlantationMapViewVm extends ChangeNotifier {
     // Центрируем карту после небольшой задержки, чтобы карта успела инициализироваться
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mapController == null) {
-        debugPrint("[PlantationMapViewVm] Map controller is null, cannot center");
+        debugPrint(
+            "[PlantationMapViewVm] Map controller is null, cannot center");
         return;
       }
-      
+
       debugPrint("[PlantationMapViewVm] Animating camera to center");
-      
+
       if ((maxLat - minLat).abs() < 0.0001 &&
           (maxLng - minLng).abs() < 0.0001) {
         // Одна точка - используем зум
         mapController?.animateCamera(
           CameraUpdate.newLatLngZoom(center, 17),
         );
-        debugPrint("[PlantationMapViewVm] Centered on single point with zoom 17");
+        debugPrint(
+            "[PlantationMapViewVm] Centered on single point with zoom 17");
       } else {
         // Несколько точек - используем bounds
         mapController?.animateCamera(
@@ -500,7 +521,8 @@ class PlantationMapViewVm extends ChangeNotifier {
     if (coordinates.length < 3) return 0.0;
 
     // Конвертируем PlantationCoordinate в LatLng
-    final points = coordinates.map((c) => LatLng(c.latitude, c.longitude)).toList();
+    final points =
+        coordinates.map((c) => LatLng(c.latitude, c.longitude)).toList();
 
     // Используем формулу площади Гаусса для сферических координат
     double area = 0.0;

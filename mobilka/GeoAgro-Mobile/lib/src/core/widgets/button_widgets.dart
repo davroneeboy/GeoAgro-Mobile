@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
-import '../style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 
 // Primary button
 class PrimaryButton extends StatelessWidget {
@@ -34,7 +36,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: (isEnabled && !isLoading) ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.c1E1E1E,
+          backgroundColor: context.colors.textPrimary,
           foregroundColor: Colors.white,
           disabledBackgroundColor: Colors.grey[300],
           disabledForegroundColor: Colors.grey[600],
@@ -42,7 +44,8 @@ class PrimaryButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.r),
           ),
-          padding: padding ?? REdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding:
+              padding ?? REdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         child: _buildChild(),
       ),
@@ -119,27 +122,28 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: (isEnabled && !isLoading) ? onPressed : null,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.c1E1E1E,
+          foregroundColor: context.colors.textPrimary,
           disabledForegroundColor: Colors.grey[600],
-          side: BorderSide(color: AppColors.c1E1E1E),
+          side: BorderSide(color: context.colors.textPrimary),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.r),
           ),
-          padding: padding ?? REdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding:
+              padding ?? REdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
-        child: _buildChild(),
+        child: _buildChild(context),
       ),
     );
   }
 
-  Widget _buildChild() {
+  Widget _buildChild(BuildContext context) {
     if (isLoading) {
       return SizedBox(
         width: 20.w,
         height: 20.h,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.c1E1E1E),
+          valueColor: AlwaysStoppedAnimation<Color>(context.colors.textPrimary),
         ),
       );
     }
@@ -202,7 +206,7 @@ class DangerButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: (isEnabled && !isLoading) ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.cE60C0C,
+          backgroundColor: design_colors.AppColors.error,
           foregroundColor: Colors.white,
           disabledBackgroundColor: Colors.grey[300],
           disabledForegroundColor: Colors.grey[600],
@@ -210,7 +214,8 @@ class DangerButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.r),
           ),
-          padding: padding ?? REdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding:
+              padding ?? REdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         child: _buildChild(),
       ),
@@ -286,7 +291,7 @@ class IconButtonWidget extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(
           icon,
-          color: iconColor ?? AppColors.c1E1E1E,
+          color: iconColor ?? context.colors.textPrimary,
           size: size ?? 24.sp,
         ),
         tooltip: tooltip,
@@ -322,7 +327,7 @@ class CustomFloatingActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: onPressed,
-      backgroundColor: backgroundColor ?? AppColors.c1E1E1E,
+      backgroundColor: backgroundColor ?? context.colors.textPrimary,
       foregroundColor: iconColor ?? Colors.white,
       tooltip: tooltip,
       child: Icon(icon, size: 24.sp),
@@ -354,7 +359,7 @@ class TextButtonWidget extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: textColor ?? AppColors.c1E1E1E,
+        foregroundColor: textColor ?? context.colors.textPrimary,
         padding: REdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
       child: Text(
@@ -367,4 +372,4 @@ class TextButtonWidget extends StatelessWidget {
       ),
     );
   }
-} 
+}

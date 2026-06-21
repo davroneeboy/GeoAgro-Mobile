@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 
-import '../style/app_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import 'main_button.dart';
 
 class ErrorStateWidget extends StatelessWidget {
   final String errorMessage;
   final VoidCallback onTap;
-  const ErrorStateWidget({super.key, required this.errorMessage, required this.onTap});
+  const ErrorStateWidget(
+      {super.key, required this.errorMessage, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +18,7 @@ class ErrorStateWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-           Padding(
+          Padding(
             padding: REdgeInsets.symmetric(horizontal: 16),
             child: Lottie.asset(
               'assets/lotties/error_lottie.json',
@@ -30,7 +32,10 @@ class ErrorStateWidget extends StatelessWidget {
             child: Text(
               errorMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18.sp, color: AppColors.cE60C0C, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  fontSize: 18.sp,
+                  color: design_colors.AppColors.error,
+                  fontWeight: FontWeight.w500),
             ),
           ),
           20.verticalSpace,
