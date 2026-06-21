@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import '../../../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../../../design_system/tokens/typography.dart';
 
@@ -51,7 +52,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: AppMotion.fast,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -90,7 +91,7 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
       children: [
         // Label с анимацией
         AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 200),
+          duration: AppMotion.fast,
           curve: Curves.easeInOut,
           style: TextStyle(
             fontSize: isFloatingLabel ? 12.sp : 14.sp,
@@ -194,4 +195,3 @@ class _ModernLoginInputWidgetState extends State<ModernLoginInputWidget>
     );
   }
 }
-

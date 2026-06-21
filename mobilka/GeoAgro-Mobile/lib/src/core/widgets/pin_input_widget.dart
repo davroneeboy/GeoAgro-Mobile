@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
@@ -75,7 +76,7 @@ class PinInputWidget extends StatelessWidget {
           final isFilled = index < currentLength;
           final hasError = errorMessage != null;
           return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.fast,
             margin: EdgeInsets.symmetric(horizontal: 10.w),
             width: 16.w,
             height: 16.w,

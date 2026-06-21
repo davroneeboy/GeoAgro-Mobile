@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import '../../../../../design_system/tokens/colors.dart' as design_colors;
 
 /// Современная кнопка логина с анимациями в стиле Apple
@@ -32,7 +33,7 @@ class _ModernLoginButtonState extends State<ModernLoginButton>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: AppMotion.fast,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -74,7 +75,7 @@ class _ModernLoginButtonState extends State<ModernLoginButton>
         child: ScaleTransition(
           scale: _scaleAnimation,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.fast,
             curve: Curves.easeInOut,
             width: double.infinity,
             height: 56.h,

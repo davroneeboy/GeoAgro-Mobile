@@ -4,6 +4,7 @@ import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
@@ -518,7 +519,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           _tryInitializeMapFromDetail(plantation.id);
 
           // Также загружаем координаты через стандартный endpoint, если инициализация не удалась
-          Future.delayed(const Duration(milliseconds: 500), () {
+          Future.delayed(AppMotion.slow, () {
             if (mapVm.currentPlantation == null &&
                 !mapVm.isLoading &&
                 !_hasTriedToLoadMapCoordinates) {

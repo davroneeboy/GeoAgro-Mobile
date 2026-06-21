@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/services/district_boundary_service.dart';
@@ -188,7 +189,7 @@ class PlantationMapViewVm extends ChangeNotifier {
         _safeNotifyListeners();
 
         // Дополнительное обновление после небольшой задержки
-        Future.delayed(const Duration(milliseconds: 300), () {
+        Future.delayed(AppMotion.normal, () {
           _safeNotifyListeners();
           debugPrint("[PlantationMapViewVm] Force update after initialization");
         });
@@ -270,7 +271,7 @@ class PlantationMapViewVm extends ChangeNotifier {
     _centerMapOnCurrentPlantation();
 
     // Дополнительное обновление для гарантии отображения полигона
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future.delayed(AppMotion.fast, () {
       _safeNotifyListeners();
     });
 
@@ -307,7 +308,7 @@ class PlantationMapViewVm extends ChangeNotifier {
     _centerMapOnCurrentPlantation();
 
     // Дополнительное обновление для гарантии отображения полигона
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future.delayed(AppMotion.fast, () {
       _safeNotifyListeners();
     });
 
@@ -405,7 +406,7 @@ class PlantationMapViewVm extends ChangeNotifier {
     _safeNotifyListeners();
 
     // Дополнительное обновление после небольшой задержки для гарантии отображения
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future.delayed(AppMotion.normal, () {
       if (!_isDisposed &&
           (polygons.isNotEmpty || polylines.isNotEmpty || markers.isNotEmpty)) {
         _safeNotifyListeners();
@@ -468,7 +469,7 @@ class PlantationMapViewVm extends ChangeNotifier {
     );
 
     // Центрируем карту после небольшой задержки, чтобы карта успела инициализироваться
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(AppMotion.slow, () {
       if (mapController == null) {
         debugPrint(
             "[PlantationMapViewVm] Map controller is null, cannot center");

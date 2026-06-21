@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 
 import '../../vm/login_vm.dart';
 import '../../../../core/utils/utils.dart';
@@ -55,7 +56,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
     _slideController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: AppMotion.entrance,
     );
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
@@ -335,7 +336,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             context,
           );
           // Даём snackbar отобразиться перед навигацией
-          await Future.delayed(const Duration(milliseconds: 300));
+          await Future.delayed(AppMotion.normal);
           if (!mounted || !context.mounted) return;
           // Проверяем, установлен ли PIN
           final hasPinSet = await PinService.instance.isPinSet();

@@ -7,21 +7,22 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../design_system/tokens/colors.dart' as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 
 /// A search bar widget with debounce functionality
-/// 
+///
 /// Shows a search icon that expands to a search input when clicked.
 /// Implements debounce to avoid too many API calls while typing.
 class SearchBarWidget extends StatefulWidget {
   /// Callback when search query changes (after debounce)
   final Function(String) onSearchChanged;
-  
+
   /// Callback when search form is expanded or collapsed
   final Function(bool isExpanded)? onExpansionChanged;
-  
+
   /// Debounce duration in milliseconds (default: 500ms)
   final int debounceDuration;
-  
+
   /// Placeholder text for the search input
   final String placeholder;
 
@@ -37,7 +38,8 @@ class SearchBarWidget extends StatefulWidget {
   State<SearchBarWidget> createState() => _SearchBarWidgetState();
 }
 
-class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _SearchBarWidgetState extends State<SearchBarWidget>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   bool _isExpanded = false;
   final TextEditingController _controller = TextEditingController();
   Timer? _debounce;
@@ -52,12 +54,12 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: AppMotion.normal,
     );
     _widthAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     _controller.addListener(_onSearchTextChanged);
   }
 
@@ -72,7 +74,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
   void _onSearchTextChanged() {
     // Cancel previous timer if exists
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    
+
     // Create new timer for debounce
     _debounce = Timer(Duration(milliseconds: widget.debounceDuration), () {
       widget.onSearchChanged(_controller.text);
@@ -131,7 +133,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                       ),
                       filled: true,
                       fillColor: context.colors.surfaceVariant,
-                      contentPadding: REdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          REdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.r),
                         borderSide: BorderSide(
@@ -185,4 +188,3 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
     );
   }
 }
-

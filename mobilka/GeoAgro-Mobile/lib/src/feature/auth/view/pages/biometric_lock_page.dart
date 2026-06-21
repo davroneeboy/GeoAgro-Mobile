@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 
 import '../../../../core/services/biometric_service.dart';
 import '../../../../core/services/pin_service.dart';
@@ -38,7 +39,7 @@ class _BiometricLockPageState extends State<BiometricLockPage>
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: AppMotion.shimmer,
     )..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),

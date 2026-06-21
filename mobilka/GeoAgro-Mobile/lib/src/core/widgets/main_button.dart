@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import '../../../design_system/tokens/colors.dart' as design_colors;
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -11,7 +12,7 @@ class MainButton extends StatefulWidget {
   final bool? isLoading;
   final VoidCallback onTap;
   final bool isEnabled;
-  
+
   const MainButton({
     super.key,
     required this.text,
@@ -24,7 +25,8 @@ class MainButton extends StatefulWidget {
   State<MainButton> createState() => _MainButtonState();
 }
 
-class _MainButtonState extends State<MainButton> with SingleTickerProviderStateMixin {
+class _MainButtonState extends State<MainButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -33,7 +35,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: AppMotion.fast,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -75,7 +77,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
         child: ScaleTransition(
           scale: _scaleAnimation,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.fast,
             curve: Curves.easeInOut,
             width: double.infinity,
             height: 52.h,
@@ -90,15 +92,14 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                         design_colors.AppColors.accentGreenDark,
                       ],
                     ),
-              color: isDisabled
-                  ? context.colors.surfaceVariant
-                  : null,
+              color: isDisabled ? context.colors.surfaceVariant : null,
               borderRadius: BorderRadius.circular(AppRadii.button),
               boxShadow: isDisabled
                   ? null
                   : [
                       BoxShadow(
-                        color: design_colors.AppColors.accentGreen.withValues(alpha: 0.3),
+                        color: design_colors.AppColors.accentGreen
+                            .withValues(alpha: 0.3),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                         spreadRadius: 0,
@@ -120,7 +121,7 @@ class _MainButtonState extends State<MainButton> with SingleTickerProviderStateM
                       ),
                     )
                   : Text(
-                       widget.text,
+                      widget.text,
                       style: AppTypography.body(context).copyWith(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
@@ -143,7 +144,7 @@ class MainButton2 extends StatelessWidget {
   final Widget child;
   final VoidCallback? onPressed;
   final bool enableFeedback;
-  
+
   const MainButton2({
     super.key,
     required this.enableFeedback,

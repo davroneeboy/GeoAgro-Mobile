@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/tokens/motion.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
@@ -121,7 +122,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: AppMotion.shimmer,
       vsync: this,
     );
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
