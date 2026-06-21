@@ -93,7 +93,7 @@ class FermerVm extends ChangeNotifier {
   List<FarmerModel> fermersList = []; // Fermerlar ro'yxati
 
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
-  
+
   bool _isInitialized = false;
 
   // Search functionality
@@ -105,9 +105,10 @@ class FermerVm extends ChangeNotifier {
   FermerVm() {
     // Инициализация будет выполнена при первом обращении
   }
-  
+
   void initialize() {
-    debugPrint("🌾 FermerVM: initialize() called, _isInitialized=$_isInitialized");
+    debugPrint(
+        "🌾 FermerVM: initialize() called, _isInitialized=$_isInitialized");
     if (!_isInitialized) {
       _isInitialized = true;
       debugPrint("🌾 FermerVM: First initialization, calling getFermers()");
@@ -129,11 +130,13 @@ class FermerVm extends ChangeNotifier {
 
   Future<void> getFermers({bool isLoadMore = false}) async {
     if ((!canLoad && isLoadMore) || (isLoadMore && isFetchingMore)) {
-      debugPrint("⏭️ Skipping getFermers: canLoad=$canLoad, isLoadMore=$isLoadMore, isFetchingMore=$isFetchingMore");
+      debugPrint(
+          "⏭️ Skipping getFermers: canLoad=$canLoad, isLoadMore=$isLoadMore, isFetchingMore=$isFetchingMore");
       return; // Yuklash mumkinligini tekshirish
     }
-    
-    debugPrint("🌾 Starting getFermers: isLoadMore=$isLoadMore, currentPage=$currentPage");
+
+    debugPrint(
+        "🌾 Starting getFermers: isLoadMore=$isLoadMore, currentPage=$currentPage");
     errorMessage = null;
 
     if (!isLoadMore) {
@@ -165,7 +168,8 @@ class FermerVm extends ChangeNotifier {
             fermersList.addAll(model.results!); // Ro'yxatni to'ldirish
             currentPage++; // Sahifa raqamini oshirish
             canLoad = model.next != null; // `next` mavjudligini tekshirish
-            debugPrint("📊 Total farmers: ${fermersList.length}, canLoad: $canLoad, next: ${model.next}");
+            debugPrint(
+                "📊 Total farmers: ${fermersList.length}, canLoad: $canLoad, next: ${model.next}");
             notifyListeners();
           } else {
             debugPrint("⚠️ model.results is null");
@@ -174,7 +178,8 @@ class FermerVm extends ChangeNotifier {
           }
         } catch (jsonError) {
           debugPrint("❌ JSON Parsing Error: $jsonError");
-          debugPrint("❌ Data that failed to parse: ${data.substring(0, data.length > 500 ? 500 : data.length)}");
+          debugPrint(
+              "❌ Data that failed to parse: ${data.substring(0, data.length > 500 ? 500 : data.length)}");
           errorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
           canLoad = false;
           notifyListeners();
@@ -191,23 +196,24 @@ class FermerVm extends ChangeNotifier {
       } else {
         _setLoading(false); // Umumiy yuklanishni o'chirish
       }
-      debugPrint("✅ getFermers completed: isLoading=$isLoading, isFetchingMore=$isFetchingMore, farmersCount=${fermersList.length}");
+      debugPrint(
+          "✅ getFermers completed: isLoading=$isLoading, isFetchingMore=$isFetchingMore, farmersCount=${fermersList.length}");
     }
   }
 
   Future<void> searchByInn() async {
     final innText = searchInnController.text.trim();
     if (innText.isEmpty) {
-      searchErrorMessage = "INN kiriting";
+      searchErrorMessage = "INN yoki ID kiriting";
       searchResults = null;
       notifyListeners();
       return;
     }
 
     try {
-      final inn = int.tryParse(innText);
-      if (inn == null) {
-        searchErrorMessage = "Noto'g'ri INN formati";
+      final number = int.tryParse(innText);
+      if (number == null) {
+        searchErrorMessage = "Noto'g'ri format";
         searchResults = null;
         notifyListeners();
         return;
@@ -217,30 +223,42 @@ class FermerVm extends ChangeNotifier {
       searchErrorMessage = null;
       notifyListeners();
 
-      final data = await _appRepositoryImpl.searchFarmers(inn: inn);
-      
-      if (data == null) {
-        searchErrorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
-        searchResults = null;
-      } else {
+      final data = await _appRepositoryImpl.searchFarmers(inn: number);
+
+      if (data != null) {
         try {
           final model = farmerListModelFromJson(data);
           if (model.results != null && model.results!.isNotEmpty) {
             searchResults = model.results;
             searchErrorMessage = null;
-          } else {
-            searchErrorMessage = "Bunday INN bo'yicha fermer topilmadi";
-            searchResults = null;
+            return;
           }
         } catch (jsonError) {
-          log("JSON Parsing Error: $jsonError");
-          log("Raw data: $data");
-          searchErrorMessage = "Ma'lumotlarni qayta ishlashda xatolik yuz berdi.";
-          searchResults = null;
+          log("JSON Parsing Error (INN search): $jsonError");
         }
       }
+
+      if (innText.length < 9) {
+        final idData = await _appRepositoryImpl.getFarmerById(number);
+        if (idData != null) {
+          try {
+            final json = jsonDecode(idData);
+            if (json is Map<String, dynamic> && json['id'] != null) {
+              final farmer = FarmerModel.fromJson(json);
+              searchResults = [farmer];
+              searchErrorMessage = null;
+              return;
+            }
+          } catch (e) {
+            log("ID search parse error: $e");
+          }
+        }
+      }
+
+      searchErrorMessage = "Bunday INN yoki ID bo'yicha fermer topilmadi";
+      searchResults = null;
     } catch (e) {
-      log("Error searching by INN: $e");
+      log("Error searching: $e");
       searchErrorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
       searchResults = null;
     } finally {
@@ -264,14 +282,15 @@ class FermerVm extends ChangeNotifier {
   bool isUpdating = false;
   String? updateErrorMessage;
 
-  Future<bool> updateFarmerName({required int id, required String newName}) async {
+  Future<bool> updateFarmerName(
+      {required int id, required String newName}) async {
     isUpdating = true;
     updateErrorMessage = null;
     notifyListeners();
 
     try {
       log("UpdateFarmerName: Starting update for farmer $id with name: $newName");
-      
+
       // Сначала получаем текущие данные фермера
       final farmerData = await _appRepositoryImpl.getFarmerById(id);
       if (farmerData == null) {
@@ -281,18 +300,18 @@ class FermerVm extends ChangeNotifier {
         log("UpdateFarmerName: Farmer data not found");
         return false;
       }
-      
+
       // Парсим данные фермера
       final farmerJson = jsonDecode(farmerData);
       final farmerModel = FarmerModel.fromJson(farmerJson);
-      
+
       // Преобразуем в Map для отправки
       final updateData = farmerModel.toJson();
       // Обновляем только поле name
       updateData["name"] = newName;
-      
+
       log("UpdateFarmerName: Sending update with all farmer data, updating name to: $newName");
-      
+
       final response = await _appRepositoryImpl.updateFarmer(
         id: id,
         data: updateData,
@@ -306,7 +325,7 @@ class FermerVm extends ChangeNotifier {
         if (farmerIndex != -1) {
           fermersList[farmerIndex].name = newName;
         }
-        
+
         // Обновляем в результатах поиска, если есть
         if (searchResults != null) {
           final searchIndex = searchResults!.indexWhere((f) => f.id == id);
@@ -348,7 +367,7 @@ class FermerVm extends ChangeNotifier {
             log("UpdateFarmerName: Failed to parse error message: $e");
           }
         }
-        
+
         updateErrorMessage = errorMsg;
         isUpdating = false;
         notifyListeners();
