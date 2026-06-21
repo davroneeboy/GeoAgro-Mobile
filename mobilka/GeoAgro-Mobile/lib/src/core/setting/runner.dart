@@ -1,74 +1,43 @@
-// import "dart:async";
-// import "package:flutter/services.dart";
-// import "package:l/l.dart";
-
-// import "setup.dart";
-// import "app.dart";
-
-// void run() => l.capture<void>(
-//       () => runZonedGuarded<void>(
-//         () async {
-//           await setup();
-//           await SystemChrome.setPreferredOrientations(
-//             [DeviceOrientation.portraitUp],
-//           ).then(
-//             (_) => App.run(),
-//           );
-//         },
-//         (final error, final stackTrace) {
-//           l.e(
-//             "io_top_level_error: $error\n $stackTrace",
-//             stackTrace,
-//           );
-//         },
-//       ),
-//       const LogOptions(
-//         printColors: true,
-//         handlePrint: true,
-//         outputInRelease: true,
-//       ),
-//     );
-
 import "dart:async";
+import "dart:developer";
+import "package:flutter/foundation.dart";
 import "package:flutter/services.dart";
-import "package:l/l.dart";
 
 import "setup.dart";
 import "app.dart";
-import "../setting/remote_controller.dart"; // RemoteController ni import qiling
+import "../setting/remote_controller.dart";
 
-/// [Chat version]
-void run() => l.capture<void>(
-      () => runZonedGuarded<void>(
-        () async {
-          await setup();
-          await SystemChrome.setPreferredOrientations(
-            [DeviceOrientation.portraitUp],
-          );
+void run() {
+  runZonedGuarded<void>(
+    () async {
+      await setup();
+      await SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp],
+      );
 
-          try {
-            // Remote Config ni yuklash
-            final RemoteController remoteController = RemoteController();
-            await remoteController.initialize(); // Remote Config ni yuklash
+      FlutterError.onError = (details) {
+        log(
+          "flutter_error: ${details.exception}",
+          error: details.exception,
+          stackTrace: details.stack,
+        );
+      };
 
-            // App ni ishga tushirish
-            App.run(remoteController);
-          } catch (e) {
-            l.e("Error initializing app: $e");
-            // Fallback to basic app initialization
-            App.run(RemoteController());
-          }
-        },
-        (final error, final stackTrace) {
-          l.e(
-            "io_top_level_error: $error\n $stackTrace",
-            stackTrace,
-          );
-        },
-      ),
-      const LogOptions(
-        printColors: true,
-        handlePrint: true,
-        outputInRelease: true,
-      ),
-    );
+      try {
+        final RemoteController remoteController = RemoteController();
+        await remoteController.initialize();
+        App.run(remoteController);
+      } catch (e) {
+        log("Error initializing app: $e");
+        App.run(RemoteController());
+      }
+    },
+    (final error, final stackTrace) {
+      log(
+        "io_top_level_error: $error",
+        error: error,
+        stackTrace: stackTrace,
+      );
+    },
+  );
+}
