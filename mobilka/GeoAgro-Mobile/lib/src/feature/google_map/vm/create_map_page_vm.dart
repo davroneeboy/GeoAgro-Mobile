@@ -47,6 +47,18 @@ class CreateMapPageVm extends ChangeNotifier {
   double _limitKm = 1.0;
   double get limitKm => _limitKm;
 
+  // Cluster manager (native google_maps_flutter)
+  static const String _plantationClusterId = 'plantations_cluster';
+  late final Set<ClusterManager> clusterManagers = {
+    ClusterManager(
+      clusterManagerId: const ClusterManagerId(_plantationClusterId),
+      onClusterTap: onClusterTap,
+    ),
+  };
+  double _currentZoom = 10.0;
+  static const double _polygonVisibilityZoom = 13.0;
+  bool get arePolygonsVisible => _currentZoom >= _polygonVisibilityZoom;
+
   // Состояние для диалога с информацией о плантации
   FormeMapPlantation? selectedPlantation;
   bool showPlantationDialog = false;
@@ -415,6 +427,8 @@ class CreateMapPageVm extends ChangeNotifier {
       }
     }
 
+    // Init/update cluster manager
+    _initClusterManager();
     // Уведомляем UI об обновлении
     _safeNotifyListeners();
   }
@@ -438,6 +452,7 @@ class CreateMapPageVm extends ChangeNotifier {
         markerId: markerId,
         position: centroid,
         icon: BitmapDescriptor.defaultMarkerWithHue(markerColor),
+        clusterManagerId: const ClusterManagerId(_plantationClusterId),
         infoWindow: InfoWindow(
           title: plantation.getDisplayFarmerName(),
           snippet:
@@ -1003,5 +1018,31 @@ class CreateMapPageVm extends ChangeNotifier {
       _setLoading(false);
       _safeNotifyListeners();
     }
+  }
+
+  // ============= CLUSTERING (native google_maps_flutter ClusterManager) =============
+
+  void _initClusterManager() {
+    // Native cluster manager auto-clusters markers that carry our
+    // clusterManagerId. Nothing to wire up beyond marker creation.
+  }
+
+  void onClusterCameraMove(CameraPosition position) {
+    if (position.zoom == _currentZoom) return;
+    final wasVisible = arePolygonsVisible;
+    _currentZoom = position.zoom;
+    if (wasVisible != arePolygonsVisible) {
+      _safeNotifyListeners();
+    }
+  }
+
+  Future<void> onClusterTap(Cluster cluster) async {
+    if (mapController == null) return;
+    final targetZoom = (_currentZoom + 2).clamp(10.0, 18.0);
+    await mapController!.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: cluster.position, zoom: targetZoom),
+      ),
+    );
   }
 }

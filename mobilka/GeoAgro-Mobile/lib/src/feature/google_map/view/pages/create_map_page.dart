@@ -126,11 +126,13 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
             zoomControlsEnabled: false,
             polylines: vm.polylines,
             polygons: {
-              ...vm.regionBoundaries, // Границы области (внизу)
-              ...vm.nearbyPolygons, // Соседние плантации (посередине)
-              ...vm.polygons, // Текущие полигоны пользователя (сверху)
+              ...vm.regionBoundaries,
+              if (vm.arePolygonsVisible) ...vm.nearbyPolygons,
+              ...vm.polygons,
             },
             markers: vm.markers,
+            clusterManagers: vm.clusterManagers,
+            onCameraMove: vm.onClusterCameraMove,
             onTap: vm.onTap,
           ),
 
