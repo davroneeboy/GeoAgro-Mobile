@@ -127,18 +127,47 @@ class _NotificationTile extends StatelessWidget {
     this.onOpenPlantation,
   });
 
+  IconData _iconForType() {
+    switch (item.type) {
+      case 'plantation_created':
+        return Icons.add_circle_outline;
+      case 'plantation_updated':
+        return Icons.edit_note;
+      case 'plantation_rejected':
+        return Icons.cancel_outlined;
+      case 'plantation_approved':
+        return Icons.check_circle_outline;
+      case 'plantation_deleted':
+        return Icons.delete_outline;
+      default:
+        return item.isRead
+            ? Icons.notifications_none
+            : Icons.notifications_active;
+    }
+  }
+
+  Color _colorForPriority() {
+    switch (item.priority) {
+      case 'high':
+      case 'urgent':
+        return Colors.red;
+      case 'low':
+        return Colors.blueGrey;
+      default:
+        return item.isRead ? Colors.grey : Colors.orange;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final accent = _colorForPriority();
     return Dismissible(
       key: ValueKey("notif_${item.id}"),
       background: Container(color: Colors.redAccent),
       onDismissed: (_) => onDelete(),
       child: ListTile(
         onTap: onOpenPlantation,
-        leading: Icon(
-          item.isRead ? Icons.notifications_none : Icons.notifications_active,
-          color: item.isRead ? Colors.grey : Colors.orange,
-        ),
+        leading: Icon(_iconForType(), color: accent),
         title: Text(item.title,
             style: TextStyle(
                 fontWeight: item.isRead ? FontWeight.w400 : FontWeight.w600)),
@@ -146,6 +175,23 @@ class _NotificationTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(item.message),
+            SizedBox(height: 4.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 4.h,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (item.typeDisplay.isNotEmpty)
+                  _Chip(text: item.typeDisplay, color: accent),
+                if (item.priority.isNotEmpty && item.priority != 'normal')
+                  _Chip(text: item.priority, color: accent),
+                if (item.timeAgo.isNotEmpty)
+                  Text(
+                    item.timeAgo,
+                    style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+                  ),
+              ],
+            ),
             if (item.type == 'plantation_rejected' &&
                 (item.moderationComment ?? '').isNotEmpty)
               Padding(
@@ -166,6 +212,31 @@ class _NotificationTile extends StatelessWidget {
                 icon: const Icon(Icons.mark_email_read_outlined),
                 onPressed: onRead)
             : null,
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String text;
+  final Color color;
+  const _Chip({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11.sp,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
