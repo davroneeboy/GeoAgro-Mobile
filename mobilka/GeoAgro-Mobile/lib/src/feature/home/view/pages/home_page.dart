@@ -459,6 +459,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                     child: HomePageCardWidget(
                       plantation: plantation,
                       showEditButton: true,
+                      onDeleteSuccess: () {
+                        ref
+                            .read(homePageVM)
+                            .getPlantationsModel(isLoadMore: false);
+                      },
                     ),
                   );
                 },
