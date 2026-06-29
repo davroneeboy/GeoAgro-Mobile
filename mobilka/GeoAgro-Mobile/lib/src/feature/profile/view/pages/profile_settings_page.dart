@@ -20,6 +20,15 @@ import 'package:agro_employee_public/src/data/model/user/user_info_model.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:agro_employee_public/src/core/widgets/app_material_context.dart'
     show themeProvider;
+import 'package:agro_employee_public/src/core/services/fcm_service.dart';
+import 'package:agro_employee_public/src/core/services/pin_service.dart';
+import 'package:agro_employee_public/src/core/setting/setup.dart' as app_setup;
+import 'package:agro_employee_public/src/feature/fermers/view/pages/fermers_page.dart'
+    show fermerPageVM;
+import 'package:agro_employee_public/src/feature/home/view/pages/home_page.dart'
+    show homePageVM;
+import 'package:agro_employee_public/src/feature/home/view/pages/natification_page.dart'
+    show notificationsVM;
 
 class ProfileSettingsPage extends ConsumerStatefulWidget {
   const ProfileSettingsPage({super.key});
@@ -179,6 +188,19 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
           TextButton(
             onPressed: () async {
               await AppStorage.clearAllData();
+              app_setup.accessToken = null;
+              app_setup.userId = 0;
+              app_setup.districtId = 1;
+              app_setup.username = null;
+              app_setup.appPinSet = false;
+              app_setup.authMethod = AuthMethod.none;
+              app_setup.biometricEnabled = false;
+              try {
+                await FcmService().deleteToken();
+              } catch (_) {}
+              ref.invalidate(homePageVM);
+              ref.invalidate(fermerPageVM);
+              ref.invalidate(notificationsVM);
               if (context.mounted) {
                 context.go(AppRouteNames.login);
               }

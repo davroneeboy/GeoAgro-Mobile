@@ -16,8 +16,6 @@ class TokenInterceptor extends Interceptor {
 
   static final TokenInterceptor instance = TokenInterceptor._();
 
-
-
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
@@ -43,12 +41,12 @@ class TokenInterceptor extends Interceptor {
         "---------------------------------------------------------------------------\n\n",
       );
     }
-    
+
     // Check for auth-related messages even in successful responses
     final responseData = response.data;
     if (responseData != null) {
       String? errorMessage;
-      
+
       if (responseData is Map<String, dynamic>) {
         errorMessage = responseData['detail']?.toString() ??
             responseData['message']?.toString() ??
@@ -56,7 +54,7 @@ class TokenInterceptor extends Interceptor {
       } else if (responseData is String) {
         errorMessage = responseData;
       }
-      
+
       // Check if message indicates auth error (e.g., "Пароль был изменён")
       if (errorMessage != null) {
         final lower = errorMessage.toLowerCase();
@@ -67,23 +65,26 @@ class TokenInterceptor extends Interceptor {
             lower.contains('login again') ||
             lower.contains('please login')) {
           log("Auth error message detected in response. Redirecting to login...");
-          
-          // Clear stored tokens
+
+          // Clear stored tokens and reset globals
           await AppStorage.clearAllData();
           accessToken = null;
-          
+          userId = 0;
+          districtId = 1;
+          username = null;
+
           // Navigate to login page
           if (parentNavigatorKey.currentContext != null) {
             parentNavigatorKey.currentContext!.go(AppRouteNames.login);
             log("Redirected to login page from response");
           }
-          
+
           // Don't process the response further
           return;
         }
       }
     }
-    
+
     super.onResponse(response, handler);
   }
 
@@ -91,7 +92,7 @@ class TokenInterceptor extends Interceptor {
   Future<void> onError(
       DioException err, ErrorInterceptorHandler handler) async {
     log("TokenInterceptor onError called with status: ${err.response?.statusCode}");
-    
+
     if (kDebugMode) {
       log(
         "---------[TokenInterceptor]---------ON_ERROR(${err.response?.statusCode})------------------\n\n"
@@ -111,14 +112,13 @@ class TokenInterceptor extends Interceptor {
       return;
     }
 
-
     final responseData = err.response?.data;
     final statusCode = err.response?.statusCode;
-    
+
     // Check for version mismatch error (400 with "Мобил иловани янгилаш керак")
     if (statusCode == 400) {
       String? errorMessage;
-      
+
       if (responseData is Map<String, dynamic>) {
         errorMessage = responseData['detail']?.toString() ??
             responseData['message']?.toString() ??
@@ -126,7 +126,7 @@ class TokenInterceptor extends Interceptor {
       } else if (responseData is String) {
         errorMessage = responseData;
       }
-      
+
       if (errorMessage != null) {
         final lower = errorMessage.toLowerCase();
         // Проверяем различные варианты сообщения об обновлении
@@ -137,24 +137,24 @@ class TokenInterceptor extends Interceptor {
             lower.contains('version mismatch') ||
             lower.contains('app update required')) {
           log("Version mismatch detected (400): $errorMessage");
-          
+
           // Показываем диалог обновления
           if (parentNavigatorKey.currentContext != null) {
             _showUpdateDialog(parentNavigatorKey.currentContext!);
           } else {
             log("Warning: parentNavigatorKey.currentContext is null, cannot show update dialog");
           }
-          
+
           // Не пробрасываем ошибку дальше
           return;
         }
       }
     }
-    
+
     // Check if it's an authentication error (401 or specific error messages)
     bool isAuthError = false;
     bool shouldRedirectToLogin = false;
-    
+
     // Helper function to check if message indicates auth error
     bool isAuthErrorMessage(String message) {
       final lower = message.toLowerCase();
@@ -169,26 +169,27 @@ class TokenInterceptor extends Interceptor {
           lower.contains('authentication') ||
           lower.contains('unauthorized') ||
           lower.contains('expired') ||
-          lower.contains('invalid') && (lower.contains('token') || lower.contains('credential'));
+          lower.contains('invalid') &&
+              (lower.contains('token') || lower.contains('credential'));
     }
-    
+
     // Check for 401 status code
     if (statusCode == 401) {
       isAuthError = true;
       shouldRedirectToLogin = true;
       log("401 error detected in TokenInterceptor - token expired or invalid");
     }
-    
+
     // Check response data for auth-related messages (even if status code is not 401)
     if (responseData != null) {
       String? errorMessage;
-      
+
       if (responseData is Map<String, dynamic>) {
         // Check various fields for error messages
         errorMessage = responseData['detail']?.toString() ??
             responseData['message']?.toString() ??
             responseData['error']?.toString();
-        
+
         // Also check for token error codes
         if (responseData['code'] == 'token_not_valid' ||
             responseData['code'] == 'token_expired') {
@@ -198,7 +199,7 @@ class TokenInterceptor extends Interceptor {
       } else if (responseData is String) {
         errorMessage = responseData;
       }
-      
+
       // Check if error message indicates auth error
       if (errorMessage != null && isAuthErrorMessage(errorMessage)) {
         isAuthError = true;
@@ -206,15 +207,15 @@ class TokenInterceptor extends Interceptor {
         log("Auth error detected from message: $errorMessage");
       }
     }
-    
+
     // If it's an auth error, redirect to login
     if (shouldRedirectToLogin || isAuthError) {
       log("Authentication error detected. Clearing tokens and redirecting to login...");
-      
+
       // Clear stored tokens
       await AppStorage.clearAllData();
       accessToken = null;
-      
+
       // Navigate to login page
       if (parentNavigatorKey.currentContext != null) {
         parentNavigatorKey.currentContext!.go(AppRouteNames.login);
@@ -222,7 +223,7 @@ class TokenInterceptor extends Interceptor {
       } else {
         log("Warning: parentNavigatorKey.currentContext is null, cannot navigate to login");
       }
-      
+
       // Don't rethrow the error, just handle it silently
       // This prevents showing server error messages to the user
       return;
@@ -236,11 +237,12 @@ class TokenInterceptor extends Interceptor {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      
+
       // Пытаемся получить требуемую версию из ответа сервера или используем текущую
       // В реальности сервер может вернуть требуемую версию в ответе
-      final requiredVersion = currentVersion; // Можно улучшить, если сервер возвращает требуемую версию
-      
+      final requiredVersion =
+          currentVersion; // Можно улучшить, если сервер возвращает требуемую версию
+
       if (context.mounted) {
         showDialog(
           context: context,
@@ -255,4 +257,4 @@ class TokenInterceptor extends Interceptor {
       log("Error showing update dialog: $e");
     }
   }
-} 
+}
