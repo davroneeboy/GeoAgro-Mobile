@@ -452,7 +452,6 @@ class CreateMapPageVm extends ChangeNotifier {
         markerId: markerId,
         position: centroid,
         icon: BitmapDescriptor.defaultMarkerWithHue(markerColor),
-        clusterManagerId: const ClusterManagerId(_plantationClusterId),
         infoWindow: InfoWindow(
           title: plantation.getDisplayFarmerName(),
           snippet:

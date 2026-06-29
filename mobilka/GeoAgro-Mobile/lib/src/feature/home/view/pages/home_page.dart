@@ -21,6 +21,7 @@ import '../widgets/home_page_floataction_button_widget.dart';
 import '../widgets/home_drower.dart';
 import '../widgets/home_page_card_widget.dart';
 import '../../vm/home_page_vm.dart';
+import '../../vm/notifications_vm.dart';
 import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
@@ -105,9 +106,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  NotificationsVm? _notificationsVmRef;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _notificationsVmRef ??= ref.read(notificationsVM);
+  }
+
   @override
   void dispose() {
-    ref.read(notificationsVM).stopPolling();
+    _notificationsVmRef?.stopPolling();
     _scrollController.dispose();
     super.dispose();
   }

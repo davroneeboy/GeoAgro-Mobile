@@ -131,7 +131,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               ...vm.polygons,
             },
             markers: vm.markers,
-            clusterManagers: vm.clusterManagers,
             onCameraMove: vm.onClusterCameraMove,
             onTap: vm.onTap,
           ),
