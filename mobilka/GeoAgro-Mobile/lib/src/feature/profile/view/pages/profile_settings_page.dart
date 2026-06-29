@@ -239,6 +239,10 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
                     SizedBox(height: AppSpacing.sm.h),
                     _buildPermissionsCard(colors),
                     SizedBox(height: AppSpacing.xl.h),
+                    _buildSectionTitle("Qurilmalar", colors),
+                    SizedBox(height: AppSpacing.sm.h),
+                    _buildDevicesCard(colors),
+                    SizedBox(height: AppSpacing.xl.h),
                     _buildSectionTitle("Qo'llab-quvvatlash", colors),
                     SizedBox(height: AppSpacing.sm.h),
                     _buildSupportCard(colors),
@@ -549,6 +553,59 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // DEVICES
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildDevicesCard(AdaptiveColors colors) {
+    return _buildCard(
+      colors,
+      onTap: () => context.push('/${AppRouteNames.devices}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.devices_other_outlined,
+              color: design_colors.AppColors.accentGreen,
+              size: 24.sp,
+            ),
+            SizedBox(width: AppSpacing.md.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Ulangan qurilmalar",
+                    style: AppTypography.body(context).copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Akkauntga kirgan qurilmalarni ko'rish va o'chirish",
+                    style: AppTypography.caption(context).copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: colors.textSecondary,
+              size: 20.sp,
+            ),
+          ],
+        ),
       ),
     );
   }

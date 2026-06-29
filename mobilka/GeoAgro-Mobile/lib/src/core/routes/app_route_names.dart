@@ -9,7 +9,7 @@ final class AppRouteNames {
 
   // Home
   static const String home = "/";
-  
+
   // home -> Farmer
   // home -> Farmer -> Create Farmer
   // home -> Farmer -> Search Farmer
@@ -22,7 +22,7 @@ final class AppRouteNames {
   // Home -> Description Plantation
   static const String descriptionPage = "descriptionPage";
 
-    // Home -> Description Plantation
+  // Home -> Description Plantation
   static const String editPage = "editPage";
 
   // Home -> Farmer -> Map -> Create Plannation -> View Plantation
@@ -35,5 +35,5 @@ final class AppRouteNames {
   static const String plantationView = "plantationView";
   static const String plantationMapView = "plantationMapView";
   static const String farmersStatistics = "farmersStatistics";
-
+  static const String devices = "devices";
 }

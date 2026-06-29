@@ -669,6 +669,19 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   @override
+  Future<String?> getDeviceTokens() async {
+    try {
+      final data = await ApiService.get(ApiConst.apiDeviceTokens, {});
+      return data;
+    } on DioException catch (e) {
+      debugPrint("getDeviceTokens error: ${e.response?.data ?? e.message}");
+    } catch (e) {
+      debugPrint("getDeviceTokens unexpected error: $e");
+    }
+    return null;
+  }
+
+  @override
   Future<String?> removeDeviceToken({required String token}) async {
     try {
       final data =

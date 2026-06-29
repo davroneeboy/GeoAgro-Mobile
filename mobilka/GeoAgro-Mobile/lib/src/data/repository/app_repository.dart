@@ -17,8 +17,11 @@ abstract class AppRepo {
   Future<String?> getPlantationDetail({required int id});
 
   Future<String?> getRelatedPlantationsMap(int plantationId);
-  
-  Future<String?> getNearbyPlantations({required double latitude, required double longitude, double radius = 1000});
+
+  Future<String?> getNearbyPlantations(
+      {required double latitude,
+      required double longitude,
+      double radius = 1000});
 
   Future<String?> getUserPlantationsForMap();
 
@@ -30,7 +33,8 @@ abstract class AppRepo {
 
   Future<ApiResponse> postNewFermer({required CreateFermerModel fermer});
 
-  Future<ApiResponse> updateFarmer({required int id, required Map<String, dynamic> data});
+  Future<ApiResponse> updateFarmer(
+      {required int id, required Map<String, dynamic> data});
 
   Future<String?> getFruits();
 
@@ -44,19 +48,19 @@ abstract class AppRepo {
   Future<ApiResponse> editPlantation(
       {required int id, required Map<String, dynamic> body});
 
-
-
   Future<String?> editImage({required int id, required List<String> images});
 
   // Images per-endpoint operations
   Future<String?> getPlantationImages({required int id});
-  Future<ApiResponse> postPlantationImage({required int id, required String filePath});
-  Future<String?> deletePlantationImage({required int plantationId, required int imageId});
+  Future<ApiResponse> postPlantationImage(
+      {required int id, required String filePath});
+  Future<String?> deletePlantationImage(
+      {required int plantationId, required int imageId});
 
   Future<String?> getUserInfo();
-  
+
   Future<String?> getFarmerById(int farmerId);
-  
+
   Future<String?> getFarmersStatistics({
     int? districtId,
     int? regionId,
@@ -70,17 +74,23 @@ abstract class AppRepo {
     String? appVersion,
   });
   Future<String?> removeDeviceToken({required String token});
+  Future<String?> getDeviceTokens();
 
   // ==== Notifications ====
-  Future<String?> getNotifications({int limit = 20, int offset = 0, bool? unreadOnly, String? type});
+  Future<String?> getNotifications(
+      {int limit = 20, int offset = 0, bool? unreadOnly, String? type});
   Future<String?> getUnreadNotificationsCount();
-  Future<String?> markNotificationsAsRead({bool markAll = false, List<int>? ids});
+  Future<String?> markNotificationsAsRead(
+      {bool markAll = false, List<int>? ids});
   Future<String?> markNotificationAsRead({required int id});
   Future<String?> deleteNotification({required int id});
 
   // ==== Comments ====
   Future<String?> getPlantationComments({required int plantationId});
-  Future<ApiResponse> addPlantationComment({required int plantationId, required String body, bool isModeration = false});
+  Future<ApiResponse> addPlantationComment(
+      {required int plantationId,
+      required String body,
+      bool isModeration = false});
 
   // ==== Users ====
   Future<String?> getUserById({required int id});

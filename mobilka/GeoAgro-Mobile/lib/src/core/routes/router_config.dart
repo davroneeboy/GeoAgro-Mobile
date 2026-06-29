@@ -23,6 +23,7 @@ import '../../feature/fermers/view/pages/fermer_create_page.dart';
 import '../../feature/google_map/view/pages/create_map_page.dart';
 import '../../feature/google_map/view/pages/plantation_map_view_page.dart';
 import '../../feature/fermers/view/pages/farmers_statistics_page.dart';
+import '../../feature/profile/view/pages/devices_page.dart';
 import 'app_route_names.dart';
 import '../../../dev/dev_menu_page.dart';
 
@@ -89,7 +90,7 @@ final class RouterConfigService {
         path: '/dev-menu',
         builder: (context, state) => const DevMenuPage(),
       ),
-      
+
       // Biometric Lock
       GoRoute(
         path: AppRouteNames.biometricLock,
@@ -164,12 +165,10 @@ final class RouterConfigService {
           ),
           // Natifications
           GoRoute(
-                path: AppRouteNames.natificationPage,
-                pageBuilder: (context, state) => customEachTransitionAnimation(
-                    context, state, NatificationPage()),
-              ),
-
-
+            path: AppRouteNames.natificationPage,
+            pageBuilder: (context, state) => customEachTransitionAnimation(
+                context, state, NatificationPage()),
+          ),
 
           // Farmer List Page
           GoRoute(
@@ -188,14 +187,19 @@ final class RouterConfigService {
               GoRoute(
                 path: AppRouteNames.farmerPlantations,
                 pageBuilder: (context, state) {
-                  final farmerId = int.tryParse(state.uri.queryParameters['id'] ?? '0') ?? 0;
-                  final farmerInn = int.tryParse(state.uri.queryParameters['inn'] ?? '0') ?? 0;
-                  final farmerName = state.uri.queryParameters['name'] ?? 'Fermer';
+                  final farmerId =
+                      int.tryParse(state.uri.queryParameters['id'] ?? '0') ?? 0;
+                  final farmerInn =
+                      int.tryParse(state.uri.queryParameters['inn'] ?? '0') ??
+                          0;
+                  final farmerName =
+                      state.uri.queryParameters['name'] ?? 'Fermer';
                   return customEachTransitionAnimation(
-                    context, 
-                    state, 
+                    context,
+                    state,
                     FarmerPlantationsPage(
-                      farmerId: farmerId, // Сохраняем для отображения, но не используем в API
+                      farmerId:
+                          farmerId, // Сохраняем для отображения, но не используем в API
                       farmerInn: farmerInn,
                       farmerName: farmerName,
                     ),
@@ -207,11 +211,14 @@ final class RouterConfigService {
               GoRoute(
                 path: AppRouteNames.testPlantations,
                 pageBuilder: (context, state) {
-                  final farmerInn = int.tryParse(state.uri.queryParameters['inn'] ?? '0') ?? 0;
-                  final farmerName = state.uri.queryParameters['name'] ?? 'Fermer';
+                  final farmerInn =
+                      int.tryParse(state.uri.queryParameters['inn'] ?? '0') ??
+                          0;
+                  final farmerName =
+                      state.uri.queryParameters['name'] ?? 'Fermer';
                   return customEachTransitionAnimation(
-                    context, 
-                    state, 
+                    context,
+                    state,
                     TestPlantationsPage(
                       farmerInn: farmerInn,
                       farmerName: farmerName,
@@ -225,6 +232,13 @@ final class RouterConfigService {
                 path: AppRouteNames.farmersStatistics,
                 pageBuilder: (context, state) => customEachTransitionAnimation(
                     context, state, const FarmersStatisticsPage()),
+              ),
+
+              // Connected devices page
+              GoRoute(
+                path: AppRouteNames.devices,
+                pageBuilder: (context, state) => customEachTransitionAnimation(
+                    context, state, const DevicesPage()),
               ),
 
               // Google Map
