@@ -359,8 +359,10 @@ class EditVM extends ChangeNotifier {
   List<Map<String, dynamic>> _currentSubsidies() =>
       selectedEditSubsidy.map((e) => e.toJson()).toList();
 
-  List<Map<String, dynamic>> _currentFruitAreas() =>
-      selectedDetails.map((e) => e.toJson()).toList();
+  List<Map<String, dynamic>> _currentFruitAreas() => selectedDetails
+      .where((e) => e.fruit != null)
+      .map((e) => e.toJson())
+      .toList();
 
   Map<String, dynamic> _buildPatchBody(WidgetRef ref) {
     final body = <String, dynamic>{};

@@ -332,7 +332,7 @@ class DetailVM extends ChangeNotifier {
       }
     }
 
-    mockFruitArea = selectedDetails.map((detail) {
+    mockFruitArea = selectedDetails.where((d) => d.fruit != null).map((detail) {
       return FruitArea(
         fruit: detail.fruit,
         variety: detail.variety,
