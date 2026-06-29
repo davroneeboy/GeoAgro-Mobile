@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
@@ -9,6 +10,9 @@ import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 import '../../../../core/tools/assets.dart';
 import '../../../../core/widgets/pin_input_widget.dart';
+import '../../../home/view/pages/home_page.dart' show homePageVM;
+import '../../../fermers/view/pages/fermers_page.dart' show fermerPageVM;
+import '../../../home/view/pages/natification_page.dart' show notificationsVM;
 
 /// Экран обязательной установки PIN-кода.
 ///
@@ -17,14 +21,14 @@ import '../../../../core/widgets/pin_input_widget.dart';
 /// 2. Подтверждение PIN
 /// 3. Если устройство поддерживает биометрию — предложение использовать её
 /// 4. Переход на главную
-class PinSetupPage extends StatefulWidget {
+class PinSetupPage extends ConsumerStatefulWidget {
   const PinSetupPage({super.key});
 
   @override
-  State<PinSetupPage> createState() => _PinSetupPageState();
+  ConsumerState<PinSetupPage> createState() => _PinSetupPageState();
 }
 
-class _PinSetupPageState extends State<PinSetupPage> {
+class _PinSetupPageState extends ConsumerState<PinSetupPage> {
   final PinService _pinService = PinService.instance;
   final BiometricService _biometricService = BiometricService.instance;
 
@@ -128,6 +132,9 @@ class _PinSetupPageState extends State<PinSetupPage> {
 
     // В любом случае идём домой
     if (!mounted) return;
+    ref.invalidate(homePageVM);
+    ref.invalidate(fermerPageVM);
+    ref.invalidate(notificationsVM);
     context.go(AppRouteNames.home);
   }
 

@@ -118,6 +118,7 @@ class LoginVm extends ChangeNotifier {
         debugPrint("👤 User ID from API: $uId");
 
         if (uId is int && uId > 0) {
+          userId = uId;
           await AppStorage.$writeInt(key: StorageKey.userId, value: uId);
           debugPrint("💾 Stored userId: $uId");
         }
