@@ -1326,7 +1326,12 @@ class EditVM extends ChangeNotifier {
     required ImageSource source,
     BuildContext? context,
   }) async {
-    final XFile? pickedFile = await _picker.pickImage(source: source);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 70,
+      maxWidth: 1920,
+      maxHeight: 1920,
+    );
     if (pickedFile == null) return null;
 
     // Валидация формата изображения
