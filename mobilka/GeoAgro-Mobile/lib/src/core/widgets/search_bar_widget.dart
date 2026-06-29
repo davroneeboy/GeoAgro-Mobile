@@ -31,7 +31,7 @@ class SearchBarWidget extends StatefulWidget {
     required this.onSearchChanged,
     this.onExpansionChanged,
     this.debounceDuration = 500,
-    this.placeholder = "Faqat raqam kiriting...",
+    this.placeholder = "INN kiriting...",
   });
 
   @override
