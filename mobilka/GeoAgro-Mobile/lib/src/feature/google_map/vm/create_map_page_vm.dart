@@ -152,14 +152,12 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     try {
-      // ignore: deprecated_member_use
-      userArrowIcon = await BitmapDescriptor.fromAssetImage(
+      userArrowIcon = await BitmapDescriptor.asset(
         const ImageConfiguration(size: Size(64, 64)),
         'assets/images/user_arrow.png',
       );
     } catch (e) {
       debugPrint('Failed to load custom user arrow icon: $e');
-      // Если не удалось загрузить кастомную иконку, используем стандартную
       userArrowIcon =
           BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
     }
@@ -188,14 +186,22 @@ class CreateMapPageVm extends ChangeNotifier {
       _positionStreamSub = Geolocator.getPositionStream(
         locationSettings:
             const LocationSettings(accuracy: LocationAccuracy.best),
-      ).listen((position) {
-        if (position.heading >= 0) {
-          userHeading = position.heading;
-        }
-        currentLocation = LatLng(position.latitude, position.longitude);
-        _updateUserArrowMarker();
-        _safeNotifyListeners();
-      });
+      ).listen(
+        (position) {
+          if (position.heading >= 0) {
+            userHeading = position.heading;
+          }
+          currentLocation = LatLng(position.latitude, position.longitude);
+          _updateUserArrowMarker();
+          _safeNotifyListeners();
+        },
+        onError: (e) {
+          debugPrint('Position stream error: $e');
+          _positionStreamSub?.cancel();
+          _positionStreamSub = null;
+        },
+        cancelOnError: true,
+      );
     } catch (e) {
       // Если не удалось запустить поток местоположения, используем разовое получение
       await getCurrentLocation();
