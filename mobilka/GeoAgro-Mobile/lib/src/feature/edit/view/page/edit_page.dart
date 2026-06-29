@@ -657,11 +657,13 @@ class _EditPageState extends ConsumerState<EditPage> {
                 // TODO: Photo requirements indicator disabled for edit page
                 // Photo count validation is only required on create page
                 SizedBox(height: 12.h),
-                Builder(
-                  builder: (context) {
+                Consumer(
+                  builder: (context, ref, child) {
                     final existingCount = edit.existingImages.length;
-                    // Фиксированное количество слотов для фото на странице редактирования
-                    final itemCount = existingCount > 4 ? existingCount : 4;
+                    final required = edit.calculateMinimumPhotosRequired(ref);
+                    final base = required > 4 ? required : 4;
+                    final itemCount =
+                        existingCount > base ? existingCount : base;
                     return EditImageUploadListWidget(
                       existingImages: edit.existingImages,
                       showImagePicker: edit.showImagePicker,
