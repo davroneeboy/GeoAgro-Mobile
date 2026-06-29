@@ -33,6 +33,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
   List<FarmerData>? statistics;
   int? districtId;
   int? regionId;
+  int? _defaultDistrictId;
+  int? _defaultRegionId;
   PlantationStatus selectedStatus = PlantationStatus.all;
 
   final TextEditingController searchInnController = TextEditingController();
@@ -44,7 +46,7 @@ class FarmersStatisticsVm extends ChangeNotifier {
   bool _isDisposed = false;
 
   FarmersStatisticsVm();
-  
+
   void _safeNotifyListeners() {
     if (!_isDisposed) {
       notifyListeners();
@@ -59,17 +61,24 @@ class FarmersStatisticsVm extends ChangeNotifier {
   }
 
   void setRegion(int? id) {
-    regionId = id;
+    if (id == null) {
+      regionId = _defaultRegionId;
+      districtId = _defaultDistrictId;
+    } else {
+      regionId = id;
+      districtId = null;
+    }
     fetchStatistics();
   }
 
   /// Инициализация (вызывается вручную при открытии страницы)
   Future<void> initialize() async {
     if (_isDisposed) {
-      debugPrint("📊 FarmersStatisticsVM: initialize() called but already disposed");
+      debugPrint(
+          "📊 FarmersStatisticsVM: initialize() called but already disposed");
       return;
     }
-    
+
     debugPrint("📊 FarmersStatisticsVM: initialize() called");
     if (districtId != null && statistics != null) {
       debugPrint("📊 FarmersStatisticsVM: Already initialized, skipping");
@@ -79,14 +88,16 @@ class FarmersStatisticsVm extends ChangeNotifier {
     _safeNotifyListeners();
     debugPrint("📊 FarmersStatisticsVM: Getting district/region IDs...");
     await _getDistrictAndRegionIds();
-    
+
     if (_isDisposed) {
-      debugPrint("📊 FarmersStatisticsVM: Disposed after _getDistrictId, aborting");
+      debugPrint(
+          "📊 FarmersStatisticsVM: Disposed after _getDistrictId, aborting");
       return;
     }
-    
+
     if (districtId != null || regionId != null) {
-      debugPrint("📊 FarmersStatisticsVM: IDs found: districtId=$districtId, regionId=$regionId");
+      debugPrint(
+          "📊 FarmersStatisticsVM: IDs found: districtId=$districtId, regionId=$regionId");
       await fetchStatistics();
     } else {
       debugPrint("❌ FarmersStatisticsVM: District/Region IDs not found");
@@ -107,24 +118,30 @@ class FarmersStatisticsVm extends ChangeNotifier {
         final userInfo = jsonDecode(userInfoData);
         districtId = userInfo['district_id'];
         regionId = userInfo['region_id'];
-        debugPrint("📊 FarmersStatisticsVM: District ID extracted: $districtId");
+        _defaultDistrictId = districtId;
+        _defaultRegionId = regionId;
+        debugPrint(
+            "📊 FarmersStatisticsVM: District ID extracted: $districtId");
         debugPrint("📊 FarmersStatisticsVM: Region ID extracted: $regionId");
       } else {
         debugPrint("❌ FarmersStatisticsVM: getUserInfo returned null");
       }
     } catch (e) {
-      debugPrint("❌ FarmersStatisticsVM: Error getting district/region IDs: $e");
+      debugPrint(
+          "❌ FarmersStatisticsVM: Error getting district/region IDs: $e");
     }
   }
 
   Future<void> fetchStatistics() async {
     if (_isDisposed) {
-      debugPrint("📊 FarmersStatisticsVM: fetchStatistics() called but already disposed");
+      debugPrint(
+          "📊 FarmersStatisticsVM: fetchStatistics() called but already disposed");
       return;
     }
-    
+
     if (districtId == null && regionId == null) {
-      debugPrint("❌ FarmersStatisticsVM: Cannot fetch statistics - both districtId and regionId are null");
+      debugPrint(
+          "❌ FarmersStatisticsVM: Cannot fetch statistics - both districtId and regionId are null");
       return;
     }
 
@@ -133,7 +150,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      debugPrint("📊 FarmersStatisticsVM: Fetching statistics for districtId=$districtId, regionId=$regionId, status=${selectedStatus.param}");
+      debugPrint(
+          "📊 FarmersStatisticsVM: Fetching statistics for districtId=$districtId, regionId=$regionId, status=${selectedStatus.param}");
       final data = await _appRepositoryImpl.getFarmersStatistics(
         districtId: districtId,
         regionId: regionId,
@@ -141,7 +159,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
       );
 
       if (_isDisposed) {
-        debugPrint("📊 FarmersStatisticsVM: Disposed after getFarmersStatistics, aborting");
+        debugPrint(
+            "📊 FarmersStatisticsVM: Disposed after getFarmersStatistics, aborting");
         return;
       }
 
@@ -157,10 +176,12 @@ class FarmersStatisticsVm extends ChangeNotifier {
           if (jsonData is Map<String, dynamic> && jsonData['results'] != null) {
             final resultsJson = jsonEncode(jsonData['results']);
             statistics = farmerStatisticsModelFromJson(resultsJson);
-            debugPrint("✅ FarmersStatisticsVM: Parsed ${statistics?.length ?? 0} farmers");
+            debugPrint(
+                "✅ FarmersStatisticsVM: Parsed ${statistics?.length ?? 0} farmers");
           } else {
             statistics = farmerStatisticsModelFromJson(data);
-            debugPrint("✅ FarmersStatisticsVM: Parsed ${statistics?.length ?? 0} farmers (direct)");
+            debugPrint(
+                "✅ FarmersStatisticsVM: Parsed ${statistics?.length ?? 0} farmers (direct)");
           }
         } catch (jsonError) {
           debugPrint("❌ FarmersStatisticsVM: JSON Parsing Error: $jsonError");
@@ -190,7 +211,7 @@ class FarmersStatisticsVm extends ChangeNotifier {
 
   Future<void> searchByInn() async {
     if (_isDisposed) return;
-    
+
     final innText = searchInnController.text.trim();
     if (innText.isEmpty) {
       searchErrorMessage = "INN kiriting";
