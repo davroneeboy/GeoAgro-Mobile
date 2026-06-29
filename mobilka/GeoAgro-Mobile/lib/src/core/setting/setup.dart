@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:agro_employee_public/firebase_options.dart';
 import '../../data/model/fruits/fruit_model.dart';
 import '../storage/app_storage.dart';
@@ -15,34 +16,46 @@ int districtId = 1;
 int userId = 0;
 String? username;
 bool biometricEnabled = false;
-bool shouldOfferBiometric = false; // Флаг: показать предложение биометрии после логина
+bool shouldOfferBiometric =
+    false; // Флаг: показать предложение биометрии после логина
 AuthMethod authMethod = AuthMethod.none; // Метод аутентификации при запуске
 bool appPinSet = false; // Установлен ли in-app PIN
 List<FruitModel> fruitList = [];
 
 Future<void> setup() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
     log("Firebase initialized successfully");
+    try {
+      await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+      await FirebaseAnalytics.instance
+          .logEvent(name: 'app_open_test', parameters: {'src': 'setup'});
+      log("Analytics: collection enabled + test event sent");
+    } catch (e) {
+      log("Analytics enable/log failed: $e");
+    }
   } catch (e) {
     log("Firebase initialization failed: $e");
     // Continue without Firebase if it fails
   }
-  
+
   try {
     // Initialize storage and migrate tokens if needed
     await AppStorage.initialize();
-    
+
     accessToken = await AppStorage.$read(key: StorageKey.accessToken);
     isBloc = await AppStorage.$readBool(key: StorageKey.isBlocked) ?? false;
     username = await AppStorage.$read(key: StorageKey.username);
-    biometricEnabled = await AppStorage.$readBool(key: StorageKey.biometricEnabled) ?? false;
+    biometricEnabled =
+        await AppStorage.$readBool(key: StorageKey.biometricEnabled) ?? false;
     authMethod = await PinService.instance.getAuthMethod();
     appPinSet = await PinService.instance.isPinSet();
     log("Loaded authMethod: ${authMethod.name}, biometricEnabled: $biometricEnabled, appPinSet: $appPinSet");
-    final storedDistrict = await AppStorage.$readInt(key: StorageKey.districtId);
+    final storedDistrict =
+        await AppStorage.$readInt(key: StorageKey.districtId);
     if (storedDistrict != null && storedDistrict > 0) {
       districtId = storedDistrict;
       log("Loaded districtId from storage: $districtId");
@@ -53,7 +66,8 @@ Future<void> setup() async {
       log("Loaded userId from storage: $userId");
     }
     // Ensure we have fresh user info from API if authenticated
-    if (accessToken != null && (userId <= 0 || username == null || username!.isEmpty)) {
+    if (accessToken != null &&
+        (userId <= 0 || username == null || username!.isEmpty)) {
       try {
         final repo = AppRepositoryImpl();
         final userInfo = await repo.getUserInfo();
@@ -65,28 +79,33 @@ Future<void> setup() async {
             final apiDistrictId = decoded['district_id'];
             if (apiUserId is int && apiUserId > 0) {
               userId = apiUserId;
-              await AppStorage.$writeInt(key: StorageKey.userId, value: apiUserId);
+              await AppStorage.$writeInt(
+                  key: StorageKey.userId, value: apiUserId);
               log('Refreshed userId from API: $userId');
             }
             if (apiUsername is String && apiUsername.isNotEmpty) {
               username = apiUsername;
-              await AppStorage.$write(key: StorageKey.username, value: apiUsername);
+              await AppStorage.$write(
+                  key: StorageKey.username, value: apiUsername);
               log('Refreshed username from API: $username');
             }
             if (apiDistrictId is int && apiDistrictId > 0) {
               districtId = apiDistrictId;
-              await AppStorage.$writeInt(key: StorageKey.districtId, value: apiDistrictId);
+              await AppStorage.$writeInt(
+                  key: StorageKey.districtId, value: apiDistrictId);
               log('Refreshed districtId from API: $districtId');
             }
-            
+
             // Load is_specialuser and limit_km from API response
             final apiIsSpecialUser = decoded['is_specialuser'] ?? false;
-            await AppStorage.$writeBool(key: StorageKey.isSpecialUser, value: apiIsSpecialUser);
+            await AppStorage.$writeBool(
+                key: StorageKey.isSpecialUser, value: apiIsSpecialUser);
             log('Refreshed isSpecialUser from API: $apiIsSpecialUser');
-            
+
             final apiLimitKm = decoded['limit_km']?.toDouble();
             if (apiLimitKm != null) {
-              await AppStorage.$writeDouble(key: StorageKey.limitKm, value: apiLimitKm);
+              await AppStorage.$writeDouble(
+                  key: StorageKey.limitKm, value: apiLimitKm);
               log('Refreshed limitKm from API: $apiLimitKm km');
             } else {
               await AppStorage.$delete(key: StorageKey.limitKm);
