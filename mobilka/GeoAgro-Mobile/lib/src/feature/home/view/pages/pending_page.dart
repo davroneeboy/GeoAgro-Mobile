@@ -157,9 +157,21 @@ class _PendingPageState extends ConsumerState<PendingPage> {
             ),
           ],
         ),
-        body: Center(
-            child: CircularProgressIndicator(
-                color: design_colors.AppColors.accentGreen)),
+        body: RefreshIndicator(
+          onRefresh: () async => vm.fetch(isLoadMore: false),
+          color: design_colors.AppColors.accentGreen,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: design_colors.AppColors.accentGreen)),
+              ),
+            ),
+          ),
+        ),
       );
     }
     if (vm.errorMessage != null) {
@@ -177,9 +189,21 @@ class _PendingPageState extends ConsumerState<PendingPage> {
             ),
           ],
         ),
-        body: ErrorStateWidget(
-          errorMessage: vm.errorMessage ?? "Kutilmagan javob",
-          onTap: () => ref.read(pendingPageVM.notifier).fetch(),
+        body: RefreshIndicator(
+          onRefresh: () async => vm.fetch(isLoadMore: false),
+          color: design_colors.AppColors.accentGreen,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: ErrorStateWidget(
+                  errorMessage: vm.errorMessage ?? "Kutilmagan javob",
+                  onTap: () => ref.read(pendingPageVM.notifier).fetch(),
+                ),
+              ),
+            ),
+          ),
         ),
       );
     }

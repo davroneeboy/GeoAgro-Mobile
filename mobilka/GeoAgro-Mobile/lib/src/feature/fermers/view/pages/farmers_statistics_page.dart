@@ -88,13 +88,29 @@ class _BodyContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (vm.isLoading) {
-      return const LoadingWidget();
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: constraints.maxHeight,
+            child: const LoadingWidget(),
+          ),
+        ),
+      );
     }
 
     if (vm.errorMessage != null) {
-      return ErrorStateWidget(
-        errorMessage: vm.errorMessage!,
-        onTap: vm.refresh,
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: constraints.maxHeight,
+            child: ErrorStateWidget(
+              errorMessage: vm.errorMessage!,
+              onTap: vm.refresh,
+            ),
+          ),
+        ),
       );
     }
 

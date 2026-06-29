@@ -133,9 +133,21 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
             ),
           ],
         ),
-        body: Center(
-            child: CircularProgressIndicator(
-                color: design_colors.AppColors.accentGreen)),
+        body: RefreshIndicator(
+          onRefresh: () async => vm.fetch(isLoadMore: false),
+          color: design_colors.AppColors.accentGreen,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: design_colors.AppColors.accentGreen)),
+              ),
+            ),
+          ),
+        ),
       );
     }
     if (vm.errorMessage != null) {
@@ -153,9 +165,21 @@ class _RecheckPageState extends ConsumerState<RecheckPage> {
             ),
           ],
         ),
-        body: ErrorStateWidget(
-          errorMessage: vm.errorMessage ?? "Kutilmagan javob",
-          onTap: () => vm.fetch(isLoadMore: false),
+        body: RefreshIndicator(
+          onRefresh: () async => vm.fetch(isLoadMore: false),
+          color: design_colors.AppColors.accentGreen,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: ErrorStateWidget(
+                  errorMessage: vm.errorMessage ?? "Kutilmagan javob",
+                  onTap: () => vm.fetch(isLoadMore: false),
+                ),
+              ),
+            ),
+          ),
         ),
       );
     }

@@ -244,9 +244,25 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
-        body: Center(
-            child: Lottie.asset('assets/lotties/search.json',
-                width: 300.w, height: 300.h, fit: BoxFit.contain)),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await vm.getPlantationsModel(isLoadMore: false);
+          },
+          color: design_colors.AppColors.accentGreen,
+          backgroundColor: context.colors.surface,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: Center(
+                  child: Lottie.asset('assets/lotties/search.json',
+                      width: 300.w, height: 300.h, fit: BoxFit.contain),
+                ),
+              ),
+            ),
+          ),
+        ),
       );
     }
     if (vm.errorMessage != null) {
@@ -272,9 +288,24 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
-        body: ErrorStateWidget(
-            errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdi",
-            onTap: () => vm.getPlantationsModel(isLoadMore: false)),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await vm.getPlantationsModel(isLoadMore: false);
+          },
+          color: design_colors.AppColors.accentGreen,
+          backgroundColor: context.colors.surface,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: ErrorStateWidget(
+                    errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdi",
+                    onTap: () => vm.getPlantationsModel(isLoadMore: false)),
+              ),
+            ),
+          ),
+        ),
       );
     }
     return Scaffold(

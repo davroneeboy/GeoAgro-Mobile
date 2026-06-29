@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:agro_employee_public/design_system/tokens/colors.dart' as design_colors;
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
@@ -193,9 +194,22 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: design_colors.AppColors.accentGreen,
+          ? RefreshIndicator(
+              onRefresh: _loadUserInfo,
+              color: design_colors.AppColors.accentGreen,
+              backgroundColor: colors.surface,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: design_colors.AppColors.accentGreen,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             )
           : RefreshIndicator(
@@ -386,7 +400,8 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: design_colors.AppColors.accentGreen.withValues(alpha: 0.3),
+                    color: design_colors.AppColors.accentGreen
+                        .withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),

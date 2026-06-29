@@ -113,12 +113,25 @@ class _FermersPageState extends ConsumerState<FermersPage> {
             ),
           ],
         ),
-        body: Center(
-          child: Lottie.asset(
-            'assets/lotties/search.json',
-            width: 300.w,
-            height: 300.h,
-            fit: BoxFit.contain,
+        body: RefreshIndicator(
+          onRefresh: () async => vm.getFermers(isLoadMore: false),
+          color: design_colors.AppColors.accentGreen,
+          backgroundColor: context.colors.surface,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: Center(
+                  child: Lottie.asset(
+                    'assets/lotties/search.json',
+                    width: 300.w,
+                    height: 300.h,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -151,9 +164,22 @@ class _FermersPageState extends ConsumerState<FermersPage> {
             ),
           ],
         ),
-        body: ErrorStateWidget(
-            errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdo",
-            onTap: () => vm.getFermers()),
+        body: RefreshIndicator(
+          onRefresh: () async => vm.getFermers(isLoadMore: false),
+          color: design_colors.AppColors.accentGreen,
+          backgroundColor: context.colors.surface,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: ErrorStateWidget(
+                    errorMessage: vm.errorMessage ?? "Kutilmagan javob qaytdo",
+                    onTap: () => vm.getFermers()),
+              ),
+            ),
+          ),
+        ),
       );
     }
 
