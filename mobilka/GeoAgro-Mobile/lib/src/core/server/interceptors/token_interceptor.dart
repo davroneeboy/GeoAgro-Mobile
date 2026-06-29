@@ -106,8 +106,12 @@ class TokenInterceptor extends Interceptor {
 
     log("TokenInterceptor processing error: ${err.response?.statusCode} - ${err.response?.data}");
 
-    // Skip interception for login endpoint
-    if (err.requestOptions.path.contains('/api/login/')) {
+    // Skip interception for login + device-token endpoints; their
+    // failures should never log the user out.
+    final path = err.requestOptions.path;
+    if (path.contains('/api/login/') ||
+        path.contains('/api/refresh/') ||
+        path.contains('/api/device-tokens')) {
       super.onError(err, handler);
       return;
     }
@@ -155,7 +159,10 @@ class TokenInterceptor extends Interceptor {
     bool isAuthError = false;
     bool shouldRedirectToLogin = false;
 
-    // Helper function to check if message indicates auth error
+    // Helper function to check if message indicates auth error.
+    // Only matches phrases that explicitly point at re-login; avoids the
+    // word "token" alone because backend success messages mention it
+    // (e.g. "Device token ro'yxatga olindi").
     bool isAuthErrorMessage(String message) {
       final lower = message.toLowerCase();
       return lower.contains('пароль был изменён') ||
@@ -165,12 +172,11 @@ class TokenInterceptor extends Interceptor {
           lower.contains('login again') ||
           lower.contains('please login') ||
           lower.contains('please sign in') ||
-          lower.contains('token') ||
-          lower.contains('authentication') ||
-          lower.contains('unauthorized') ||
-          lower.contains('expired') ||
-          lower.contains('invalid') &&
-              (lower.contains('token') || lower.contains('credential'));
+          lower.contains('token is invalid') ||
+          lower.contains('invalid token') ||
+          lower.contains('token expired') ||
+          lower.contains('token has expired') ||
+          lower.contains('token not valid');
     }
 
     // Check for 401 status code
