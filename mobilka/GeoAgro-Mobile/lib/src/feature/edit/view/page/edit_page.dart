@@ -662,8 +662,22 @@ class _EditPageState extends ConsumerState<EditPage> {
                     final existingCount = edit.existingImages.length;
                     final required = edit.calculateMinimumPhotosRequired(ref);
                     final base = required > 4 ? required : 4;
-                    final itemCount =
-                        existingCount > base ? existingCount : base;
+                    // Count how many slots [0..upper) actually hold a photo
+                    // (existing or freshly uploaded). Always render one
+                    // extra empty slot beyond the last filled one so the
+                    // user can always add more — no hard cap at 4.
+                    int filled = 0;
+                    final upper = existingCount > base ? existingCount : base;
+                    for (int i = 0; i < upper; i++) {
+                      final hasExisting = i < existingCount;
+                      final hasUploaded = edit.getImageFile(i) != null;
+                      if (hasExisting || hasUploaded) filled++;
+                    }
+                    final itemCount = [
+                      base,
+                      existingCount,
+                      filled + 1,
+                    ].reduce((a, b) => a > b ? a : b);
                     return EditImageUploadListWidget(
                       existingImages: edit.existingImages,
                       showImagePicker: edit.showImagePicker,

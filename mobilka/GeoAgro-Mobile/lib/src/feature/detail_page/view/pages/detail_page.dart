@@ -755,9 +755,15 @@ class DetailPageState extends ConsumerState<DetailPage> {
                   builder: (context, ref, child) {
                     final requiredPhotos =
                         detailVm.calculateMinimumPhotosRequired(ref);
-                    final itemCount = requiredPhotos > 4
-                        ? requiredPhotos
-                        : 4; // Минимум 4 поля
+                    final base = requiredPhotos > 4 ? requiredPhotos : 4;
+                    // Count filled slots and always offer one extra empty
+                    // slot beyond the last filled one so the user can keep
+                    // adding photos past the minimum.
+                    int filled = 0;
+                    for (int i = 0; i < base; i++) {
+                      if (detailVm.getImageFile(i) != null) filled++;
+                    }
+                    final itemCount = base > (filled + 1) ? base : filled + 1;
                     return ImageUploadListWidget(
                       showImagePicker: detailVm.showImagePicker,
                       getImageFile: detailVm.getImageFile,
