@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:agro_employee_public/firebase_options.dart';
+import '../services/fcm_service.dart';
 import '../../data/model/fruits/fruit_model.dart';
 import '../storage/app_storage.dart';
 import '../../data/repository/app_repository_impl.dart';
@@ -123,6 +124,12 @@ Future<void> setup() async {
     // Set default values if storage fails
     accessToken = null;
     isBloc = false;
+  }
+
+  try {
+    await FcmService().initialize();
+  } catch (e) {
+    log("FCM initialization failed: $e");
   }
 }
 
