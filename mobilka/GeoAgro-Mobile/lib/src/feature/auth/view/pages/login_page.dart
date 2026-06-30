@@ -319,12 +319,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       isLoading: vm.isLoading,
       isEnabled: !vm.isLoading,
       onPressed: () async {
-        final currentFocus = FocusManager.instance.primaryFocus;
-        if (currentFocus != null && currentFocus.hasFocus) {
-          currentFocus.unfocus();
-          await Future.delayed(const Duration(milliseconds: 50));
-          if (!mounted) return;
-        }
+        FocusManager.instance.primaryFocus?.unfocus();
         if (!vm.formKey.currentState!.validate()) {
           Utils.fireTopSnackBar(
             "Iltimos, ma'lumotlarni to'g'ri kiriting.",
