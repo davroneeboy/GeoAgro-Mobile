@@ -41,55 +41,13 @@ class AppColors {
   static const Color chartEmerald = Color(0xFF10B981); // Emerald-500
   static const Color chartMint = Color(0xFF38E3A8); // Custom mint
 
-  // ===== LEGACY COLORS (for backward compatibility - will be deprecated) =====
-  @Deprecated('Use darkTextPrimary instead')
+  // ===== LEGACY COLORS (still referenced; remove once call sites migrate) =====
   static const Color white = Color(0xFFFFFFFF);
-
-  @Deprecated('Use darkBackground instead')
   static const Color black = Color(0xFF000000);
-
-  @Deprecated('Use accentGreen instead')
-  static const Color c28A745 = Color(0xFF28A745);
-
-  @Deprecated('Use error instead')
-  static const Color cE60C0C = Color(0xFFE60C0C);
-
-  @Deprecated('Use darkSurface instead')
-  static const Color cF7F7F7 = Color(0xFFF7F7F7);
-
-  @Deprecated('Use darkTextPrimary instead')
   static const Color c1E1E1E = Color(0xFF1E1E1E);
-
-  // Legacy opacity variants (keeping for compatibility)
-  static const Color c1E1E1E06 = Color.fromRGBO(30, 30, 30, 0.06);
-  static const Color c1E1E1E10 = Color.fromRGBO(30, 30, 30, 0.1);
-  static const Color c1E1E1E16 = Color.fromRGBO(30, 30, 30, 0.16);
-  static const Color c1E1E1E20 = Color.fromRGBO(30, 30, 30, 0.2);
-  static const Color c1E1E1E40 = Color.fromRGBO(30, 30, 30, 0.4);
-  static const Color c1E1E1E50 = Color.fromRGBO(30, 30, 30, 0.5);
   static const Color c1E1E1E70 = Color.fromRGBO(30, 30, 30, 0.7);
-  static const Color c1E1E1E80 = Color.fromRGBO(30, 30, 30, 0.8);
   static const Color c1E1E1E90 = Color.fromRGBO(30, 30, 30, 0.9);
-
-  // Additional legacy colors for statistics
-  static const Color cFF0000 = Color(0xFFFF0000);
-  static const Color cFF000080 = Color.fromRGBO(255, 0, 0, 0.8);
-  static const Color cFF6B35 = Color(0xFFFF6B35);
-  static const Color c4CAF50 = Color(0xFF4CAF50);
-  static const Color c2196F3 = Color(0xFF2196F3);
-  static const Color c8BC34A = Color(0xFF8BC34A);
-  static const Color cFF9800 = Color(0xFFFF9800);
-  static const Color cFF5722 = Color(0xFFFF5722);
-  static const Color cF44336 = Color(0xFFF44336);
-  static const Color c666666 = Color(0xFF666666);
-  static const Color c475569 = Color(0xFF475569);
-  static const Color cF2F3F2 = Color.fromARGB(255, 192, 192, 192);
-  static const Color cF1F5F9 = Color.fromRGBO(241, 145, 149, 1);
-  static const Color c186C757D = Color.fromRGBO(108, 117, 125, 0.1);
-  static const Color c28A74510 = Color.fromRGBO(40, 167, 69, 0.1);
-  static const Color c28A74540 = Color.fromRGBO(40, 167, 69, 0.4);
-  static const Color c28A74580 = Color.fromRGBO(40, 167, 69, 0.8);
-  static const Color cE60C0C02 = Color.fromRGBO(230, 12, 12, 0.2);
+  static const Color c28A745 = Color(0xFF28A745);
 
   // ===== LIGHT THEME =====
   static const Color lightBackground = Color(0xFFF2F2F7); // iOS system gray 6
