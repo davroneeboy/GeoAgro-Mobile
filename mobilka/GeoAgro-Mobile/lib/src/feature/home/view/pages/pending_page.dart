@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../../../../core/utils/dio_error_utils.dart';
+import '../../../../data/repository/app_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,7 +19,6 @@ import '../../../../core/server/api/api.dart';
 import '../../../../core/server/api/api_constants.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
-import '../../../../data/repository/app_repository_impl.dart';
 import '../widgets/home_page_card_widget.dart';
 import '../../vm/home_page_vm.dart';
 
@@ -71,7 +72,7 @@ class _PendingVm extends ChangeNotifier {
           page: currentPage, search: _searchQuery);
       final data = await ApiService.get(ApiConst.apiPlantationsPending, query);
       if (data == null) {
-        errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+        errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
       } else {
         final model = PlantationsListModel.fromJson(jsonDecode(data));
         final incomingItems = model.results ?? [];
@@ -102,7 +103,7 @@ class _PendingVm extends ChangeNotifier {
         canLoadNext = model.next != null;
       }
     } catch (e) {
-      errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      errorMessage = DioErrorUtils.messageFromAny(e);
     } finally {
       isFetchingMore = false;
       isLoading = false;

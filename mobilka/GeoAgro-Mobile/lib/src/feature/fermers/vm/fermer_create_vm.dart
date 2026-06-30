@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/dio_error_utils.dart';
+import '../../../data/repository/app_repository_impl.dart';
 
 import '../../../core/setting/setup.dart';
 import '../../../data/model/farmer/create_fermer_model.dart';
-import '../../../data/repository/app_repository_impl.dart';
 
 class FermerCreateVm extends ChangeNotifier {
   String? errorMessage;
@@ -256,7 +257,7 @@ class FermerCreateVm extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      errorMessage = DioErrorUtils.messageFromAny(e);
       return false;
     } finally {
       _setLoading(false);

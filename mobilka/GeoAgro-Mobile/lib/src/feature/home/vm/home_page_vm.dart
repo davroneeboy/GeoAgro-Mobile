@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/dio_error_utils.dart';
 import '../../../data/model/plantation/plantations_list_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 
@@ -109,7 +110,8 @@ class HomePageVm extends ChangeNotifier {
       );
 
       if (data == null) {
-        errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+        errorMessage = AppRepositoryImpl.lastErrorMessage ??
+            "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
         try {
           log("Received data length: ${data.length}");
@@ -133,7 +135,7 @@ class HomePageVm extends ChangeNotifier {
     } catch (e, stackTrace) {
       log("Error in getPlantationsModel: $e");
       log("Stack trace: $stackTrace");
-      errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+      errorMessage = DioErrorUtils.messageFromAny(e);
     } finally {
       _setFetchingMore(false);
       _setLoading(false);
@@ -195,25 +197,29 @@ class HomePageVm extends ChangeNotifier {
             try {
               final originalData = data.toString();
               String? errorMessage;
-              
+
               // Вариант 1: {error: message} - с фигурными скобками
-              var errorMatch = RegExp(r'\{error:\s*([^}]+)\}').firstMatch(originalData);
+              var errorMatch =
+                  RegExp(r'\{error:\s*([^}]+)\}').firstMatch(originalData);
               if (errorMatch != null) {
                 errorMessage = errorMatch.group(1)?.trim();
               }
-              
+
               // Вариант 2: error: message - без фигурных скобок в начале
               if (errorMessage == null || errorMessage.isEmpty) {
-                errorMatch = RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                errorMatch =
+                    RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
                 if (errorMatch != null) {
                   errorMessage = errorMatch.group(1)?.trim();
                   // Убираем закрывающую скобку, если она есть в конце
                   if (errorMessage != null && errorMessage.endsWith('}')) {
-                    errorMessage = errorMessage.substring(0, errorMessage.length - 1).trim();
+                    errorMessage = errorMessage
+                        .substring(0, errorMessage.length - 1)
+                        .trim();
                   }
                 }
               }
-              
+
               // Вариант 3: просто ищем текст после "error:" до конца строки или до закрывающей скобки
               if (errorMessage == null || errorMessage.isEmpty) {
                 final errorIndex = originalData.toLowerCase().indexOf('error:');
@@ -221,13 +227,14 @@ class HomePageVm extends ChangeNotifier {
                   final startIndex = errorIndex + 6; // длина "error:"
                   final endIndex = originalData.indexOf('}', startIndex);
                   if (endIndex != -1) {
-                    errorMessage = originalData.substring(startIndex, endIndex).trim();
+                    errorMessage =
+                        originalData.substring(startIndex, endIndex).trim();
                   } else {
                     errorMessage = originalData.substring(startIndex).trim();
                   }
                 }
               }
-              
+
               if (errorMessage != null && errorMessage.isNotEmpty) {
                 debugPrint("Delete: Extracted error message: $errorMessage");
                 deletMessage = errorMessage;
@@ -351,35 +358,41 @@ class HomePageVm extends ChangeNotifier {
                     // Формат: {error: No Plantation matches the given query.}
                     // Пробуем разные варианты регулярных выражений
                     String? errorMessage;
-                    
+
                     // Вариант 1: {error: message}
-                    var errorMatchResult = RegExp(r'\{error:\s*([^}]+)\}').firstMatch(originalData);
+                    var errorMatchResult = RegExp(r'\{error:\s*([^}]+)\}')
+                        .firstMatch(originalData);
                     if (errorMatchResult != null) {
                       errorMessage = errorMatchResult.group(1)?.trim();
                     }
-                    
+
                     // Вариант 2: error: message (без фигурных скобок)
                     if (errorMessage == null) {
-                      errorMatchResult = RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
+                      errorMatchResult =
+                          RegExp(r'error:\s*([^}]+)').firstMatch(originalData);
                       if (errorMatchResult != null) {
                         errorMessage = errorMatchResult.group(1)?.trim();
                       }
                     }
-                    
+
                     // Вариант 3: просто ищем текст после "error:"
                     if (errorMessage == null) {
-                      final errorIndex = originalData.toLowerCase().indexOf('error:');
+                      final errorIndex =
+                          originalData.toLowerCase().indexOf('error:');
                       if (errorIndex != -1) {
                         final startIndex = errorIndex + 6; // длина "error:"
                         final endIndex = originalData.indexOf('}', startIndex);
                         if (endIndex != -1) {
-                          errorMessage = originalData.substring(startIndex, endIndex).trim();
+                          errorMessage = originalData
+                              .substring(startIndex, endIndex)
+                              .trim();
                         } else {
-                          errorMessage = originalData.substring(startIndex).trim();
+                          errorMessage =
+                              originalData.substring(startIndex).trim();
                         }
                       }
                     }
-                    
+
                     if (errorMessage != null && errorMessage.isNotEmpty) {
                       debugPrint(
                           "Delete: Extracted error message from invalid JSON: $errorMessage");
@@ -425,8 +438,9 @@ class HomePageVm extends ChangeNotifier {
   Future<bool> deletePlantationPermanently(
       {required int id, String? reason}) async {
     deletMessage = null;
-    debugPrint("Delete: Starting permanent deletion request for plantation ID: $id");
-    
+    debugPrint(
+        "Delete: Starting permanent deletion request for plantation ID: $id");
+
     _setDeleting(true);
     _safeNotifyListeners();
 

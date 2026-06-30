@@ -6,6 +6,7 @@ import "package:flutter/material.dart";
 
 import "app_repository.dart";
 import "../../core/server/api/api.dart";
+import "../../core/utils/dio_error_utils.dart";
 import "../model/response/api_response.dart";
 import "../../core/server/api/api_constants.dart";
 import "../model/farmer/create_fermer_model.dart";
@@ -19,6 +20,20 @@ class AppRepositoryImpl implements AppRepo {
   static final _inner = AppRepositoryImpl._();
 
   factory AppRepositoryImpl() => _inner;
+
+  /// Last error message produced by a backend call. VMs that get `null`
+  /// from a method can read this to surface the real reason to the user.
+  static String? lastErrorMessage;
+
+  static void _recordError(Object e) {
+    if (e is DioException) {
+      lastErrorMessage = DioErrorUtils.message(e);
+    } else {
+      lastErrorMessage = DioErrorUtils.messageFromAny(e);
+    }
+  }
+
+  static void _clearError() => lastErrorMessage = null;
 
   /// Login method
   @override
@@ -40,18 +55,17 @@ class AppRepositoryImpl implements AppRepo {
 
   @override
   Future<String?> getPlantationsList({int? page, String? search}) async {
+    _clearError();
     try {
-      final data = await ApiService.get(
+      return await ApiService.get(
         ApiConst.apiPlantationsForme,
         ApiParams.pageWithSearchParams(page: page ?? 1, search: search),
       );
-      return data;
-    } on DioException catch (e) {
-      debugPrint("Server error: ${e.response?.data ?? e.message}");
     } catch (e) {
-      debugPrint("Unexpected error: $e");
+      _recordError(e);
+      debugPrint("getPlantationsList error: $e");
+      return null;
     }
-    return null;
   }
 
   /// Delete Plantation method (for unconfirmed plantations - direct DELETE)
@@ -95,6 +109,7 @@ class AppRepositoryImpl implements AppRepo {
     } on DioException catch (e) {
       debugPrint(
           "deletePlantationModel: DioException - Status: ${e.response?.statusCode}");
+      _recordError(e);
       debugPrint(
           "deletePlantationModel: DioException - Data: ${e.response?.data ?? e.message}");
 
@@ -133,6 +148,7 @@ class AppRepositoryImpl implements AppRepo {
       }
     } catch (e) {
       debugPrint("deletePlantationModel: Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -202,6 +218,7 @@ class AppRepositoryImpl implements AppRepo {
     } on DioException catch (e) {
       debugPrint(
           "deletePlantation: DioException - Status: ${e.response?.statusCode}");
+      _recordError(e);
       debugPrint(
           "deletePlantation: DioException - Data: ${e.response?.data ?? e.message}");
 
@@ -246,6 +263,7 @@ class AppRepositoryImpl implements AppRepo {
       }
     } catch (e) {
       debugPrint("deletePlantation: Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -259,8 +277,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -282,8 +302,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -306,8 +328,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -327,11 +351,13 @@ class AppRepositoryImpl implements AppRepo {
     } on DioException catch (e) {
       debugPrint(
           "Server error in getUserPlantationsForMap: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
+      _recordError(e);
       if (e.response?.statusCode == 401) {
         debugPrint("Authentication error - token may be expired");
       }
     } catch (e) {
       debugPrint("Unexpected error in getUserPlantationsForMap: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -354,10 +380,12 @@ class AppRepositoryImpl implements AppRepo {
     } on DioException catch (e) {
       debugPrint(
           "❌ Server error in getFermersList: ${e.response?.statusCode} - ${e.response?.data ?? e.message}");
+      _recordError(e);
       debugPrint("❌ Request URL: ${ApiConst.baseUrl}${ApiConst.apiFermers}");
       debugPrint("❌ Request params: ${ApiParams.pageParams(page: page ?? 1)}");
     } catch (e) {
       debugPrint("❌ Unexpected error in getFermersList: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -372,8 +400,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -397,6 +427,7 @@ class AppRepositoryImpl implements AppRepo {
     } on DioException catch (e) {
       debugPrint(
           "getFarmerPlantations: Server error: ${e.response?.statusCode}");
+      _recordError(e);
       debugPrint(
           "getFarmerPlantations: Error data: ${e.response?.data ?? e.message}");
       debugPrint("getFarmerPlantations: Request URL: ${e.requestOptions.uri}");
@@ -407,6 +438,7 @@ class AppRepositoryImpl implements AppRepo {
       }
     } catch (e) {
       debugPrint("getFarmerPlantations: Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -455,9 +487,11 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
       return "Server error: ${e.response?.statusCode ?? 'Unknown status code'}";
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
       return "Unexpected error: $e";
     }
   }
@@ -473,9 +507,11 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
       return "Server error: ${e.response?.statusCode ?? 'Unknown status code'}";
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
       return "Unexpected error: $e";
     }
   }
@@ -491,9 +527,11 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
       return "Server error: ${e.response?.statusCode ?? 'Unknown status code'}";
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
       return "Unexpected error: $e";
     }
   }
@@ -542,8 +580,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -569,8 +609,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -584,9 +626,11 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
       return "Server error: ${e.response?.statusCode ?? 'Unknown status code'}";
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
       return "Unexpected error: $e";
     }
   }
@@ -600,8 +644,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -614,8 +660,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -636,8 +684,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -662,8 +712,10 @@ class AppRepositoryImpl implements AppRepo {
       return jsonEncode(response.data);
     } on DioException catch (e) {
       debugPrint("registerDeviceToken error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("registerDeviceToken unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -675,8 +727,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("getDeviceTokens error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("getDeviceTokens unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -689,8 +743,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("removeDeviceToken error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("removeDeviceToken unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -706,8 +762,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -720,8 +778,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -737,8 +797,10 @@ class AppRepositoryImpl implements AppRepo {
       return response?.toString();
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -751,8 +813,10 @@ class AppRepositoryImpl implements AppRepo {
       return response?.toString();
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -764,8 +828,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -781,8 +847,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("Unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }
@@ -825,8 +893,10 @@ class AppRepositoryImpl implements AppRepo {
       return data;
     } on DioException catch (e) {
       debugPrint("getUserById error: ${e.response?.data ?? e.message}");
+      _recordError(e);
     } catch (e) {
       debugPrint("getUserById unexpected error: $e");
+      _recordError(e);
     }
     return null;
   }

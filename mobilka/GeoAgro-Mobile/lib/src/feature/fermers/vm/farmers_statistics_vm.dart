@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import '../../../core/utils/dio_error_utils.dart';
+import '../../../data/repository/app_repository_impl.dart';
 import '../../../../localization/app_strings.dart';
 
 import '../../../data/model/farmer/farmer_statistics_model.dart';
 import '../../../data/model/farmer/farmer_list_model.dart';
-import '../../../data/repository/app_repository_impl.dart';
 
 enum PlantationStatus { all, approved, rejected, pending }
 
@@ -167,7 +168,7 @@ class FarmersStatisticsVm extends ChangeNotifier {
       if (data == null) {
         debugPrint("❌ FarmersStatisticsVM: getFarmersStatistics returned null");
         if (!_isDisposed) {
-          errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+          errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
         }
       } else {
         debugPrint("✅ FarmersStatisticsVM: Statistics data received");
@@ -194,7 +195,7 @@ class FarmersStatisticsVm extends ChangeNotifier {
     } catch (e) {
       debugPrint("❌ FarmersStatisticsVM: Error fetching statistics: $e");
       if (!_isDisposed) {
-        errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+        errorMessage = DioErrorUtils.messageFromAny(e);
       }
     } finally {
       if (!_isDisposed) {

@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/utils/dio_error_utils.dart';
+import '../../../data/repository/app_repository_impl.dart';
 
 import '../../../data/model/notification/notification_models.dart';
-import '../../../data/repository/app_repository_impl.dart';
 
 class NotificationsVm extends ChangeNotifier {
   final AppRepositoryImpl _repo;
@@ -30,9 +31,11 @@ class NotificationsVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final data = await _repo.getNotifications(limit: limit, offset: offset, unreadOnly: unreadOnly);
+      final data = await _repo.getNotifications(
+          limit: limit, offset: offset, unreadOnly: unreadOnly);
       if (data == null) {
-        errorMessage = "Server bilan bog'liq xatolik yuzaga keldi.";
+        errorMessage = AppRepositoryImpl.lastErrorMessage ??
+            "Server bilan bog\'liq xatolik yuzaga keldi.";
       } else {
         final jsonData = jsonDecode(data) as Map<String, dynamic>;
         final resp = NotificationsResponse.fromJson(jsonData);
@@ -41,8 +44,8 @@ class NotificationsVm extends ChangeNotifier {
         hasMore = resp.hasMore;
         offset += resp.notifications.length;
       }
-    } catch (_) {
-      errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+    } catch (e) {
+      errorMessage = DioErrorUtils.messageFromAny(e);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -203,4 +206,3 @@ class NotificationsVm extends ChangeNotifier {
     super.dispose();
   }
 }
-
