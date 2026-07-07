@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as p;
 import 'dart:io';
@@ -191,10 +192,10 @@ class DetailVM extends ChangeNotifier {
   int direction = 0;
   List<Coordinate> coordinates = [];
   double? polygonArea; // Площадь полигона в гектарах
-  Map<String, double> userLocation = {
-    'latitude': 41.311081,
-    'longitude': 69.240562,
-  }; // Текущее местоположение пользователя для user_location (всегда установлено)
+  /// GPS-точка пользователя для user_location. null — точка недоступна,
+  /// в этом случае на сервер ничего не отправляем (фейковые координаты
+  /// портят историю точек).
+  Map<String, double>? userLocation;
   TextEditingController tonnaController = TextEditingController();
   TextEditingController commentsController = TextEditingController();
 
@@ -384,60 +385,43 @@ class DetailVM extends ChangeNotifier {
       // Комментарий будет отправлен отдельным запросом после создания
       jsonData.remove('comments');
       jsonData.remove('moderation_comment');
-      // Добавляем user_location (всегда валиден, так как передается из карты)
-      p.log("🔍 DetailVM createPt: START - userLocation value: $userLocation");
-      p.log(
-          "🔍 DetailVM createPt: userLocation type: ${userLocation.runtimeType}");
-      p.log(
-          "🔍 DetailVM createPt: userLocation keys: ${userLocation.keys.toList()}");
-      p.log(
-          "🔍 DetailVM createPt: userLocation['latitude']: ${userLocation['latitude']}");
-      p.log(
-          "🔍 DetailVM createPt: userLocation['longitude']: ${userLocation['longitude']}");
-      try {
-        final lat = (userLocation['latitude'] as num).toDouble();
-        final lng = (userLocation['longitude'] as num).toDouble();
-        p.log("🔍 DetailVM createPt: Parsed lat: $lat, lng: $lng");
-
-        p.log("🔍 DetailVM: Parsed coordinates - lat: $lat, lng: $lng");
-
-        // Валидация координат
-        if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-          // Отправляем user_location как объект (Map), как в Postman
-          // Формат: user_location[latitude] и user_location[longitude]
-          jsonData['user_location'] = {
-            'latitude': lat,
-            'longitude': lng,
-          };
-          p.log(
-              "✅ DetailVM: user_location added as object: ${jsonData['user_location']}");
-          p.log(
-              "✅ DetailVM: user_location in jsonData type: ${jsonData['user_location'].runtimeType}");
-        } else {
-          p.log(
-              "❌ DetailVM: Invalid coordinates: lat=$lat, lng=$lng, not adding user_location");
-          p.log(
-              "❌ DetailVM: Validation failed - lat range: ${lat >= -90 && lat <= 90}, lng range: ${lng >= -180 && lng <= 180}");
-        }
-      } catch (e, stackTrace) {
-        p.log("❌ DetailVM: Error parsing user_location: $e");
-        p.log("❌ DetailVM: Stack trace: $stackTrace");
-      }
+      // user_location НЕ кладём в multipart: create-endpoint игнорирует
+      // bracket-нотацию (проверено: 201, но user_locations пуст). Точка
+      // досылается отдельным JSON PATCH после успешного создания.
       List<String> images = [];
       for (var mapEntry in _imageFiles.entries) {
         images.add(mapEntry.value!.path);
       }
       p.log("📦 DetailVM: Full JSON body before sending:");
       p.log("📦 DetailVM: ${jsonEncode(jsonData)}");
-      p.log(
-          "📦 DetailVM: user_location in jsonData: ${jsonData['user_location']}");
-      if (jsonData['user_location'] != null) {
-        p.log(
-            "📦 DetailVM: user_location type: ${jsonData['user_location'].runtimeType}");
-      }
       final response = await _appRepositoryImpl.postCreatePlantationWithImages(
           body: jsonData, image: images);
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // ID созданной плантации нужен и для user_location, и для комментария
+        dynamic responseData = response.data;
+        if (responseData is String) {
+          try {
+            responseData = jsonDecode(responseData);
+          } catch (e) {
+            p.log("⚠️ DetailVM: Failed to parse responseData as JSON: $e");
+          }
+        }
+        final int? createdId = responseData is Map<String, dynamic>
+            ? responseData['id'] as int?
+            : null;
+
+        // Досылаем GPS-точку отдельным JSON PATCH: create-endpoint принимает
+        // только multipart и теряет user_location. Best-effort — ошибка
+        // отправки точки не должна ломать основной флоу.
+        final loc = userLocation;
+        if (createdId != null && loc != null) {
+          unawaited(_appRepositoryImpl.sendUserLocation(
+            plantationId: createdId,
+            latitude: loc['latitude']!,
+            longitude: loc['longitude']!,
+          ));
+        }
+
         // Если был введен комментарий, добавляем его после создания плантации
         final rawCommentsText = commentsController.text.trim();
         if (rawCommentsText.isNotEmpty) {
@@ -445,22 +429,7 @@ class DetailVM extends ChangeNotifier {
           final commentsText =
               SanitizationUtils.sanitizeComment(rawCommentsText);
           try {
-            // Получаем ID созданной плантации из ответа
-            dynamic responseData = response.data;
-            int? plantationId;
-
-            // Если responseData - строка, пытаемся распарсить её как JSON
-            if (responseData is String) {
-              try {
-                responseData = jsonDecode(responseData);
-              } catch (e) {
-                p.log("⚠️ DetailVM: Failed to parse responseData as JSON: $e");
-              }
-            }
-
-            if (responseData is Map<String, dynamic>) {
-              plantationId = responseData['id'] as int?;
-            }
+            final plantationId = createdId;
 
             if (plantationId != null) {
               p.log(
@@ -1298,18 +1267,15 @@ class DetailVM extends ChangeNotifier {
   void setValue({
     required int id,
     required List<Coordinate> coordinate,
-    required Map<String, double> userLocation,
+    Map<String, double>? userLocation,
     double? polygonArea,
   }) {
     farmerId = id;
     coordinates = coordinate;
     this.userLocation = userLocation;
     this.polygonArea = polygonArea;
-    p.log("✅ DetailVM setValue: userLocation received: $userLocation");
-    p.log("✅ DetailVM setValue: userLocation stored: ${this.userLocation}");
-    p.log(
-        "✅ DetailVM setValue: userLocation type: ${this.userLocation.runtimeType}");
-    p.log("✅ DetailVM setValue: polygonArea received: $polygonArea");
+    p.log("✅ DetailVM setValue: userLocation: $userLocation, "
+        "polygonArea: $polygonArea");
   }
 
   void setTonna(String value) {

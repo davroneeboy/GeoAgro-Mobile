@@ -33,7 +33,8 @@ class ApiService {
         connectTimeout: ApiConst.connectionTimeout,
         receiveTimeout: ApiConst.sendTimeout,
         sendTimeout: ApiConst.sendTimeout,
-        validateStatus: (status) => status != null && status < 500 && status != 401,
+        validateStatus: (status) =>
+            status != null && status < 500 && status != 401,
       ),
     );
 
@@ -52,7 +53,7 @@ class ApiService {
       if (kDebugMode)
         PrettyDioLogger(
           requestHeader: false, // Already logged by SecureLoggerInterceptor
-          requestBody: false,   // Already logged by SecureLoggerInterceptor
+          requestBody: false, // Already logged by SecureLoggerInterceptor
           responseHeader: false,
           responseBody: false,
           compact: true,
@@ -78,8 +79,10 @@ class ApiService {
       // "Accept": isUpload ? "multipart/form-data" : "application/json; charset=UTF-8",
     };
 
-    final token = accessToken ?? await AppStorage.$read(key: StorageKey.accessToken) ?? "";
-    
+    final token = accessToken ??
+        await AppStorage.$read(key: StorageKey.accessToken) ??
+        "";
+
     if (token.isNotEmpty) {
       // l.d("🔐 API: Using token (starts with): ${token.substring(0, token.length > 10 ? 10 : token.length)}...");
       headers.putIfAbsent("Authorization", () => "Bearer $token");
@@ -129,7 +132,7 @@ class ApiService {
     try {
       final dio = await initDio();
       final headers = await getHeaders(isUpload: false);
-      
+
       final response = await dio.post<dynamic>(
         api,
         data: jsonEncode(data),
@@ -148,8 +151,6 @@ class ApiService {
       return ApiResponse(statusCode: 500, data: {"message": e.toString()});
     }
   }
-
-
 
   static Future<ApiResponse> multipart(
       String api, Map<String, dynamic> body, List<String> filePaths) async {
@@ -195,22 +196,6 @@ class ApiService {
               if (v == null) continue;
               formData.fields.add(MapEntry('$key[$i]', v.toString()));
             }
-          } else if (value is Map && key == 'user_location') {
-            // Handle user_location as object для multipart/form-data
-            // Формат: user_location[latitude] и user_location[longitude]
-            // Как в Postman: отправляется как объект, не массив
-            l.d("📤 API: Processing user_location as object");
-            value.forEach((nestedKey, nestedValue) {
-              if (nestedValue != null) {
-                final fieldKey = '$key[$nestedKey]';
-                final fieldValue = nestedValue.toString();
-                l.d("📤 API: Adding user_location field: $fieldKey = $fieldValue");
-                formData.fields.add(
-                  MapEntry(fieldKey, fieldValue),
-                );
-              }
-            });
-            l.d("✅ API: user_location processed, total fields added: ${value.keys.length}");
           } else {
             // Handle simple string fields (including comments)
             final fieldValue = value.toString();
@@ -223,19 +208,23 @@ class ApiService {
           l.d("⚠️ API: Field $key is null, skipping");
         }
       });
-      
+
       // Log all form data fields for debugging
       l.d("📦 API: Total form data fields: ${formData.fields.length}");
-      final userLocationFields = formData.fields.where((field) => field.key.contains('user_location')).toList();
+      final userLocationFields = formData.fields
+          .where((field) => field.key.contains('user_location'))
+          .toList();
       l.d("📦 API: user_location/user_locations fields in form data: ${userLocationFields.length}");
       for (var field in userLocationFields) {
         l.d("📦 API: Form field: ${field.key} = ${field.value}");
       }
-      
+
       // Log all field keys for debugging
       l.d("📦 API: All form data field keys:");
       for (var field in formData.fields) {
-        if (field.key.contains('user_location') || field.key.contains('coordinates') || field.key.contains('district')) {
+        if (field.key.contains('user_location') ||
+            field.key.contains('coordinates') ||
+            field.key.contains('district')) {
           l.d("📦 API: Key: ${field.key}, Value: ${field.value}");
         }
       }
@@ -316,7 +305,8 @@ class ApiService {
       final formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(
           filePath,
-          contentType: MediaType(type.first, type.length > 1 ? type[1] : 'jpeg'),
+          contentType:
+              MediaType(type.first, type.length > 1 ? type[1] : 'jpeg'),
         ),
       });
 
@@ -360,7 +350,8 @@ class ApiService {
   }
 
   /// PUT method that returns ApiResponse
-  static Future<ApiResponse> putWithResponse(String api, Map<String, dynamic> data) async {
+  static Future<ApiResponse> putWithResponse(
+      String api, Map<String, dynamic> data) async {
     try {
       final response = await (await initDio()).put<dynamic>(api, data: data);
 
@@ -405,21 +396,23 @@ class ApiService {
   }
 
   /// [Delete Method]
-  static Future<String?> delete(String api, [Map<String, dynamic>? params]) async {
+  static Future<String?> delete(String api,
+      [Map<String, dynamic>? params]) async {
     try {
-      final response = await (await initDio()).delete<dynamic>(api, queryParameters: params);
+      final response =
+          await (await initDio()).delete<dynamic>(api, queryParameters: params);
       // DELETE может вернуть 204 (No Content) или 200 с телом ответа
       if (response.statusCode == 204) {
         return "success";
       }
-      
+
       // Если статус 200, проверяем содержимое ответа на наличие ошибок
       if (response.statusCode == 200) {
         final responseData = response.data;
         if (responseData == null) {
           return "success";
         }
-        
+
         // Проверяем, не является ли ответ ошибкой
         try {
           final dataStr = responseData.toString();
@@ -433,7 +426,7 @@ class ApiService {
           }
           // Если не JSON или нет ошибки, проверяем строку
           final dataLower = dataStr.toLowerCase();
-          if (dataLower.contains("error") || 
+          if (dataLower.contains("error") ||
               dataLower.contains("{error") ||
               dataLower.contains("no plantation") ||
               dataLower.contains("matches") ||
@@ -448,7 +441,7 @@ class ApiService {
           return responseData.toString();
         }
       }
-      
+
       return response.data?.toString() ?? "success";
     } on TimeoutException catch (_) {
       l.e("The connection has timed out, Please try again!");
@@ -459,12 +452,12 @@ class ApiService {
       if (e.response?.statusCode == 204) {
         return "success";
       }
-      
+
       // Если статус 200, но есть данные об ошибке, возвращаем их
       if (e.response?.statusCode == 200 && e.response?.data != null) {
         return e.response!.data.toString();
       }
-      
+
       rethrow;
     } on Object catch (_) {
       rethrow;

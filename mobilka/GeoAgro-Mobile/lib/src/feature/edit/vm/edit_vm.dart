@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:agro_employee_public/src/data/model/plantation/edit_plantation.dart';
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -844,6 +845,28 @@ class EditVM extends ChangeNotifier {
   //   return details.join('\n');
   // }
 
+  /// Текущая GPS-точка для user_location. null — нет разрешения или не
+  /// удалось получить за отведённое время; в этом случае поле не шлём.
+  Future<Map<String, double>?> _currentUserLocation() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        return null;
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+      return {"latitude": pos.latitude, "longitude": pos.longitude};
+    } catch (e) {
+      debugPrint('EditVM: user_location unavailable: $e');
+      return null;
+    }
+  }
+
   Future<bool> editPlantation(WidgetRef ref, int id) async {
     // Защита от множественных вызовов
     if (isSaving) {
@@ -868,6 +891,12 @@ class EditVM extends ChangeNotifier {
       isSaving = false;
       notifyListeners();
       return true;
+    }
+
+    // Пишем GPS-точку в историю user_locations вместе с обновлением
+    final userLoc = await _currentUserLocation();
+    if (userLoc != null) {
+      body["user_location"] = userLoc;
     }
 
     try {
@@ -1206,6 +1235,12 @@ class EditVM extends ChangeNotifier {
     final curFruit = _currentFruitAreas();
     if (curFruit.isNotEmpty) {
       body["fruit_areas"] = curFruit;
+    }
+
+    // Пишем GPS-точку в историю user_locations вместе с обновлением
+    final userLoc = await _currentUserLocation();
+    if (userLoc != null) {
+      body["user_location"] = userLoc;
     }
 
     try {

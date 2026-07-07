@@ -43,31 +43,21 @@ class DetailPage extends ConsumerStatefulWidget {
 class DetailPageState extends ConsumerState<DetailPage> {
   @override
   void didChangeDependencies() {
-    // Преобразуем userLocation из dynamic в Map<String, double>
-    // userLocation всегда должен быть передан, так как карта всегда зумится к местоположению
-    Map<String, double> userLocation;
+    // GPS-точка пользователя. null — недоступна: фейковые координаты
+    // не подставляем, сервер такие точки сохраняет как настоящие.
+    Map<String, double>? userLocation;
     try {
-      final location = widget.model["userLocation"] as Map<String, dynamic>;
-      userLocation = {
-        'latitude': (location['latitude'] as num).toDouble(),
-        'longitude': (location['longitude'] as num).toDouble(),
-      };
+      final location = widget.model["userLocation"] as Map<String, dynamic>?;
+      if (location != null) {
+        userLocation = {
+          'latitude': (location['latitude'] as num).toDouble(),
+          'longitude': (location['longitude'] as num).toDouble(),
+        };
+      }
       debugPrint("✅ DetailPage: Parsed userLocation: $userLocation");
-      debugPrint(
-          "✅ DetailPage: userLocation type: ${userLocation.runtimeType}");
-      debugPrint(
-          "✅ DetailPage: userLocation['latitude']: ${userLocation['latitude']}");
-      debugPrint(
-          "✅ DetailPage: userLocation['longitude']: ${userLocation['longitude']}");
     } catch (e) {
       debugPrint("❌ DetailPage: Error parsing userLocation: $e");
-      debugPrint(
-          "❌ DetailPage: widget.model['userLocation']: ${widget.model['userLocation']}");
-      // В случае ошибки используем дефолтное местоположение
-      userLocation = {
-        'latitude': 41.311081,
-        'longitude': 69.240562,
-      };
+      userLocation = null;
     }
 
     debugPrint(

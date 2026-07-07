@@ -73,15 +73,15 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                   } else {
                     final value = vm.cordinatesConverter();
 
-                    // currentLocation всегда должен быть установлен при инициализации карты
-                    // Используем его напрямую, если null - используем дефолтное местоположение
-                    final locationToUse = vm.currentLocation ?? vm.uzbLatLng;
-
-                    // Формируем userLocation для передачи (всегда передаем, не может быть null)
-                    final userLocationMap = {
-                      "latitude": locationToUse.latitude,
-                      "longitude": locationToUse.longitude,
-                    };
+                    // GPS-точка юзера. null если геолокация недоступна —
+                    // фейковый центр Узбекистана в историю точек не шлём.
+                    final currentLocation = vm.currentLocation;
+                    final userLocationMap = currentLocation == null
+                        ? null
+                        : {
+                            "latitude": currentLocation.latitude,
+                            "longitude": currentLocation.longitude,
+                          };
                     log("📤 Passing userLocation: $userLocationMap");
 
                     final model = {

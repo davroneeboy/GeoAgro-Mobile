@@ -552,6 +552,34 @@ class AppRepositoryImpl implements AppRepo {
     }
   }
 
+  /// Records the user's GPS point into the plantation's location history.
+  ///
+  /// The create endpoint is multipart and silently drops `user_location`,
+  /// and `mobile-update` accepts only JSON — so the point is delivered as
+  /// a separate JSON PATCH after create/edit. Best-effort: a failure must
+  /// never block the main flow.
+  Future<bool> sendUserLocation({
+    required int plantationId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final response = await ApiService.patch(
+        ApiConst.apiUpdatePlantation(plantationId),
+        {
+          "user_location": {"latitude": latitude, "longitude": longitude},
+        },
+      );
+      final ok = response?.statusCode == 200 || response?.statusCode == 201;
+      debugPrint(
+          "sendUserLocation($plantationId): status=${response?.statusCode}");
+      return ok;
+    } catch (e) {
+      debugPrint("sendUserLocation($plantationId) error: $e");
+      return false;
+    }
+  }
+
   @override
   Future<ApiResponse> editPlantation(
       {required int id, required Map<String, dynamic> body}) async {
