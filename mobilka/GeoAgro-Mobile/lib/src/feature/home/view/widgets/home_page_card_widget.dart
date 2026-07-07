@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/setting/setup.dart';
-import '../../../../../localization/app_strings.dart';
 import '../../../../core/utils/date_utils.dart' as app_date;
 import '../../../../core/widgets/custom_card_widget.dart';
 import '../../../../data/model/plantation/plantations_list_model.dart';
@@ -119,16 +118,11 @@ class HomePageCardWidget extends StatelessWidget {
     final farmerName = plantation.farmerName ?? "Noma'lum fermer";
     final farmerInn = plantation.farmerInn?.toString();
     final plantationId = plantation.id?.toString() ?? "N/A";
-    final landType =
-        AppLocalizedMaps.yerTuri[plantation.landType] ?? "Noma'lum";
     final areaText = "${_formatNumber(plantation.totalArea)} ga";
     final chegaraAreaText =
         (plantation.chegaraArea != null && plantation.chegaraArea! > 0)
             ? "${plantation.chegaraArea!.toStringAsFixed(2)} ga"
             : null;
-    final establishedYear = plantation.gardenEstablishedYear != null
-        ? "${plantation.gardenEstablishedYear} yil"
-        : null;
     final createdAt = plantation.createdAt != null
         ? _formatCreatedAt(plantation.createdAt!)
         : null;
@@ -200,12 +194,6 @@ class HomePageCardWidget extends StatelessWidget {
             children: [
               _infoChip(
                 context: context,
-                icon: Icons.eco_outlined,
-                label: "Yer turi",
-                value: landType,
-              ),
-              _infoChip(
-                context: context,
                 icon: Icons.square_foot_outlined,
                 label: "Maydon",
                 value: areaText,
@@ -216,13 +204,6 @@ class HomePageCardWidget extends StatelessWidget {
                   icon: Icons.border_color_outlined,
                   label: "Chegara maydon",
                   value: chegaraAreaText,
-                ),
-              if (establishedYear != null)
-                _infoChip(
-                  context: context,
-                  icon: Icons.calendar_month_outlined,
-                  label: "Bog tashkil topgan yil",
-                  value: establishedYear,
                 ),
             ],
           ),
