@@ -32,7 +32,7 @@ class FermerCreateVm extends ChangeNotifier {
   FermerCreateVm() {
     // Инициализируем поле телефона с префиксом +998
     phoneNumber.text = '+998';
-    
+
     // Добавляем слушатели для валидации в реальном времени
     name.addListener(_validateName);
     founderName.addListener(_validateFounderName);
@@ -52,9 +52,12 @@ class FermerCreateVm extends ChangeNotifier {
   String _sanitizeInput(String input) {
     return input
         .replaceAll(RegExp(r'<[^>]*>'), '') // Удаляем HTML теги
-        .replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false), '') // Удаляем script теги
-        .replaceAll(RegExp(r'javascript:', caseSensitive: false), '') // Удаляем javascript:
-        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false), '') // Удаляем обработчики событий
+        .replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false),
+            '') // Удаляем script теги
+        .replaceAll(RegExp(r'javascript:', caseSensitive: false),
+            '') // Удаляем javascript:
+        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false),
+            '') // Удаляем обработчики событий
         .trim();
   }
 
@@ -67,10 +70,10 @@ class FermerCreateVm extends ChangeNotifier {
       nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       nameError = "Tashkilot nomi 100 ta belgidan oshmasligi kerak";
-    } else if (RegExp(r'[а-яА-ЯёЁ]').hasMatch(value)) {
-      nameError = "Tashkilot nomi faqat lotin harflaridan iborat bo'lishi kerak (kirill harflari qabul qilinmaydi)";
-    } else if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(value)) {
-      nameError = "Tashkilot nomi faqat lotin harflari, raqamlar va probellaridan iborat bo'lishi kerak";
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]+\$")
+        .hasMatch(value)) {
+      nameError =
+          "Tashkilot nomi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
       nameError = null;
     }
@@ -83,11 +86,14 @@ class FermerCreateVm extends ChangeNotifier {
     if (value.isEmpty) {
       founderNameError = "Asoschi ismi bo'sh bo'lmasligi zarur";
     } else if (value.length < 2) {
-      founderNameError = "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
+      founderNameError =
+          "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       founderNameError = "Asoschi ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
-      founderNameError = "Asoschi ismi faqat harflardan iborat bo'lishi kerak";
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]+\$")
+        .hasMatch(value)) {
+      founderNameError =
+          "Asoschi ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
       founderNameError = null;
     }
@@ -100,11 +106,14 @@ class FermerCreateVm extends ChangeNotifier {
     if (value.isEmpty) {
       directorNameError = "Rahbar ismi bo'sh bo'lmasligi zarur";
     } else if (value.length < 2) {
-      directorNameError = "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
+      directorNameError =
+          "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       directorNameError = "Rahbar ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ\s]+$').hasMatch(value)) {
-      directorNameError = "Rahbar ismi faqat harflardan iborat bo'lishi kerak";
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]+\$")
+        .hasMatch(value)) {
+      directorNameError =
+          "Rahbar ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
       directorNameError = null;
     }
@@ -121,14 +130,15 @@ class FermerCreateVm extends ChangeNotifier {
     } else {
       // Извлекаем только цифры после +998
       final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-      final phoneDigits = digitsOnly.startsWith('998') 
-          ? digitsOnly.substring(3) 
-          : digitsOnly;
-      
+      final phoneDigits =
+          digitsOnly.startsWith('998') ? digitsOnly.substring(3) : digitsOnly;
+
       if (phoneDigits.length != 9) {
-        phoneNumberError = "Telefon raqam +998 xx xxx-xx-xx formatida bo'lishi kerak";
+        phoneNumberError =
+            "Telefon raqam +998 xx xxx-xx-xx formatida bo'lishi kerak";
       } else if (!RegExp(r'^[0-9]{9}$').hasMatch(phoneDigits)) {
-        phoneNumberError = "Telefon raqam faqat raqamlardan iborat bo'lishi kerak";
+        phoneNumberError =
+            "Telefon raqam faqat raqamlardan iborat bo'lishi kerak";
       } else {
         phoneNumberError = null;
       }
@@ -145,8 +155,10 @@ class FermerCreateVm extends ChangeNotifier {
       addressError = "Manzil kamida 5 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 200) {
       addressError = "Manzil 200 ta belgidan oshmasligi kerak";
-    } else if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\s,.-]+$').hasMatch(value)) {
-      addressError = "Manzil faqat harflar, raqamlar va belgilardan iborat bo'lishi kerak";
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/,.\\-]+\$")
+        .hasMatch(value)) {
+      addressError =
+          "Manzil faqat harflar, raqamlar va belgilardan iborat bo'lishi kerak";
     } else {
       addressError = null;
     }
@@ -174,15 +186,18 @@ class FermerCreateVm extends ChangeNotifier {
     if (value.isEmpty) {
       establishedYearError = "Yaratilgan yil bo'sh bo'lmasligi zarur";
     } else if (!RegExp(r'^\d{4}$').hasMatch(value)) {
-      establishedYearError = "Yaratilgan yil 4 ta raqamdan iborat bo'lishi zarur";
+      establishedYearError =
+          "Yaratilgan yil 4 ta raqamdan iborat bo'lishi zarur";
     } else {
       try {
         final year = int.parse(value);
         final currentYear = DateTime.now().year;
         if (year > currentYear) {
-          establishedYearError = "Yaratilgan yil $currentYear yoki undan kichik bo'lishi kerak";
+          establishedYearError =
+              "Yaratilgan yil $currentYear yoki undan kichik bo'lishi kerak";
         } else if (year < 1900) {
-          establishedYearError = "Yaratilgan yil 1900 yoki undan katta bo'lishi kerak";
+          establishedYearError =
+              "Yaratilgan yil 1900 yoki undan katta bo'lishi kerak";
         } else {
           establishedYearError = null;
         }
@@ -223,8 +238,8 @@ class FermerCreateVm extends ChangeNotifier {
 
       // Извлекаем только цифры из номера телефона (без +998 и форматирования)
       final phoneDigits = phoneNumber.text.replaceAll(RegExp(r'[^\d]'), '');
-      final cleanPhone = phoneDigits.startsWith('998') 
-          ? phoneDigits.substring(3) 
+      final cleanPhone = phoneDigits.startsWith('998')
+          ? phoneDigits.substring(3)
           : phoneDigits;
 
       // Farmer Model ni yaratish
@@ -240,7 +255,8 @@ class FermerCreateVm extends ChangeNotifier {
       );
 
       // API so‘rovi yuborish
-      final response = await _appRepositoryImpl.postNewFermer(fermer: fermerModel);
+      final response =
+          await _appRepositoryImpl.postNewFermer(fermer: fermerModel);
       // Agar status code 200 yoki 201 bo‘lsa
       if (response.statusCode == 200 || response.statusCode == 201) {
         errorMessage = "Yangi fermer qo'shildi";

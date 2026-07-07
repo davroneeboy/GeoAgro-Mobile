@@ -76,23 +76,8 @@ class FermerPageCardWidget extends ConsumerWidget {
                           ),
                         ),
                         SizedBox(height: AppSpacing.xs.h),
-                        if (fermerModel.inn != null ||
-                            fermerModel.id != null) ...[
-                          Wrap(
-                            spacing: AppSpacing.sm.w,
-                            runSpacing: 0,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              if (fermerModel.inn != null)
-                                _InnChip(
-                                  inn: fermerModel.inn.toString(),
-                                ),
-                              if (fermerModel.id != null)
-                                _IdLabel(
-                                  id: fermerModel.id!.toString(),
-                                ),
-                            ],
-                          ),
+                        if (fermerModel.inn != null) ...[
+                          _InnChip(inn: fermerModel.inn.toString()),
                           SizedBox(height: AppSpacing.sm.h),
                         ],
                         Text(
@@ -108,52 +93,21 @@ class FermerPageCardWidget extends ConsumerWidget {
                   ),
                 ],
               ),
-              SizedBox(height: AppSpacing.md.h),
-              Divider(
-                height: 1,
-                color: context.colors.divider.withValues(alpha: 0.6),
-              ),
-              SizedBox(height: AppSpacing.sm.h),
-              Wrap(
-                spacing: AppSpacing.md.w,
-                runSpacing: AppSpacing.sm.h,
-                children: [
-                  _InfoPill(
-                    icon: Icons.badge_outlined,
-                    title: "Direktor",
-                    value: fermerModel.directorName?.isNotEmpty == true
-                        ? fermerModel.directorName!
-                        : "Ko'rsatilmagan",
-                  ),
-                  _InfoPill(
-                    icon: Icons.account_balance_outlined,
-                    title: "Asoschi",
-                    value: fermerModel.founderName?.isNotEmpty == true
-                        ? fermerModel.founderName!
-                        : "Ko'rsatilmagan",
-                  ),
-                  if (fermerModel.phoneNumber?.isNotEmpty == true)
-                    _InfoPill(
-                      icon: Icons.phone_outlined,
-                      title: "Telefon",
-                      value: fermerModel.phoneNumber!,
-                    ),
-                  if (fermerModel.establishedYear != null)
-                    _InfoPill(
-                      icon: Icons.calendar_month_outlined,
-                      title: "Tashkil topgan yil",
-                      value: fermerModel.establishedYear.toString(),
-                    ),
-                  if (fermerModel.createdBy != null)
-                    _InfoPill(
-                      icon: Icons.person_outline,
-                      title: "Yaratgan",
-                      value:
-                          "${fermerModel.createdBy!.fullName} (${fermerModel.createdBy!.username})",
-                    ),
-                ],
-              ),
-              SizedBox(height: AppSpacing.md.h),
+              if (fermerModel.createdBy != null) ...[
+                SizedBox(height: AppSpacing.md.h),
+                Divider(
+                  height: 1,
+                  color: context.colors.divider.withValues(alpha: 0.6),
+                ),
+                SizedBox(height: AppSpacing.sm.h),
+                _InfoPill(
+                  icon: Icons.person_outline,
+                  title: "Yaratgan",
+                  value:
+                      "${fermerModel.createdBy!.fullName} (${fermerModel.createdBy!.username})",
+                ),
+                SizedBox(height: AppSpacing.md.h),
+              ],
             ],
           ),
         ),
@@ -305,23 +259,6 @@ class _InnChip extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _IdLabel extends StatelessWidget {
-  final String id;
-
-  const _IdLabel({required this.id});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      "ID $id",
-      style: AppTypography.bodySmall(context).copyWith(
-        color: context.colors.textTertiary,
-        fontWeight: FontWeight.w500,
       ),
     );
   }
