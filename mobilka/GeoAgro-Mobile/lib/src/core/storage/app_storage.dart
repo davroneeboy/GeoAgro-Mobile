@@ -188,8 +188,13 @@ class AppStorage {
   /// Clear all data (both secure and non-secure)
   static Future<void> clearAllData() async {
     try {
-      // Clear secure storage
-      await $deleteSecureTokens();
+      // Full logout: wipe the whole secure storage, not just the token
+      // keys. PIN hash / auth method (PinService) live in the same secure
+      // storage under their own keys, while biometricEnabled lives in
+      // SharedPreferences — deleting them together keeps the auth state
+      // consistent (previously the PIN survived a forced logout while the
+      // biometric flag was wiped).
+      await _secureStorage.deleteAll();
 
       // Clear SharedPreferences
       final prefs = await _getPrefs();

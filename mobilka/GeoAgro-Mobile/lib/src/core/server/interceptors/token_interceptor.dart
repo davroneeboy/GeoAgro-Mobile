@@ -8,6 +8,7 @@ import "package:package_info_plus/package_info_plus.dart";
 import "../../storage/app_storage.dart";
 import "../../routes/router_config.dart";
 import "../../routes/app_route_names.dart";
+import "../../services/pin_service.dart";
 import "../../setting/setup.dart";
 import "../../widgets/update_required_dialog.dart";
 
@@ -72,6 +73,9 @@ class TokenInterceptor extends Interceptor {
           userId = 0;
           districtId = 1;
           username = null;
+          appPinSet = false;
+          authMethod = AuthMethod.none;
+          biometricEnabled = false;
 
           // Navigate to login page
           if (parentNavigatorKey.currentContext != null) {
@@ -218,9 +222,15 @@ class TokenInterceptor extends Interceptor {
     if (shouldRedirectToLogin || isAuthError) {
       log("Authentication error detected. Clearing tokens and redirecting to login...");
 
-      // Clear stored tokens
+      // Clear stored tokens and reset globals
       await AppStorage.clearAllData();
       accessToken = null;
+      userId = 0;
+      districtId = 1;
+      username = null;
+      appPinSet = false;
+      authMethod = AuthMethod.none;
+      biometricEnabled = false;
 
       // Navigate to login page
       if (parentNavigatorKey.currentContext != null) {

@@ -31,7 +31,7 @@ class PinLockPage extends StatefulWidget {
   State<PinLockPage> createState() => _PinLockPageState();
 }
 
-class _PinLockPageState extends State<PinLockPage> {
+class _PinLockPageState extends State<PinLockPage> with WidgetsBindingObserver {
   final PinService _pinService = PinService.instance;
   final BiometricService _biometricService = BiometricService.instance;
 
@@ -39,32 +39,68 @@ class _PinLockPageState extends State<PinLockPage> {
   String? _errorMessage;
   bool _isVerifying = false;
   bool _biometricAvailable = false;
+  bool _biometricDismissed = false;
   Duration _remainingLockout = Duration.zero;
   Timer? _lockoutTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _init());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _lockoutTimer?.cancel();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Cold-start biometric prompt can race the first frame and never
+    // appear; re-offer it when the app regains focus, unless the user
+    // already dismissed the prompt on purpose.
+    if (state == AppLifecycleState.resumed &&
+        _biometricAvailable &&
+        !_biometricDismissed &&
+        !_isVerifying &&
+        _remainingLockout == Duration.zero) {
+      _tryBiometric();
+    }
+  }
+
   Future<void> _init() async {
     await _refreshLockout();
-    final biometricEnabled = app_setup.biometricEnabled;
-    final isAvailable = await _biometricService.isBiometricAvailable();
+    if (!app_setup.biometricEnabled) return;
+    // Trust the stored flag for the UI right away — the availability
+    // probe below can transiently report false on a cold start.
     if (!mounted) return;
-    setState(() {
-      _biometricAvailable = biometricEnabled && isAvailable;
-    });
-    if (_biometricAvailable && _remainingLockout == Duration.zero) {
+    setState(() => _biometricAvailable = true);
+
+    final ready = await _waitForBiometricReady();
+    debugPrint('PinLockPage: biometric ready=$ready');
+    if (!mounted || !ready) return;
+    if (_remainingLockout == Duration.zero) {
+      // Launching the system prompt in the same frame the activity attaches
+      // silently fails on some Android devices — give it a beat.
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
       await _tryBiometric();
     }
+  }
+
+  /// local_auth can report the device as unsupported for the first moments
+  /// after a cold start; poll a few times before giving up.
+  Future<bool> _waitForBiometricReady() async {
+    for (var attempt = 0; attempt < 4; attempt++) {
+      if (await _biometricService.isBiometricAvailable()) return true;
+      debugPrint('PinLockPage: biometric not ready, attempt $attempt');
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return false;
+    }
+    return false;
   }
 
   Future<void> _refreshLockout() async {
@@ -98,16 +134,21 @@ class _PinLockPageState extends State<PinLockPage> {
     final result = await _biometricService.safeAuthenticate(
       reason: "Ilovaga kirish uchun",
     );
+    debugPrint('PinLockPage: biometric auth result=$result');
     if (!mounted) return;
     setState(() => _isVerifying = false);
 
     if (result == true) {
       context.go(AppRouteNames.home);
     } else if (result == null) {
-      await _biometricService.setBiometricEnabled(false);
-      app_setup.biometricEnabled = false;
-      if (!mounted) return;
-      setState(() => _biometricAvailable = false);
+      // Device reports no lock right now. This can be a transient
+      // cold-start state, so DON'T permanently disable the stored flag —
+      // that was silently killing biometrics after one bad launch.
+      setState(() => _errorMessage = "Qurilma qulfi hozircha mavjud emas");
+    } else {
+      // User dismissed or failed the prompt — stop auto-prompting on
+      // resume so it doesn't nag; the on-screen button stays available.
+      _biometricDismissed = true;
     }
   }
 
@@ -157,6 +198,7 @@ class _PinLockPageState extends State<PinLockPage> {
     final attempts = await _pinService.getFailedAttempts();
     final remaining = PinService.maxAttemptsBeforeLockout -
         (attempts % PinService.maxAttemptsBeforeLockout);
+    final untilLogout = PinService.maxAttemptsBeforeLogout - attempts;
     final justLocked = await _pinService.isLockedOut();
     if (!mounted) return;
     setState(() {
@@ -164,6 +206,11 @@ class _PinLockPageState extends State<PinLockPage> {
       _isVerifying = false;
       if (justLocked) {
         _errorMessage = "Juda ko'p urinishlar. Biroz kuting.";
+      } else if (untilLogout <= 2) {
+        // Next failures end in a forced logout, not another lockout —
+        // warn about the real consequence.
+        _errorMessage =
+            "Diqqat! $untilLogout ta urinishdan keyin hisobdan chiqarilasiz";
       } else {
         _errorMessage = remaining <= 2
             ? "Noto'g'ri PIN. $remaining ta urinish qoldi"
