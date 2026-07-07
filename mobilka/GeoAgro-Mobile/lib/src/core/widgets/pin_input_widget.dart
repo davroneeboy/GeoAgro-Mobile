@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,7 +47,10 @@ class PinInputWidget extends StatefulWidget {
 class _PinInputWidgetState extends State<PinInputWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _shake;
-  late final Animation<double> _shakeAnim;
+
+  /// Keypad key diameter: scales with the screen but stays tappable on
+  /// small phones and doesn't balloon on tablets.
+  double get _keySize => 72.w.clamp(60.0, 84.0);
 
   @override
   void initState() {
@@ -54,7 +59,6 @@ class _PinInputWidgetState extends State<PinInputWidget>
       vsync: this,
       duration: const Duration(milliseconds: 380),
     );
-    _shakeAnim = CurvedAnimation(parent: _shake, curve: Curves.elasticOut);
   }
 
   @override
@@ -79,10 +83,12 @@ class _PinInputWidgetState extends State<PinInputWidget>
       mainAxisSize: MainAxisSize.min,
       children: [
         AnimatedBuilder(
-          animation: _shakeAnim,
+          animation: _shake,
           builder: (context, child) {
-            final t = _shakeAnim.value;
-            final dx = 12 * (1 - t) * (t < 0.5 ? 1 : -1);
+            // Damped sine: zero at rest (t=0) and at the end (t=1), so the
+            // dots never sit off-center between shakes.
+            final t = _shake.value;
+            final dx = math.sin(t * math.pi * 5) * 10 * (1 - t);
             return Transform.translate(
               offset: Offset(dx, 0),
               child: child,
@@ -198,7 +204,9 @@ class _PinInputWidgetState extends State<PinInputWidget>
                     ),
                   );
                 }
-                return SizedBox(width: 80.w, height: 64.h);
+                // Must match a real key's footprint (diameter + side
+                // paddings), otherwise the bottom row drifts sideways.
+                return SizedBox(width: _keySize + 24.w, height: _keySize);
               }
               if (digit == 'back') {
                 return Semantics(
@@ -224,7 +232,7 @@ class _PinInputWidgetState extends State<PinInputWidget>
                   child: Text(
                     digit,
                     style: TextStyle(
-                      fontSize: 28.sp,
+                      fontSize: 30.sp,
                       fontWeight: FontWeight.w500,
                       color: context.colors.textPrimary,
                     ),
@@ -259,10 +267,10 @@ class _PinInputWidgetState extends State<PinInputWidget>
                     HapticFeedback.lightImpact();
                     onTap();
                   },
-            borderRadius: BorderRadius.circular(40.r),
+            borderRadius: BorderRadius.circular(_keySize / 2),
             child: Container(
-              width: 64.w,
-              height: 64.h,
+              width: _keySize,
+              height: _keySize,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
