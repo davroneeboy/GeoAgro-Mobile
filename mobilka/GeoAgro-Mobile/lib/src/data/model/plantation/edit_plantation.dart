@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'comment_model.dart';
+import 'new_plantation_model.dart' show Coordinate;
 import 'plantations_list_model.dart';
 
 EditPlantationModel editPlantationModelFromJson(String str) =>
@@ -45,6 +46,7 @@ class EditPlantationModel {
   double? notUsableArea;
   double? emptyArea;
   List<String>? konturNumber;
+  List<Coordinate>? coordinates;
   List<Comment>? comments;
   List<ModerationComment>? moderationComments;
   String? createdAt;
@@ -79,6 +81,7 @@ class EditPlantationModel {
     this.notUsableArea,
     this.emptyArea,
     this.konturNumber,
+    this.coordinates,
     this.comments,
     this.moderationComments,
     this.createdAt,
@@ -226,6 +229,10 @@ class EditPlantationModel {
         konturNumber: json["kontur_number"] == null
             ? null
             : List<String>.from(json["kontur_number"].map((x) => x.toString())),
+        coordinates: json["coordinates"] == null
+            ? null
+            : List<Coordinate>.from((json["coordinates"] as List)
+                .map((x) => Coordinate.fromJson(x))),
         comments: json["comments"] == null
             ? null
             : List<Comment>.from((json["comments"] as List<dynamic>)
