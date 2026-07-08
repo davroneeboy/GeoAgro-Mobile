@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/dio_error_utils.dart';
 import '../../../data/repository/app_repository_impl.dart';
 
+import '../../../core/server/api/orginfo_service.dart';
 import '../../../core/setting/setup.dart';
 import '../../../data/model/farmer/create_fermer_model.dart';
 
 class FermerCreateVm extends ChangeNotifier {
   String? errorMessage;
+  bool isOrgInfoLoading = false;
+  String? orgInfoError;
 
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
 
@@ -206,6 +209,36 @@ class FermerCreateVm extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  // Поиск организации по ИНН через orginfo.uz (автозаполнение названия и адреса)
+  Future<void> fetchOrgInfoByInn() async {
+    _validateInn();
+    if (innError != null) return;
+
+    isOrgInfoLoading = true;
+    orgInfoError = null;
+    notifyListeners();
+
+    try {
+      final result = await OrginfoService.lookupByInn(inn.text.trim());
+      if (result == null) {
+        orgInfoError = "Bu INN bo'yicha tashkilot topilmadi";
+      } else {
+        if (result.name.isNotEmpty) name.text = result.name;
+        if (result.address.isNotEmpty) address.text = result.address;
+      }
+    } on OrginfoParseException {
+      // Разметка orginfo.uz поменялась либо сайт недоступен — не молчим,
+      // явно говорим юзеру заполнить вручную вместо тихого no-op.
+      orgInfoError =
+          "Avtomatik qidiruv vaqtincha ishlamayapti. Ma'lumotlarni qo'lda kiriting";
+    } catch (e) {
+      orgInfoError = "Ma'lumotlarni olishda xatolik yuz berdi";
+    } finally {
+      isOrgInfoLoading = false;
+      notifyListeners();
+    }
   }
 
   // Проверка всей формы перед отправкой

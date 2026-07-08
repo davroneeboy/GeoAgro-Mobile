@@ -140,12 +140,26 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   controller: vm.inn,
                   hintText: "302208505",
                   isRequired: true,
-                  errorText: vm.innError,
+                  errorText: vm.innError ?? vm.orgInfoError,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(9),
                   ],
+                  suffixIcon: vm.isOrgInfoLoading
+                      ? Padding(
+                          padding: EdgeInsets.all(AppSpacing.sm),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : IconButton(
+                          icon: Icon(Icons.search),
+                          tooltip: "Tashkilotni INN bo'yicha topish",
+                          onPressed: vm.fetchOrgInfoByInn,
+                        ),
                 ),
                 SizedBox(height: AppSpacing.xxl),
                 MainButton(
