@@ -103,7 +103,7 @@ class FermerEditVm extends ChangeNotifier {
       nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       nameError = "Tashkilot nomi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]+\$")
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
         .hasMatch(value)) {
       nameError =
           "Tashkilot nomi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
@@ -122,7 +122,7 @@ class FermerEditVm extends ChangeNotifier {
           "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       founderNameError = "Asoschi ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]+\$")
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
         .hasMatch(value)) {
       founderNameError =
           "Asoschi ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
@@ -141,7 +141,7 @@ class FermerEditVm extends ChangeNotifier {
           "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       directorNameError = "Rahbar ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]+\$")
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
         .hasMatch(value)) {
       directorNameError =
           "Rahbar ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
@@ -183,7 +183,7 @@ class FermerEditVm extends ChangeNotifier {
       addressError = "Manzil kamida 5 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 200) {
       addressError = "Manzil 200 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/,.\\-]+\$")
+    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/,.\\-]+\$")
         .hasMatch(value)) {
       addressError =
           "Manzil faqat harflar, raqamlar va belgilardan iborat bo'lishi kerak";

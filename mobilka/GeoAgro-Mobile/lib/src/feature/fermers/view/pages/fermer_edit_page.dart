@@ -120,7 +120,7 @@ class _FermerEditPageState extends ConsumerState<FermerEditPage> {
                   maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]")),
+                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]")),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -134,7 +134,7 @@ class _FermerEditPageState extends ConsumerState<FermerEditPage> {
                   maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]")),
+                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]")),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -148,7 +148,7 @@ class _FermerEditPageState extends ConsumerState<FermerEditPage> {
                   maxLength: 100,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/\\-]")),
+                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]")),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -174,7 +174,7 @@ class _FermerEditPageState extends ConsumerState<FermerEditPage> {
                   maxLength: 200,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"‘’“”«»ʻʼ/,.\\-]")),
+                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/,.\\-]")),
                     LengthLimitingTextInputFormatter(200),
                   ],
                 ),
