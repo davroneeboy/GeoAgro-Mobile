@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' show parse;
@@ -6,8 +8,19 @@ import 'package:l/l.dart';
 class OrginfoResult {
   final String name;
   final String address;
+  final String? founderName;
+  final String? directorName;
+  final String? phoneNumber;
+  final int? establishedYear;
 
-  OrginfoResult({required this.name, required this.address});
+  OrginfoResult({
+    required this.name,
+    required this.address,
+    this.founderName,
+    this.directorName,
+    this.phoneNumber,
+    this.establishedYear,
+  });
 }
 
 /// Скрейпит публичную страницу поиска orginfo.uz по ИНН организации.
@@ -83,10 +96,106 @@ class OrginfoService {
           'markup may have partially changed');
     }
 
-    return OrginfoResult(
-      name: _collapseWhitespace(titleEl.text),
-      address: _collapseWhitespace(addressEl?.text ?? ''),
-    );
+    final name = _collapseWhitespace(titleEl.text);
+    final address = _collapseWhitespace(addressEl?.text ?? '');
+
+    // Карточка результата обёрнута в <a href="/ru/organization/{id}/">
+    // с доп. данными (директор, учредитель, телефон, год основания).
+    // Best-effort: любая ошибка на этом шаге не должна ломать базовый
+    // результат (name+address), поэтому ничего отсюда не пробрасывается.
+    final detailHref = _findDetailHref(titleEl);
+    if (detailHref == null) {
+      return OrginfoResult(name: name, address: address);
+    }
+
+    try {
+      final detailResponse = await _client.get(detailHref);
+      if (detailResponse.statusCode != 200 || detailResponse.data is! String) {
+        return OrginfoResult(name: name, address: address);
+      }
+      final detailDoc = parse(detailResponse.data as String);
+      final jsonLd = _parseJsonLd(detailDoc);
+
+      return OrginfoResult(
+        name: name,
+        address: address,
+        phoneNumber: _asNonEmptyString(jsonLd?['telephone']),
+        directorName: _directorFromJsonLd(jsonLd),
+        establishedYear: _yearFromFoundingDate(jsonLd?['foundingDate']),
+        founderName: _founderFromDetailPage(detailDoc),
+      );
+    } catch (e) {
+      l.w('OrginfoService: detail page fetch/parse failed for INN $inn: $e');
+      return OrginfoResult(name: name, address: address);
+    }
+  }
+
+  /// Ближайшая обёртка `<a href="/ru/organization/...">` вокруг карточки
+  /// результата, ведущая на страницу с деталями организации.
+  static String? _findDetailHref(Element el) {
+    Element? node = el;
+    while (node != null) {
+      if (node.localName == 'a') {
+        final href = node.attributes['href'];
+        if (href != null && href.contains('/organization/')) return href;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  static String? _asNonEmptyString(dynamic value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// JSON-LD (schema.org/Organization) блок детальной страницы. Возвращает
+  /// null при отсутствии/поломке разметки — не критично, доп.поля просто
+  /// останутся незаполненными.
+  static Map<String, dynamic>? _parseJsonLd(Document doc) {
+    try {
+      final scriptText =
+          doc.querySelector('script[type="application/ld+json"]')?.text;
+      if (scriptText == null || scriptText.trim().isEmpty) return null;
+      final decoded = jsonDecode(scriptText);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (e) {
+      l.w('OrginfoService: JSON-LD parse failed: $e');
+      return null;
+    }
+  }
+
+  /// `employee.name`, когда `employee.jobTitle` — "Руководитель" (директор).
+  static String? _directorFromJsonLd(Map<String, dynamic>? jsonLd) {
+    final employee = jsonLd?['employee'];
+    if (employee is! Map) return null;
+    if (employee['jobTitle'] != 'Руководитель') return null;
+    return _asNonEmptyString(employee['name']);
+  }
+
+  static int? _yearFromFoundingDate(dynamic foundingDate) {
+    if (foundingDate is! String || foundingDate.isEmpty) return null;
+    final parsed = DateTime.tryParse(foundingDate);
+    if (parsed != null) return parsed.year;
+    final yearPart = foundingDate.split('-').first;
+    return int.tryParse(yearPart);
+  }
+
+  /// Первый учредитель из секции "Учредители" (может быть несколько —
+  /// берём первого по списку, не пытаемся угадать "главного").
+  static String? _founderFromDetailPage(Document doc) {
+    final section = doc.querySelectorAll('section').where((el) {
+      return el.attributes['aria-label'] == 'Учредители';
+    }).firstOrNull;
+    if (section == null) return null;
+
+    final founderLink = section
+        .querySelectorAll('a')
+        .where(
+            (a) => (a.attributes['href'] ?? '').contains('/search/founders/'))
+        .firstOrNull;
+    return _asNonEmptyString(founderLink?.text);
   }
 }
 

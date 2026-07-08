@@ -15,6 +15,7 @@ final class AppRouteNames {
   // home -> Farmer -> Search Farmer
   static const String farmers = "farmers";
   static const String createFarmers = "createFarmer";
+  static const String editFarmer = "editFarmer";
   static const String searchFarmers = "searchFarmer";
   static const String farmerPlantations = "farmerPlantations";
   static const String testPlantations = "testPlantations";

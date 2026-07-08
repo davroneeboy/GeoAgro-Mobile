@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
@@ -8,8 +9,8 @@ import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
-import 'package:agro_employee_public/src/feature/fermers/view/widgets/edit_farmer_name_dialog.dart';
 import 'package:agro_employee_public/src/feature/fermers/view/pages/fermers_page.dart';
 
 class FermerPageCardWidget extends ConsumerWidget {
@@ -51,7 +52,7 @@ class FermerPageCardWidget extends ConsumerWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            _showEditNameDialog(context, ref);
+                            _navigateToEditPage(context, ref);
                           },
                           child: Row(
                             children: [
@@ -115,44 +116,15 @@ class FermerPageCardWidget extends ConsumerWidget {
     );
   }
 
-  void _showEditNameDialog(BuildContext context, WidgetRef ref) {
-    final vm = ref.read(fermerPageVM);
-    final currentName = fermerModel.name ?? "";
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => EditFarmerNameDialog(
-        currentName: currentName,
-        isLoading: vm.isUpdating,
-        onSave: (newName) async {
-          final success = await vm.updateFarmerName(
-            id: fermerModel.id!,
-            newName: newName,
-          );
-
-          if (dialogContext.mounted) {
-            if (success) {
-              Navigator.of(dialogContext).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Fermer nomi muvaffaqiyatli yangilandi"),
-                  backgroundColor: design_colors.AppColors.success,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(vm.updateErrorMessage ?? "Xatolik yuz berdi"),
-                  backgroundColor: design_colors.AppColors.error,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
-          }
-        },
-      ),
+  Future<void> _navigateToEditPage(BuildContext context, WidgetRef ref) async {
+    if (fermerModel.id == null) return;
+    final result = await context.push<bool?>(
+      "/${AppRouteNames.farmers}/${AppRouteNames.editFarmer}",
+      extra: fermerModel.id,
     );
+    if (result == true) {
+      await ref.read(fermerPageVM).getFermers(isLoadMore: false);
+    }
   }
 }
 

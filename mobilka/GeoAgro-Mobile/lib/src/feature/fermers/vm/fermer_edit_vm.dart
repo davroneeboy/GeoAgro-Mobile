@@ -1,17 +1,33 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import '../../../core/utils/dio_error_utils.dart';
-import '../../../data/repository/app_repository_impl.dart';
 
 import '../../../core/server/api/orginfo_service.dart';
-import '../../../core/setting/setup.dart';
-import '../../../data/model/farmer/create_fermer_model.dart';
+import '../../../core/utils/dio_error_utils.dart';
+import '../../../data/model/farmer/farmer_list_model.dart';
+import '../../../data/repository/app_repository_impl.dart';
 
-class FermerCreateVm extends ChangeNotifier {
-  String? errorMessage;
+/// Редактирование существующего фермера. ИНН — read-only (никогда не
+/// отправляется на изменение); остальные поля дублируют валидацию
+/// [FermerCreateVm] — единого места для этих валидаторов в кодовой базе
+/// нет, дублирование соответствует существующему стилю.
+class FermerEditVm extends ChangeNotifier {
+  final int farmerId;
+
+  FermerEditVm({required this.farmerId}) {
+    _init();
+  }
+
+  final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
+
+  bool isLoadingInitial = true;
+  String? loadError;
+
   bool isOrgInfoLoading = false;
   String? orgInfoError;
 
-  final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
+  bool isUpdating = false;
+  String? errorMessage;
 
   TextEditingController name = TextEditingController();
   TextEditingController founderName = TextEditingController();
@@ -21,50 +37,64 @@ class FermerCreateVm extends ChangeNotifier {
   TextEditingController inn = TextEditingController();
   TextEditingController establishedYear = TextEditingController();
 
-  // Ошибки валидации для каждого поля
   String? nameError;
   String? founderNameError;
   String? directorNameError;
   String? phoneNumberError;
   String? addressError;
-  String? innError;
   String? establishedYearError;
 
-  bool isLoading = false;
+  Future<void> _init() async {
+    try {
+      final farmerData = await _appRepositoryImpl.getFarmerById(farmerId);
+      if (farmerData == null) {
+        loadError = "Fermer ma'lumotlari topilmadi";
+        isLoadingInitial = false;
+        notifyListeners();
+        return;
+      }
 
-  FermerCreateVm() {
-    // Инициализируем поле телефона с префиксом +998
-    phoneNumber.text = '+998';
+      final model = FarmerModel.fromJson(jsonDecode(farmerData));
+      name.text = model.name ?? '';
+      founderName.text = model.founderName ?? '';
+      directorName.text = model.directorName ?? '';
+      address.text = model.address ?? '';
+      establishedYear.text = model.establishedYear?.toString() ?? '';
+      inn.text = model.inn?.toString() ?? '';
+      phoneNumber.text =
+          (model.phoneNumber != null && model.phoneNumber!.isNotEmpty)
+              ? '+998${model.phoneNumber}'
+              : '+998';
 
-    // Добавляем слушатели для валидации в реальном времени
-    name.addListener(_validateName);
-    founderName.addListener(_validateFounderName);
-    directorName.addListener(_validateDirectorName);
-    phoneNumber.addListener(_validatePhoneNumber);
-    address.addListener(_validateAddress);
-    inn.addListener(_validateInn);
-    establishedYear.addListener(_validateEstablishedYear);
+      // Слушатели навешиваем только после того как контроллеры заполнены
+      // начальными данными — иначе первая же простановка .text вызовет
+      // валидацию с пустой строкой и мигнёт ошибками на загрузке.
+      name.addListener(_validateName);
+      founderName.addListener(_validateFounderName);
+      directorName.addListener(_validateDirectorName);
+      phoneNumber.addListener(_validatePhoneNumber);
+      address.addListener(_validateAddress);
+      establishedYear.addListener(_validateEstablishedYear);
+
+      isLoadingInitial = false;
+      notifyListeners();
+    } catch (e) {
+      loadError = DioErrorUtils.messageFromAny(e);
+      isLoadingInitial = false;
+      notifyListeners();
+    }
   }
 
-  void _setLoading(bool value) {
-    isLoading = value;
-    notifyListeners();
-  }
-
-  // Санитизация данных для защиты от XSS
   String _sanitizeInput(String input) {
     return input
-        .replaceAll(RegExp(r'<[^>]*>'), '') // Удаляем HTML теги
-        .replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false),
-            '') // Удаляем script теги
-        .replaceAll(RegExp(r'javascript:', caseSensitive: false),
-            '') // Удаляем javascript:
-        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false),
-            '') // Удаляем обработчики событий
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll(
+            RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'javascript:', caseSensitive: false), '')
+        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false), '')
         .trim();
   }
 
-  // Валидация имени организации (только латиница, цифры и пробелы)
   void _validateName() {
     final value = _sanitizeInput(name.text);
     if (value.isEmpty) {
@@ -83,7 +113,6 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Валидация имени основателя (только буквы и пробелы)
   void _validateFounderName() {
     final value = _sanitizeInput(founderName.text);
     if (value.isEmpty) {
@@ -103,7 +132,6 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Валидация имени директора (только буквы и пробелы)
   void _validateDirectorName() {
     final value = _sanitizeInput(directorName.text);
     if (value.isEmpty) {
@@ -123,7 +151,6 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Валидация номера телефона
   void _validatePhoneNumber() {
     final value = phoneNumber.text.trim();
     if (value.isEmpty) {
@@ -131,7 +158,6 @@ class FermerCreateVm extends ChangeNotifier {
     } else if (!value.startsWith('+998')) {
       phoneNumberError = "Telefon raqam +998 bilan boshlanishi kerak";
     } else {
-      // Извлекаем только цифры после +998
       final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
       final phoneDigits =
           digitsOnly.startsWith('998') ? digitsOnly.substring(3) : digitsOnly;
@@ -149,7 +175,6 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Валидация адреса (буквы, цифры, пробелы, запятые, точки, дефисы)
   void _validateAddress() {
     final value = _sanitizeInput(address.text);
     if (value.isEmpty) {
@@ -168,22 +193,6 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Валидация ИНН
-  void _validateInn() {
-    final value = inn.text.trim();
-    if (value.isEmpty) {
-      innError = "INN bo'sh bo'lmasligi zarur";
-    } else if (!RegExp(r'^\d+$').hasMatch(value)) {
-      innError = "INN faqat raqamlardan iborat bo'lishi kerak";
-    } else if (value.length != 9) {
-      innError = "INN 9 ta raqamdan iborat bo'lishi kerak";
-    } else {
-      innError = null;
-    }
-    notifyListeners();
-  }
-
-  // Валидация года создания
   void _validateEstablishedYear() {
     final value = establishedYear.text.trim();
     if (value.isEmpty) {
@@ -211,17 +220,35 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Поиск организации по ИНН через orginfo.uz (автозаполнение названия и адреса)
-  Future<void> fetchOrgInfoByInn() async {
-    _validateInn();
-    if (innError != null) return;
+  bool validateAll() {
+    _validateName();
+    _validateFounderName();
+    _validateDirectorName();
+    _validatePhoneNumber();
+    _validateAddress();
+    _validateEstablishedYear();
+
+    return nameError == null &&
+        founderNameError == null &&
+        directorNameError == null &&
+        phoneNumberError == null &&
+        addressError == null &&
+        establishedYearError == null;
+  }
+
+  /// Пере-запрашивает orginfo.uz по уже известному (read-only) ИНН и
+  /// обновляет поля тем же правилом, что и создание: перезаписываем
+  /// только там, где источник реально что-то вернул.
+  Future<void> refetchOrgInfo() async {
+    final innValue = inn.text.trim();
+    if (innValue.isEmpty) return;
 
     isOrgInfoLoading = true;
     orgInfoError = null;
     notifyListeners();
 
     try {
-      final result = await OrginfoService.lookupByInn(inn.text.trim());
+      final result = await OrginfoService.lookupByInn(innValue);
       if (result == null) {
         orgInfoError = "Bu INN bo'yicha tashkilot topilmadi";
       } else {
@@ -237,14 +264,10 @@ class FermerCreateVm extends ChangeNotifier {
           establishedYear.text = result.establishedYear!.toString();
         }
         if (result.phoneNumber?.isNotEmpty ?? false) {
-          // Конкатенация, не форматтер: UzbekPhoneFormatter — InputFormatter
-          // для живого ввода, не предназначен для программной установки.
           phoneNumber.text = '+998${result.phoneNumber}';
         }
       }
     } on OrginfoParseException {
-      // Разметка orginfo.uz поменялась либо сайт недоступен — не молчим,
-      // явно говорим юзеру заполнить вручную вместо тихого no-op.
       orgInfoError =
           "Avtomatik qidiruv vaqtincha ishlamayapti. Ma'lumotlarni qo'lda kiriting";
     } catch (e) {
@@ -255,87 +278,67 @@ class FermerCreateVm extends ChangeNotifier {
     }
   }
 
-  // Проверка всей формы перед отправкой
-  bool validateAll() {
-    _validateName();
-    _validateFounderName();
-    _validateDirectorName();
-    _validatePhoneNumber();
-    _validateAddress();
-    _validateInn();
-    _validateEstablishedYear();
+  Future<bool> saveChanges() async {
+    isUpdating = true;
+    errorMessage = null;
+    notifyListeners();
 
-    return nameError == null &&
-        founderNameError == null &&
-        directorNameError == null &&
-        phoneNumberError == null &&
-        addressError == null &&
-        innError == null &&
-        establishedYearError == null;
-  }
-
-  Future<bool> createFermer() async {
-    _setLoading(true);
     try {
-      // Санитизация всех данных перед отправкой
-      final sanitizedName = _sanitizeInput(name.text);
-      final sanitizedFounderName = _sanitizeInput(founderName.text);
-      final sanitizedDirectorName = _sanitizeInput(directorName.text);
-      final sanitizedAddress = _sanitizeInput(address.text);
+      // Свежий фетч прямо перед сохранением — не переиспользуем данные с
+      // открытия страницы, чтобы не перетереть чужие правки, сделанные
+      // пока эта страница была открыта (тот же trade-off, что уже принят
+      // в FermerVm.updateFarmerName).
+      final farmerData = await _appRepositoryImpl.getFarmerById(farmerId);
+      if (farmerData == null) {
+        errorMessage = "Fermer ma'lumotlari topilmadi";
+        return false;
+      }
 
-      // Извлекаем только цифры из номера телефона (без +998 и форматирования)
+      final model = FarmerModel.fromJson(jsonDecode(farmerData));
+      final updateData = model.toJson();
+
       final phoneDigits = phoneNumber.text.replaceAll(RegExp(r'[^\d]'), '');
       final cleanPhone = phoneDigits.startsWith('998')
           ? phoneDigits.substring(3)
           : phoneDigits;
 
-      // Farmer Model ni yaratish
-      CreateFermerModel fermerModel = CreateFermerModel(
-        name: sanitizedName,
-        founderName: sanitizedFounderName,
-        directorName: sanitizedDirectorName,
-        phoneNumber: cleanPhone,
-        address: sanitizedAddress,
-        inn: inn.text.trim(),
-        establishedYear: int.parse(establishedYear.text.trim()),
-        district: "$districtId",
+      updateData["name"] = _sanitizeInput(name.text);
+      updateData["founder_name"] = _sanitizeInput(founderName.text);
+      updateData["director_name"] = _sanitizeInput(directorName.text);
+      updateData["phone_number"] = cleanPhone;
+      updateData["address"] = _sanitizeInput(address.text);
+      updateData["established_year"] = int.parse(establishedYear.text.trim());
+      // inn/district/id/email/created_by остаются как пришли со свежего фетча
+
+      final response = await _appRepositoryImpl.updateFarmer(
+        id: farmerId,
+        data: updateData,
       );
 
-      // API so‘rovi yuborish
-      final response =
-          await _appRepositoryImpl.postNewFermer(fermer: fermerModel);
-      // Agar status code 200 yoki 201 bo‘lsa
       if (response.statusCode == 200 || response.statusCode == 201) {
-        errorMessage = "Yangi fermer qo'shildi";
         return true;
       }
-      // Agar status code 400 bo‘lsa
-      else if (response.statusCode == 400) {
-        errorMessage = "Bunday INN Mavjud";
-        return false;
-      }
-      // Boshqa holatlar (masalan, server xatosi)
-      else {
-        errorMessage = "Server ochib qolgan bo'lishi mumkin.";
-        return false;
-      }
+
+      errorMessage = DioErrorUtils.messageFromAny(
+        Exception(response.data?.toString() ?? 'HTTP ${response.statusCode}'),
+      );
+      return false;
     } catch (e) {
       errorMessage = DioErrorUtils.messageFromAny(e);
       return false;
     } finally {
-      _setLoading(false);
+      isUpdating = false;
+      notifyListeners();
     }
   }
 
   @override
   void dispose() {
-    // Удаляем слушатели перед dispose
     name.removeListener(_validateName);
     founderName.removeListener(_validateFounderName);
     directorName.removeListener(_validateDirectorName);
     phoneNumber.removeListener(_validatePhoneNumber);
     address.removeListener(_validateAddress);
-    inn.removeListener(_validateInn);
     establishedYear.removeListener(_validateEstablishedYear);
 
     super.dispose();

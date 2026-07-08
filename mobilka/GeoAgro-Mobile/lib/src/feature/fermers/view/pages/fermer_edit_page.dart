@@ -12,29 +12,60 @@ import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/main_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-import '../../vm/fermer_create_vm.dart';
+import '../../vm/fermer_edit_vm.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/tools/uzbek_phone_formatter.dart';
 
-final fermerCreatePageVM =
-    ChangeNotifierProvider.autoDispose<FermerCreateVm>((ref) {
-  return FermerCreateVm();
+final fermerEditPageVM =
+    ChangeNotifierProvider.autoDispose.family<FermerEditVm, int>((ref, id) {
+  return FermerEditVm(farmerId: id);
 });
 
-class FermerCreatePage extends ConsumerStatefulWidget {
-  const FermerCreatePage({super.key});
+class FermerEditPage extends ConsumerStatefulWidget {
+  final int farmerId;
+
+  const FermerEditPage({super.key, required this.farmerId});
 
   @override
-  ConsumerState<FermerCreatePage> createState() => _FermerCreatePageState();
+  ConsumerState<FermerEditPage> createState() => _FermerEditPageState();
 }
 
-class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
+class _FermerEditPageState extends ConsumerState<FermerEditPage> {
   @override
   Widget build(BuildContext context) {
-    final vm = ref.watch(fermerCreatePageVM);
+    final vm = ref.watch(fermerEditPageVM(widget.farmerId));
+
+    if (vm.isLoadingInitial) {
+      return Scaffold(
+        backgroundColor: context.colors.background,
+        appBar: const CustomAppBarWidget(
+            title: "Fermerni tahrirlash", canPop: true),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (vm.loadError != null) {
+      return Scaffold(
+        backgroundColor: context.colors.background,
+        appBar: const CustomAppBarWidget(
+            title: "Fermerni tahrirlash", canPop: true),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            child: Text(
+              vm.loadError!,
+              style: TextStyle(color: context.colors.textPrimary),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: const CustomAppBarWidget(title: "Fermer Qo'shish", canPop: true),
+      appBar:
+          const CustomAppBarWidget(title: "Fermerni tahrirlash", canPop: true),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
@@ -57,14 +88,10 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                 CustomTextField(
                   label: "INN",
                   controller: vm.inn,
-                  hintText: "302208505",
+                  enabled: false,
                   isRequired: true,
-                  errorText: vm.innError ?? vm.orgInfoError,
+                  errorText: vm.orgInfoError,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(9),
-                  ],
                   suffixIcon: vm.isOrgInfoLoading
                       ? Padding(
                           padding: EdgeInsets.all(AppSpacing.sm),
@@ -76,8 +103,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                         )
                       : IconButton(
                           icon: Icon(Icons.search),
-                          tooltip: "Tashkilotni INN bo'yicha topish",
-                          onPressed: vm.fetchOrgInfoByInn,
+                          tooltip: "Tashkilotni INN bo'yicha yangilash",
+                          onPressed: vm.refetchOrgInfo,
                         ),
                 ),
                 SizedBox(height: AppSpacing.md),
@@ -163,12 +190,12 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                 ),
                 SizedBox(height: AppSpacing.xxl),
                 MainButton(
-                  text: "Fermer Qo'shish",
-                  isLoading: vm.isLoading,
+                  text: "Saqlash",
+                  isLoading: vm.isUpdating,
                   onTap: () async {
                     FocusScope.of(context).unfocus();
                     if (vm.validateAll()) {
-                      final result = await vm.createFermer();
+                      final result = await vm.saveChanges();
                       if (!result && context.mounted) {
                         Utils.fireTopSnackBar(
                           vm.errorMessage ?? "Xatolik yuz berdi",
@@ -177,7 +204,7 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                         );
                       } else if (result && context.mounted) {
                         Utils.fireTopSnackBar(
-                          "Yangi Fermer Qo'shildi",
+                          "Fermer ma'lumotlari yangilandi",
                           design_colors.AppColors.accentGreen,
                           context,
                         );

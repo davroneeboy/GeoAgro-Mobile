@@ -20,6 +20,7 @@ import '../../feature/fermers/view/pages/fermers_page.dart';
 // import '../../feature/home/view/pages/description_page.dart';
 import '../../feature/detail_page/view/pages/detail_page.dart';
 import '../../feature/fermers/view/pages/fermer_create_page.dart';
+import '../../feature/fermers/view/pages/fermer_edit_page.dart';
 import '../../feature/google_map/view/pages/create_map_page.dart';
 import '../../feature/google_map/view/pages/plantation_map_view_page.dart';
 import '../../feature/fermers/view/pages/farmers_statistics_page.dart';
@@ -181,6 +182,15 @@ final class RouterConfigService {
                 path: AppRouteNames.createFarmers,
                 pageBuilder: (context, state) => customEachTransitionAnimation(
                     context, state, FermerCreatePage()),
+              ),
+
+              // Edit Farmer page
+              GoRoute(
+                path: AppRouteNames.editFarmer,
+                pageBuilder: (context, state) => customEachTransitionAnimation(
+                    context,
+                    state,
+                    FermerEditPage(farmerId: state.extra as int)),
               ),
 
               // Farmer Plantations page
