@@ -260,9 +260,6 @@ class FermerEditVm extends ChangeNotifier {
         if (result.directorName?.isNotEmpty ?? false) {
           directorName.text = result.directorName!;
         }
-        if (result.establishedYear != null) {
-          establishedYear.text = result.establishedYear!.toString();
-        }
         if (result.phoneNumber?.isNotEmpty ?? false) {
           phoneNumber.text = '+998${result.phoneNumber}';
         }

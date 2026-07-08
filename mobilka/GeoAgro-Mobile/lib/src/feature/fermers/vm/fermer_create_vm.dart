@@ -233,9 +233,6 @@ class FermerCreateVm extends ChangeNotifier {
         if (result.directorName?.isNotEmpty ?? false) {
           directorName.text = result.directorName!;
         }
-        if (result.establishedYear != null) {
-          establishedYear.text = result.establishedYear!.toString();
-        }
         if (result.phoneNumber?.isNotEmpty ?? false) {
           // Конкатенация, не форматтер: UzbekPhoneFormatter — InputFormatter
           // для живого ввода, не предназначен для программной установки.
