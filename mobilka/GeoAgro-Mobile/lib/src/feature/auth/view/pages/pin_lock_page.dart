@@ -40,6 +40,7 @@ class _PinLockPageState extends State<PinLockPage> with WidgetsBindingObserver {
   bool _isVerifying = false;
   bool _biometricAvailable = false;
   bool _biometricDismissed = false;
+  bool _biometricAttempted = false;
   Duration _remainingLockout = Duration.zero;
   Timer? _lockoutTimer;
 
@@ -59,11 +60,15 @@ class _PinLockPageState extends State<PinLockPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Cold-start biometric prompt can race the first frame and never
-    // appear; re-offer it when the app regains focus, unless the user
-    // already dismissed the prompt on purpose.
+    // The system biometric prompt itself pauses/resumes the app (it's an
+    // overlay), so this fires after every prompt — including a successful
+    // one. Only re-offer biometrics on resume if we never even tried yet
+    // this launch (covers the cold-start race where the first attempt
+    // silently failed to appear); once one real attempt has happened,
+    // resume is just an echo of that attempt closing, not a new signal.
     if (state == AppLifecycleState.resumed &&
         _biometricAvailable &&
+        !_biometricAttempted &&
         !_biometricDismissed &&
         !_isVerifying &&
         _remainingLockout == Duration.zero) {
@@ -126,6 +131,7 @@ class _PinLockPageState extends State<PinLockPage> with WidgetsBindingObserver {
 
   Future<void> _tryBiometric() async {
     if (_isVerifying || _remainingLockout > Duration.zero) return;
+    _biometricAttempted = true;
     setState(() {
       _isVerifying = true;
       _errorMessage = null;
