@@ -131,61 +131,57 @@ class _LoginPageState extends ConsumerState<LoginPage>
     LoginVm vm = ref.watch(loginPageVM);
     final loginVmNotifier = ref.read(loginPageVM.notifier);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        backgroundColor: context.colors.background,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      context.colors.background,
-                      context.colors.surface,
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: context.colors.background,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    context.colors.background,
+                    context.colors.surface,
+                  ],
                 ),
               ),
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl,
-                        vertical: AppSpacing.xxl,
-                      ),
-                      child: Form(
-                        key: vm.formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(height: 20.h),
-                            _buildLogoSection(),
-                            SizedBox(height: 48.h),
-                            _buildTitleSection(),
-                            SizedBox(height: 48.h),
-                            _buildFormFields(vm, loginVmNotifier),
-                            SizedBox(height: 32.h),
-                            _buildLoginButton(vm, loginVmNotifier),
-                            SizedBox(height: 24.h),
-                          ],
-                        ),
+            ),
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                      vertical: AppSpacing.xxl,
+                    ),
+                    child: Form(
+                      key: vm.formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: 20.h),
+                          _buildLogoSection(),
+                          SizedBox(height: 48.h),
+                          _buildTitleSection(),
+                          SizedBox(height: 48.h),
+                          _buildFormFields(vm, loginVmNotifier),
+                          SizedBox(height: 32.h),
+                          _buildLoginButton(vm, loginVmNotifier),
+                          SizedBox(height: 24.h),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              _buildHelpButton(),
-            ],
-          ),
+            ),
+            _buildHelpButton(),
+          ],
         ),
       ),
     );
