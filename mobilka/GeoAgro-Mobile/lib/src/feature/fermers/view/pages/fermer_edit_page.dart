@@ -88,7 +88,10 @@ class _FermerEditPageState extends ConsumerState<FermerEditPage> {
                 CustomTextField(
                   label: "INN",
                   controller: vm.inn,
-                  enabled: false,
+                  // readOnly, не enabled:false — TextField(enabled: false)
+                  // отключает весь InputDecorator вместе с suffixIcon,
+                  // из-за чего кнопка поиска переставала нажиматься.
+                  readOnly: true,
                   isRequired: true,
                   errorText: vm.orgInfoError,
                   keyboardType: TextInputType.number,
