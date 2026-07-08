@@ -66,9 +66,13 @@ Future<void> setup() async {
       userId = storedUserId;
       log("Loaded userId from storage: $userId");
     }
-    // Ensure we have fresh user info from API if authenticated
-    if (accessToken != null &&
-        (userId <= 0 || username == null || username!.isEmpty)) {
+    // Always refresh user info from API on cold start when authenticated —
+    // not just when userId/username are missing. isSpecialUser and
+    // limit_km can be changed by an admin at any time; gating this behind
+    // "cache is empty" meant those flags only ever refreshed on first
+    // login, so revoking gallery access (or changing limit_km) had no
+    // effect until the user explicitly logged out and back in.
+    if (accessToken != null) {
       try {
         final repo = AppRepositoryImpl();
         final userInfo = await repo.getUserInfo();
