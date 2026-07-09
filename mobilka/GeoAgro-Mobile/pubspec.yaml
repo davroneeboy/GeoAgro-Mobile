@@ -78,11 +78,15 @@ flutter:
     - assets/uzb-geojson/
 
 # Конфигурация для автоматического создания иконок
-# Используется assets/images/gerb.png. Adaptive icon (Android 8+) с белым
-# фоном — иначе системная circle/squircle маска обрезает герб по краям.
+# Legacy icon (Android <8) — из gerb.png as-is.
+# Adaptive icon foreground (Android 8+) — из gerb_adaptive_foreground.png,
+# герб уменьшен и отцентрован до ~66% канваса — ровно safe zone маски
+# launcher'а (Pixel circle, Samsung/MIUI squircle и т.д.): максимально
+# крупно без обрезки краёв. Вписать gerb.png на весь канвas без отступа
+# приводило к обрезке; отступ 34%+ — к слишком мелкому виду.
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
   image_path: "assets/images/gerb.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/gerb.png"
+  adaptive_icon_foreground: "assets/images/gerb_adaptive_foreground.png"
