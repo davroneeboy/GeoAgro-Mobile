@@ -255,6 +255,9 @@ class UploadQueueService extends ChangeNotifier {
     item.lastError = null;
 
     final createdId = _extractCreatedId(response);
+    if (createdId != null) {
+      item.plantationId = createdId;
+    }
     final loc = item.userLocation;
     if (createdId != null && loc != null) {
       unawaited(_repo.sendUserLocation(

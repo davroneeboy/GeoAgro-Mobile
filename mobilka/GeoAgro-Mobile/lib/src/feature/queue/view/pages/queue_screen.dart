@@ -2,6 +2,7 @@ import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../design_system/tokens/colors.dart' as design_colors;
@@ -10,6 +11,7 @@ import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 import '../../../../core/queue/upload_queue_provider.dart';
 import '../../../../core/queue/upload_queue_service.dart';
+import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/utils/utils.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../data/model/queue/queue_item_model.dart';
@@ -44,6 +46,13 @@ class QueueScreen extends ConsumerWidget {
                   item: item,
                   onRetry: () => _retry(context, queue, item),
                   onDelete: () => _confirmDelete(context, queue, item),
+                  onOpen: item.status == QueueItemStatus.done &&
+                          item.plantationId != null
+                      ? () => context.push(
+                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                            extra: item.plantationId,
+                          )
+                      : null,
                 );
               },
             ),
@@ -106,24 +115,27 @@ class _QueueItemCard extends StatelessWidget {
   final QueueItem item;
   final VoidCallback onRetry;
   final VoidCallback onDelete;
+  final VoidCallback? onOpen;
 
   const _QueueItemCard({
     required this.item,
     required this.onRetry,
     required this.onDelete,
+    this.onOpen,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final label = item.displayLabel ??
-        (item.type == QueueItemType.createPlantation
-            ? "Yangi plantatsiya"
-            : "Plantatsiya #${item.plantationId}");
+    // После успешной отправки id уже известен (для create — только
+    // после ответа сервера) — показываем его вместо статичного лейбла.
+    final label = item.plantationId != null
+        ? "Plantatsiya #${item.plantationId}"
+        : item.displayLabel ?? "Yangi plantatsiya";
     final dateStr =
         DateFormat('dd.MM.yyyy HH:mm').format(item.collectedAt.toLocal());
 
-    return Container(
+    final card = Container(
       padding: EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
         color: colors.surfaceVariant,
@@ -187,6 +199,17 @@ class _QueueItemCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+
+    if (onOpen == null) return card;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        onTap: onOpen,
+        child: card,
       ),
     );
   }

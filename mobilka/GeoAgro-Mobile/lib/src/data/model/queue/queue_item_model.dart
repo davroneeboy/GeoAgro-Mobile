@@ -54,7 +54,7 @@ class QueueItem {
   final String id;
   final QueueItemType type;
   QueueItemStatus status;
-  final int? plantationId;
+  int? plantationId;
   final int farmerId;
   final String? displayLabel;
   final Map<String, dynamic> requestBody;
