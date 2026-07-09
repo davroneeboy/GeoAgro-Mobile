@@ -72,7 +72,8 @@ class _PendingVm extends ChangeNotifier {
           page: currentPage, search: _searchQuery);
       final data = await ApiService.get(ApiConst.apiPlantationsPending, query);
       if (data == null) {
-        errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
+        errorMessage = AppRepositoryImpl.lastErrorMessage ??
+            "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
         final model = PlantationsListModel.fromJson(jsonDecode(data));
         final incomingItems = model.results ?? [];

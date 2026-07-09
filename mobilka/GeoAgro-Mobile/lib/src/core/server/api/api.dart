@@ -7,12 +7,10 @@ import 'package:mime/mime.dart';
 import "package:dio/io.dart";
 import "package:dio/dio.dart";
 import "package:flutter/foundation.dart";
-import "package:connectivity_plus/connectivity_plus.dart";
 import "package:pretty_dio_logger/pretty_dio_logger.dart";
 import "package:package_info_plus/package_info_plus.dart";
 
 import "api_constants.dart";
-import "api_connection.dart";
 import "../../storage/app_storage.dart";
 import "../interceptors/connectivity_interceptor.dart";
 import "../interceptors/token_interceptor.dart";
@@ -40,12 +38,7 @@ class ApiService {
 
     dio.interceptors.addAll([
       TokenInterceptor.instance,
-      ConnectivityInterceptor(
-        requestReceiver: Connection(
-          dio: dio,
-          connectivity: Connectivity(),
-        ),
-      ),
+      ConnectivityInterceptor(),
       // Secure logger (masks sensitive data) - always enabled in debug
       SecureLoggerInterceptor(),
       // PrettyDioLogger for detailed logs (only in debug mode, shows masked data)

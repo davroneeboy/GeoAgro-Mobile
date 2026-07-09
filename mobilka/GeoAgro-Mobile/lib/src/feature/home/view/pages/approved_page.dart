@@ -73,7 +73,8 @@ class _ApprovedVm extends ChangeNotifier {
       final data =
           await ApiService.get(ApiConst.apiPlantationsFormeApproved, query);
       if (data == null) {
-        errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
+        errorMessage = AppRepositoryImpl.lastErrorMessage ??
+            "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
         final model = PlantationsListModel.fromJson(jsonDecode(data));
         final incomingItems = model.results ?? [];

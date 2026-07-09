@@ -35,7 +35,7 @@ class NotificationsVm extends ChangeNotifier {
           limit: limit, offset: offset, unreadOnly: unreadOnly);
       if (data == null) {
         errorMessage = AppRepositoryImpl.lastErrorMessage ??
-            "Server bilan bog\'liq xatolik yuzaga keldi.";
+            "Server bilan bog'liq xatolik yuzaga keldi.";
       } else {
         final jsonData = jsonDecode(data) as Map<String, dynamic>;
         final resp = NotificationsResponse.fromJson(jsonData);

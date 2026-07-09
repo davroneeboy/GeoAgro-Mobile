@@ -16,6 +16,11 @@ import 'package:l/l.dart';
 import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/storage/app_storage.dart';
+import '../../../core/storage/draft_store.dart';
+import '../../../core/storage/upload_queue_store.dart';
+import '../../../core/queue/upload_queue_provider.dart';
+import '../../../core/utils/network_error_utils.dart';
+import '../../../core/utils/network_utils.dart';
 import '../../../core/utils/sanitization_utils.dart';
 import '../../../core/utils/utils.dart';
 import '../../../../design_system/theme/colors.dart' as design_colors;
@@ -196,10 +201,180 @@ class DetailVM extends ChangeNotifier {
   /// в этом случае на сервер ничего не отправляем (фейковые координаты
   /// портят историю точек).
   Map<String, double>? userLocation;
+
+  /// Момент, когда GPS-точка была реально зафиксирована (рисование
+  /// полигона), а не момент финального сабмита формы — тот может
+  /// случиться много позже. Используется как collectedAt в QueueItem.
+  DateTime? _collectedAt;
   TextEditingController tonnaController = TextEditingController();
   TextEditingController commentsController = TextEditingController();
 
   String? errorMessage;
+
+  // ===== Draft persistence =====
+
+  /// Плоский снапшот UI-state для восстановления формы после kill
+  /// процесса/paused. Не переиспользует Garden.toJson() — тот формат уже
+  /// "схлопывает" switches в конкретные значения и однозначно не
+  /// восстанавливается обратно в переключатели.
+  Future<void> saveDraftSnapshot(WidgetRef ref) async {
+    try {
+      final data = <String, dynamic>{
+        "farmer_id": farmerId,
+        "coordinates": coordinates
+            .map((c) => {"latitude": c.latitude, "longitude": c.longitude})
+            .toList(),
+        "user_location": userLocation,
+        "collected_at": _collectedAt?.toIso8601String(),
+        "polygon_area": polygonArea,
+        "kontur_numbers": konturNumbers,
+        "controllers": {
+          "notUsableArea": notUsableArea.text,
+          "emptyArea": emptyArea.text,
+          "tomchiSystemsArea": tomchiSystemsArea.text,
+          "tomchiSystemsCount": tomchiSystemsCount.text,
+          "investmentMahhalliyAmount": investmentMahhalliyAmount.text,
+          "investmentXorijiyAmount": investmentXorijiyAmount.text,
+          "subsidiyaContract": subsidiyaContract.text,
+          "subsidiyaAmount": subsidiyaAmount.text,
+          "trellisTemirInstalledArea": trellisTemirInstalledArea.text,
+          "trellisTemirCount": trellisTemirCount.text,
+          "trellisBetonInstalledArea": trellisBetonInstalledArea.text,
+          "trellisBetonCount": trellisBetonCount.text,
+          "cultivatedArea": cultivatedArea.text,
+          "sxema1": sxema1.text,
+          "sxema2": sxema2.text,
+          "economicInefficientAreaController":
+              economicInefficientAreaController.text,
+          "tonnaController": tonnaController.text,
+          "commentsController": commentsController.text,
+        },
+        "reservoirsBetonliVolumes":
+            reservoirsBetonliVolumes.map((c) => c.text).toList(),
+        "reservoirsQoplamaliVolumes":
+            reservoirsQoplamaliVolumes.map((c) => c.text).toList(),
+        "switches": {
+          "switchTomchi": ref.read(switchTomchi),
+          "switchFenced": ref.read(switchFenced),
+          "switchIsFertile": ref.read(switchIsFertile),
+          "switchSubsidiya": ref.read(switchSubsidiya),
+          "switchEfficiency": ref.read(switchEfficiency),
+          "switchTrellis": ref.read(switchTrellis),
+          "switchTrellisBeton": ref.read(switchTrellisBeton),
+          "switchTrellisTemir": ref.read(switchTrellisTemir),
+          "switchReservoir": ref.read(switchReservoir),
+          "switchReservoirsBeton": ref.read(switchReservoirsBeton),
+          "switchReservoirsQoplamali": ref.read(switchReservoirsQoplamali),
+          "switchInvestmentXorjiy": ref.read(switchInvestmentXorjiy),
+          "switchInvestmentMahhalliy": ref.read(switchInvestmentMahhalliy),
+          "switchIqtisodiy": ref.read(switchIqtisodiy),
+        },
+        "unumdorlik_value": unumdorlikValue,
+        "selected_plantation_type": _selectedPlantationType,
+        "selected_bog_type": _selectedBogType,
+        "selected_issiqxona_type": _selectedIssiqxonaType,
+        "selected_uzum_type": _selectedUzumType,
+        "selected_bog_subtype": _selectedBogSubtype,
+        "selected_yer_type": _selectedYerType,
+        "image_files": _imageFiles.map(
+          (cardId, file) => MapEntry(cardId.toString(), file?.path),
+        ),
+        "saved_at": DateTime.now().toIso8601String(),
+      };
+      await DraftStore.instance.writeCreateDraft(data);
+    } catch (e) {
+      p.log("DetailVM: saveDraftSnapshot failed: $e");
+    }
+  }
+
+  /// Восстанавливает черновик, если он есть. Вызывается один раз при
+  /// первом открытии формы (см. DetailPage _hasLoadedData guard) —
+  /// НЕ перезаписывает уже переданные из карты farmerId/coordinates,
+  /// если черновик relate к другому фермеру/участку.
+  Future<bool> restoreDraftIfExists() async {
+    try {
+      final data = await DraftStore.instance.readCreateDraft();
+      if (data == null) return false;
+      if ((data["farmer_id"] as int?) != farmerId) return false;
+
+      final controllers =
+          Map<String, dynamic>.from(data["controllers"] as Map? ?? {});
+      notUsableArea.text = controllers["notUsableArea"] as String? ?? "";
+      emptyArea.text = controllers["emptyArea"] as String? ?? "";
+      tomchiSystemsArea.text =
+          controllers["tomchiSystemsArea"] as String? ?? "";
+      tomchiSystemsCount.text =
+          controllers["tomchiSystemsCount"] as String? ?? "";
+      investmentMahhalliyAmount.text =
+          controllers["investmentMahhalliyAmount"] as String? ?? "";
+      investmentXorijiyAmount.text =
+          controllers["investmentXorijiyAmount"] as String? ?? "";
+      subsidiyaContract.text =
+          controllers["subsidiyaContract"] as String? ?? "";
+      subsidiyaAmount.text = controllers["subsidiyaAmount"] as String? ?? "";
+      trellisTemirInstalledArea.text =
+          controllers["trellisTemirInstalledArea"] as String? ?? "";
+      trellisTemirCount.text =
+          controllers["trellisTemirCount"] as String? ?? "";
+      trellisBetonInstalledArea.text =
+          controllers["trellisBetonInstalledArea"] as String? ?? "";
+      trellisBetonCount.text =
+          controllers["trellisBetonCount"] as String? ?? "";
+      cultivatedArea.text = controllers["cultivatedArea"] as String? ?? "";
+      sxema1.text = controllers["sxema1"] as String? ?? "";
+      sxema2.text = controllers["sxema2"] as String? ?? "";
+      economicInefficientAreaController.text =
+          controllers["economicInefficientAreaController"] as String? ?? "";
+      tonnaController.text = controllers["tonnaController"] as String? ?? "";
+      commentsController.text =
+          controllers["commentsController"] as String? ?? "";
+
+      final betonVolumes =
+          (data["reservoirsBetonliVolumes"] as List<dynamic>? ?? [])
+              .cast<String>();
+      for (var i = 0; i < betonVolumes.length; i++) {
+        if (i >= reservoirsBetonliVolumes.length) addBetonReservoir();
+        reservoirsBetonliVolumes[i].text = betonVolumes[i];
+      }
+      final qoplamaliVolumes =
+          (data["reservoirsQoplamaliVolumes"] as List<dynamic>? ?? [])
+              .cast<String>();
+      for (var i = 0; i < qoplamaliVolumes.length; i++) {
+        if (i >= reservoirsQoplamaliVolumes.length) addQoplamaliReservoir();
+        reservoirsQoplamaliVolumes[i].text = qoplamaliVolumes[i];
+      }
+
+      unumdorlikValue = (data["unumdorlik_value"] as num?)?.toDouble() ?? 50;
+      _selectedPlantationType = data["selected_plantation_type"] as int?;
+      _selectedBogType = data["selected_bog_type"] as int?;
+      _selectedIssiqxonaType = data["selected_issiqxona_type"] as int?;
+      _selectedUzumType = data["selected_uzum_type"] as int?;
+      _selectedBogSubtype = data["selected_bog_subtype"] as int?;
+      _selectedYerType = data["selected_yer_type"] as int?;
+      konturNumbers =
+          (data["kontur_numbers"] as List<dynamic>? ?? []).cast<String>();
+
+      final imageFilesMap =
+          Map<String, dynamic>.from(data["image_files"] as Map? ?? {});
+      for (final entry in imageFilesMap.entries) {
+        final path = entry.value as String?;
+        if (path != null && await File(path).exists()) {
+          _imageFiles[int.parse(entry.key)] = File(path);
+        }
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      p.log("DetailVM: restoreDraftIfExists failed: $e");
+      return false;
+    }
+  }
+
+  Future<void> _clearDraft() async {
+    await DraftStore.instance.clearCreateDraft();
+  }
+
   Future<bool> createPt(WidgetRef ref) async {
     // Защита от множественных вызовов
     if (postLoading) {
@@ -348,52 +523,63 @@ class DetailVM extends ChangeNotifier {
       );
     }).toList();
 
+    var mockGarden = Garden(
+      gardenEstablishedYear: "${_selectedDate?.year.toString() ?? 0}",
+      district: "$districtId",
+      farmer: "$farmerId",
+      emptyArea: _onlyDigitsDot(_norm(emptyArea.text.trim())),
+      irrigationArea: tomchiArea,
+      fertilityScore: unumdorlikValue.toString(),
+      landType: selectedYerType.toString(),
+      notUsableArea: _onlyDigitsDot(_norm(notUsableArea.text.trim())),
+      irrigationSystemsCount: tomchiCount,
+      isFertile: isUnumdormi,
+      types: Types(
+        plantationType: selectedPlantationType,
+        typeChoice: selectedPlantationType == 1
+            ? selectedBogType
+            : selectedPlantationType == 2
+                ? selectedUzumType
+                : selectedPlantationType == 3
+                    ? selectedIssiqxonaType
+                    : null,
+        subtype: selectedPlantationType == 1 ? selectedBogSubtype : null,
+      ),
+      investments: mockInvestments,
+      coordinates: coordinates,
+      subsidies: mockSubsidies,
+      trellises: mockTrellises,
+      reservoirs: mockReservoir,
+      fruitAreas: mockFruitArea,
+    );
+    final jsonData = mockGarden.toJson();
+    // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
+    jsonData['kontur_number'] = konturNumbers;
+    // Убеждаемся, что comments не отправляется в теле запроса создания плантации
+    // Комментарий будет отправлен отдельным запросом после создания
+    jsonData.remove('comments');
+    jsonData.remove('moderation_comment');
+    // user_location НЕ кладём в multipart: create-endpoint игнорирует
+    // bracket-нотацию (проверено: 201, но user_locations пуст). Точка
+    // досылается отдельным JSON PATCH после успешного создания.
+    List<String> images = [];
+    for (var mapEntry in _imageFiles.entries) {
+      images.add(mapEntry.value!.path);
+    }
+
     try {
-      var mockGarden = Garden(
-        gardenEstablishedYear: "${_selectedDate?.year.toString() ?? 0}",
-        district: "$districtId",
-        farmer: "$farmerId",
-        emptyArea: _onlyDigitsDot(_norm(emptyArea.text.trim())),
-        irrigationArea: tomchiArea,
-        fertilityScore: unumdorlikValue.toString(),
-        landType: selectedYerType.toString(),
-        notUsableArea: _onlyDigitsDot(_norm(notUsableArea.text.trim())),
-        irrigationSystemsCount: tomchiCount,
-        isFertile: isUnumdormi,
-        types: Types(
-          plantationType: selectedPlantationType,
-          typeChoice: selectedPlantationType == 1
-              ? selectedBogType
-              : selectedPlantationType == 2
-                  ? selectedUzumType
-                  : selectedPlantationType == 3
-                      ? selectedIssiqxonaType
-                      : null,
-          subtype: selectedPlantationType == 1 ? selectedBogSubtype : null,
-        ),
-        investments: mockInvestments,
-        coordinates: coordinates,
-        subsidies: mockSubsidies,
-        trellises: mockTrellises,
-        reservoirs: mockReservoir,
-        fruitAreas: mockFruitArea,
-      );
-      final jsonData = mockGarden.toJson();
-      // Send kontur numbers as-is (alphanumeric), already sanitized by input formatter
-      jsonData['kontur_number'] = konturNumbers;
-      // Убеждаемся, что comments не отправляется в теле запроса создания плантации
-      // Комментарий будет отправлен отдельным запросом после создания
-      jsonData.remove('comments');
-      jsonData.remove('moderation_comment');
-      // user_location НЕ кладём в multipart: create-endpoint игнорирует
-      // bracket-нотацию (проверено: 201, но user_locations пуст). Точка
-      // досылается отдельным JSON PATCH после успешного создания.
-      List<String> images = [];
-      for (var mapEntry in _imageFiles.entries) {
-        images.add(mapEntry.value!.path);
-      }
       p.log("📦 DetailVM: Full JSON body before sending:");
       p.log("📦 DetailVM: ${jsonEncode(jsonData)}");
+
+      // Нет сети — не пытаемся отправить, сразу кладём в офлайн-очередь.
+      // GPS/antifraud-проверка уже прошла раньше, на этапе рисования
+      // полигона (validateCoordinatesWithLimit) — здесь userLocation уже
+      // готов, повторной проверки не требуется.
+      final isOnline = await NetworkUtils.hasInternetConnection();
+      if (!isOnline) {
+        return _enqueueAndReportOffline(ref, jsonData, images);
+      }
+
       final response = await _appRepositoryImpl.postCreatePlantationWithImages(
           body: jsonData, image: images);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -479,6 +665,7 @@ class DetailVM extends ChangeNotifier {
           }
         }
         errorMessage = 'Muvaffaqiyatli yaratildi';
+        await _clearDraft();
         return true;
       } else if (response.statusCode == 400) {
         dynamic responseData = response.data;
@@ -573,6 +760,15 @@ class DetailVM extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      // Обрыв сети посреди запроса — тоже кладём в очередь, не теряем
+      // уже заполненную форму и фото.
+      if (isNetworkError(e)) {
+        try {
+          return await _enqueueAndReportOffline(ref, jsonData, images);
+        } catch (enqueueError) {
+          p.log("Failed to enqueue after network error: $enqueueError");
+        }
+      }
       errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
       p.log("Error: ${e.toString()}");
       return false;
@@ -580,6 +776,28 @@ class DetailVM extends ChangeNotifier {
       postLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Кладёт уже собранный body/фото в офлайн-очередь и возвращает `true`
+  /// (трактуется как успех с UI-меткой "поставлено в очередь"). Общий
+  /// путь для pre-flight (нет сети до попытки) и catch (сеть оборвалась
+  /// во время запроса) веток — оба ведут к одному и тому же результату.
+  Future<bool> _enqueueAndReportOffline(
+    WidgetRef ref,
+    Map<String, dynamic> jsonData,
+    List<String> images,
+  ) async {
+    await ref.read(uploadQueueServiceProvider).enqueueCreate(
+          farmerId: farmerId,
+          requestBody: jsonData,
+          userLocation: userLocation,
+          imagePaths: images,
+          collectedAt: _collectedAt,
+        );
+    await _clearDraft();
+    errorMessage = "Tarmoq yo'q — navbatga qo'yildi, ulanish "
+        "tiklanganda avtomatik yuboriladi";
+    return true;
   }
 
   void addKonturNumber() {
@@ -1143,7 +1361,12 @@ class DetailVM extends ChangeNotifier {
       return;
     }
 
-    _imageFiles[cardId] = File(pickedFile.path);
+    // Копируем в стабильную app-owned директорию: путь image_picker
+    // (особенно с камеры на некоторых Android-устройствах) не гарантированно
+    // переживает paused/kill, пока юзер ходит по плантации фотографировать.
+    final stablePath = await UploadQueueStore.instance
+        .copyToStableDir(pickedFile.path, prefix: 'create_${cardId}_');
+    _imageFiles[cardId] = File(stablePath);
     notifyListeners();
   }
 
@@ -1269,11 +1492,13 @@ class DetailVM extends ChangeNotifier {
     required List<Coordinate> coordinate,
     Map<String, double>? userLocation,
     double? polygonArea,
+    DateTime? collectedAt,
   }) {
     farmerId = id;
     coordinates = coordinate;
     this.userLocation = userLocation;
     this.polygonArea = polygonArea;
+    _collectedAt = collectedAt;
     p.log("✅ DetailVM setValue: userLocation: $userLocation, "
         "polygonArea: $polygonArea");
   }

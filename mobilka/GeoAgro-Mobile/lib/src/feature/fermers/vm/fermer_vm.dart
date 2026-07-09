@@ -50,7 +50,7 @@ import '../../../data/repository/app_repository_impl.dart';
 //       final data = await _appRepositoryImpl.getFermersList(page: currentPage);
 
 //       if (data == null) {
-//         errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
+//         errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog'liq xatolik yuzaga keldi.";
 //         canLoad = true;
 //       } else {
 //         try {
@@ -82,7 +82,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:agro_employee_public/src/data/model/farmer/farmer_list_model.dart';
-
 
 class FermerVm extends ChangeNotifier {
   bool isLoading = false; // Umumiy yuklanish holati
@@ -156,7 +155,8 @@ class FermerVm extends ChangeNotifier {
 
       if (data == null) {
         debugPrint("❌ getFermers: data is null");
-        errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
+        errorMessage = AppRepositoryImpl.lastErrorMessage ??
+            "Server bilan bog'liq xatolik yuzaga keldi.";
         canLoad = false; // Qo'shimcha yuklashni to'xtatish
         notifyListeners();
       } else {

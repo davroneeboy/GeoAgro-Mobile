@@ -168,7 +168,8 @@ class FarmersStatisticsVm extends ChangeNotifier {
       if (data == null) {
         debugPrint("❌ FarmersStatisticsVM: getFarmersStatistics returned null");
         if (!_isDisposed) {
-          errorMessage = AppRepositoryImpl.lastErrorMessage ?? "Server bilan bog\'liq xatolik yuzaga keldi.";
+          errorMessage = AppRepositoryImpl.lastErrorMessage ??
+              "Server bilan bog'liq xatolik yuzaga keldi.";
         }
       } else {
         debugPrint("✅ FarmersStatisticsVM: Statistics data received");

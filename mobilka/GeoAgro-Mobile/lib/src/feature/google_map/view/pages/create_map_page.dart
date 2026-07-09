@@ -91,6 +91,10 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                       "polygonArea": vm.polygonAreaHectares,
                       // Передаем текущее местоположение пользователя для user_location
                       "userLocation": userLocationMap,
+                      // Момент реальной GPS-фиксации/antifraud-проверки —
+                      // не момент финального сабмита формы (тот может
+                      // случиться намного позже, особенно офлайн).
+                      "collectedAt": DateTime.now().toIso8601String(),
                     };
                     log("📦 Model to pass: userLocation = ${model['userLocation']}");
                     context.push(

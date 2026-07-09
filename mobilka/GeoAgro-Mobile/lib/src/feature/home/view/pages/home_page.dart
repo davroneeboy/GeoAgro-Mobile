@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../../core/routes/app_route_names.dart';
+import '../../../../core/queue/upload_queue_provider.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
@@ -334,6 +335,48 @@ class _HomePageState extends ConsumerState<HomePage> {
             onSearchChanged: (query) {
               vm.getPlantationsModel(
                   isLoadMore: false, search: query.isEmpty ? null : query);
+            },
+          ),
+          Consumer(
+            builder: (context, ref, child) {
+              final queue = ref.watch(uploadQueueServiceProvider);
+              final pendingCount = queue.pendingCount;
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      context.push(
+                          "${AppRouteNames.home}${AppRouteNames.uploadQueue}");
+                    },
+                    icon: const Icon(Icons.cloud_upload_outlined),
+                  ),
+                  if (pendingCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: design_colors.AppColors.warning,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          pendingCount > 99 ? '99+' : '$pendingCount',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
           Consumer(

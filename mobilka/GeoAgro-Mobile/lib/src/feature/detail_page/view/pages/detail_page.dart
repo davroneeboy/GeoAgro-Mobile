@@ -40,9 +40,38 @@ class DetailPage extends ConsumerStatefulWidget {
   DetailPageState createState() => DetailPageState();
 }
 
-class DetailPageState extends ConsumerState<DetailPage> {
+class DetailPageState extends ConsumerState<DetailPage>
+    with WidgetsBindingObserver {
+  bool _hasLoadedData = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // Юзер сворачивает приложение / уходит фотографировать — сохраняем
+      // черновик формы, чтобы не потерять его при kill процесса ОС.
+      ref.read(detailVM).saveDraftSnapshot(ref);
+    }
+  }
+
   @override
   void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedData) return;
+    _hasLoadedData = true;
+
     // GPS-точка пользователя. null — недоступна: фейковые координаты
     // не подставляем, сервер такие точки сохраняет как настоящие.
     Map<String, double>? userLocation;
@@ -60,6 +89,12 @@ class DetailPageState extends ConsumerState<DetailPage> {
       userLocation = null;
     }
 
+    DateTime? collectedAt;
+    final collectedAtRaw = widget.model["collectedAt"] as String?;
+    if (collectedAtRaw != null) {
+      collectedAt = DateTime.tryParse(collectedAtRaw);
+    }
+
     debugPrint(
         "📤 DetailPage: Calling setValue with userLocation: $userLocation");
     final vm = ref.read(detailVM);
@@ -69,11 +104,14 @@ class DetailPageState extends ConsumerState<DetailPage> {
         id: widget.model["farmerId"] as int,
         coordinate: widget.model["coordinates"] as List<Coordinate>,
         userLocation: userLocation,
-        polygonArea: polygonArea);
+        polygonArea: polygonArea,
+        collectedAt: collectedAt);
     // Загружаем информацию о пользователе (isSpecialUser)
     vm.loadUserInfo();
+    // Восстанавливаем черновик, если он есть для этого же фермера —
+    // после setValue, чтобы farmerId уже был проставлен для сверки.
+    vm.restoreDraftIfExists();
     debugPrint("✅ DetailPage: setValue called successfully");
-    super.didChangeDependencies();
   }
 
   @override

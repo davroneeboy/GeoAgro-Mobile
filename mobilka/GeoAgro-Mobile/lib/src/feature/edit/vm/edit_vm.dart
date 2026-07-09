@@ -21,6 +21,11 @@ import '../../../data/model/fruits/fruit_verity_modell.dart';
 import '../../../core/utils/geo_utils.dart';
 import '../../../core/utils/thousands_separator_input_formatter.dart';
 import '../../../core/storage/app_storage.dart';
+import '../../../core/storage/draft_store.dart';
+import '../../../core/storage/upload_queue_store.dart';
+import '../../../core/queue/upload_queue_provider.dart';
+import '../../../core/utils/network_error_utils.dart';
+import '../../../core/utils/network_utils.dart';
 import '../../../core/utils/sanitization_utils.dart';
 import '../../../core/utils/utils.dart';
 
@@ -178,6 +183,44 @@ class EditVM extends ChangeNotifier {
   TextEditingController sxema2 = TextEditingController();
   TextEditingController konturInputController = TextEditingController();
   TextEditingController commentsController = TextEditingController();
+
+  /// Упрощённый черновик текстовых полей (не switches/фото — фото уже
+  /// не теряются: либо аплоаднуты online, либо стоят в офлайн-очереди
+  /// per-photo, см. pickImage). Открытие EditPage само по себе требует
+  /// сети (getPlantationDetail), поэтому полный restore менее критичен,
+  /// чем в create-flow — эта защита нужна только на случай paused/kill
+  /// посреди редактирования уже загруженной формы.
+  Future<void> saveDraftSnapshot(WidgetRef ref, int plantationId) async {
+    try {
+      final data = <String, dynamic>{
+        "controllers": {
+          "notUsableArea": notUsableArea.text,
+          "emptyArea": emptyArea.text,
+          "investmentXorijiyAmount": investmentXorijiyAmount.text,
+          "investmentMahhalliyAmount": investmentMahhalliyAmount.text,
+          "irrigationAreaController": irrigationAreaController.text,
+          "irrigationSystemsCount": irrigationSystemsCount.text,
+          "subsidiyaYear": subsidiyaYear.text,
+          "subsidiyaContract": subsidiyaContract.text,
+          "subsidiyaAmount": subsidiyaAmount.text,
+          "trellisTemirInstalledArea": trellisTemirInstalledArea.text,
+          "trellisTemirCount": trellisTemirCount.text,
+          "trellisBetonInstalledArea": trellisBetonInstalledArea.text,
+          "trellisBetonCount": trellisBetonCount.text,
+          "cultivatedArea": cultivatedArea.text,
+          "sxema1": sxema1.text,
+          "sxema2": sxema2.text,
+          "commentsController": commentsController.text,
+        },
+        "kontur_numbers": konturNumbers,
+        "saved_at": DateTime.now().toIso8601String(),
+      };
+      await DraftStore.instance.writeEditDraft(plantationId, data);
+    } catch (e) {
+      debugPrint("EditVM: saveDraftSnapshot failed: $e");
+    }
+  }
+
   List<String> konturNumbers = [];
   int direction = 0;
   List<Subsidy> selectedEditSubsidy = [];
@@ -191,6 +234,13 @@ class EditVM extends ChangeNotifier {
   bool _isUploadingImage = false;
   bool isUploadingAt(int index) =>
       _isUploadingImage && _uploadingIndex == index;
+
+  /// cardId фото, снятых офлайн и стоящих в очереди на отправку (см.
+  /// pickImage offline-branch) — UI показывает по ним "ожидает отправки"
+  /// вместо обычного превью.
+  final Set<int> _pendingOfflineImageCardIds = {};
+  bool isPendingOffline(int cardId) =>
+      _pendingOfflineImageCardIds.contains(cardId);
   List<FruitArea> selectedDetails = [];
   List<FruitArea> selectedFruitVerityRoot = [];
   final TextEditingController selectedDateController = TextEditingController();
@@ -960,6 +1010,35 @@ class EditVM extends ChangeNotifier {
       body["user_location"] = userLoc;
     }
 
+    // Нет сети — не пытаемся отправить PATCH, кладём уже собранный (и
+    // уже прошедший fail-closed geo-проверку) body в офлайн-очередь.
+    // GPS не запрашивается повторно ни здесь, ни на dequeue.
+    final isOnline = await NetworkUtils.hasInternetConnection();
+    if (!isOnline) {
+      try {
+        await ref.read(uploadQueueServiceProvider).enqueueEdit(
+              plantationId: id,
+              // EditPlantationModel не хранит farmerId — поле нужно только
+              // для отображения в QueueScreen, plantationId/requestBody
+              // достаточно для самой отправки.
+              farmerId: 0,
+              displayLabel: "Plantatsiya #$id",
+              requestBody: body,
+              userLocation: userLoc,
+            );
+        errorMessage = null;
+        isSaving = false;
+        notifyListeners();
+        return true;
+      } catch (e) {
+        debugPrint('editPlantation: enqueue (offline) failed: $e');
+        errorMessage = "Internet bilan bog'liq muammo yuzaga keldi.";
+        isSaving = false;
+        notifyListeners();
+        return false;
+      }
+    }
+
     try {
       final response =
           await _appRepositoryImpl.editPlantation(id: id, body: body);
@@ -1028,14 +1107,28 @@ class EditVM extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      // Улучшенная обработка ошибок
-      if (e.toString().contains('SocketException') ||
-          e.toString().contains('HandshakeException') ||
-          e.toString().contains('Connection refused') ||
-          e.toString().contains('Network is unreachable')) {
-        errorMessage = "Интернет алокасида хатолик юз берди";
-      } else if (e.toString().contains('TimeoutException')) {
-        errorMessage = "Серверга уланиш вақти тугади";
+      if (isNetworkError(e)) {
+        // Обрыв сети посреди PATCH — тоже кладём в очередь, не теряем
+        // уже собранный и провалидированный body.
+        try {
+          await ref.read(uploadQueueServiceProvider).enqueueEdit(
+                plantationId: id,
+                // EditPlantationModel не хранит farmerId — поле нужно только
+                // для отображения в QueueScreen, plantationId/requestBody
+                // достаточно для самой отправки.
+                farmerId: 0,
+                requestBody: body,
+                userLocation: userLoc,
+              );
+          errorMessage = null;
+          return true;
+        } catch (enqueueError) {
+          debugPrint(
+              'editPlantation: enqueue after network error failed: $enqueueError');
+        }
+        errorMessage = e.toString().contains('TimeoutException')
+            ? "Серверга уланиш вақти тугади"
+            : "Интернет алокасида хатолик юз берди";
       } else {
         errorMessage = "Xatolik yuz berdi: ${e.toString()}";
       }
@@ -1455,6 +1548,39 @@ class EditVM extends ChangeNotifier {
       }
       return null;
     }
+    final int plantationId = plantationModel.id!;
+
+    // Нет сети — не пытаемся аплоадить сразу, копируем в стабильную
+    // директорию и кладём отдельной лёгкой записью в офлайн-очередь.
+    // Не трогаем _imageFiles/finally-cleanup обычного (online) пути —
+    // фото остаётся видимым в форме с явной пометкой "ожидает отправки".
+    final isOnline = await NetworkUtils.hasInternetConnection();
+    if (!isOnline) {
+      try {
+        final destPath = await UploadQueueStore.instance
+            .copyToStableDir(pickedFile.path, prefix: 'edit_${cardId}_');
+        _imageFiles[cardId] = File(destPath);
+        _pendingOfflineImageCardIds.add(cardId);
+        notifyListeners();
+
+        final mountedContext = context;
+        if (mountedContext != null && mountedContext.mounted) {
+          final container = ProviderScope.containerOf(mountedContext);
+          await container.read(uploadQueueServiceProvider).enqueuePhotoOnly(
+                plantationId: plantationId,
+                farmerId: 0,
+                displayLabel: "Plantatsiya #$plantationId",
+                imagePath: destPath,
+                cardId: cardId,
+              );
+        }
+        return "Tarmoq yo'q — rasm navbatga qo'yildi";
+      } catch (e) {
+        errorMessage = e.toString();
+        return errorMessage;
+      }
+    }
+
     // Set loader state for this slot
     _uploadingIndex = cardId;
     _isUploadingImage = true;
@@ -1463,7 +1589,6 @@ class EditVM extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final int plantationId = plantationModel.id!;
       // Try modern endpoint
       final resp = await _appRepositoryImpl.postPlantationImage(
           id: plantationId, filePath: pickedFile.path);

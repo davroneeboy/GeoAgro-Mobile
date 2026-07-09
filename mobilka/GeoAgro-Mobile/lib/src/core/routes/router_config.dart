@@ -25,6 +25,7 @@ import '../../feature/google_map/view/pages/create_map_page.dart';
 import '../../feature/google_map/view/pages/plantation_map_view_page.dart';
 import '../../feature/fermers/view/pages/farmers_statistics_page.dart';
 import '../../feature/profile/view/pages/devices_page.dart';
+import '../../feature/queue/view/pages/queue_screen.dart';
 import 'app_route_names.dart';
 import '../../../dev/dev_menu_page.dart';
 
@@ -288,6 +289,13 @@ final class RouterConfigService {
                 EditPage(
                   id: state.extra as int,
                 )),
+          ),
+
+          // Offline upload queue
+          GoRoute(
+            path: AppRouteNames.uploadQueue,
+            pageBuilder: (context, state) => customEachTransitionAnimation(
+                context, state, const QueueScreen()),
           ),
         ],
       ),

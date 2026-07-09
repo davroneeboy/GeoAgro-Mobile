@@ -37,4 +37,5 @@ final class AppRouteNames {
   static const String plantationMapView = "plantationMapView";
   static const String farmersStatistics = "farmersStatistics";
   static const String devices = "devices";
+  static const String uploadQueue = "uploadQueue";
 }
