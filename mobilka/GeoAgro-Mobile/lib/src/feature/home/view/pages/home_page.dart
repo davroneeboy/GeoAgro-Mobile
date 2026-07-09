@@ -26,6 +26,7 @@ import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
 
@@ -52,6 +53,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTabData(0); // Загружаем данные для главной вкладки
       _checkBiometricOffer(); // Предлагаем биометрию после логина
+      // FCM init (и системный запрос разрешения на уведомления) — только
+      // здесь, после успешного логина+PIN. Раньше это спрашивалось на
+      // cold-start приложения, до входа вообще.
+      FcmService().initialize();
       // Polling уведомлений отключён — раздувал app_in_foreground метрику,
       // раз FCM push всё равно не работает. Счётчик/список обновляются
       // вручную при открытии страницы уведомлений (loadUnreadCount).
