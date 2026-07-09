@@ -7,6 +7,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../core/utils/geo_utils.dart';
 import '../../../core/utils/marker_icon_utils.dart';
 import '../../../data/model/plantation/new_plantation_model.dart';
 import '../../../data/model/plantation/nearby_plantations_model.dart';
@@ -74,33 +75,17 @@ class CreateMapPageVm extends ChangeNotifier {
   // Состояние линейки для рисования
   BitmapDescriptor? rulerIcon; // Иконка линейки
 
-  double calculateDistance(LatLng start, LatLng end) {
-    const double earthRadius = 6371000; // meters
-    double dLat = _degreesToRadians(end.latitude - start.latitude);
-    double dLng = _degreesToRadians(end.longitude - start.longitude);
-    double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_degreesToRadians(start.latitude)) *
-            cos(_degreesToRadians(end.latitude)) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadius * c;
-  }
+  double calculateDistance(LatLng start, LatLng end) =>
+      GeoUtils.haversineMeters(
+          start.latitude, start.longitude, end.latitude, end.longitude);
 
-  double _degreesToRadians(double degrees) {
-    return degrees * pi / 180;
-  }
-
-  double findMinimumDistance(List<LatLng> coordinates, LatLng currentLocation) {
-    double minDistance = double.infinity;
-    for (LatLng point in coordinates) {
-      double distance = calculateDistance(point, currentLocation);
-      if (distance < minDistance) {
-        minDistance = distance;
-      }
-    }
-    return minDistance;
-  }
+  double findMinimumDistance(
+          List<LatLng> coordinates, LatLng currentLocation) =>
+      GeoUtils.minDistanceToPolygon(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        coordinates.map((p) => (p.latitude, p.longitude)).toList(),
+      );
 
   // Функция для расчёта площади полигона в квадратных метрах
   double calculatePolygonArea(List<LatLng> points) {
@@ -583,24 +568,12 @@ class CreateMapPageVm extends ChangeNotifier {
   }
 
   // Проверяет, находится ли точка внутри полигона
-  bool _isPointInPolygon(LatLng point, List<LatLng> polygon) {
-    int i = 0;
-    int j = polygon.length - 1;
-    bool c = false;
-
-    for (; i < polygon.length; j = i++) {
-      if (((polygon[i].latitude > point.latitude) !=
-              (polygon[j].latitude > point.latitude)) &&
-          (point.longitude <
-              (polygon[j].longitude - polygon[i].longitude) *
-                      (point.latitude - polygon[i].latitude) /
-                      (polygon[j].latitude - polygon[i].latitude) +
-                  polygon[i].longitude)) {
-        c = !c;
-      }
-    }
-    return c;
-  }
+  bool _isPointInPolygon(LatLng point, List<LatLng> polygon) =>
+      GeoUtils.isPointInPolygon(
+        point.latitude,
+        point.longitude,
+        polygon.map((p) => (p.latitude, p.longitude)).toList(),
+      );
 
   // Метод для добавления точки в центре карты
   void addPointAtRulerPosition() async {

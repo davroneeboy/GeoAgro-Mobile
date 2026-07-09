@@ -66,23 +66,8 @@ class TokenInterceptor extends Interceptor {
             lower.contains('login again') ||
             lower.contains('please login')) {
           log("Auth error message detected in response. Redirecting to login...");
-
-          // Clear stored tokens and reset globals
-          await AppStorage.clearAllData();
-          accessToken = null;
-          userId = 0;
-          districtId = 1;
-          username = null;
-          appPinSet = false;
-          authMethod = AuthMethod.none;
-          biometricEnabled = false;
-
-          // Navigate to login page
-          if (parentNavigatorKey.currentContext != null) {
-            parentNavigatorKey.currentContext!.go(AppRouteNames.login);
-            log("Redirected to login page from response");
-          }
-
+          await _clearSessionAndRedirectToLogin(
+              "Redirected to login page from response");
           // Don't process the response further
           return;
         }
@@ -221,31 +206,34 @@ class TokenInterceptor extends Interceptor {
     // If it's an auth error, redirect to login
     if (shouldRedirectToLogin || isAuthError) {
       log("Authentication error detected. Clearing tokens and redirecting to login...");
-
-      // Clear stored tokens and reset globals
-      await AppStorage.clearAllData();
-      accessToken = null;
-      userId = 0;
-      districtId = 1;
-      username = null;
-      appPinSet = false;
-      authMethod = AuthMethod.none;
-      biometricEnabled = false;
-
-      // Navigate to login page
-      if (parentNavigatorKey.currentContext != null) {
-        parentNavigatorKey.currentContext!.go(AppRouteNames.login);
-        log("Redirected to login page");
-      } else {
-        log("Warning: parentNavigatorKey.currentContext is null, cannot navigate to login");
-      }
-
+      await _clearSessionAndRedirectToLogin("Redirected to login page");
       // Don't rethrow the error, just handle it silently
       // This prevents showing server error messages to the user
       return;
     }
 
     super.onError(err, handler);
+  }
+
+  /// Очищает токен/сессию и переводит на логин. Общая точка для обоих
+  /// путей auth-ошибки (успешный ответ с "пароль изменён" и error-ответ
+  /// с 401/токен-кодами) — раньше этот блок был скопирован в оба места.
+  Future<void> _clearSessionAndRedirectToLogin(String successLogMessage) async {
+    await AppStorage.clearAllData();
+    accessToken = null;
+    userId = 0;
+    districtId = 1;
+    username = null;
+    appPinSet = false;
+    authMethod = AuthMethod.none;
+    biometricEnabled = false;
+
+    if (parentNavigatorKey.currentContext != null) {
+      parentNavigatorKey.currentContext!.go(AppRouteNames.login);
+      log(successLogMessage);
+    } else {
+      log("Warning: parentNavigatorKey.currentContext is null, cannot navigate to login");
+    }
   }
 
   /// Показывает диалог обновления приложения

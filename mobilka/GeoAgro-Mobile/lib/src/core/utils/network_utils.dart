@@ -6,10 +6,11 @@ class NetworkUtils {
   static Future<bool> hasInternetConnection() async {
     try {
       final connectivityResults = await Connectivity().checkConnectivity();
-      if (connectivityResults.isEmpty || connectivityResults.contains(ConnectivityResult.none)) {
+      if (connectivityResults.isEmpty ||
+          connectivityResults.contains(ConnectivityResult.none)) {
         return false;
       }
-      
+
       // Try to reach a reliable host with timeout
       final result = await InternetAddress.lookup('google.com')
           .timeout(Duration(seconds: 5));
@@ -23,8 +24,8 @@ class NetworkUtils {
       } catch (e2) {
         // If both fail, assume we have connection if connectivity shows we do
         final connectivityResults = await Connectivity().checkConnectivity();
-        return connectivityResults.isNotEmpty && 
-               (connectivityResults.contains(ConnectivityResult.wifi) ||
+        return connectivityResults.isNotEmpty &&
+            (connectivityResults.contains(ConnectivityResult.wifi) ||
                 connectivityResults.contains(ConnectivityResult.mobile) ||
                 connectivityResults.contains(ConnectivityResult.ethernet));
       }
@@ -46,7 +47,7 @@ class NetworkUtils {
   // Get connection type
   static Future<String> getConnectionType() async {
     final connectivityResults = await Connectivity().checkConnectivity();
-    
+
     if (connectivityResults.contains(ConnectivityResult.wifi)) {
       return 'WiFi';
     } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
@@ -68,7 +69,8 @@ class NetworkUtils {
   static String formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024 * 1024)
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
@@ -100,30 +102,38 @@ class NetworkUtils {
   // Check if phone number is valid (Uzbekistan format)
   static bool isValidPhone(String phone) {
     String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
-    
+
     if (cleanPhone.startsWith('998')) {
       return cleanPhone.length == 12;
     }
-    
+
     if (cleanPhone.startsWith('90')) {
       return cleanPhone.length == 9;
     }
-    
+
     return false;
   }
 
   // Format phone number for display
   static String formatPhoneNumber(String phone) {
     String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
-    
+
     if (cleanPhone.startsWith('998')) {
       cleanPhone = cleanPhone.substring(3);
     }
-    
+
     if (cleanPhone.length == 9) {
       return '+998 ${cleanPhone.substring(0, 2)} ${cleanPhone.substring(2, 5)} ${cleanPhone.substring(5, 7)} ${cleanPhone.substring(7)}';
     }
-    
+
     return phone;
   }
-} 
+
+  /// Голые цифры номера без страны-кода — то, что бэк ожидает в
+  /// phone_number (без +998, без форматирования). Принимает как
+  /// "+998901234567", так и уже голые "901234567".
+  static String stripCountryCode(String phone) {
+    final digitsOnly = phone.replaceAll(RegExp(r'[^\d]'), '');
+    return digitsOnly.startsWith('998') ? digitsOnly.substring(3) : digitsOnly;
+  }
+}

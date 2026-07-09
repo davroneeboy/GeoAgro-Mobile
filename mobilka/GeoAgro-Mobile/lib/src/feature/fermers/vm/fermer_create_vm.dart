@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils/dio_error_utils.dart';
+import '../../../core/utils/network_utils.dart';
+import '../../../core/utils/sanitization_utils.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../../../data/repository/app_repository_impl.dart';
 
 import '../../../core/server/api/orginfo_service.dart';
@@ -51,18 +54,7 @@ class FermerCreateVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Санитизация данных для защиты от XSS
-  String _sanitizeInput(String input) {
-    return input
-        .replaceAll(RegExp(r'<[^>]*>'), '') // Удаляем HTML теги
-        .replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false),
-            '') // Удаляем script теги
-        .replaceAll(RegExp(r'javascript:', caseSensitive: false),
-            '') // Удаляем javascript:
-        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false),
-            '') // Удаляем обработчики событий
-        .trim();
-  }
+  String _sanitizeInput(String input) => SanitizationUtils.sanitizeInput(input);
 
   // Валидация имени организации (только латиница, цифры и пробелы)
   void _validateName() {
@@ -73,8 +65,7 @@ class FermerCreateVm extends ChangeNotifier {
       nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       nameError = "Tashkilot nomi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.nameCharsetValidator.hasMatch(value)) {
       nameError =
           "Tashkilot nomi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
@@ -93,8 +84,7 @@ class FermerCreateVm extends ChangeNotifier {
           "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       founderNameError = "Asoschi ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.nameCharsetValidator.hasMatch(value)) {
       founderNameError =
           "Asoschi ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
@@ -113,8 +103,7 @@ class FermerCreateVm extends ChangeNotifier {
           "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       directorNameError = "Rahbar ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.nameCharsetValidator.hasMatch(value)) {
       directorNameError =
           "Rahbar ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
@@ -131,10 +120,7 @@ class FermerCreateVm extends ChangeNotifier {
     } else if (!value.startsWith('+998')) {
       phoneNumberError = "Telefon raqam +998 bilan boshlanishi kerak";
     } else {
-      // Извлекаем только цифры после +998
-      final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-      final phoneDigits =
-          digitsOnly.startsWith('998') ? digitsOnly.substring(3) : digitsOnly;
+      final phoneDigits = NetworkUtils.stripCountryCode(value);
 
       if (phoneDigits.length != 9) {
         phoneNumberError =
@@ -158,8 +144,7 @@ class FermerCreateVm extends ChangeNotifier {
       addressError = "Manzil kamida 5 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 200) {
       addressError = "Manzil 200 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/,.\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.addressCharsetValidator.hasMatch(value)) {
       addressError =
           "Manzil faqat harflar, raqamlar va belgilardan iborat bo'lishi kerak";
     } else {
@@ -280,11 +265,7 @@ class FermerCreateVm extends ChangeNotifier {
       final sanitizedDirectorName = _sanitizeInput(directorName.text);
       final sanitizedAddress = _sanitizeInput(address.text);
 
-      // Извлекаем только цифры из номера телефона (без +998 и форматирования)
-      final phoneDigits = phoneNumber.text.replaceAll(RegExp(r'[^\d]'), '');
-      final cleanPhone = phoneDigits.startsWith('998')
-          ? phoneDigits.substring(3)
-          : phoneDigits;
+      final cleanPhone = NetworkUtils.stripCountryCode(phoneNumber.text);
 
       // Farmer Model ni yaratish
       CreateFermerModel fermerModel = CreateFermerModel(

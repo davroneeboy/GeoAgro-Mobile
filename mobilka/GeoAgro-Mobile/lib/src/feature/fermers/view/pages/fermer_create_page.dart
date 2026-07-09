@@ -10,6 +10,7 @@ import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../../core/utils/utils.dart';
+import '../../../../core/utils/validation_utils.dart';
 import '../../../../core/widgets/main_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../vm/fermer_create_vm.dart';
@@ -89,8 +90,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.nameError,
                   maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]")),
+                    FilteringTextInputFormatter.allow(
+                        ValidationUtils.nameCharsetFormatter),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -103,8 +104,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.founderNameError,
                   maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]")),
+                    FilteringTextInputFormatter.allow(
+                        ValidationUtils.nameCharsetFormatter),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -117,8 +118,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.directorNameError,
                   maxLength: 100,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]")),
+                    FilteringTextInputFormatter.allow(
+                        ValidationUtils.nameCharsetFormatter),
                     LengthLimitingTextInputFormatter(100),
                   ],
                 ),
@@ -143,8 +144,8 @@ class _FermerCreatePageState extends ConsumerState<FermerCreatePage> {
                   errorText: vm.addressError,
                   maxLength: 200,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(
-                        "[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/,.\\-]")),
+                    FilteringTextInputFormatter.allow(
+                        ValidationUtils.addressCharsetFormatter),
                     LengthLimitingTextInputFormatter(200),
                   ],
                 ),

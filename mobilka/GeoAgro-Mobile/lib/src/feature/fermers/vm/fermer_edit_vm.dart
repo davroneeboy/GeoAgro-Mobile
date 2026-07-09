@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/server/api/orginfo_service.dart';
 import '../../../core/utils/dio_error_utils.dart';
+import '../../../core/utils/network_utils.dart';
+import '../../../core/utils/sanitization_utils.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../../../data/model/farmer/farmer_list_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 
@@ -85,15 +88,7 @@ class FermerEditVm extends ChangeNotifier {
     }
   }
 
-  String _sanitizeInput(String input) {
-    return input
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll(
-            RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false), '')
-        .replaceAll(RegExp(r'javascript:', caseSensitive: false), '')
-        .replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false), '')
-        .trim();
-  }
+  String _sanitizeInput(String input) => SanitizationUtils.sanitizeInput(input);
 
   void _validateName() {
     final value = _sanitizeInput(name.text);
@@ -103,8 +98,7 @@ class FermerEditVm extends ChangeNotifier {
       nameError = "Tashkilot nomi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       nameError = "Tashkilot nomi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.nameCharsetValidator.hasMatch(value)) {
       nameError =
           "Tashkilot nomi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
@@ -122,8 +116,7 @@ class FermerEditVm extends ChangeNotifier {
           "Asoschi ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       founderNameError = "Asoschi ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.nameCharsetValidator.hasMatch(value)) {
       founderNameError =
           "Asoschi ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
@@ -141,8 +134,7 @@ class FermerEditVm extends ChangeNotifier {
           "Rahbar ismi kamida 2 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 100) {
       directorNameError = "Rahbar ismi 100 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.nameCharsetValidator.hasMatch(value)) {
       directorNameError =
           "Rahbar ismi faqat harflar, raqamlar va ' \" / belgilaridan iborat bo'lishi kerak";
     } else {
@@ -158,9 +150,7 @@ class FermerEditVm extends ChangeNotifier {
     } else if (!value.startsWith('+998')) {
       phoneNumberError = "Telefon raqam +998 bilan boshlanishi kerak";
     } else {
-      final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-      final phoneDigits =
-          digitsOnly.startsWith('998') ? digitsOnly.substring(3) : digitsOnly;
+      final phoneDigits = NetworkUtils.stripCountryCode(value);
 
       if (phoneDigits.length != 9) {
         phoneNumberError =
@@ -183,8 +173,7 @@ class FermerEditVm extends ChangeNotifier {
       addressError = "Manzil kamida 5 ta belgidan iborat bo'lishi kerak";
     } else if (value.length > 200) {
       addressError = "Manzil 200 ta belgidan oshmasligi kerak";
-    } else if (!RegExp("^[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ0-9\\s'\"`‘’“”«»ʻʼ/,.\\-]+\$")
-        .hasMatch(value)) {
+    } else if (!ValidationUtils.addressCharsetValidator.hasMatch(value)) {
       addressError =
           "Manzil faqat harflar, raqamlar va belgilardan iborat bo'lishi kerak";
     } else {
@@ -294,10 +283,7 @@ class FermerEditVm extends ChangeNotifier {
       final model = FarmerModel.fromJson(jsonDecode(farmerData));
       final updateData = model.toJson();
 
-      final phoneDigits = phoneNumber.text.replaceAll(RegExp(r'[^\d]'), '');
-      final cleanPhone = phoneDigits.startsWith('998')
-          ? phoneDigits.substring(3)
-          : phoneDigits;
+      final cleanPhone = NetworkUtils.stripCountryCode(phoneNumber.text);
 
       updateData["name"] = _sanitizeInput(name.text);
       updateData["founder_name"] = _sanitizeInput(founderName.text);

@@ -1,14 +1,11 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:agro_employee_public/src/data/model/plantation/edit_plantation.dart';
-import 'package:agro_employee_public/src/data/model/plantation/new_plantation_model.dart'
-    show Coordinate;
 import 'package:agro_employee_public/src/data/repository/app_repository_impl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +18,7 @@ import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../data/model/fruits/fruit_model.dart';
 import '../../../data/model/fruits/fruit_rootstocks_model.dart';
 import '../../../data/model/fruits/fruit_verity_modell.dart';
+import '../../../core/utils/geo_utils.dart';
 import '../../../core/utils/thousands_separator_input_formatter.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../core/utils/sanitization_utils.dart';
@@ -870,61 +868,30 @@ class EditVM extends ChangeNotifier {
     }
   }
 
-  double _degreesToRadians(double degrees) => degrees * pi / 180;
-
-  double _haversineMeters(double lat1, double lng1, double lat2, double lng2) {
-    const earthRadius = 6371000.0;
-    final dLat = _degreesToRadians(lat2 - lat1);
-    final dLng = _degreesToRadians(lng2 - lng1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_degreesToRadians(lat1)) *
-            cos(_degreesToRadians(lat2)) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadius * c;
-  }
-
-  /// Точка внутри полигона (ray casting), та же формула что и в create-флоу
-  /// (create_map_page_vm.dart._isPointInPolygon).
-  bool _isPointInPolygon(double lat, double lng, List<Coordinate> polygon) {
-    var inside = false;
-    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      final pi = polygon[i];
-      final pj = polygon[j];
-      if (pi.latitude == null ||
-          pi.longitude == null ||
-          pj.latitude == null ||
-          pj.longitude == null) {
-        continue;
-      }
-      if (((pi.latitude! > lat) != (pj.latitude! > lat)) &&
-          (lng <
-              (pj.longitude! - pi.longitude!) *
-                      (lat - pi.latitude!) /
-                      (pj.latitude! - pi.latitude!) +
-                  pi.longitude!)) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
-
   /// Проверяет, что редактирующий физически находится внутри полигона
   /// плантации либо в радиусе limit_km от неё — та же логика, что уже
-  /// применяется при создании (create_map_page_vm.dart). При редактировании
-  /// полигон не перерисовывается, так что сверяем текущий GPS с уже
-  /// сохранёнными координатами плантации.
+  /// применяется при создании (create_map_page_vm.dart, через общий
+  /// GeoUtils). При редактировании полигон не перерисовывается, так что
+  /// сверяем текущий GPS с уже сохранёнными координатами плантации.
+  ///
+  /// Принимает уже полученную точку (см. [_currentUserLocation]) вместо
+  /// того чтобы запрашивать GPS ещё раз — иначе каждое сохранение ждало бы
+  /// два отдельных GPS-фикса подряд (до 5с каждый).
   ///
   /// Возвращает сообщение об ошибке, если далеко или локацию не удалось
   /// получить (fail-closed: без подтверждённого GPS сохранение блокируем,
   /// иначе проверку можно обойти просто выключив геолокацию); null — если
   /// можно сохранять.
-  Future<String?> _checkLocationLimit() async {
-    final polygon = originalPlantationModel.coordinates;
-    if (polygon == null || polygon.length < 3) return null;
+  Future<String?> _checkLocationLimit(Map<String, double>? userLoc) async {
+    final rawPolygon = originalPlantationModel.coordinates;
+    if (rawPolygon == null || rawPolygon.length < 3) return null;
 
-    final userLoc = await _currentUserLocation();
+    final polygon = rawPolygon
+        .where((p) => p.latitude != null && p.longitude != null)
+        .map((p) => (p.latitude!, p.longitude!))
+        .toList();
+    if (polygon.length < 3) return null;
+
     if (userLoc == null) {
       return "Joylashuvni aniqlab bo'lmadi. GPS yoqilganligini tekshiring va "
           "qayta urinib ko'ring";
@@ -933,14 +900,9 @@ class EditVM extends ChangeNotifier {
     final lat = userLoc["latitude"]!;
     final lng = userLoc["longitude"]!;
 
-    if (_isPointInPolygon(lat, lng, polygon)) return null;
+    if (GeoUtils.isPointInPolygon(lat, lng, polygon)) return null;
 
-    var minDistance = double.infinity;
-    for (final p in polygon) {
-      if (p.latitude == null || p.longitude == null) continue;
-      final d = _haversineMeters(lat, lng, p.latitude!, p.longitude!);
-      if (d < minDistance) minDistance = d;
-    }
+    final minDistance = GeoUtils.minDistanceToPolygon(lat, lng, polygon);
 
     final limitKm =
         await AppStorage.$readDouble(key: StorageKey.limitKm) ?? 1.0;
@@ -967,7 +929,11 @@ class EditVM extends ChangeNotifier {
     isSaving = true;
     notifyListeners();
 
-    final locationError = await _checkLocationLimit();
+    // Один GPS-фикс переиспользуется и для проверки лимита, и для
+    // user_location — раньше оба запрашивались отдельно, удваивая
+    // время ожидания GPS на сохранение.
+    final userLoc = await _currentUserLocation();
+    final locationError = await _checkLocationLimit(userLoc);
     if (locationError != null) {
       errorMessage = locationError;
       isSaving = false;
@@ -989,8 +955,7 @@ class EditVM extends ChangeNotifier {
       return true;
     }
 
-    // Пишем GPS-точку в историю user_locations вместе с обновлением
-    final userLoc = await _currentUserLocation();
+    // Пишем ту же GPS-точку в историю user_locations вместе с обновлением
     if (userLoc != null) {
       body["user_location"] = userLoc;
     }
@@ -1243,7 +1208,11 @@ class EditVM extends ChangeNotifier {
     isSaving = true;
     notifyListeners();
 
-    final locationError = await _checkLocationLimit();
+    // Один GPS-фикс переиспользуется и для проверки лимита, и для
+    // user_location — раньше оба запрашивались отдельно, удваивая
+    // время ожидания GPS на сохранение.
+    final userLoc = await _currentUserLocation();
+    final locationError = await _checkLocationLimit(userLoc);
     if (locationError != null) {
       errorMessage = locationError;
       isSaving = false;
@@ -1341,8 +1310,7 @@ class EditVM extends ChangeNotifier {
       body["fruit_areas"] = curFruit;
     }
 
-    // Пишем GPS-точку в историю user_locations вместе с обновлением
-    final userLoc = await _currentUserLocation();
+    // Пишем ту же GPS-точку в историю user_locations вместе с обновлением
     if (userLoc != null) {
       body["user_location"] = userLoc;
     }
