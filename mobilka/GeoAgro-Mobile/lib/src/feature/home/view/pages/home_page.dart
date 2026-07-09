@@ -52,7 +52,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTabData(0); // Загружаем данные для главной вкладки
       _checkBiometricOffer(); // Предлагаем биометрию после логина
-      ref.read(notificationsVM).startPolling();
+      // Polling уведомлений отключён — раздувал app_in_foreground метрику,
+      // раз FCM push всё равно не работает. Счётчик/список обновляются
+      // вручную при открытии страницы уведомлений (loadUnreadCount).
     });
   }
 
