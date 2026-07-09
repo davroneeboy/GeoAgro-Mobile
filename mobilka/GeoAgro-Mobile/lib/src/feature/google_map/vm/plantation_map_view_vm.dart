@@ -9,6 +9,7 @@ import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import '../../../data/model/plantation/forme_map_model.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../core/services/district_boundary_service.dart';
+import '../../../core/utils/geo_utils.dart';
 
 class PlantationMapViewVm extends ChangeNotifier {
   final AppRepositoryImpl _repo = AppRepositoryImpl();
@@ -558,22 +559,9 @@ class PlantationMapViewVm extends ChangeNotifier {
     return area / 10000.0;
   }
 
-  double _calculateDistance(LatLng start, LatLng end) {
-    const double earthRadius = 6371000; // meters
-    double dLat = _degreesToRadians(end.latitude - start.latitude);
-    double dLng = _degreesToRadians(end.longitude - start.longitude);
-    double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_degreesToRadians(start.latitude)) *
-            cos(_degreesToRadians(end.latitude)) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadius * c;
-  }
-
-  double _degreesToRadians(double degrees) {
-    return degrees * pi / 180;
-  }
+  double _calculateDistance(LatLng start, LatLng end) =>
+      GeoUtils.haversineMeters(
+          start.latitude, start.longitude, end.latitude, end.longitude);
 
   @override
   void dispose() {
