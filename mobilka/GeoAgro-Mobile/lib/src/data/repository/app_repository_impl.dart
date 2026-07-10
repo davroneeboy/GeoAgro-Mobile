@@ -720,6 +720,23 @@ class AppRepositoryImpl implements AppRepo {
     return null;
   }
 
+  @override
+  Future<String?> getRegionDistrictsStatistics(int regionId) async {
+    try {
+      final data = await ApiService.get(
+          ApiConst.apiRegionDistrictsStatistics(regionId),
+          ApiParams.emptyParams());
+      return data;
+    } on DioException catch (e) {
+      debugPrint("Server error: ${e.response?.data ?? e.message}");
+      _recordError(e);
+    } catch (e) {
+      debugPrint("Unexpected error: $e");
+      _recordError(e);
+    }
+    return null;
+  }
+
   // ===== Device Tokens API =====
   @override
   Future<String?> registerDeviceToken({

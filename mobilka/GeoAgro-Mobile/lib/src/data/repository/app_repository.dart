@@ -67,6 +67,8 @@ abstract class AppRepo {
     String? status,
   });
 
+  Future<String?> getRegionDistrictsStatistics(int regionId);
+
   // ==== Device tokens (FCM) ====
   Future<String?> registerDeviceToken({
     required String token,

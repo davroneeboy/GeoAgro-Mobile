@@ -11,6 +11,7 @@ import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/loading_widget.dart' hide EmptyStateWidget;
+import '../../../../data/model/farmer/district_area_stat_model.dart';
 import '../../../../data/model/farmer/farmer_statistics_model.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../data/model/farmer/farmer_list_model.dart';
@@ -140,6 +141,13 @@ class _BodyContent extends StatelessWidget {
             ),
           ] else ...[
             _OverviewHeader(statistics: statistics),
+            if (vm.myDistrictStat != null || vm.isLoadingDistrictStat) ...[
+              SizedBox(height: AppSpacing.sectionSpacing),
+              _MyDistrictSection(
+                stat: vm.myDistrictStat,
+                isLoading: vm.isLoadingDistrictStat,
+              ),
+            ],
             SizedBox(height: AppSpacing.sectionSpacing),
             _SummaryGrid(statistics: statistics),
             SizedBox(height: AppSpacing.sectionSpacing),
@@ -540,6 +548,88 @@ class _SearchResultCard extends StatelessWidget {
 }
 
 // _EmptyState removed
+
+/// Показывает разбивку только по своему району (не по всему региону) —
+/// сад/виноградник/площади. `stat == null` значит район ещё не найден в
+/// ответе региона (например у юзера district_id вне списка) — секция не
+/// рендерится вообще (см. вызывающий код).
+class _MyDistrictSection extends StatelessWidget {
+  final DistrictAreaStat? stat;
+  final bool isLoading;
+
+  const _MyDistrictSection({required this.stat, required this.isLoading});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: context.colors.cardBorder,
+        boxShadow: context.colors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 18.sp,
+                color: design_colors.AppColors.accentGreen,
+              ),
+              SizedBox(width: AppSpacing.sm),
+              Text(
+                stat?.districtName ?? "Mening tumanim",
+                style: AppTypography.title(context).copyWith(
+                  color: context.colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppSpacing.md),
+          if (isLoading && stat == null)
+            const Center(child: CircularProgressIndicator())
+          else if (stat != null)
+            Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.sm,
+              children: [
+                _MetricPill(
+                  label: "Fermerlar",
+                  value: "${stat!.total.farmerCount}",
+                  icon: Icons.groups_outlined,
+                ),
+                _MetricPill(
+                  label: "Umumiy maydon",
+                  value: "${stat!.total.totalArea.toStringAsFixed(1)} ga",
+                  icon: Icons.map_outlined,
+                ),
+                _MetricPill(
+                  label: "Ekilgan",
+                  value: "${stat!.total.plantedArea.toStringAsFixed(1)} ga",
+                  icon: Icons.grass_outlined,
+                ),
+                _MetricPill(
+                  label: "Bog'lar",
+                  value: "${stat!.fruitGarden.farmerCount}",
+                  icon: Icons.park_outlined,
+                ),
+                _MetricPill(
+                  label: "Uzumzorlar",
+                  value: "${stat!.vineyard.farmerCount}",
+                  icon: Icons.landscape_outlined,
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _OverviewHeader extends StatelessWidget {
   final List<FarmerData> statistics;

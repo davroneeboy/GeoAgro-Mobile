@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -6,6 +7,7 @@ import '../../../core/utils/dio_error_utils.dart';
 import '../../../data/repository/app_repository_impl.dart';
 import '../../../../localization/app_strings.dart';
 
+import '../../../data/model/farmer/district_area_stat_model.dart';
 import '../../../data/model/farmer/farmer_statistics_model.dart';
 import '../../../data/model/farmer/farmer_list_model.dart';
 
@@ -42,6 +44,12 @@ class FarmersStatisticsVm extends ChangeNotifier {
   bool isSearching = false;
   List<FarmerModel>? searchResults;
   String? searchErrorMessage;
+
+  /// Статистика только по своему району (не по всему региону) — сервер
+  /// отдаёт разбивку по всем районам региона, здесь оставляем только тот,
+  /// что совпадает с districtId юзера.
+  DistrictAreaStat? myDistrictStat;
+  bool isLoadingDistrictStat = false;
 
   final AppRepositoryImpl _appRepositoryImpl = AppRepositoryImpl();
   bool _isDisposed = false;
@@ -100,6 +108,7 @@ class FarmersStatisticsVm extends ChangeNotifier {
       debugPrint(
           "📊 FarmersStatisticsVM: IDs found: districtId=$districtId, regionId=$regionId");
       await fetchStatistics();
+      unawaited(fetchMyDistrictStat());
     } else {
       debugPrint("❌ FarmersStatisticsVM: District/Region IDs not found");
       if (!_isDisposed) {
@@ -207,8 +216,44 @@ class FarmersStatisticsVm extends ChangeNotifier {
     }
   }
 
+  /// Загружает разбивку по районам региона и оставляет только строку
+  /// district_id юзера — сервер не даёт эндпоинт "статистика одного
+  /// района", только "весь регион", фильтруем на клиенте.
+  Future<void> fetchMyDistrictStat() async {
+    if (_isDisposed || regionId == null || districtId == null) return;
+
+    isLoadingDistrictStat = true;
+    _safeNotifyListeners();
+
+    try {
+      final data =
+          await _appRepositoryImpl.getRegionDistrictsStatistics(regionId!);
+      if (_isDisposed || data == null) return;
+
+      final decoded = jsonDecode(data);
+      if (decoded is! List) return;
+      final all = districtAreaStatsFromJson(decoded);
+      DistrictAreaStat? found;
+      for (final d in all) {
+        if (d.districtId == districtId) {
+          found = d;
+          break;
+        }
+      }
+      myDistrictStat = found;
+    } catch (e) {
+      debugPrint("❌ FarmersStatisticsVM: fetchMyDistrictStat failed: $e");
+    } finally {
+      if (!_isDisposed) {
+        isLoadingDistrictStat = false;
+        _safeNotifyListeners();
+      }
+    }
+  }
+
   Future<void> refresh() async {
     await fetchStatistics();
+    unawaited(fetchMyDistrictStat());
   }
 
   Future<void> searchByInn() async {
