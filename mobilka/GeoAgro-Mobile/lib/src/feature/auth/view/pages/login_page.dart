@@ -298,9 +298,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           textInputAction: TextInputAction.done,
           onSubmitted: () {
             _passwordFocus.unfocus();
-            if (vm.formKey.currentState!.validate()) {
-              loginVmNotifier.login();
-            }
+            _handleLogin(vm, loginVmNotifier);
           },
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -313,57 +311,65 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
+  /// Единая точка входа для сабмита логина — вызывается и с Enter на
+  /// клавиатуре, и с кнопки "Kirish". Раньше onSubmitted поля пароля
+  /// звал только login() без обработки результата — юзер вводил
+  /// правильный пароль, вход реально проходил, но экран оставался на
+  /// логине без навигации, пока юзер не жал кнопку второй раз.
+  Future<void> _handleLogin(LoginVm vm, LoginVm loginVmNotifier) async {
+    if (vm.isLoading) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (!vm.formKey.currentState!.validate()) {
+      Utils.fireTopSnackBar(
+        "Iltimos, ma'lumotlarni to'g'ri kiriting.",
+        design_colors.AppColors.error,
+        context,
+      );
+      return;
+    }
+    final isSuccess = await loginVmNotifier.login();
+    if (!mounted) return;
+    if (isSuccess) {
+      Utils.fireTopSnackBar(
+        "Muvoffaqiyatli Tizimga Kirildi",
+        design_colors.AppColors.success,
+        context,
+      );
+      // Даём snackbar отобразиться перед навигацией
+      await Future.delayed(AppMotion.normal);
+      if (!mounted || !context.mounted) return;
+      // Проверяем, установлен ли PIN
+      final hasPinSet = await PinService.instance.isPinSet();
+      if (!mounted || !context.mounted) return;
+      if (hasPinSet) {
+        // PIN уже есть — идём домой
+        app_setup.appPinSet = true;
+        final authMethod = await PinService.instance.getAuthMethod();
+        if (!mounted || !context.mounted) return;
+        app_setup.authMethod = authMethod;
+        ref.invalidate(homePageVM);
+        ref.invalidate(fermerPageVM);
+        ref.invalidate(notificationsVM);
+        context.go(AppRouteNames.home);
+      } else {
+        // PIN не установлен — обязательная установка
+        context.go(AppRouteNames.pinSetup);
+      }
+    } else {
+      Utils.fireTopSnackBar(
+        vm.errorMessage ?? "Xatolik yuz berdi",
+        design_colors.AppColors.error,
+        context,
+      );
+    }
+  }
+
   Widget _buildLoginButton(LoginVm vm, LoginVm loginVmNotifier) {
     return ModernLoginButton(
       text: "Kirish",
       isLoading: vm.isLoading,
       isEnabled: !vm.isLoading,
-      onPressed: () async {
-        FocusManager.instance.primaryFocus?.unfocus();
-        if (!vm.formKey.currentState!.validate()) {
-          Utils.fireTopSnackBar(
-            "Iltimos, ma'lumotlarni to'g'ri kiriting.",
-            design_colors.AppColors.error,
-            context,
-          );
-          return;
-        }
-        final isSuccess = await loginVmNotifier.login();
-        if (!mounted) return;
-        if (isSuccess) {
-          Utils.fireTopSnackBar(
-            "Muvoffaqiyatli Tizimga Kirildi",
-            design_colors.AppColors.success,
-            context,
-          );
-          // Даём snackbar отобразиться перед навигацией
-          await Future.delayed(AppMotion.normal);
-          if (!mounted || !context.mounted) return;
-          // Проверяем, установлен ли PIN
-          final hasPinSet = await PinService.instance.isPinSet();
-          if (!mounted || !context.mounted) return;
-          if (hasPinSet) {
-            // PIN уже есть — идём домой
-            app_setup.appPinSet = true;
-            final authMethod = await PinService.instance.getAuthMethod();
-            if (!mounted || !context.mounted) return;
-            app_setup.authMethod = authMethod;
-            ref.invalidate(homePageVM);
-            ref.invalidate(fermerPageVM);
-            ref.invalidate(notificationsVM);
-            context.go(AppRouteNames.home);
-          } else {
-            // PIN не установлен — обязательная установка
-            context.go(AppRouteNames.pinSetup);
-          }
-        } else {
-          Utils.fireTopSnackBar(
-            vm.errorMessage ?? "Xatolik yuz berdi",
-            design_colors.AppColors.error,
-            context,
-          );
-        }
-      },
+      onPressed: () => _handleLogin(vm, loginVmNotifier),
     );
   }
 
