@@ -29,7 +29,12 @@ sealed class Utils {
   //   );
   // }
 
-  static void fireTopSnackBar(String msg, Color bgColor, BuildContext context) {
+  static void fireTopSnackBar(
+    String msg,
+    Color bgColor,
+    BuildContext context, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
     final overlay = Overlay.of(context);
 
     final overlayEntry = OverlayEntry(
@@ -67,7 +72,7 @@ sealed class Utils {
     overlay.insert(overlayEntry);
 
     // Xabarni avtomatik olib tashlash
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(duration, () {
       overlayEntry.remove();
     });
   }

@@ -927,7 +927,8 @@ class DetailPageState extends ConsumerState<DetailPage>
                                 Utils.fireTopSnackBar(
                                     detailVm.errorMessage ?? "",
                                     design_colors.AppColors.accentGreen,
-                                    context);
+                                    context,
+                                    duration: const Duration(seconds: 5));
 
                                 // Обновляем список плантаций на главной странице перед переходом
                                 try {

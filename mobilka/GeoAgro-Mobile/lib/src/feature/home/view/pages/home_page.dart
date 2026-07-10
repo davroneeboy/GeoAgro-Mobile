@@ -252,6 +252,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
+            _QueueBadgeButton(),
             IconButton(
               onPressed: () {
                 context.go(
@@ -296,6 +297,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     isLoadMore: false, search: query.isEmpty ? null : query);
               },
             ),
+            _QueueBadgeButton(),
             IconButton(
               onPressed: () {
                 context.go(
@@ -337,48 +339,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   isLoadMore: false, search: query.isEmpty ? null : query);
             },
           ),
-          Consumer(
-            builder: (context, ref, child) {
-              final queue = ref.watch(uploadQueueServiceProvider);
-              final pendingCount = queue.pendingCount;
-              return Stack(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      context.push(
-                          "${AppRouteNames.home}${AppRouteNames.uploadQueue}");
-                    },
-                    icon: const Icon(Icons.cloud_upload_outlined),
-                  ),
-                  if (pendingCount > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: design_colors.AppColors.warning,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          pendingCount > 99 ? '99+' : '$pendingCount',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
+          _QueueBadgeButton(),
           Consumer(
             builder: (context, ref, child) {
               final notificationsVm = ref.watch(notificationsVM);
@@ -519,6 +480,55 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
               ),
             ),
+    );
+  }
+}
+
+/// Значок офлайн-очереди с бейджем — читает только локальный
+/// UploadQueueService (диск/память), никаких сетевых запросов, поэтому
+/// работает и виден даже когда сети нет и HomePage застряла на
+/// error/loading экране (у каждого из трёх состояний свой AppBar).
+class _QueueBadgeButton extends ConsumerWidget {
+  const _QueueBadgeButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final queue = ref.watch(uploadQueueServiceProvider);
+    final pendingCount = queue.pendingCount;
+    return Stack(
+      children: [
+        IconButton(
+          onPressed: () {
+            context.push("${AppRouteNames.home}${AppRouteNames.uploadQueue}");
+          },
+          icon: const Icon(Icons.cloud_upload_outlined),
+        ),
+        if (pendingCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: design_colors.AppColors.warning,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                pendingCount > 99 ? '99+' : '$pendingCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

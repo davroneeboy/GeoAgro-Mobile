@@ -821,10 +821,15 @@ class _EditPageState extends ConsumerState<EditPage>
 
                     var allTrue = await edit.saveAllChanges(ref, widget.id);
                     if (allTrue && context.mounted) {
+                      final wasQueued = edit.errorMessage != null;
                       Utils.fireTopSnackBar(
-                          "Ma'lumotlar muvaffaqiyatli yangilandi",
+                          edit.errorMessage ??
+                              "Ma'lumotlar muvaffaqiyatli yangilandi",
                           design_colors.AppColors.accentGreen,
-                          context);
+                          context,
+                          duration: wasQueued
+                              ? const Duration(seconds: 5)
+                              : const Duration(seconds: 2));
                       context.go("/");
                     } else {
                       if (context.mounted && edit.errorMessage != null) {

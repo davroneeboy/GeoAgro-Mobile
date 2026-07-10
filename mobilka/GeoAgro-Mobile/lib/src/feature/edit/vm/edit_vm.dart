@@ -1026,7 +1026,8 @@ class EditVM extends ChangeNotifier {
               requestBody: body,
               userLocation: userLoc,
             );
-        errorMessage = null;
+        errorMessage = "Tarmoq yo'q — navbatga qo'yildi, ulanish "
+            "tiklanganda avtomatik yuboriladi";
         isSaving = false;
         notifyListeners();
         return true;
@@ -1120,7 +1121,8 @@ class EditVM extends ChangeNotifier {
                 requestBody: body,
                 userLocation: userLoc,
               );
-          errorMessage = null;
+          errorMessage = "Tarmoq uzildi — navbatga qo'yildi, ulanish "
+              "tiklanganda avtomatik yuboriladi";
           return true;
         } catch (enqueueError) {
           debugPrint(
