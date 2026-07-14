@@ -76,7 +76,6 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/lotties/
-    - assets/images/user_arrow.png
     - assets/uzb-geojson/
 
 # Конфигурация для автоматического создания иконок

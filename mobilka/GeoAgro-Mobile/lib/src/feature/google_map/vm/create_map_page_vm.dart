@@ -3,7 +3,6 @@ import 'dart:math';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -138,19 +137,13 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     try {
-      // BitmapDescriptor.asset() resolves the asset lazily on the native
-      // side, outside this try/catch — if the plugin's asset manager
-      // isn't ready yet (e.g. map opened right after a cold start), the
-      // native layer gets a null Bitmap and crashes with an NPE inside
-      // MapsApi.updateMarkers, which this catch never sees. Decoding the
-      // bytes here instead means any failure surfaces in Dart, and only
-      // an already-valid bitmap is ever handed to the native side.
-      final bytes = await rootBundle.load('assets/images/user_arrow.png');
-      userArrowIcon = BitmapDescriptor.bytes(
-        bytes.buffer.asUint8List(),
-        width: 64,
-        height: 64,
-      );
+      // Генерируем стрелку canvas'ом (MarkerIconUtils.createUserArrowIcon),
+      // не грузим из assets/images/user_arrow.png — тот файл оказался
+      // битым (1 байт, не валидный PNG), из-за чего декодирование не
+      // падало на Dart-стороне (BitmapDescriptor.bytes не валидирует
+      // содержимое), а крашило всё приложение глубоко в нативном слое
+      // Google Maps при рендере маркера, необрабатываемо из этого catch.
+      userArrowIcon = await MarkerIconUtils.createUserArrowIcon();
     } catch (e) {
       debugPrint('Failed to load custom user arrow icon: $e');
       userArrowIcon =
