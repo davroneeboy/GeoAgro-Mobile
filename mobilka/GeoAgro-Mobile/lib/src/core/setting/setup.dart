@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:agro_employee_public/firebase_options.dart';
 import '../../data/model/fruits/fruit_model.dart';
 import '../storage/app_storage.dart';
@@ -24,6 +25,16 @@ List<FruitModel> fruitList = [];
 
 Future<void> setup() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // google_fonts по умолчанию скачивает .ttf с fonts.gstatic.com в
+  // рантайме при первом использовании стиля — без сети/DNS это кидает
+  // необрабатываемое исключение прямо из TextStyle-геттера, крашило
+  // приложение (Failed host lookup: 'fonts.gstatic.com'). Отключаем
+  // сетевую загрузку: без сети используется системный fallback-шрифт
+  // вместо краша, при наличии сети первая загрузка кэшируется как обычно
+  // при последующих запусках — эта настройка не блокирует кэш, только
+  // сетевой fetch при промахе кэша.
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   try {
     await Firebase.initializeApp(
