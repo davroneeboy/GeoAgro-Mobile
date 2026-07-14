@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
 import '../../../core/services/analytics_service.dart';
-import '../../../core/services/fcm_service.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../data/model/token/token_model.dart';
 import '../../../data/model/user/user_info_model.dart';
@@ -70,8 +68,6 @@ class LoginVm extends ChangeNotifier {
         debugPrint(
             "🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
         AnalyticsService.logLogin();
-        // Register FCM token on backend now that we have a JWT
-        unawaited(FcmService().syncTokenWithBackend());
         errorMessage = null;
         debugPrint("✅ LoginVM: Returning true from login()");
         return true;

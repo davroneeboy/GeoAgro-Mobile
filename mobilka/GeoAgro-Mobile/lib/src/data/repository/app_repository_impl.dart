@@ -738,61 +738,27 @@ class AppRepositoryImpl implements AppRepo {
   }
 
   // ===== Device Tokens API =====
+  // /api/device-tokens/ не существует на бэкенде — методы намеренно
+  // no-op вместо реального HTTP-запроса, чтобы не бить в мёртвый
+  // эндпоинт на каждый логин/logout/открытие "Ulangan qurilmalar".
+  // FCM push и локальное хранение токена (FcmService) продолжают
+  // работать без этой части.
   @override
   Future<String?> registerDeviceToken({
     required String token,
     required String platform,
     String? appVersion,
   }) async {
-    try {
-      final body = <String, dynamic>{
-        "device_token": token,
-        "platform": platform,
-      };
-      if (appVersion != null && appVersion.isNotEmpty) {
-        body["app_version"] = appVersion;
-      }
-
-      final response = await ApiService.post(ApiConst.apiDeviceTokens, body);
-      return jsonEncode(response.data);
-    } on DioException catch (e) {
-      debugPrint("registerDeviceToken error: ${e.response?.data ?? e.message}");
-      _recordError(e);
-    } catch (e) {
-      debugPrint("registerDeviceToken unexpected error: $e");
-      _recordError(e);
-    }
     return null;
   }
 
   @override
   Future<String?> getDeviceTokens() async {
-    try {
-      final data = await ApiService.get(ApiConst.apiDeviceTokens, {});
-      return data;
-    } on DioException catch (e) {
-      debugPrint("getDeviceTokens error: ${e.response?.data ?? e.message}");
-      _recordError(e);
-    } catch (e) {
-      debugPrint("getDeviceTokens unexpected error: $e");
-      _recordError(e);
-    }
     return null;
   }
 
   @override
   Future<String?> removeDeviceToken({required String token}) async {
-    try {
-      final data =
-          await ApiService.delete(ApiConst.apiDeviceTokenByToken(token));
-      return data;
-    } on DioException catch (e) {
-      debugPrint("removeDeviceToken error: ${e.response?.data ?? e.message}");
-      _recordError(e);
-    } catch (e) {
-      debugPrint("removeDeviceToken unexpected error: $e");
-      _recordError(e);
-    }
     return null;
   }
 
