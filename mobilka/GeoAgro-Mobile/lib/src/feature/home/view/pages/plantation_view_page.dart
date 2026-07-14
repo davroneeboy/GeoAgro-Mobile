@@ -7,6 +7,7 @@ import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/motion.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -1716,12 +1717,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadii.sm - 1),
-                  child: Image.network(
-                    imageUrl,
-                    semanticLabel: "Plantatsiya rasmi",
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
+                    placeholder: (context, url) {
                       return Container(
                         color: context.colors.surface,
                         alignment: Alignment.center,
@@ -1733,7 +1732,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                         ),
                       );
                     },
-                    errorBuilder: (context, error, stackTrace) {
+                    errorWidget: (context, url, error) {
                       return Container(
                         color: context.colors.surface,
                         alignment: Alignment.center,
@@ -1903,12 +1902,10 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
           alignment: Alignment.center,
           children: [
             InteractiveViewer(
-              child: Image.network(
-                imageUrl,
-                semanticLabel: "Plantatsiya rasmi",
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
+                placeholder: (context, url) {
                   return Container(
                     width: 240,
                     height: 240,
@@ -1920,7 +1917,7 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
                     child: const CircularProgressIndicator(color: Colors.white),
                   );
                 },
-                errorBuilder: (context, error, stackTrace) {
+                errorWidget: (context, url, error) {
                   return Container(
                     width: 240,
                     height: 240,

@@ -196,10 +196,33 @@ class CreateMapPageVm extends ChangeNotifier {
     }
   }
 
+  LatLng? _lastArrowMarkerPosition;
+  double? _lastArrowMarkerHeading;
+
   void _updateUserArrowMarker() {
     if (currentLocation == null || userArrowIcon == null) {
       return;
     }
+
+    // GPS-стрим на LocationAccuracy.best может тикать по многу раз в
+    // секунду — пересоздавать маркер (removeWhere+add с тем же markerId)
+    // на каждый tick создаёт гонку с открытым InfoWindow этого же
+    // маркера: google_maps_flutter внутренне зовёт hideInfoWindow на уже
+    // удалённый экземпляр и падает с "Invalid markerId" глубоко в
+    // нативном слое, необрабатываемо из Dart. Пересоздаём только когда
+    // позиция/поворот реально заметно изменились.
+    final last = _lastArrowMarkerPosition;
+    final headingChanged = _lastArrowMarkerHeading == null ||
+        (userHeading - _lastArrowMarkerHeading!).abs() > 3;
+    final positionChanged = last == null ||
+        GeoUtils.haversineMeters(last.latitude, last.longitude,
+                currentLocation!.latitude, currentLocation!.longitude) >
+            1;
+    if (!headingChanged && !positionChanged) {
+      return;
+    }
+    _lastArrowMarkerPosition = currentLocation;
+    _lastArrowMarkerHeading = userHeading;
 
     markers
         .removeWhere((marker) => marker.markerId.value == 'current_location');
