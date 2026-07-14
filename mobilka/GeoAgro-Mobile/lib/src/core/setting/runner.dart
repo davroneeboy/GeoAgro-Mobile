@@ -9,6 +9,33 @@ import "setup.dart";
 import "app.dart";
 import "../setting/remote_controller.dart";
 
+/// Пойманные сетевые/плагинные ошибки, которые не являются багами
+/// приложения — соединение оборвалось при стриминге картинки,
+/// google_maps_flutter гоняется за уже удалённым маркером и т.п. Их
+/// репортим в Crashlytics как non-fatal, чтобы не терять сигнал, но не
+/// портить crash-free rate тем, что нельзя починить на нашей стороне.
+bool _isBenignError(Object error) {
+  // HttpException при загрузке картинки — соединение оборвалось
+  // посреди стрима байтов (плохое покрытие/переключение сети во время
+  // просмотра фото). Точный текст сообщения варьируется в зависимости
+  // от того, где именно сокет оборвался ("Connection closed while
+  // receiving data", "Software caused connection abort" и т.п.) —
+  // класс исключения уже однозначно указывает на сетевую причину.
+  if (error is HttpException) return true;
+
+  // google_maps_flutter иногда зовёт hideInfoWindow на markerId,
+  // который уже удалён из Set<Marker> (гонка между пересборкой
+  // маркеров и открытым InfoWindow) — баг самого плагина, не нашего
+  // кода, апстрим-фикса нет.
+  if (error is PlatformException &&
+      error.code == 'Invalid markerId' &&
+      (error.message?.contains('hideInfoWindow') ?? false)) {
+    return true;
+  }
+
+  return false;
+}
+
 void run() {
   runZonedGuarded<void>(
     () async {
@@ -18,27 +45,12 @@ void run() {
       );
 
       FlutterError.onError = (details) {
-        // google_maps_flutter иногда зовёт hideInfoWindow на markerId,
-        // который уже удалён из Set<Marker> (гонка между пересборкой
-        // маркеров и открытым InfoWindow) — это баг самого плагина, не
-        // нашего кода, и не должен считаться fatal-крашем приложения:
-        // репортим как non-fatal, чтобы не терять сигнал в Crashlytics,
-        // но не портить crash-free rate ошибкой, которую нельзя починить
-        // на нашей стороне без апстрим-фикса плагина.
-        final isBenignMapsInfoWindowError =
-            details.exception is PlatformException &&
-                (details.exception as PlatformException).code ==
-                    'Invalid markerId' &&
-                (details.exception as PlatformException)
-                        .message
-                        ?.contains('hideInfoWindow') ==
-                    true;
         log(
           "flutter_error: ${details.exception}",
           error: details.exception,
           stackTrace: details.stack,
         );
-        if (isBenignMapsInfoWindowError) {
+        if (_isBenignError(details.exception)) {
           FirebaseCrashlytics.instance.recordError(
             details.exception,
             details.stack,
@@ -50,18 +62,10 @@ void run() {
       };
 
       PlatformDispatcher.instance.onError = (error, stack) {
-        // Image.network стримит байты картинки асинхронно — обрыв сети
-        // посреди загрузки (HttpException из isolate message handling)
-        // не всегда долетает до errorBuilder виджета и всплывает здесь.
-        // Это ожидаемое сетевое событие (плохое покрытие/переключение
-        // сети во время просмотра фото плантации), не баг приложения —
-        // не должно считаться fatal-крашем.
-        final isBenignNetworkImageError = error is HttpException &&
-            error.message.contains('Connection closed while receiving data');
         FirebaseCrashlytics.instance.recordError(
           error,
           stack,
-          fatal: !isBenignNetworkImageError,
+          fatal: !_isBenignError(error),
         );
         return true;
       };
