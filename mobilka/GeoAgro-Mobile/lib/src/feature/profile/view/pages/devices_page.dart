@@ -83,12 +83,10 @@ class _DevicesVm extends ChangeNotifier {
     }
 
     try {
-      // getDeviceTokens — no-op (/api/device-tokens/ не существует на
-      // бэкенде), всегда возвращает null. Пустой список, а не
-      // errorMessage — юзер не должен видеть постоянную ложную ошибку
-      // сервера на странице, которая структурно не может её вернуть.
       final raw = await _repo.getDeviceTokens();
-      if (raw != null) {
+      if (raw == null) {
+        errorMessage = "Server bilan bog'liq xatolik";
+      } else {
         final decoded = jsonDecode(raw);
         final list = decoded is Map<String, dynamic>
             ? (decoded['device_tokens'] ?? decoded['results'] ?? []) as List

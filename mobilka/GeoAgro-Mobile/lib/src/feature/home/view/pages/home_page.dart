@@ -45,6 +45,13 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   int _selectedIndex = 0;
   late ScrollController _scrollController;
+  // Индексы вкладок, которые уже открывались хотя бы раз — их виджет
+  // остаётся в IndexedStack (сохраняет scroll/состояние при возврате).
+  // Не посещённые вкладки не строятся вообще, иначе IndexedStack
+  // инстанцирует все 4 сразу при первом заходе на home и их initState()
+  // тут же шлёт свои API-запросы (fermers/statistika/profile), хотя
+  // видна только главная.
+  final Set<int> _builtTabs = {0};
 
   @override
   void initState() {
@@ -135,9 +142,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final tabs = <Widget>[
       _buildContent(vm),
-      const FermersPage(),
-      const FarmersStatisticsPage(),
-      const ProfileSettingsPage(),
+      _builtTabs.contains(1) ? const FermersPage() : const SizedBox.shrink(),
+      _builtTabs.contains(2)
+          ? const FarmersStatisticsPage()
+          : const SizedBox.shrink(),
+      _builtTabs.contains(3)
+          ? const ProfileSettingsPage()
+          : const SizedBox.shrink(),
     ];
 
     return Scaffold(
@@ -205,6 +216,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               onDestinationSelected: (index) {
                 setState(() {
                   _selectedIndex = index;
+                  _builtTabs.add(index);
                 });
                 _loadTabData(index);
               },

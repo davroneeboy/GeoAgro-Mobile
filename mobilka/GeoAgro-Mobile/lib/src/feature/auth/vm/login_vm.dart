@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/services/analytics_service.dart';
+import '../../../core/services/fcm_service.dart';
 import '../../../core/storage/app_storage.dart';
 import '../../../data/model/token/token_model.dart';
 import '../../../data/model/user/user_info_model.dart';
@@ -70,6 +71,10 @@ class LoginVm extends ChangeNotifier {
         debugPrint(
             "🔐 LoginVM: Final accessToken check - ${accessToken != null ? 'SET' : 'NULL'}");
         AnalyticsService.logLogin();
+        // Регистрирует FCM push-токен на бэкенде теперь, когда JWT уже
+        // есть. /api/device-tokens/ нестабилен (иногда 500), но вызов
+        // best-effort — ошибка не блокирует login.
+        unawaited(FcmService().syncTokenWithBackend());
         errorMessage = null;
         debugPrint("✅ LoginVM: Returning true from login()");
         return true;

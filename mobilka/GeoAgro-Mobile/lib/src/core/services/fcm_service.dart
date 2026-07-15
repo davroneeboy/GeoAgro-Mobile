@@ -4,10 +4,13 @@ import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../data/repository/app_repository_impl.dart';
 import '../routes/app_route_names.dart';
 import '../routes/router_config.dart';
 import '../storage/app_storage.dart';
+import '../setting/setup.dart' as app_setup;
 
 /// Сервис для работы с Firebase Cloud Messaging
 class FcmService {
@@ -16,10 +19,14 @@ class FcmService {
   FcmService._internal();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  final AppRepositoryImpl _repository = AppRepositoryImpl();
 
   StreamSubscription<String>? _tokenRefreshSub;
   StreamSubscription<RemoteMessage>? _onMessageSub;
   StreamSubscription<RemoteMessage>? _onMessageOpenedSub;
+  Timer? _tokenRetryTimer;
+  int _tokenRetryAttempt = 0;
+  static const int _maxTokenRetryAttempts = 10;
 
   bool _initialized = false;
   int? _pendingPlantationId;
@@ -27,6 +34,15 @@ class FcmService {
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
+
+  // initialize() (через _getFcmToken) и syncTokenWithBackend() (после login)
+  // могут вызвать _sendTokenToServer() почти одновременно с тем же токеном —
+  // приводило к дублирующим POST /api/device-tokens/ и intermittent 500 на
+  // бэкенде (подтверждено логами: 201/500 пары с одного IP в одну секунду).
+  // Лок гарантирует, что второй одновременный вызов ждёт первый вместо
+  // отправки дубликата.
+  Future<void>? _inFlightSend;
+  String? _lastSentToken;
 
   /// Коллбэк обновления unread badge (подключается из UI).
   void setUnreadRefreshCallback(Future<void> Function()? callback) {
@@ -69,34 +85,53 @@ class FcmService {
     } catch (e) {
       log('FCM initialization failed: $e');
       debugPrint('FCM: initialization failed: $e');
+      _scheduleTokenRetry();
     }
   }
 
-  /// Получить и локально сохранить FCM token. Раньше здесь же токен
-  /// синхронизировался с бэкендом (/api/device-tokens/), но этот
-  /// эндпоинт не существует — backend-регистрация убрана, retry-логика
-  /// вместе с ней (нечего больше ретраить).
+  /// Явная синхронизация токена с backend (например, сразу после login).
+  Future<void> syncTokenWithBackend() async {
+    try {
+      if (_fcmToken == null || _fcmToken!.isEmpty) {
+        await _getFcmToken();
+      }
+      await _saveTokenToStorage();
+      await _sendTokenToServer();
+    } catch (e) {
+      log('FCM syncTokenWithBackend failed: $e');
+      debugPrint('FCM: syncTokenWithBackend failed: $e');
+      _scheduleTokenRetry();
+    }
+  }
+
+  /// Получить FCM token
   Future<void> _getFcmToken() async {
     try {
       _fcmToken = await _messaging.getToken();
       if (_fcmToken == null || _fcmToken!.isEmpty) {
         debugPrint('FCM: getToken returned null/empty');
+        _scheduleTokenRetry();
         return;
       }
 
       log('FCM Token: $_fcmToken');
       debugPrint('FCM: token acquired');
+      _tokenRetryAttempt = 0;
+      _tokenRetryTimer?.cancel();
       await _saveTokenToStorage();
+      await _sendTokenToServer();
 
       _tokenRefreshSub?.cancel();
       _tokenRefreshSub = _messaging.onTokenRefresh.listen((newToken) async {
         log('FCM Token refreshed: $newToken');
         _fcmToken = newToken;
         await _saveTokenToStorage();
+        await _sendTokenToServer();
       });
     } catch (e) {
       log('Error getting FCM token: $e');
       debugPrint('FCM: error getting token: $e');
+      _scheduleTokenRetry();
     }
   }
 
@@ -104,6 +139,73 @@ class FcmService {
   Future<void> _saveTokenToStorage() async {
     if (_fcmToken == null || _fcmToken!.isEmpty) return;
     await AppStorage.$write(key: StorageKey.fcmToken, value: _fcmToken!);
+  }
+
+  /// Отправить token на сервер
+  Future<void> _sendTokenToServer() {
+    if (_inFlightSend != null) return _inFlightSend!;
+    final future = _doSendTokenToServer();
+    _inFlightSend = future;
+    return future.whenComplete(() => _inFlightSend = null);
+  }
+
+  Future<void> _doSendTokenToServer() async {
+    if (_fcmToken == null || _fcmToken!.isEmpty) return;
+    if (_fcmToken == _lastSentToken) {
+      debugPrint('FCM: token already sent, skip duplicate');
+      return;
+    }
+
+    final jwt = app_setup.accessToken ??
+        await AppStorage.$read(key: StorageKey.accessToken);
+    if (jwt == null || jwt.isEmpty) {
+      log('Skip device-token sync: user is not authenticated yet');
+      debugPrint('FCM: skip backend sync (no jwt yet)');
+      return;
+    }
+
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final platform = defaultTargetPlatform == TargetPlatform.android
+          ? 'android'
+          : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android');
+
+      final response = await _repository.registerDeviceToken(
+        token: _fcmToken!,
+        platform: platform,
+        appVersion: packageInfo.version,
+      );
+      if (response == null) {
+        debugPrint('FCM: backend token registration failed (null response)');
+        _scheduleTokenRetry();
+        return;
+      }
+      _lastSentToken = _fcmToken;
+      log('FCM token sent to backend');
+      debugPrint('FCM: token sent to backend');
+    } catch (e) {
+      log('Error sending FCM token to server: $e');
+      debugPrint('FCM: error sending token to backend: $e');
+      _scheduleTokenRetry();
+    }
+  }
+
+  void _scheduleTokenRetry() {
+    if (_tokenRetryAttempt >= _maxTokenRetryAttempts) {
+      debugPrint('FCM: max retry attempts reached');
+      return;
+    }
+    _tokenRetryAttempt++;
+    _tokenRetryTimer?.cancel();
+
+    // 5, 10, 15 ... 50 секунд (ограниченный линейный backoff)
+    final seconds = (_tokenRetryAttempt * 5).clamp(5, 50);
+    debugPrint(
+        'FCM: scheduling token retry #$_tokenRetryAttempt in ${seconds}s');
+    _tokenRetryTimer = Timer(Duration(seconds: seconds), () async {
+      await _getFcmToken();
+      await _sendTokenToServer();
+    });
   }
 
   /// Настроить обработчики сообщений
@@ -195,11 +297,20 @@ class FcmService {
   /// Удалить token (при выходе из аккаунта)
   Future<void> deleteToken() async {
     try {
+      final localToken = _fcmToken ??
+          await AppStorage.$read(key: StorageKey.fcmToken) ??
+          await _messaging.getToken();
+
+      if (localToken != null && localToken.isNotEmpty) {
+        await _repository.removeDeviceToken(token: localToken);
+      }
+
       await _messaging.deleteToken();
       _fcmToken = null;
+      _lastSentToken = null;
       await AppStorage.$delete(key: StorageKey.fcmToken);
       log('FCM token deleted');
-      debugPrint('FCM: token deleted locally');
+      debugPrint('FCM: token deleted locally and on backend');
     } catch (e) {
       log('Error deleting FCM token: $e');
       debugPrint('FCM: error deleting token: $e');
