@@ -39,6 +39,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
 
   Future<void> _loadCurrentVersion() async {
     final version = await VersionCheckService.getCurrentVersionForDisplay();
+    if (!mounted) return;
     setState(() {
       currentAppVersion = version;
     });
@@ -47,6 +48,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   Future<void> _loadUserInfo() async {
     try {
       final data = await _appRepositoryImpl.getUserInfo();
+      // Виджет (drawer) может быть закрыт/unmounted, пока await ещё
+      // в полёте — setState() на unmounted State кидает null check
+      // на внутреннем _element, необрабатываемо снаружи.
+      if (!mounted) return;
       if (data != null) {
         final jsonData = jsonDecode(data);
         setState(() {
@@ -67,6 +72,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -137,7 +143,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     'geoAgro v${currentAppVersion ?? "3.0.1"}',
                     textAlign: TextAlign.center,
                     style: AppTypography.caption(context).copyWith(
-                  color: context.colors.textTertiary,
+                      color: context.colors.textTertiary,
                     ),
                   ),
                   SizedBox(height: AppSpacing.sm),
@@ -280,8 +286,7 @@ class _ModernDrawerHeader extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 28,
-            backgroundColor:
-                context.colors.background.withValues(alpha: 0.2),
+            backgroundColor: context.colors.background.withValues(alpha: 0.2),
             child: Text(
               initials,
               style: AppTypography.headline3(context).copyWith(
