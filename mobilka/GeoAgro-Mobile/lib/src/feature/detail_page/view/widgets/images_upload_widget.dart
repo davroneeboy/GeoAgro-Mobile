@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -168,28 +169,18 @@ class ImageUploadListWidget extends StatelessWidget {
                               : (networkImage != null
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(16.r),
-                                      child: Image.network(
-                                        networkImage,
-                                        semanticLabel: "Plantatsiya rasmi",
+                                      child: CachedNetworkImage(
+                                        imageUrl: networkImage,
                                         fit: BoxFit.fill,
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          } else {
-                                            return Center(
-                                              child: CircularProgressIndicator(
-                                                color: Colors.blue,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Center(
-                                            child: Icon(Icons.broken_image),
-                                          );
-                                        },
+                                        placeholder: (context, url) => Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            Center(
+                                          child: Icon(Icons.broken_image),
+                                        ),
                                       ),
                                     )
                                   : Column(
