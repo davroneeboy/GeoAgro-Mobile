@@ -563,8 +563,18 @@ class PlantationMapViewVm extends ChangeNotifier {
       GeoUtils.haversineMeters(
           start.latitude, start.longitude, end.latitude, end.longitude);
 
+  // ChangeNotifier.dispose() itself asserts not-already-disposed — a
+  // second dispose() call (observed via Crashlytics, quick back/forward
+  // navigation re-entering the same autoDispose.family instance) crashes
+  // fatally from inside dispose() before this guard could help via
+  // _isDisposed alone, since that flag only gates other methods, not
+  // dispose() re-entry.
+  bool _disposeCalled = false;
+
   @override
   void dispose() {
+    if (_disposeCalled) return;
+    _disposeCalled = true;
     _isDisposed = true;
     mapController?.dispose();
     super.dispose();
