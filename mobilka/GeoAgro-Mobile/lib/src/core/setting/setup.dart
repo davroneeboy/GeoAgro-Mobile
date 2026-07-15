@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:agro_employee_public/firebase_options.dart';
 import '../../data/model/fruits/fruit_model.dart';
@@ -130,6 +131,25 @@ Future<void> setup() async {
         }
       } catch (e) {
         log('Failed to refresh user info at setup: $e');
+      }
+    }
+    // Привязывает все Firebase Analytics события этой сессии (включая
+    // автоматические — first_open, session_start) к userId, не только
+    // сразу после явного логина, но и на холодном старте с уже
+    // сохранённым токеном — иначе аналитика по вернувшимся юзерам
+    // оставалась бы без привязки к user_id до следующего logout/login.
+    if (userId > 0) {
+      try {
+        await FirebaseAnalytics.instance.setUserId(id: userId.toString());
+      } catch (e) {
+        log('Failed to set analytics userId at setup: $e');
+      }
+      // То же для Crashlytics — краши/non-fatal ошибки этой сессии
+      // будут видны в консоли с привязкой к userId.
+      try {
+        await FirebaseCrashlytics.instance.setUserIdentifier(userId.toString());
+      } catch (e) {
+        log('Failed to set crashlytics userIdentifier at setup: $e');
       }
     }
     log("Storage initialized successfully");

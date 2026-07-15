@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/services/analytics_service.dart';
@@ -121,6 +123,18 @@ class LoginVm extends ChangeNotifier {
           userId = uId;
           await AppStorage.$writeInt(key: StorageKey.userId, value: uId);
           debugPrint("💾 Stored userId: $uId");
+          // Привязывает все последующие Firebase Analytics события (в
+          // том числе автоматические — first_open, session_start) к
+          // этому userId, поверх анонимного app_instance_id устройства.
+          // Не отправляем username отдельным user property — Firebase
+          // Analytics не предназначен для PII, userId уже даёт нужную
+          // привязку "какой юзер с какого устройства".
+          unawaited(AnalyticsService.setUserId(uId));
+          // То же самое для Crashlytics — краши и non-fatal ошибки
+          // этой сессии будут видны в консоли с привязкой к userId,
+          // не только к device/app instance.
+          unawaited(
+              FirebaseCrashlytics.instance.setUserIdentifier(uId.toString()));
         }
 
         if (dId is int && dId > 0) {
