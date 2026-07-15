@@ -4,50 +4,51 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MarkerIconUtils {
-  /// Синяя стрелка-указатель направления юзера на карте (поворачивается
-  /// по heading через `Marker.rotation`). Раньше грузилась из
+  /// Синяя точка текущего местоположения юзера на карте (стиль как в
+  /// стандартном Google Maps "My Location"). Раньше грузилась из
   /// assets/images/user_arrow.png, но тот файл оказался битым (1 байт,
   /// не PNG) — rootBundle.load читал его "успешно", BitmapDescriptor.bytes
   /// не валидирует содержимое на Dart-стороне, и краш вылезал только
   /// глубоко в нативном слое Google Maps при рендере маркера, необрабатываемо
   /// из Dart. Генерация тем же canvas-путём, что и createRulerIcon ниже,
   /// убирает зависимость от asset-файла вообще.
+  ///
+  /// Рендерится в 4x логического размера — на маркерах Google Maps
+  /// растягивает bitmap под текущий zoom/плотность экрана, при 1x-canvas
+  /// (как было раньше со стрелкой) получалось видимо пиксельно.
   static Future<BitmapDescriptor> createUserArrowIcon() async {
+    const double logicalSize = 28.0;
+    const double scale = 4.0;
+    const double size = logicalSize * scale;
+
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
-
-    const double size = 64.0;
     final double center = size / 2;
 
-    // Белая обводка стрелки (контрастна на любом фоне карты).
+    // Мягкий halo вокруг точки — как у Google Maps "My Location".
+    final Paint haloPaint = Paint()
+      ..color = const Color(0xFF2196F3).withValues(alpha: 0.20)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(center, center), center, haloPaint);
+
+    // Белая обводка (контрастна на любом фоне карты).
     final Paint outlinePaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
-    // Синяя заливка стрелки — стандартный цвет "текущее местоположение".
+    canvas.drawCircle(Offset(center, center), 9 * scale, outlinePaint);
+
+    // Синяя заливка — стандартный цвет "текущее местоположение".
     final Paint fillPaint = Paint()
       ..color = const Color(0xFF2196F3)
       ..style = PaintingStyle.fill;
-
-    // Стрелка направлена вверх (0° = север), поворот делает Marker.rotation.
-    Path arrowPath(double scale) {
-      final path = Path();
-      path.moveTo(center, center - 24 * scale);
-      path.lineTo(center + 16 * scale, center + 20 * scale);
-      path.lineTo(center, center + 10 * scale);
-      path.lineTo(center - 16 * scale, center + 20 * scale);
-      path.close();
-      return path;
-    }
-
-    canvas.drawPath(arrowPath(1.15), outlinePaint);
-    canvas.drawPath(arrowPath(1.0), fillPaint);
+    canvas.drawCircle(Offset(center, center), 7 * scale, fillPaint);
 
     final ui.Picture picture = pictureRecorder.endRecording();
     final ui.Image image = await picture.toImage(size.toInt(), size.toInt());
     final ByteData? data =
         await image.toByteData(format: ui.ImageByteFormat.png);
     if (data == null) {
-      throw StateError('Failed to encode user arrow icon to PNG bytes');
+      throw StateError('Failed to encode user location icon to PNG bytes');
     }
     return BitmapDescriptor.bytes(data.buffer.asUint8List());
   }
