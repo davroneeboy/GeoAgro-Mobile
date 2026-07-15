@@ -226,6 +226,11 @@ class EditVM extends ChangeNotifier {
   List<Subsidy> selectedEditSubsidy = [];
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
+  // image_picker кидает PlatformException("already_active") при повторном
+  // вызове pickImage() пока первый ещё не завершился — случается при
+  // быстром двойном тапе на кнопку выбора фото, необрабатываемо через
+  // обычный try/catch вокруг await (всплывает как fatal).
+  bool _isPickerActive = false;
   bool _isSpecialUser = false; // Флаг специального пользователя
   bool get isSpecialUser =>
       _isSpecialUser; // Геттер для проверки специального пользователя
@@ -1526,6 +1531,21 @@ class EditVM extends ChangeNotifier {
 
   /// Основной метод для загрузки изображения (используется после выбора source)
   Future<String?> pickImage({
+    required int cardId,
+    required ImageSource source,
+    BuildContext? context,
+  }) async {
+    if (_isPickerActive) return null;
+    _isPickerActive = true;
+    try {
+      return await _pickImageImpl(
+          cardId: cardId, source: source, context: context);
+    } finally {
+      _isPickerActive = false;
+    }
+  }
+
+  Future<String?> _pickImageImpl({
     required int cardId,
     required ImageSource source,
     BuildContext? context,

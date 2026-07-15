@@ -157,6 +157,11 @@ class DetailVM extends ChangeNotifier {
   FruitRootstocksModel? selectedFruitRoot;
   final Map<int, File?> _imageFiles = {};
   final ImagePicker _picker = ImagePicker();
+  // image_picker кидает PlatformException("already_active") при повторном
+  // вызове pickImage() пока первый ещё не завершился — случается при
+  // быстром двойном тапе на кнопку выбора фото, необрабатываемо через
+  // обычный try/catch вокруг await (всплывает как fatal).
+  bool _isPickerActive = false;
   bool _isSpecialUser = false; // Флаг специального пользователя
   bool get isSpecialUser =>
       _isSpecialUser; // Геттер для проверки специального пользователя
@@ -1340,34 +1345,40 @@ class DetailVM extends ChangeNotifier {
     required ImageSource source,
     BuildContext? context,
   }) async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: source,
-      imageQuality: 70,
-      maxWidth: 1920,
-      maxHeight: 1920,
-    );
-    if (pickedFile == null) return;
+    if (_isPickerActive) return;
+    _isPickerActive = true;
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+      if (pickedFile == null) return;
 
-    // Валидация формата изображения
-    if (!Utils.isValidImageFormat(pickedFile.path)) {
-      final mountedContext = context;
-      if (mountedContext != null && mountedContext.mounted) {
-        Utils.fireTopSnackBar(
-          "Faqat JPEG yoki JPG formatidagi rasmlar qabul qilinadi",
-          design_colors.AppColors.error,
-          mountedContext,
-        );
+      // Валидация формата изображения
+      if (!Utils.isValidImageFormat(pickedFile.path)) {
+        final mountedContext = context;
+        if (mountedContext != null && mountedContext.mounted) {
+          Utils.fireTopSnackBar(
+            "Faqat JPEG yoki JPG formatidagi rasmlar qabul qilinadi",
+            design_colors.AppColors.error,
+            mountedContext,
+          );
+        }
+        return;
       }
-      return;
-    }
 
-    // Копируем в стабильную app-owned директорию: путь image_picker
-    // (особенно с камеры на некоторых Android-устройствах) не гарантированно
-    // переживает paused/kill, пока юзер ходит по плантации фотографировать.
-    final stablePath = await UploadQueueStore.instance
-        .copyToStableDir(pickedFile.path, prefix: 'create_${cardId}_');
-    _imageFiles[cardId] = File(stablePath);
-    notifyListeners();
+      // Копируем в стабильную app-owned директорию: путь image_picker
+      // (особенно с камеры на некоторых Android-устройствах) не гарантированно
+      // переживает paused/kill, пока юзер ходит по плантации фотографировать.
+      final stablePath = await UploadQueueStore.instance
+          .copyToStableDir(pickedFile.path, prefix: 'create_${cardId}_');
+      _imageFiles[cardId] = File(stablePath);
+      notifyListeners();
+    } finally {
+      _isPickerActive = false;
+    }
   }
 
   Future<void> getFruit() async {
