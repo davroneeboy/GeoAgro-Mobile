@@ -23,6 +23,12 @@ bool _isBenignError(Object error) {
   // класс исключения уже однозначно указывает на сетевую причину.
   if (error is HttpException) return true;
 
+  // SocketException при загрузке картинки — тот же сетевой обрыв
+  // соединения (например "Software caused connection abort"), просто
+  // другой подтип исключения долетает до FlutterError.onError в
+  // зависимости от того, на каком этапе HTTP-стрима порвалось.
+  if (error is SocketException) return true;
+
   // google_maps_flutter иногда зовёт hideInfoWindow на markerId,
   // который уже удалён из Set<Marker> (гонка между пересборкой
   // маркеров и открытым InfoWindow) — баг самого плагина, не нашего
