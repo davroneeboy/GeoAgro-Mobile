@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     // START: FlutterFire Configuration
     id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
     // END: FlutterFire Configuration
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -40,6 +41,14 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
+
+            // Заливает native (NDK/Skia/engine) debug-символы в Crashlytics
+            // на каждый release build — без этого нативные крэши (за
+            // пределами Dart-исключений) приходят как сырые pc-офсеты
+            // (base.apk + N), нечитаемые без ручной символизации.
+            firebaseCrashlytics {
+                nativeSymbolUploadEnabled true
+            }
         }
     }
 
