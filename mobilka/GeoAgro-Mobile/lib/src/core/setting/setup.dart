@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:agro_employee_public/firebase_options.dart';
 import '../../data/model/fruits/fruit_model.dart';
@@ -48,6 +49,17 @@ Future<void> setup() async {
       log("Analytics: collection enabled + test event sent");
     } catch (e) {
       log("Analytics enable/log failed: $e");
+    }
+    try {
+      // App-start trace, screen rendering (slow/frozen frames) собираются
+      // автоматически. Сетевые запросы через Dio отдельно замеряются
+      // через PerformanceInterceptor (api.dart) — встроенный network
+      // monitoring этого SDK видит только dart:io HttpClient напрямую,
+      // не Dio.
+      await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
+      log("Performance Monitoring: collection enabled");
+    } catch (e) {
+      log("Performance Monitoring enable failed: $e");
     }
   } catch (e) {
     log("Firebase initialization failed: $e");

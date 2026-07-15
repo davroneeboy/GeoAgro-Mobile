@@ -13,6 +13,7 @@ import "package:package_info_plus/package_info_plus.dart";
 import "api_constants.dart";
 import "../../storage/app_storage.dart";
 import "../interceptors/connectivity_interceptor.dart";
+import "../interceptors/performance_interceptor.dart";
 import "../interceptors/token_interceptor.dart";
 import "../interceptors/secure_logger_interceptor.dart";
 import "../../../data/model/response/api_response.dart";
@@ -39,6 +40,7 @@ class ApiService {
     dio.interceptors.addAll([
       TokenInterceptor.instance,
       ConnectivityInterceptor(),
+      PerformanceInterceptor(),
       // Secure logger (masks sensitive data) - always enabled in debug
       SecureLoggerInterceptor(),
       // PrettyDioLogger for detailed logs (only in debug mode, shows masked data)
