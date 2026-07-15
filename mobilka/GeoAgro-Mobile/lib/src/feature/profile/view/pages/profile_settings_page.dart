@@ -198,12 +198,15 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
               try {
                 await FcmService().deleteToken();
               } catch (_) {}
+              // deleteToken() ждёт сеть — юзер может успеть уйти с экрана
+              // (виджет unmount) за это время. ref становится небезопасным
+              // после unmount, invalidate() до context.mounted-проверки
+              // кидал "Bad state: Using ref when widget has been unmounted".
+              if (!context.mounted) return;
               ref.invalidate(homePageVM);
               ref.invalidate(fermerPageVM);
               ref.invalidate(notificationsVM);
-              if (context.mounted) {
-                context.go(AppRouteNames.login);
-              }
+              context.go(AppRouteNames.login);
             },
             child: Text(
               "Chiqish",
