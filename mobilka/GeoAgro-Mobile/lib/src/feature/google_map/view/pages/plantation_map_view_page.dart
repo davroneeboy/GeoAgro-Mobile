@@ -182,12 +182,12 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _buildLegendItem(
-                              color: design_colors.AppColors.accentGreen,
+                              color: design_colors.AppColors.success,
                               label: "Тасдиқланган",
                             ),
                             16.horizontalSpace,
                             _buildLegendItem(
-                              color: Colors.yellow.shade700,
+                              color: design_colors.AppColors.warning,
                               label: "Тасдиқланмаган",
                             ),
                             16.horizontalSpace,

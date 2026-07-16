@@ -28,10 +28,13 @@ class AppColors {
       Color(0xFF0F7A36); // Tailwind emerald-800
 
   // ===== SEMANTIC COLORS =====
+  // Приглушённые (не iOS-системные) тона — прежние #FF9500/#FF3B30/#007AFF
+  // были рассчитаны Apple под алерты на белом фоне и выглядели слишком
+  // ярко/кричаще на картах и статусных чипах в B2B agro-приложении.
   static const Color success = Color(0xFF16A34A); // Same as accent
-  static const Color warning = Color(0xFFFF9500); // iOS Orange
-  static const Color error = Color(0xFFFF3B30); // iOS Red
-  static const Color info = Color(0xFF007AFF); // iOS Blue
+  static const Color warning = Color(0xFFD97706); // Amber-600
+  static const Color error = Color(0xFFDC2626); // Red-600
+  static const Color info = Color(0xFF0369A1); // Sky-700
 
   // ===== CHART / STATISTICS COLORS =====
   static const Color chartBlue = Color(0xFF38BDF8); // Sky-400
@@ -65,6 +68,6 @@ class AppColors {
   static const Color lightHighlight = Color(0xFFE5E5EA); // iOS gray 5
 
   // iOS Blue (for accents in some areas)
-  static const Color accentBlue = Color(0xFF007AFF);
-  static const Color accentBlueDark = Color(0xFF0A84FF);
+  static const Color accentBlue = Color(0xFF0369A1);
+  static const Color accentBlueDark = Color(0xFF0C4A6E);
 }

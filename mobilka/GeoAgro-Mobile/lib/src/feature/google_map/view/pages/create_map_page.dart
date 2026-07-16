@@ -169,8 +169,10 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildLegendItem('Tekshirilgan', Colors.green),
-                  _buildLegendItem('Tekshirilmagan', Colors.orange),
+                  _buildLegendItem(
+                      'Tekshirilgan', design_colors.AppColors.success),
+                  _buildLegendItem(
+                      'Tekshirilmagan', design_colors.AppColors.warning),
                 ],
               ),
             ),

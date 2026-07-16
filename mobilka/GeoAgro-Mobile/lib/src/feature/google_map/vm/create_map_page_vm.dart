@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:agro_employee_public/design_system/tokens/colors.dart'
+    as design_colors;
 import '../../../core/utils/geo_utils.dart';
 import '../../../core/utils/marker_icon_utils.dart';
 import '../../../data/model/plantation/new_plantation_model.dart';
@@ -73,6 +75,11 @@ class CreateMapPageVm extends ChangeNotifier {
 
   // Состояние линейки для рисования
   BitmapDescriptor? rulerIcon; // Иконка линейки
+
+  // Кэш номерованных иконок вершин полигона (ключ — номер точки, 1-based).
+  // Генерация PNG на каждый drag была бы расточительна — точка меняет
+  // позицию, не номер, поэтому одна и та же иконка переиспользуется.
+  final Map<int, BitmapDescriptor> _vertexIconCache = {};
 
   double calculateDistance(LatLng start, LatLng end) =>
       GeoUtils.haversineMeters(
@@ -419,8 +426,13 @@ class CreateMapPageVm extends ChangeNotifier {
             coordinates.add(coordinates.first);
           }
 
-          // Определяем цвет в зависимости от статуса проверки
-          final color = plantation.isChecked ? Colors.green : Colors.orange;
+          // Определяем цвет в зависимости от статуса проверки — те же
+          // токены, что и в plantation_map_view_vm, иначе palette
+          // расходится между экранами (raw Colors.green/orange здесь
+          // отличались оттенком от design_colors.AppColors.success/warning).
+          final color = plantation.isChecked
+              ? design_colors.AppColors.success
+              : design_colors.AppColors.warning;
 
           // Добавляем полигон
           nearbyPolygons.add(
@@ -646,18 +658,21 @@ class CreateMapPageVm extends ChangeNotifier {
         }
       }
 
-      // Создаем непрерывную жёлтую линию от всех точек до центра карты
+      // Создаем непрерывную линию от всех точек до центра карты. Цвет
+      // info-синий — режим активного рисования, не статус плантации,
+      // раньше был Colors.yellow и визуально путался с warning-оранжевым
+      // статуса "на модерации".
       List<LatLng> continuousLine = List<LatLng>.from(drawingPoints);
       if (centerPosition != null) {
         continuousLine.add(centerPosition);
       }
 
-      // Рисуем непрерывную жёлтую линию (даже если только одна точка)
+      // Рисуем непрерывную линию (даже если только одна точка)
       if (continuousLine.length >= 2) {
         polylines.add(Polyline(
           polylineId: const PolylineId("drawing_polyline"),
           points: continuousLine,
-          color: Colors.yellow,
+          color: design_colors.AppColors.info,
           width: 4,
           patterns: [], // Сплошная линия
         ));
@@ -669,8 +684,8 @@ class CreateMapPageVm extends ChangeNotifier {
           Polygon(
             polygonId: const PolygonId('drawing_polygon'),
             points: List<LatLng>.from(drawingPoints),
-            fillColor: Colors.yellow.withValues(alpha: 0.3),
-            strokeColor: Colors.yellow,
+            fillColor: design_colors.AppColors.info.withValues(alpha: 0.3),
+            strokeColor: design_colors.AppColors.info,
             strokeWidth: 2,
           ),
         );
@@ -706,29 +721,37 @@ class CreateMapPageVm extends ChangeNotifier {
 
     // Центральная точка больше не нужна, так как есть линейка в центре экрана
 
-    // Добавляем маркеры для каждой точки рисования
+    // Добавляем маркеры для каждой точки рисования — кастомная
+    // номерованная иконка (createPolygonVertexIcon) вместо родовой жёлтой
+    // Google-капли, согласована по цвету с info-синей линией/полигоном
+    // рисования. Пока номер ещё не в кэше — временный fallback-маркер,
+    // подменяется на кастомный асинхронно без блокировки текущего кадра.
     for (int i = 0; i < drawingPoints.length; i++) {
       final point = drawingPoints[i];
+      final number = i + 1;
+      final cachedIcon = _vertexIconCache[number];
 
       markers.add(
         Marker(
           markerId: MarkerId('drawing_point_$i'),
           position: point,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+          icon: cachedIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
           anchor: const Offset(0.5, 0.5),
           draggable: true,
           onDragEnd: (newPosition) => _onDrawingPointDragged(i, newPosition),
           infoWindow: InfoWindow(
-            title: 'Нуқта ${i + 1}',
+            title: 'Нуқта $number',
             snippet: i > 0
                 ? '${segmentDistances[i - 1].toStringAsFixed(2)} м'
                 : null,
           ),
         ),
       );
-      debugPrint(
-          'Added drawing point marker $i at ${point.latitude}, ${point.longitude}');
+
+      if (cachedIcon == null) {
+        _loadVertexIcon(number);
+      }
     }
 
     // Добавляем белую круглую линейку в центре карты если в режиме рисования
@@ -738,6 +761,26 @@ class CreateMapPageVm extends ChangeNotifier {
     }
 
     debugPrint('Total markers: ${markers.length}');
+  }
+
+  final Set<int> _pendingVertexIcons = {};
+
+  Future<void> _loadVertexIcon(int number) async {
+    if (_vertexIconCache.containsKey(number) ||
+        _pendingVertexIcons.contains(number)) {
+      return;
+    }
+    _pendingVertexIcons.add(number);
+    try {
+      _vertexIconCache[number] =
+          await MarkerIconUtils.createPolygonVertexIcon(number);
+      _updatePolygonMarkers();
+      _safeNotifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load polygon vertex icon $number: $e');
+    } finally {
+      _pendingVertexIcons.remove(number);
+    }
   }
 
   // Обработчик перемещения точки рисования

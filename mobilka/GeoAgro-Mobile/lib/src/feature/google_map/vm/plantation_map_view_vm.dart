@@ -358,8 +358,11 @@ class PlantationMapViewVm extends ChangeNotifier {
             fillColor: isCurrent
                 ? color.withValues(alpha: 0.35)
                 : color.withValues(alpha: 0.2),
-            // Для текущей плантации обводка желтая, для остальных - цвет по статусу
-            strokeColor: isCurrent ? Colors.yellow : color,
+            // Текущая плантация выделяется info-синим (режим/выделение),
+            // остальные — цветом по статусу проверки. Раньше тут был
+            // Colors.yellow, который конфликтовал с warning-оранжевым
+            // статуса "на модерации" — два разных смысла одним цветом.
+            strokeColor: isCurrent ? design_colors.AppColors.info : color,
             strokeWidth: isCurrent ? 4 : 2,
           ),
         );
@@ -368,8 +371,7 @@ class PlantationMapViewVm extends ChangeNotifier {
           Polyline(
             polylineId: PolylineId('polyline_${plantation.id}'),
             points: polygonPoints,
-            // Для текущей плантации линия желтая, для остальных - цвет по статусу
-            color: isCurrent ? Colors.yellow : color,
+            color: isCurrent ? design_colors.AppColors.info : color,
             width: isCurrent ? 4 : 2,
           ),
         );
@@ -378,8 +380,7 @@ class PlantationMapViewVm extends ChangeNotifier {
           Polyline(
             polylineId: PolylineId('polyline_${plantation.id}'),
             points: points,
-            // Для текущей плантации линия желтая, для остальных - цвет по статусу
-            color: isCurrent ? Colors.yellow : color,
+            color: isCurrent ? design_colors.AppColors.info : color,
             width: isCurrent ? 4 : 2,
           ),
         );
@@ -389,8 +390,7 @@ class PlantationMapViewVm extends ChangeNotifier {
             circleId: CircleId('circle_${plantation.id}'),
             center: points.first,
             fillColor: color.withValues(alpha: 0.25),
-            // Для текущей плантации обводка желтая
-            strokeColor: Colors.yellow,
+            strokeColor: design_colors.AppColors.info,
             strokeWidth: 4,
             radius: 25,
           ),
@@ -418,12 +418,12 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   Color _getPlantationColor(RelatedPlantation plantation) {
     if (plantation.isChecked == true) {
-      return design_colors.AppColors.accentGreen; // Green - approved
+      return design_colors.AppColors.success; // Green - approved
     } else if (plantation.isRejected == true) {
       return design_colors.AppColors.error; // Red - rejected
     } else {
       // Если оба false - значит на модерации (Ko'rib chiqilmoqda)
-      return const Color(0xFFF59E0B); // Warning color - pending (желтый)
+      return design_colors.AppColors.warning; // Orange - pending
     }
   }
 
