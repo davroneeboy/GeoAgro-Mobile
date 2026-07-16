@@ -374,11 +374,11 @@ class PlantationMapViewVm extends ChangeNotifier {
             fillColor: isCurrent
                 ? color.withValues(alpha: 0.35)
                 : color.withValues(alpha: 0.2),
-            // Текущая плантация выделяется info-синим (режим/выделение),
-            // остальные — цветом по статусу проверки. Раньше тут был
-            // Colors.yellow, который конфликтовал с warning-оранжевым
-            // статуса "на модерации" — два разных смысла одним цветом.
-            strokeColor: isCurrent ? design_colors.AppColors.info : color,
+            // Обводка всегда цветом статуса, как и заливка — раньше
+            // текущая плантация обводилась отдельным info-синим, из-за
+            // чего получалась разноцветная путаница (залито оранжевым,
+            // обведено синим). Выделение текущей — только толщиной линии.
+            strokeColor: color,
             strokeWidth: isCurrent ? 4 : 2,
           ),
         );
@@ -387,7 +387,7 @@ class PlantationMapViewVm extends ChangeNotifier {
           Polyline(
             polylineId: PolylineId('polyline_${plantation.id}'),
             points: polygonPoints,
-            color: isCurrent ? design_colors.AppColors.info : color,
+            color: color,
             width: isCurrent ? 4 : 2,
           ),
         );
@@ -396,7 +396,7 @@ class PlantationMapViewVm extends ChangeNotifier {
           Polyline(
             polylineId: PolylineId('polyline_${plantation.id}'),
             points: points,
-            color: isCurrent ? design_colors.AppColors.info : color,
+            color: color,
             width: isCurrent ? 4 : 2,
           ),
         );
@@ -406,7 +406,7 @@ class PlantationMapViewVm extends ChangeNotifier {
             circleId: CircleId('circle_${plantation.id}'),
             center: points.first,
             fillColor: color.withValues(alpha: 0.25),
-            strokeColor: design_colors.AppColors.info,
+            strokeColor: color,
             strokeWidth: 4,
             radius: 25,
           ),
