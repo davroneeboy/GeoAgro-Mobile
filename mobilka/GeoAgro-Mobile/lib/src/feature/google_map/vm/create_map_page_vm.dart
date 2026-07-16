@@ -82,14 +82,6 @@ class CreateMapPageVm extends ChangeNotifier {
   // позицию, не номер, поэтому одна и та же иконка переиспользуется.
   final Map<int, BitmapDescriptor> _vertexIconCache = {};
 
-  // Отдельная иконка первой вершины, когда крестик подошёл достаточно
-  // близко для замыкания полигона — визуальный сигнал "тут можно
-  // закончить", вместо того чтобы юзер узнавал об этом только после
-  // фактической постановки точки поверх первой.
-  BitmapDescriptor? _closeVertexIcon;
-  static const double _closeToFirstPointThresholdMeters = 15.0;
-  bool isNearFirstPoint = false;
-
   double calculateDistance(LatLng start, LatLng end) =>
       GeoUtils.haversineMeters(
           start.latitude, start.longitude, end.latitude, end.longitude);
@@ -727,22 +719,6 @@ class CreateMapPageVm extends ChangeNotifier {
         );
       }
 
-      // Крестик подошёл достаточно близко к первой точке — сигнал юзеру,
-      // что тут можно замкнуть полигон (следующий "+" замкнёт контур).
-      // Порог считается только когда полигон уже валиден (3+ точек),
-      // иначе "замыкание" из двух точек не имеет смысла.
-      final wasNear = isNearFirstPoint;
-      if (centerPosition != null && drawingPoints.length >= 3) {
-        final distanceToFirst =
-            calculateDistance(centerPosition, drawingPoints.first);
-        isNearFirstPoint = distanceToFirst <= _closeToFirstPointThresholdMeters;
-      } else {
-        isNearFirstPoint = false;
-      }
-      if (wasNear != isNearFirstPoint) {
-        _updatePolygonMarkers();
-      }
-
       // Линия-прицел от последней поставленной точки до центра карты —
       // показывает, куда встанет следующая точка.
       if (centerPosition != null && drawingPoints.isNotEmpty) {
@@ -805,13 +781,7 @@ class CreateMapPageVm extends ChangeNotifier {
     for (int i = 0; i < drawingPoints.length; i++) {
       final point = drawingPoints[i];
       final number = i + 1;
-      // Первая точка получает отдельную (крупнее, success-зелёную)
-      // иконку, когда крестик подошёл близко — сигнал "тут можно
-      // замкнуть полигон", вместо того чтобы юзер узнавал об этом
-      // только после фактического тапа поверх неё.
-      final isClosingTarget = i == 0 && isNearFirstPoint;
-      final cachedIcon =
-          isClosingTarget ? _closeVertexIcon : _vertexIconCache[number];
+      final cachedIcon = _vertexIconCache[number];
 
       markers.add(
         Marker(
@@ -823,7 +793,7 @@ class CreateMapPageVm extends ChangeNotifier {
           draggable: true,
           onDragEnd: (newPosition) => _onDrawingPointDragged(i, newPosition),
           infoWindow: InfoWindow(
-            title: isClosingTarget ? 'Ёпиш учун босинг' : 'Нуқта $number',
+            title: 'Нуқта $number',
             snippet: i > 0
                 ? '${segmentDistances[i - 1].toStringAsFixed(2)} м'
                 : null,
@@ -832,11 +802,7 @@ class CreateMapPageVm extends ChangeNotifier {
       );
 
       if (cachedIcon == null) {
-        if (isClosingTarget) {
-          _loadCloseVertexIcon();
-        } else {
-          _loadVertexIcon(number);
-        }
+        _loadVertexIcon(number);
       }
     }
 
@@ -850,7 +816,6 @@ class CreateMapPageVm extends ChangeNotifier {
   }
 
   final Set<int> _pendingVertexIcons = {};
-  bool _isLoadingCloseVertexIcon = false;
 
   Future<void> _loadVertexIcon(int number) async {
     if (_vertexIconCache.containsKey(number) ||
@@ -867,25 +832,6 @@ class CreateMapPageVm extends ChangeNotifier {
       debugPrint('Failed to load polygon vertex icon $number: $e');
     } finally {
       _pendingVertexIcons.remove(number);
-    }
-  }
-
-  Future<void> _loadCloseVertexIcon() async {
-    if (_closeVertexIcon != null || _isLoadingCloseVertexIcon) return;
-    _isLoadingCloseVertexIcon = true;
-    try {
-      _closeVertexIcon = await MarkerIconUtils.createPolygonVertexIcon(
-        1,
-        color: design_colors.AppColors.success,
-        radiusMultiplier: 1.3,
-        showCheckmark: true,
-      );
-      _updatePolygonMarkers();
-      _safeNotifyListeners();
-    } catch (e) {
-      debugPrint('Failed to load close-vertex icon: $e');
-    } finally {
-      _isLoadingCloseVertexIcon = false;
     }
   }
 

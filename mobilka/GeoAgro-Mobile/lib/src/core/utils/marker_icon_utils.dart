@@ -128,77 +128,55 @@ class MarkerIconUtils {
   /// (BitmapDescriptor.defaultMarkerWithHue(hueYellow)) — родовая форма,
   /// не показывала номер точки без тапа, и цвет расходился с остальной
   /// info-синей палитрой рисования.
-  static Future<BitmapDescriptor> createPolygonVertexIcon(
-    int number, {
-    Color color = const Color(0xFF0369A1), // AppColors.info
-    double radiusMultiplier = 1.0,
-    bool showCheckmark = false,
-  }) async {
+  static Future<BitmapDescriptor> createPolygonVertexIcon(int number) async {
     const double logicalSize = 26.0;
     const double scale = 4.0;
-    final double size = logicalSize * scale * radiusMultiplier;
+    const double size = logicalSize * scale;
 
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
-    final double center = size / 2;
-    final double r = scale * radiusMultiplier;
+    const double center = size / 2;
 
     // Мягкая тень для отрыва от фона карты/полигона.
     final Paint shadowPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.25)
       ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 6);
-    canvas.drawCircle(Offset(center, center + 2), 11 * r, shadowPaint);
+    canvas.drawCircle(
+        const Offset(center, center + 2), 11 * scale, shadowPaint);
 
     // Белая обводка — контраст на зелёном/синем фоне карты и полигона.
     final Paint outlinePaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(center, center), 11 * r, outlinePaint);
+    canvas.drawCircle(const Offset(center, center), 11 * scale, outlinePaint);
 
-    // Заливка цветом линии рисования (или success-зелёным, когда точка
-    // сигнализирует "тут можно замкнуть полигон").
+    // Заливка цветом линии рисования (AppColors.info).
     final Paint fillPaint = Paint()
-      ..color = color
+      ..color = const Color(0xFF0369A1)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(center, center), 9 * r, fillPaint);
+    canvas.drawCircle(const Offset(center, center), 9 * scale, fillPaint);
 
-    if (showCheckmark) {
-      // Галочка вместо номера — вершина сигнализирует "тут можно
-      // замкнуть полигон", не "это точка номер N".
-      final checkPaint = Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5 * r
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-      final path = Path()
-        ..moveTo(center - 5 * r, center)
-        ..lineTo(center - 1.5 * r, center + 3.5 * r)
-        ..lineTo(center + 5 * r, center - 3.5 * r);
-      canvas.drawPath(path, checkPaint);
-    } else {
-      // Номер точки — виден без тапа на InfoWindow, помогает
-      // ориентироваться в порядке обхода полигона при рисовании.
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: '$number',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 11 * r,
-            fontWeight: FontWeight.w700,
-          ),
+    // Номер точки — виден без тапа на InfoWindow, помогает
+    // ориентироваться в порядке обхода полигона при рисовании.
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '$number',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 11 * scale,
+          fontWeight: FontWeight.w700,
         ),
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(
-          center - textPainter.width / 2,
-          center - textPainter.height / 2,
-        ),
-      );
-    }
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        center - textPainter.width / 2,
+        center - textPainter.height / 2,
+      ),
+    );
 
     final ui.Picture picture = pictureRecorder.endRecording();
     final ui.Image image = await picture.toImage(size.toInt(), size.toInt());
@@ -209,7 +187,7 @@ class MarkerIconUtils {
     }
     return BitmapDescriptor.bytes(
       data.buffer.asUint8List(),
-      imagePixelRatio: r,
+      imagePixelRatio: scale,
     );
   }
 }
