@@ -7,6 +7,8 @@ import 'package:lottie/lottie.dart';
 
 import '../../../../core/routes/app_route_names.dart';
 import '../../../../core/queue/upload_queue_provider.dart';
+import '../../../../core/setting/interited_remote_notifair.dart';
+import '../../../../core/version/version_check_service.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
@@ -68,7 +70,21 @@ class _HomePageState extends ConsumerState<HomePage> {
       // Polling уведомлений отключён — раздувал app_in_foreground метрику,
       // раз FCM push всё равно не работает. Счётчик/список обновляются
       // вручную при открытии страницы уведомлений (loadUnreadCount).
+      _checkAppVersion(); // Было только в HomeDrawer — срабатывало лишь
+      // при открытии боковой панели, не на главном экране.
     });
+  }
+
+  Future<void> _checkAppVersion() async {
+    if (!mounted) return;
+    final remoteController = InheritedRemoteNotifier.maybeOf(context);
+    final latestVersion = remoteController?.latestVersion;
+    if (latestVersion == null || latestVersion.isEmpty) return;
+    await VersionCheckService.checkVersionAndShowUpdateDialog(
+      context,
+      latestVersion,
+      downloadUrl: remoteController?.apkDownloadUrl ?? '',
+    );
   }
 
   /// Проверяет, установлен ли PIN. Если нет — отправляет на обязательную установку.
