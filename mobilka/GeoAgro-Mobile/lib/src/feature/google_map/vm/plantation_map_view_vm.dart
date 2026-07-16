@@ -32,7 +32,23 @@ class PlantationMapViewVm extends ChangeNotifier {
 
   bool _isDisposed = false;
 
+  // На низком zoom связанные плантации (десятки на район) рисуются как
+  // сплошная масса наложенных полигонов — тяжело для рендера и нечитаемо.
+  // Тот же zoom-gate, что уже есть в create_map_page_vm.arePolygonsVisible.
+  double _currentZoom = 14.0;
+  static const double _polygonVisibilityZoom = 13.0;
+  bool get arePolygonsVisible => _currentZoom >= _polygonVisibilityZoom;
+
   PlantationMapViewVm(this.plantationId);
+
+  void onCameraMove(CameraPosition position) {
+    if (position.zoom == _currentZoom) return;
+    final wasVisible = arePolygonsVisible;
+    _currentZoom = position.zoom;
+    if (wasVisible != arePolygonsVisible) {
+      _safeNotifyListeners();
+    }
+  }
 
   void _safeNotifyListeners() {
     if (!_isDisposed) {

@@ -88,13 +88,19 @@ class _PlantationMapViewPageState extends ConsumerState<PlantationMapViewPage> {
                         zoom: 14,
                       ),
                       onMapCreated: vm.onMapCreated,
+                      onCameraMove: vm.onCameraMove,
                       mapType: MapType.satellite,
                       zoomControlsEnabled: false,
                       polygons: {
                         ...vm.regionBoundaries, // Границы области (внизу)
-                        ...vm.polygons, // Полигоны плантаций (сверху)
+                        // На низком zoom скрываем полигоны плантаций —
+                        // десятки наложенных контуров превращаются в
+                        // нечитаемую массу и тяжелы для рендера.
+                        if (vm.arePolygonsVisible) ...vm.polygons,
                       },
-                      polylines: vm.polylines,
+                      polylines:
+                          vm.arePolygonsVisible ? vm.polylines : const {},
+                      circles: vm.arePolygonsVisible ? vm.circles : const {},
                       markers: vm.markers,
                     ),
 
