@@ -1,5 +1,7 @@
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -223,7 +225,22 @@ class _UpdateRequiredDialogState extends State<UpdateRequiredDialog> {
       if (!mounted) return;
 
       final result = await OpenFilex.open(savePath);
-      if (result.type != ResultType.done && mounted) {
+      if (result.type == ResultType.permissionDenied) {
+        // "Install unknown apps" не разрешён для этого приложения —
+        // системный APK-installer отказывает ещё до показа своего
+        // диалога подтверждения. Разрешение per-app и не запрашивается
+        // диалогом в рантайме (в отличие от camera/location) — единственный
+        // путь юзера дать его — открыть системный экран настроек именно
+        // для этого приложения-источника.
+        await _openUnknownSourcesSettings();
+        if (mounted) {
+          setState(() {
+            _isDownloading = false;
+            _error =
+                "Noma'lum manbalardan o'rnatishga ruxsat bering va qayta urinib ko'ring";
+          });
+        }
+      } else if (result.type != ResultType.done && mounted) {
         setState(() {
           _isDownloading = false;
           _error = "O'rnatishni ochib bo'lmadi: ${result.message}";
@@ -243,6 +260,27 @@ class _UpdateRequiredDialogState extends State<UpdateRequiredDialog> {
           _error = "Xatolik: $e";
         });
       }
+    }
+  }
+
+  Future<void> _openUnknownSourcesSettings() async {
+    try {
+      const packageName = "com.example.agro_employee_public";
+      final intent = AndroidIntent(
+        action: 'android.settings.MANAGE_UNKNOWN_APP_SOURCES',
+        data: 'package:$packageName',
+      );
+      await intent.launch();
+    } on PlatformException {
+      // Некоторые OEM-прошивки (или Android < 8, где разрешение вообще
+      // не per-app) не поддерживают этот action — открываем общий экран
+      // настроек приложения как fallback, юзер сам найдёт нужный пункт.
+      const packageName = "com.example.agro_employee_public";
+      final intent = AndroidIntent(
+        action: 'android.settings.APPLICATION_DETAILS_SETTINGS',
+        data: 'package:$packageName',
+      );
+      await intent.launch();
     }
   }
 }

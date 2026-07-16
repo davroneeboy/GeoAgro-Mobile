@@ -9,6 +9,12 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.example.agro_employee_public"
     // compileSdk = 35
@@ -36,11 +42,29 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        release {
+            // key.properties не в репо (см. android/.gitignore) — каждый,
+            // кто собирает release, должен получить файл отдельно (бэкап/
+            // секрет-менеджер). Без него release-сборка падает на getProperty
+            // ниже, а не молча подписывается debug-ключом — тот баг уже
+            // приводил к "не удалось обработать пакет" на апдейте, когда
+            // apk на сервере и apk на устройстве были подписаны разными
+            // debug.keystore с разных машин.
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = keystorePropertiesFile.exists()
+                ? signingConfigs.release
+                : signingConfigs.debug
 
             // Заливает native (NDK/Skia/engine) debug-символы в Crashlytics
             // на каждый release build — без этого нативные крэши (за
