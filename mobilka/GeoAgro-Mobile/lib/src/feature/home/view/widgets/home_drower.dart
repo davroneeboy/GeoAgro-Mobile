@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:agro_employee_public/src/core/routes/app_route_names.dart';
+import 'package:agro_employee_public/src/core/setting/interited_remote_notifair.dart';
 import 'package:agro_employee_public/src/core/setting/setup.dart';
 import 'package:agro_employee_public/src/core/storage/app_storage.dart';
 import 'package:agro_employee_public/src/core/version/version_check_service.dart';
@@ -59,12 +60,19 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
           isLoading = false;
         });
 
-        // Проверяем версию после загрузки user info
-        if (userInfo?.flutterVersion != null && mounted) {
-          await VersionCheckService.checkVersionAndShowUpdateDialog(
-            context,
-            userInfo!.flutterVersion,
-          );
+        // Версия и ссылка на APK берутся из Firebase Remote Config,
+        // не с бэкенда — так обновление можно выкатить без релиза
+        // Django API.
+        if (mounted) {
+          final remoteController = InheritedRemoteNotifier.maybeOf(context);
+          final latestVersion = remoteController?.latestVersion;
+          if (latestVersion != null && latestVersion.isNotEmpty) {
+            await VersionCheckService.checkVersionAndShowUpdateDialog(
+              context,
+              latestVersion,
+              downloadUrl: remoteController?.apkDownloadUrl ?? '',
+            );
+          }
         }
       } else {
         setState(() {

@@ -63,6 +63,12 @@ class RemoteController extends ChangeNotifier {
   bool _isBlocked;
   bool get isBlocked => _isBlocked;
 
+  String _latestVersion = '';
+  String get latestVersion => _latestVersion;
+
+  String _apkDownloadUrl = '';
+  String get apkDownloadUrl => _apkDownloadUrl;
+
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
   RemoteController() : _isBlocked = isBloc {
@@ -76,7 +82,11 @@ class RemoteController extends ChangeNotifier {
         minimumFetchInterval: const Duration(minutes: 5), // Увеличили интервал
       ));
 
-      await _remoteConfig.setDefaults({'isBlocked': isBloc});
+      await _remoteConfig.setDefaults({
+        'isBlocked': isBloc,
+        'latest_app_version': '',
+        'apk_download_url': '',
+      });
       log("Remote Config defaults set");
 
       // Неблокирующий вызов fetchAndActivate
@@ -106,7 +116,10 @@ class RemoteController extends ChangeNotifier {
       _isBlocked = _remoteConfig.getBool('isBlocked');
       log("IsBlocked updated: $_isBlocked");
       await AppStorage.$writeBool(key: StorageKey.isBlocked, value: _isBlocked);
-      log("IsBlocked updated: $_isBlocked");
+
+      _latestVersion = _remoteConfig.getString('latest_app_version');
+      _apkDownloadUrl = _remoteConfig.getString('apk_download_url');
+      log("Latest version from Remote Config: $_latestVersion");
 
       notifyListeners();
     } catch (e) {

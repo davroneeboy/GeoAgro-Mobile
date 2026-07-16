@@ -9,11 +9,13 @@ import 'package:agro_employee_public/design_system/tokens/colors.dart'
 class UpdateRequiredDialog extends StatelessWidget {
   final String currentVersion;
   final String requiredVersion;
+  final String downloadUrl;
 
   const UpdateRequiredDialog({
     super.key,
     required this.currentVersion,
     required this.requiredVersion,
+    required this.downloadUrl,
   });
 
   @override
@@ -136,7 +138,7 @@ class UpdateRequiredDialog extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () => _openAppStore(context),
+            onPressed: () => _downloadApk(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: design_colors.AppColors.accentGreen,
               foregroundColor: Colors.white,
@@ -158,13 +160,19 @@ class UpdateRequiredDialog extends StatelessWidget {
     );
   }
 
-  Future<void> _openAppStore(BuildContext context) async {
-    try {
-      // Для Android - Google Play Store
-      const androidUrl =
-          'https://play.google.com/store/apps/details?id=uz.luxa.geoagro';
+  Future<void> _downloadApk(BuildContext context) async {
+    if (downloadUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Yuklab olish havolasi topilmadi"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-      final Uri url = Uri.parse(androidUrl);
+    try {
+      final Uri url = Uri.parse(downloadUrl);
 
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -172,7 +180,7 @@ class UpdateRequiredDialog extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("App Store'ni ochishda xatolik yuz berdi"),
+              content: Text("Yuklab olishda xatolik yuz berdi"),
               backgroundColor: Colors.red,
             ),
           );
