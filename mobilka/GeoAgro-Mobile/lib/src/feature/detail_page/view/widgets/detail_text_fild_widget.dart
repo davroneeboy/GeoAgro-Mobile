@@ -17,6 +17,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final String? suffixText;
+  final bool hasError;
 
   const CustomTextFieldWithLabel({
     super.key,
@@ -27,6 +28,7 @@ class CustomTextFieldWithLabel extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.suffixText,
+    this.hasError = false,
   });
 
   @override
@@ -69,16 +71,20 @@ class CustomTextFieldWithLabel extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: context.colors.isDark
-                    ? context.colors.border
-                    : context.colors.border.withValues(alpha: 0.5),
-                width: 1.2,
+                color: hasError
+                    ? design_colors.AppColors.error
+                    : context.colors.isDark
+                        ? context.colors.border
+                        : context.colors.border.withValues(alpha: 0.5),
+                width: hasError ? 1.6 : 1.2,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: design_colors.AppColors.accentGreen,
+                color: hasError
+                    ? design_colors.AppColors.error
+                    : design_colors.AppColors.accentGreen,
                 width: 1.6,
               ),
             ),

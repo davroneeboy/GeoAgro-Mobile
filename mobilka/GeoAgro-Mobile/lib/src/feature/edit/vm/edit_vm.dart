@@ -24,6 +24,7 @@ import '../../../core/storage/app_storage.dart';
 import '../../../core/storage/draft_store.dart';
 import '../../../core/storage/upload_queue_store.dart';
 import '../../../core/queue/upload_queue_provider.dart';
+import '../../../core/utils/api_error_parser.dart';
 import '../../../core/utils/network_error_utils.dart';
 import '../../../core/utils/network_utils.dart';
 import '../../../core/utils/sanitization_utils.dart';
@@ -256,6 +257,10 @@ class EditVM extends ChangeNotifier {
   bool isLoading = true;
   bool isLoading2 = false;
   String? errorMessage;
+  // Имя поля (ключ бэка), к которому относится последняя ошибка сервера —
+  // используется UI для подсветки конкретного инпута и автоскролла к
+  // нему. Тот же паттерн, что и DetailVM.erroredField при create.
+  String? erroredField;
   List<String> images = [];
   List<int> imageIds = [];
   List<String> _originalImages =
@@ -981,6 +986,7 @@ class EditVM extends ChangeNotifier {
     }
 
     errorMessage = null;
+    erroredField = null;
     isSaving = true;
     notifyListeners();
 
@@ -1058,58 +1064,11 @@ class EditVM extends ChangeNotifier {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       } else {
-        // Попробуем достать человекочитаемое сообщение
-        final data = response.data;
-        String message = "Xatolik yuz berdi";
-
-        debugPrint('[edit] Error response data: $data');
-
-        if (data is Map<String, dynamic>) {
-          // Проверяем различные варианты структуры ошибки
-          if (data["message"] is String) {
-            message = data["message"] as String;
-          } else if (data["non_field_errors"] is List &&
-              (data["non_field_errors"] as List).isNotEmpty) {
-            message = (data["non_field_errors"][0]).toString();
-          } else if (data["error"] is String) {
-            // Обрабатываем случай когда error это строка с JSON
-            try {
-              final errorStr = data["error"] as String;
-              debugPrint('[edit] Error string: $errorStr');
-
-              // Парсим строку как JSON
-              final errorMap = jsonDecode(errorStr) as Map<String, dynamic>;
-              if (errorMap["non_field_errors"] is List) {
-                final errors = errorMap["non_field_errors"] as List;
-                if (errors.isNotEmpty) {
-                  final errorDetail = errors[0];
-                  if (errorDetail is Map && errorDetail["string"] is String) {
-                    message = errorDetail["string"] as String;
-                  } else {
-                    message = errorDetail.toString();
-                  }
-                }
-              }
-            } catch (e) {
-              debugPrint('[edit] Error parsing error string: $e');
-              message = data["error"].toString();
-            }
-          } else if (data["error"] is Map &&
-              (data["error"]["non_field_errors"] is List)) {
-            final list = data["error"]["non_field_errors"] as List;
-            if (list.isNotEmpty) {
-              final errorDetail = list[0];
-              if (errorDetail is Map && errorDetail["string"] is String) {
-                message = errorDetail["string"] as String;
-              } else {
-                message = errorDetail.toString();
-              }
-            }
-          }
-        }
-
-        debugPrint('[edit] Final error message: $message');
-        errorMessage = message;
+        debugPrint('[edit] Error response data: ${response.data}');
+        errorMessage = ApiErrorParser.parse(response.data);
+        erroredField = ApiErrorParser.parseFieldName(response.data);
+        debugPrint(
+            '[edit] Final error message: $errorMessage, field: $erroredField');
         return false;
       }
     } catch (e) {
@@ -1305,6 +1264,7 @@ class EditVM extends ChangeNotifier {
     }
 
     errorMessage = null;
+    erroredField = null;
     isSaving = true;
     notifyListeners();
 
@@ -1419,51 +1379,9 @@ class EditVM extends ChangeNotifier {
       final response =
           await _appRepositoryImpl.editPlantation(id: id, body: body);
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Используем ту же логику парсинга ошибок, что и в editPlantation
-        final data = response.data;
-        String message = "Xatolik yuz berdi";
-
-        debugPrint('[editWithImages] Error response data: $data');
-
-        if (data is Map<String, dynamic>) {
-          if (data["message"] is String) {
-            message = data["message"] as String;
-          } else if (data["non_field_errors"] is List &&
-              (data["non_field_errors"] as List).isNotEmpty) {
-            message = (data["non_field_errors"][0]).toString();
-          } else if (data["error"] is String) {
-            try {
-              final errorStr = data["error"] as String;
-              final errorMap = jsonDecode(errorStr) as Map<String, dynamic>;
-              if (errorMap["non_field_errors"] is List) {
-                final errors = errorMap["non_field_errors"] as List;
-                if (errors.isNotEmpty) {
-                  final errorDetail = errors[0];
-                  if (errorDetail is Map && errorDetail["string"] is String) {
-                    message = errorDetail["string"] as String;
-                  } else {
-                    message = errorDetail.toString();
-                  }
-                }
-              }
-            } catch (e) {
-              message = data["error"].toString();
-            }
-          } else if (data["error"] is Map &&
-              (data["error"]["non_field_errors"] is List)) {
-            final list = data["error"]["non_field_errors"] as List;
-            if (list.isNotEmpty) {
-              final errorDetail = list[0];
-              if (errorDetail is Map && errorDetail["string"] is String) {
-                message = errorDetail["string"] as String;
-              } else {
-                message = errorDetail.toString();
-              }
-            }
-          }
-        }
-
-        errorMessage = message;
+        debugPrint('[editWithImages] Error response data: ${response.data}');
+        errorMessage = ApiErrorParser.parse(response.data);
+        erroredField = ApiErrorParser.parseFieldName(response.data);
         return false;
       }
       for (final path in newImages) {

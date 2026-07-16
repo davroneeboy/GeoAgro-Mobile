@@ -14,6 +14,7 @@ class DropdownWithLabel extends StatelessWidget {
   final Map<int, String> items;
   final int? selectedValue;
   final void Function(int?) onChanged;
+  final bool hasError;
 
   const DropdownWithLabel({
     super.key,
@@ -22,6 +23,7 @@ class DropdownWithLabel extends StatelessWidget {
     required this.items,
     required this.selectedValue,
     required this.onChanged,
+    this.hasError = false,
   });
 
   @override
@@ -62,15 +64,20 @@ class DropdownWithLabel extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: context.colors.isDark
-                    ? context.colors.border
-                    : context.colors.border.withValues(alpha: 0.5),
+                color: hasError
+                    ? design_colors.AppColors.error
+                    : context.colors.isDark
+                        ? context.colors.border
+                        : context.colors.border.withValues(alpha: 0.5),
+                width: hasError ? 1.6 : 1.0,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.input),
               borderSide: BorderSide(
-                color: design_colors.AppColors.accentGreen,
+                color: hasError
+                    ? design_colors.AppColors.error
+                    : design_colors.AppColors.accentGreen,
                 width: 1.6,
               ),
             ),
@@ -82,7 +89,7 @@ class DropdownWithLabel extends StatelessWidget {
               .map(
                 (entry) => DropdownMenuItem<int>(
                   value: entry.key,
-                    child: Text(
+                  child: Text(
                     entry.value,
                     style: AppTypography.bodyLarge(context).copyWith(
                       fontSize: 14.sp,

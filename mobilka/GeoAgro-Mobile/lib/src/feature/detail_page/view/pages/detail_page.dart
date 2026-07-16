@@ -44,6 +44,33 @@ class DetailPageState extends ConsumerState<DetailPage>
     with WidgetsBindingObserver {
   bool _hasLoadedData = false;
 
+  // Ключи полей, к которым бэк реально возвращает field-level ошибки
+  // (подтверждено пробными запросами к /api/plantations/create/ —
+  // {"land_type": [...]}, {"plantation_type": [...]} и т.п.) — маппинг
+  // field_name (ApiErrorParser.parseFieldName) → GlobalKey для
+  // автоскролла+подсветки конкретного инпута вместо общей ошибки формы.
+  final GlobalKey _plantationTypeKey = GlobalKey();
+  final GlobalKey _landTypeKey = GlobalKey();
+
+  void _scrollToErroredField(String? fieldName) {
+    final key = switch (fieldName) {
+      'plantation_type' => _plantationTypeKey,
+      'land_type' => _landTypeKey,
+      _ => null,
+    };
+    if (key?.currentContext == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key!.currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        alignment: 0.2,
+      );
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -164,10 +191,12 @@ class DetailPageState extends ConsumerState<DetailPage>
                 ),
 
                 DropdownWithLabel(
+                    key: _plantationTypeKey,
                     label: "Plantatsiya turi",
                     items: AppLocalizedMaps.plantationTypes,
                     hint: "plantatsiya turi tanlanmagan",
                     selectedValue: detailVm.selectedPlantationType,
+                    hasError: detailVm.erroredField == 'plantation_type',
                     onChanged: (value) {
                       detailVm.setPlantationType(value);
                     }),
@@ -210,10 +239,12 @@ class DetailPageState extends ConsumerState<DetailPage>
                     },
                   ),
                 DropdownWithLabel(
+                  key: _landTypeKey,
                   label: "Yer turi",
                   items: AppLocalizedMaps.yerTuri,
                   hint: "yer turini tanlanmagan",
                   selectedValue: detailVm.selectedYerType,
+                  hasError: detailVm.erroredField == 'land_type',
                   onChanged: (value) {
                     detailVm.setYerType(value);
                   },
@@ -947,6 +978,7 @@ class DetailPageState extends ConsumerState<DetailPage>
                                           "Xatolik yuz berdi",
                                       design_colors.AppColors.error,
                                       context);
+                                  _scrollToErroredField(detailVm.erroredField);
                                 }
                               }
                             } else {

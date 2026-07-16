@@ -19,6 +19,7 @@ import '../../../core/storage/app_storage.dart';
 import '../../../core/storage/draft_store.dart';
 import '../../../core/storage/upload_queue_store.dart';
 import '../../../core/queue/upload_queue_provider.dart';
+import '../../../core/utils/api_error_parser.dart';
 import '../../../core/utils/network_error_utils.dart';
 import '../../../core/utils/network_utils.dart';
 import '../../../core/utils/sanitization_utils.dart';
@@ -141,6 +142,12 @@ class DetailVM extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Имя поля (ключ бэка, напр. "plantation_type"), к которому относится
+  // последняя ошибка сервера — используется UI для подсветки конкретного
+  // инпута и автоскролла к нему, вместо общей error-снекбар без указания,
+  // что именно чинить.
+  String? erroredField;
 
   TextEditingController cultivatedArea = TextEditingController();
   TextEditingController sxema1 = TextEditingController();
@@ -388,6 +395,7 @@ class DetailVM extends ChangeNotifier {
     }
 
     postLoading = true;
+    erroredField = null;
     notifyListeners();
     late String tomchiArea;
     late String tomchiCount;
@@ -672,96 +680,33 @@ class DetailVM extends ChangeNotifier {
         errorMessage = 'Muvaffaqiyatli yaratildi';
         await _clearDraft();
         return true;
-      } else if (response.statusCode == 400) {
-        dynamic responseData = response.data;
-        p.log("Response Data type: ${responseData.runtimeType}");
-        p.log("Response Data: $responseData");
-
-        // Если responseData - строка, пытаемся распарсить её как JSON
-        if (responseData is String) {
-          try {
-            final decoded = jsonDecode(responseData);
-            responseData = decoded;
-            p.log("Parsed responseData type: ${responseData.runtimeType}");
-            p.log("Parsed responseData: $responseData");
-          } catch (e) {
-            p.log("Failed to parse responseData as JSON: $e");
-            // Если не удалось распарсить, используем строку как сообщение об ошибке
-            errorMessage = responseData;
-            return false;
-          }
-        }
-
-        // Пытаемся извлечь детальное сообщение об ошибке
-        String? detailedError;
-
-        // Безопасная проверка и приведение к Map
-        Map<String, dynamic>? errorMap;
-        if (responseData is Map) {
-          try {
-            errorMap = Map<String, dynamic>.from(responseData);
-          } catch (e) {
-            p.log("Failed to convert responseData to Map: $e");
-            errorMap = null;
-          }
-        }
-
-        if (errorMap != null) {
-          // Проверяем различные форматы ошибок от сервера
-          if (errorMap['subsidies'] != null) {
-            errorMessage =
-                "Subsidiya raqamlari notog`ri yoki oldin ro'yxatdan o'tgan";
-            return false;
-          } else if (errorMap['message'] != null) {
-            detailedError = errorMap['message'].toString();
-          } else if (errorMap['error'] != null) {
-            final errorValue = errorMap['error'];
-            if (errorValue is String) {
-              detailedError = errorValue;
-            } else if (errorValue is Map) {
-              try {
-                final nestedErrorMap = Map<String, dynamic>.from(errorValue);
-                if (nestedErrorMap['non_field_errors'] != null) {
-                  final errors = nestedErrorMap['non_field_errors'];
-                  if (errors is List && errors.isNotEmpty) {
-                    detailedError = errors[0].toString();
-                  }
-                } else if (nestedErrorMap['message'] != null) {
-                  detailedError = nestedErrorMap['message'].toString();
-                }
-              } catch (e) {
-                p.log("Failed to process nested error map: $e");
-              }
-            }
-          } else if (errorMap['non_field_errors'] != null) {
-            final errors = errorMap['non_field_errors'];
-            if (errors is List && errors.isNotEmpty) {
-              detailedError = errors[0].toString();
-            }
-          } else {
-            // Ищем первое текстовое сообщение об ошибке в любом поле
-            for (var entry in errorMap.entries) {
-              if (entry.value is String && entry.value.toString().isNotEmpty) {
-                detailedError = entry.value.toString();
-                break;
-              } else if (entry.value is List &&
-                  (entry.value as List).isNotEmpty) {
-                detailedError = (entry.value as List)[0].toString();
-                break;
-              }
-            }
-          }
-        } else if (responseData is String) {
-          // Если это просто строка, используем её как сообщение об ошибке
-          detailedError = responseData;
-        }
-
-        errorMessage = detailedError ?? "Yaratishda xatolik yuz berdi";
-        p.log("Error message: $errorMessage");
-        return false;
       } else {
-        errorMessage = "Server bilan bog'liq muammo yuz berdi";
-        p.log("Something went wrong: ${response.statusCode}");
+        // Единый парсер покрывает все известные форматы ошибок с бэка
+        // (error/message/non_field_errors/__all__/field-level) — раньше
+        // 400 и остальные статусы (включая 500) разбирались отдельными
+        // копипаст-ветками, каждая покрывала свой неполный набор
+        // форматов; __all__ (реальный формат "Для данного типа нет
+        // подтипов") не парсился нигде, юзер видел только generic текст.
+        p.log("Response Data: ${response.data}");
+
+        // subsidies — специфичная для create-формы ошибка с отдельным
+        // UX-текстом, не generic полем ошибки.
+        final data = response.data;
+        if (data is Map && data['subsidies'] != null) {
+          errorMessage =
+              "Subsidiya raqamlari notog`ri yoki oldin ro'yxatdan o'tgan";
+          return false;
+        }
+
+        errorMessage = ApiErrorParser.parse(
+          response.data,
+          fallback: response.statusCode == 400
+              ? "Yaratishda xatolik yuz berdi"
+              : "Server bilan bog'liq muammo yuz berdi",
+        );
+        erroredField = ApiErrorParser.parseFieldName(response.data);
+        p.log(
+            "Something went wrong: ${response.statusCode}, error: $errorMessage, field: $erroredField");
         return false;
       }
     } catch (e) {

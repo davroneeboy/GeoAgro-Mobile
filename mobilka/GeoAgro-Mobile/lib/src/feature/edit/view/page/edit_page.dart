@@ -43,6 +43,31 @@ class _EditPageState extends ConsumerState<EditPage>
     with WidgetsBindingObserver {
   bool _hasLoadedData = false;
 
+  // Тот же паттерн, что и в DetailPage: маппинг field_name (реально
+  // подтверждённые бэком через пробные запросы) → GlobalKey для
+  // автоскролла+подсветки конкретного инпута.
+  final GlobalKey _plantationTypeKey = GlobalKey();
+  final GlobalKey _landTypeKey = GlobalKey();
+
+  void _scrollToErroredField(String? fieldName) {
+    final key = switch (fieldName) {
+      'plantation_type' => _plantationTypeKey,
+      'land_type' => _landTypeKey,
+      _ => null,
+    };
+    if (key?.currentContext == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key!.currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        alignment: 0.2,
+      );
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -154,10 +179,12 @@ class _EditPageState extends ConsumerState<EditPage>
                   },
                 ),
                 DropdownWithLabel(
+                    key: _plantationTypeKey,
                     label: "Plantatsiya turi",
                     items: AppLocalizedMaps.plantationTypes,
                     hint: "plantatsiya turi",
                     selectedValue: edit.selectedPlantationType,
+                    hasError: edit.erroredField == 'plantation_type',
                     onChanged: (value) {
                       edit.setPlantationType(value);
                     }),
@@ -200,10 +227,12 @@ class _EditPageState extends ConsumerState<EditPage>
                     },
                   ),
                 DropdownWithLabel(
+                  key: _landTypeKey,
                   label: "Yer turi",
                   hint: "yer turi tanlanmagan",
                   items: AppLocalizedMaps.yerTuri,
                   selectedValue: edit.selectedYerTuri,
+                  hasError: edit.erroredField == 'land_type',
                   onChanged: edit.setYerTuri,
                 ),
                 SizedBox(height: 10.h),
@@ -835,6 +864,7 @@ class _EditPageState extends ConsumerState<EditPage>
                       if (context.mounted && edit.errorMessage != null) {
                         Utils.fireTopSnackBar(edit.errorMessage!,
                             design_colors.AppColors.error, context);
+                        _scrollToErroredField(edit.erroredField);
                       }
                     }
                   },
