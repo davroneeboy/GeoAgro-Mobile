@@ -52,4 +52,69 @@ class GeoUtils {
     }
     return minDistance;
   }
+
+  /// Ближайшая точка на любом ребре полигона (не только на вершинах —
+  /// проекция на сегмент между двумя соседними вершинами), плюс
+  /// расстояние до неё в метрах. Используется для snap-to-edge при
+  /// рисовании нового полигона рядом с уже существующим участком —
+  /// без этого прилипание срабатывало бы только точно у вершины
+  /// соседнего контура, не вдоль всей его границы.
+  ///
+  /// Аппроксимация: работает в декартовых координатах (lat/lng как
+  /// плоские x/y с масштабом по широте), приемлемо на масштабе одного
+  /// земельного участка (десятки-сотни метров), не для больших дистанций.
+  static ((double, double) point, double distanceMeters)
+      nearestPointOnPolygonEdge(
+    double lat,
+    double lng,
+    List<(double, double)> polygon,
+  ) {
+    if (polygon.isEmpty) {
+      return ((lat, lng), double.infinity);
+    }
+    if (polygon.length == 1) {
+      final (pLat, pLng) = polygon.first;
+      return ((pLat, pLng), haversineMeters(lat, lng, pLat, pLng));
+    }
+
+    // Локальный плоский масштаб — градусы широты/долготы в метры,
+    // достаточно точный для расстояний в пределах одного участка.
+    final metersPerDegLat = 111320.0;
+    final metersPerDegLng = 111320.0 * cos(_degreesToRadians(lat));
+
+    double bestDistance = double.infinity;
+    (double, double) bestPoint = polygon.first;
+
+    for (var i = 0; i < polygon.length; i++) {
+      final (aLat, aLng) = polygon[i];
+      final (bLat, bLng) = polygon[(i + 1) % polygon.length];
+
+      // Проекция точки на отрезок [A, B] в локальных метровых координатах.
+      final ax = 0.0, ay = 0.0;
+      final bx = (bLng - aLng) * metersPerDegLng;
+      final by = (bLat - aLat) * metersPerDegLat;
+      final px = (lng - aLng) * metersPerDegLng;
+      final py = (lat - aLat) * metersPerDegLat;
+
+      final abLenSq = bx * bx + by * by;
+      final t =
+          abLenSq == 0 ? 0.0 : ((px * bx + py * by) / abLenSq).clamp(0.0, 1.0);
+
+      final projX = ax + t * (bx - ax);
+      final projY = ay + t * (by - ay);
+      final dx = px - projX;
+      final dy = py - projY;
+      final distance = sqrt(dx * dx + dy * dy);
+
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestPoint = (
+          aLat + t * (bLat - aLat),
+          aLng + t * (bLng - aLng),
+        );
+      }
+    }
+
+    return (bestPoint, bestDistance);
+  }
 }

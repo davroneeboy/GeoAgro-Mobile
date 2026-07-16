@@ -207,28 +207,6 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               ),
             ),
 
-          // Отладочная информация о плантациях
-          if (vm.userPlantations.isNotEmpty)
-            Positioned(
-              top: 60,
-              left: 16,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Plantatsiyalar: ${vm.userPlantations.length}, Poligonlar: ${vm.nearbyPolygons.length}',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
           // Индикатор загрузки плантаций
           if (vm.isLoadingNearby)
             Positioned(

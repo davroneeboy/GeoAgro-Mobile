@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -80,6 +81,14 @@ class CreateMapPageVm extends ChangeNotifier {
   // Генерация PNG на каждый drag была бы расточительна — точка меняет
   // позицию, не номер, поэтому одна и та же иконка переиспользуется.
   final Map<int, BitmapDescriptor> _vertexIconCache = {};
+
+  // Отдельная иконка первой вершины, когда крестик подошёл достаточно
+  // близко для замыкания полигона — визуальный сигнал "тут можно
+  // закончить", вместо того чтобы юзер узнавал об этом только после
+  // фактической постановки точки поверх первой.
+  BitmapDescriptor? _closeVertexIcon;
+  static const double _closeToFirstPointThresholdMeters = 15.0;
+  bool isNearFirstPoint = false;
 
   double calculateDistance(LatLng start, LatLng end) =>
       GeoUtils.haversineMeters(
@@ -608,6 +617,12 @@ class CreateMapPageVm extends ChangeNotifier {
         polygon.map((p) => (p.latitude, p.longitude)).toList(),
       );
 
+  // Порог прилипания к границе соседнего полигона, в метрах — точнее,
+  // чем closing-hint (это точная привязка границы, не просто визуальный
+  // сигнал), чтобы не срабатывать случайно на любой точке рядом с чужим
+  // участком.
+  static const double _snapToEdgeThresholdMeters = 3.0;
+
   // Метод для добавления точки в центре карты
   void addPointAtRulerPosition() async {
     if (mapController == null) return;
@@ -618,7 +633,37 @@ class CreateMapPageVm extends ChangeNotifier {
         (center.northeast.latitude + center.southwest.latitude) / 2;
     final centerLng =
         (center.northeast.longitude + center.southwest.longitude) / 2;
-    final centerPosition = LatLng(centerLat, centerLng);
+    LatLng centerPosition = LatLng(centerLat, centerLng);
+
+    // Snap-to-edge: если крестик рядом с границей уже существующего
+    // соседнего участка — прилипаем к ней, чтобы не оставлять узкую
+    // полоску незанятой земли между двумя смежными плантациями из-за
+    // ручной неточности постановки точки.
+    var bestSnapDistance = double.infinity;
+    (double, double)? bestSnapPoint;
+    for (final polygon in nearbyPolygons) {
+      final polygonCoords =
+          polygon.points.map((p) => (p.latitude, p.longitude)).toList();
+      final (snapPoint, distance) = GeoUtils.nearestPointOnPolygonEdge(
+        centerPosition.latitude,
+        centerPosition.longitude,
+        polygonCoords,
+      );
+      if (distance < bestSnapDistance) {
+        bestSnapDistance = distance;
+        bestSnapPoint = snapPoint;
+      }
+    }
+    if (bestSnapPoint != null &&
+        bestSnapDistance <= _snapToEdgeThresholdMeters) {
+      final (snapLat, snapLng) = bestSnapPoint;
+      centerPosition = LatLng(snapLat, snapLng);
+    }
+
+    // Тактильное подтверждение — единственный визуальный отклик на тап
+    // "+" это крохотная точка где-то на карте, легко не заметить сам
+    // факт, что точка встала.
+    HapticFeedback.lightImpact();
 
     // Добавляем точку в центре карты
     drawingPoints.add(centerPosition);
@@ -663,27 +708,13 @@ class CreateMapPageVm extends ChangeNotifier {
         }
       }
 
-      // Создаем непрерывную линию от всех точек до центра карты. Цвет
-      // info-синий — режим активного рисования, не статус плантации,
-      // раньше был Colors.yellow и визуально путался с warning-оранжевым
-      // статуса "на модерации".
-      List<LatLng> continuousLine = List<LatLng>.from(drawingPoints);
-      if (centerPosition != null) {
-        continuousLine.add(centerPosition);
-      }
-
-      // Рисуем непрерывную линию (даже если только одна точка)
-      if (continuousLine.length >= 2) {
-        polylines.add(Polyline(
-          polylineId: const PolylineId("drawing_polyline"),
-          points: continuousLine,
-          color: design_colors.AppColors.info,
-          width: 4,
-          patterns: [], // Сплошная линия
-        ));
-      }
-
-      // Если есть минимум 3 точки, создаем полигон
+      // Если есть минимум 3 точки, весь уже отмеченный контур рисуется
+      // обводкой полигона (Polygon.strokeColor) — раньше та же линия
+      // ЕЩЁ РАЗ дублировалась отдельным Polyline (width 4) поверх
+      // Polygon.strokeWidth (2), из-за чего сегменты между уже
+      // поставленными точками визуально были толще, чем последний
+      // "прицельный" сегмент до центра карты, который рисуется только
+      // как Polyline. Теперь Polyline — только этот последний сегмент.
       if (drawingPoints.length >= 3) {
         polygons.add(
           Polygon(
@@ -691,9 +722,49 @@ class CreateMapPageVm extends ChangeNotifier {
             points: List<LatLng>.from(drawingPoints),
             fillColor: design_colors.AppColors.info.withValues(alpha: 0.3),
             strokeColor: design_colors.AppColors.info,
-            strokeWidth: 2,
+            strokeWidth: 4,
           ),
         );
+      }
+
+      // Крестик подошёл достаточно близко к первой точке — сигнал юзеру,
+      // что тут можно замкнуть полигон (следующий "+" замкнёт контур).
+      // Порог считается только когда полигон уже валиден (3+ точек),
+      // иначе "замыкание" из двух точек не имеет смысла.
+      final wasNear = isNearFirstPoint;
+      if (centerPosition != null && drawingPoints.length >= 3) {
+        final distanceToFirst =
+            calculateDistance(centerPosition, drawingPoints.first);
+        isNearFirstPoint = distanceToFirst <= _closeToFirstPointThresholdMeters;
+      } else {
+        isNearFirstPoint = false;
+      }
+      if (wasNear != isNearFirstPoint) {
+        _updatePolygonMarkers();
+      }
+
+      // Линия-прицел от последней поставленной точки до центра карты —
+      // показывает, куда встанет следующая точка.
+      if (centerPosition != null && drawingPoints.isNotEmpty) {
+        polylines.add(Polyline(
+          polylineId: const PolylineId("drawing_polyline"),
+          points: [drawingPoints.last, centerPosition],
+          color: design_colors.AppColors.info,
+          width: 4,
+          patterns: [], // Сплошная линия
+        ));
+      }
+
+      // Меньше 3 точек — полигон ещё не сформирован, просто рисуем
+      // цепочку уже поставленных точек одной линией.
+      if (drawingPoints.length >= 2 && drawingPoints.length < 3) {
+        polylines.add(Polyline(
+          polylineId: const PolylineId("drawing_polyline_chain"),
+          points: List<LatLng>.from(drawingPoints),
+          color: design_colors.AppColors.info,
+          width: 4,
+          patterns: [],
+        ));
       }
     }
   }
@@ -734,7 +805,13 @@ class CreateMapPageVm extends ChangeNotifier {
     for (int i = 0; i < drawingPoints.length; i++) {
       final point = drawingPoints[i];
       final number = i + 1;
-      final cachedIcon = _vertexIconCache[number];
+      // Первая точка получает отдельную (крупнее, success-зелёную)
+      // иконку, когда крестик подошёл близко — сигнал "тут можно
+      // замкнуть полигон", вместо того чтобы юзер узнавал об этом
+      // только после фактического тапа поверх неё.
+      final isClosingTarget = i == 0 && isNearFirstPoint;
+      final cachedIcon =
+          isClosingTarget ? _closeVertexIcon : _vertexIconCache[number];
 
       markers.add(
         Marker(
@@ -746,7 +823,7 @@ class CreateMapPageVm extends ChangeNotifier {
           draggable: true,
           onDragEnd: (newPosition) => _onDrawingPointDragged(i, newPosition),
           infoWindow: InfoWindow(
-            title: 'Нуқта $number',
+            title: isClosingTarget ? 'Ёпиш учун босинг' : 'Нуқта $number',
             snippet: i > 0
                 ? '${segmentDistances[i - 1].toStringAsFixed(2)} м'
                 : null,
@@ -755,7 +832,11 @@ class CreateMapPageVm extends ChangeNotifier {
       );
 
       if (cachedIcon == null) {
-        _loadVertexIcon(number);
+        if (isClosingTarget) {
+          _loadCloseVertexIcon();
+        } else {
+          _loadVertexIcon(number);
+        }
       }
     }
 
@@ -769,6 +850,7 @@ class CreateMapPageVm extends ChangeNotifier {
   }
 
   final Set<int> _pendingVertexIcons = {};
+  bool _isLoadingCloseVertexIcon = false;
 
   Future<void> _loadVertexIcon(int number) async {
     if (_vertexIconCache.containsKey(number) ||
@@ -785,6 +867,25 @@ class CreateMapPageVm extends ChangeNotifier {
       debugPrint('Failed to load polygon vertex icon $number: $e');
     } finally {
       _pendingVertexIcons.remove(number);
+    }
+  }
+
+  Future<void> _loadCloseVertexIcon() async {
+    if (_closeVertexIcon != null || _isLoadingCloseVertexIcon) return;
+    _isLoadingCloseVertexIcon = true;
+    try {
+      _closeVertexIcon = await MarkerIconUtils.createPolygonVertexIcon(
+        1,
+        color: design_colors.AppColors.success,
+        radiusMultiplier: 1.3,
+        showCheckmark: true,
+      );
+      _updatePolygonMarkers();
+      _safeNotifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load close-vertex icon: $e');
+    } finally {
+      _isLoadingCloseVertexIcon = false;
     }
   }
 
@@ -814,6 +915,7 @@ class CreateMapPageVm extends ChangeNotifier {
 
   void removeLastPoint() {
     if (drawingPoints.isNotEmpty) {
+      HapticFeedback.selectionClick();
       drawingPoints.removeLast();
       // Также удаляем из polylineCoordinates для совместимости
       if (polylineCoordinates.isNotEmpty) {
