@@ -254,6 +254,7 @@ class TokenInterceptor extends Interceptor {
           builder: (context) => UpdateRequiredDialog(
             currentVersion: currentVersion,
             requiredVersion: requiredVersion,
+            downloadUrl: '',
           ),
         );
       }

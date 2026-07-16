@@ -1,12 +1,14 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
 
-class UpdateRequiredDialog extends StatelessWidget {
+class UpdateRequiredDialog extends StatefulWidget {
   final String currentVersion;
   final String requiredVersion;
   final String downloadUrl;
@@ -17,6 +19,15 @@ class UpdateRequiredDialog extends StatelessWidget {
     required this.requiredVersion,
     required this.downloadUrl,
   });
+
+  @override
+  State<UpdateRequiredDialog> createState() => _UpdateRequiredDialogState();
+}
+
+class _UpdateRequiredDialogState extends State<UpdateRequiredDialog> {
+  bool _isDownloading = false;
+  double _progress = 0;
+  String? _error;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +98,7 @@ class UpdateRequiredDialog extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "v$currentVersion",
+                        "v${widget.currentVersion}",
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
@@ -108,7 +119,7 @@ class UpdateRequiredDialog extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "v$requiredVersion",
+                        "v${widget.requiredVersion}",
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
@@ -120,25 +131,49 @@ class UpdateRequiredDialog extends StatelessWidget {
                 ],
               ),
             ),
+            if (_isDownloading) ...[
+              16.verticalSpace,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4.r),
+                child: LinearProgressIndicator(
+                  value: _progress > 0 ? _progress : null,
+                  minHeight: 6.h,
+                  backgroundColor: context.colors.surface,
+                  color: design_colors.AppColors.accentGreen,
+                ),
+              ),
+              6.verticalSpace,
+              Text(
+                "${(_progress * 100).toStringAsFixed(0)}%",
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: context.colors.textTertiary,
+                ),
+              ),
+            ],
+            if (_error != null) ...[
+              12.verticalSpace,
+              Text(
+                _error!,
+                style: TextStyle(fontSize: 12.sp, color: Colors.red),
+              ),
+            ],
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              // Можно добавить логику для отложенного обновления
-              // Пока что просто закрываем диалог
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              "Keyinroq",
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: context.colors.textTertiary,
+          if (!_isDownloading)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Keyinroq",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: context.colors.textTertiary,
+                ),
               ),
             ),
-          ),
           ElevatedButton(
-            onPressed: () => _downloadApk(context),
+            onPressed: _isDownloading ? null : _downloadAndInstall,
             style: ElevatedButton.styleFrom(
               backgroundColor: design_colors.AppColors.accentGreen,
               foregroundColor: Colors.white,
@@ -148,7 +183,7 @@ class UpdateRequiredDialog extends StatelessWidget {
               padding: REdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             child: Text(
-              "Yangilash",
+              _isDownloading ? "Yuklanmoqda..." : "Yangilash",
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -160,40 +195,53 @@ class UpdateRequiredDialog extends StatelessWidget {
     );
   }
 
-  Future<void> _downloadApk(BuildContext context) async {
-    if (downloadUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Yuklab olish havolasi topilmadi"),
-          backgroundColor: Colors.red,
-        ),
-      );
+  Future<void> _downloadAndInstall() async {
+    if (widget.downloadUrl.isEmpty) {
+      setState(() => _error = "Yuklab olish havolasi topilmadi");
       return;
     }
 
-    try {
-      final Uri url = Uri.parse(downloadUrl);
+    setState(() {
+      _isDownloading = true;
+      _progress = 0;
+      _error = null;
+    });
 
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Yuklab olishda xatolik yuz berdi"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+    try {
+      final dir = await getTemporaryDirectory();
+      final savePath = "${dir.path}/geoagro_update.apk";
+
+      await Dio().download(
+        widget.downloadUrl,
+        savePath,
+        onReceiveProgress: (received, total) {
+          if (total <= 0 || !mounted) return;
+          setState(() => _progress = received / total);
+        },
+      );
+
+      if (!mounted) return;
+
+      final result = await OpenFilex.open(savePath);
+      if (result.type != ResultType.done && mounted) {
+        setState(() {
+          _isDownloading = false;
+          _error = "O'rnatishni ochib bo'lmadi: ${result.message}";
+        });
+      }
+    } on DioException {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _error = "Yuklab olishda xatolik yuz berdi";
+        });
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Xatolik: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _error = "Xatolik: $e";
+        });
       }
     }
   }
