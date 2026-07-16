@@ -481,6 +481,11 @@ class CreateMapPageVm extends ChangeNotifier {
         markerId: markerId,
         position: centroid,
         icon: BitmapDescriptor.defaultMarkerWithHue(markerColor),
+        // Подключаем к нативному ClusterManager — при большом числе
+        // плантаций (десятки-сотни в одном районе) маркеры автоматически
+        // группируются в кластеры на низком zoom вместо захламления
+        // экрана десятками наложенных друг на друга пинов.
+        clusterManagerId: const ClusterManagerId(_plantationClusterId),
         infoWindow: InfoWindow(
           title: plantation.getDisplayFarmerName(),
           snippet:
