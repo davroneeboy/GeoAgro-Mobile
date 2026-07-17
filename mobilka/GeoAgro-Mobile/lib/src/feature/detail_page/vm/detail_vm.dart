@@ -1398,6 +1398,20 @@ class DetailVM extends ChangeNotifier {
   int? get selectedPlantationType => _selectedPlantationType;
   void setPlantationType(int? bogTuri) {
     _selectedPlantationType = bogTuri;
+    // Type-specific dropdowns (bog/uzum/issiqxona type + bog subtype) are
+    // each shown only for their matching plantationType — switching away
+    // must clear all of them, otherwise a stale selection from a
+    // previous type stays in the payload invisibly.
+    if (bogTuri != 1) {
+      _selectedBogType = null;
+      _selectedBogSubtype = null;
+    }
+    if (bogTuri != 2) {
+      _selectedUzumType = null;
+    }
+    if (bogTuri != 3) {
+      _selectedIssiqxonaType = null;
+    }
     notifyListeners();
   }
 
@@ -1405,6 +1419,14 @@ class DetailVM extends ChangeNotifier {
   int? get selectedBogType => _selectedBogType;
   void setBogType(int? bogType) {
     _selectedBogType = bogType;
+    // Subtype-дропдаун виден в UI только при bogType == 1 (intensiv) —
+    // переключение на любой другой bogType должно сбрасывать ранее
+    // выбранный subtype, иначе он остаётся в payload невидимым для
+    // юзера и сервер получает subtype для типа, у которого их не бывает
+    // ("Для данного типа нет подтипов", 500).
+    if (bogType != 1) {
+      _selectedBogSubtype = null;
+    }
     notifyListeners();
   }
 

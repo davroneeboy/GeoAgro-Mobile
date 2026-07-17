@@ -1833,6 +1833,21 @@ class EditVM extends ChangeNotifier {
   int? get selectedPlantationType => _selectedPlantationType;
   void setPlantationType(int? value) {
     _selectedPlantationType = value;
+    // Type-specific dropdowns (bog/uzum/issiqxona type + bog subtype) are
+    // each shown only for their matching plantationType — switching away
+    // must clear all of them, otherwise a stale selection from a
+    // previous type stays in the payload invisibly and the backend
+    // rejects it ("Для данного типа нет подтипов").
+    if (value != 1) {
+      _selectedBogType = null;
+      _selectedBogSubtype = null;
+    }
+    if (value != 2) {
+      _selectedUzumType = null;
+    }
+    if (value != 3) {
+      _selectedIssiqxonaType = null;
+    }
     notifyListeners();
   }
 
@@ -1840,6 +1855,10 @@ class EditVM extends ChangeNotifier {
   int? get selectedBogType => _selectedBogType;
   void setBogType(int? value) {
     _selectedBogType = value;
+    // Subtype-дропдаун виден только при bogType == 1 (intensiv).
+    if (value != 1) {
+      _selectedBogSubtype = null;
+    }
     notifyListeners();
   }
 
