@@ -5,7 +5,6 @@ import '../../../../core/utils/dio_error_utils.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
@@ -20,6 +19,7 @@ import '../../../../core/server/api/api_constants.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/routes/app_route_names.dart';
 import '../widgets/home_page_card_widget.dart';
+import '../widgets/plantation_list_or_grid_widget.dart';
 import '../../vm/home_page_vm.dart'; // Import HomePageVm directly
 
 // Shared HomePageVM provider for other pages to use deletion functionality
@@ -239,76 +239,31 @@ class _ApprovedPageState extends ConsumerState<ApprovedPage> {
                   ),
                 ),
               )
-            : ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
+            : PlantationListOrGridWidget(
+                items: vm.list,
                 controller: _controller,
-                separatorBuilder: (_, __) => 16.verticalSpace,
-                padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: vm.list.length +
-                    ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == vm.list.length && !vm.isSearching) {
-                    // Кнопка "Qolganlarini ko'rish"
-                    return Container(
-                      margin: REdgeInsets.symmetric(vertical: 16),
-                      child: ElevatedButton(
-                        onPressed: vm.isFetchingMore
-                            ? null
-                            : () {
-                                vm.fetch(isLoadMore: true);
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: design_colors.AppColors.accentGreen,
-                          foregroundColor: Colors.white,
-                          padding: REdgeInsets.symmetric(
-                              vertical: 16, horizontal: 32),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: vm.isFetchingMore
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 20.w,
-                                    height: 20.h,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  8.horizontalSpace,
-                                  Text("Yuklanmoqda...",
-                                      style: TextStyle(fontSize: 16.sp)),
-                                ],
-                              )
-                            : Text("Qolganlarini ko'rish",
-                                style: TextStyle(fontSize: 16.sp)),
-                      ),
-                    );
-                  }
-                  final plantation = vm.list[index];
-                  return InkWell(
-                    onTap: () {
-                      if (plantation.id != null) {
-                        context.go(
-                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
-                            extra: plantation.id);
-                      }
+                canLoadNext: vm.canLoadNext && !vm.isSearching,
+                isFetchingMore: vm.isFetchingMore,
+                onLoadMore: () => vm.fetch(isLoadMore: true),
+                itemBuilder: (plantation) => InkWell(
+                  onTap: () {
+                    if (plantation.id != null) {
+                      context.go(
+                          "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                          extra: plantation.id);
+                    }
+                  },
+                  child: HomePageCardWidget(
+                    plantation: plantation,
+                    showEditButton: true,
+                    customProvider:
+                        sharedHomePageVM, // Use shared provider for deletion
+                    onDeleteSuccess: () {
+                      // Обновляем список после успешного удаления
+                      ref.read(approvedPageVM.notifier).fetch();
                     },
-                    child: HomePageCardWidget(
-                      plantation: plantation,
-                      showEditButton: true,
-                      customProvider:
-                          sharedHomePageVM, // Use shared provider for deletion
-                      onDeleteSuccess: () {
-                        // Обновляем список после успешного удаления
-                        ref.read(approvedPageVM.notifier).fetch();
-                      },
-                    ),
-                  );
-                },
+                  ),
+                ),
               ),
       ),
     );
