@@ -27,14 +27,15 @@ final class ApiConst {
   static const String apiPlantationsPending = "/api/plantations/forme/pending/";
   static const String apiCreatePlantation = "/api/plantations/create/";
   static const String apiGetRegions = "/api/regions/";
-  static const String apiGetUserInfo = "/api/user_info/";
+  static const String apiGetUserInfo = "/api/users/profile/";
   static const String apiGetDistrcts = "/api/common/districts/";
   static const String apiFermers = "/api/farmers/";
   static String apiUpdateFarmer(int id) => "/api/farmers/$id/";
   static String apiFarmerPlantations({required int farmerInn}) =>
       "/api/mymap/plantations/?farmer_inn=$farmerInn";
   static const String apiFruits = "/api/common/fruits";
-  static const String apiFruitsVerity = "/api/common/variety";
+  static String apiFruitsVariety(int fruitId) =>
+      "/api/common/fruits/$fruitId/varieties/";
   static const String apiFruitsRootstocks = "/api/common/rootstocks";
   static const String apiPlantationsUpdate = "/api/plantations/1/";
   static const String apiFarmersStatistics = "/api/statistics/farmers";

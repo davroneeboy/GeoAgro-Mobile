@@ -499,9 +499,9 @@ class AppRepositoryImpl implements AppRepo {
   @override
   Future<String?> getFruitsVerity({required String verity}) async {
     try {
-      final url = "${ApiConst.apiFruitsVerity}/?fruit=$verity";
+      final fruitId = int.tryParse(verity) ?? 0;
       final data = await ApiService.get(
-        url,
+        ApiConst.apiFruitsVariety(fruitId),
         ApiParams.emptyParams(),
       );
       return data;
