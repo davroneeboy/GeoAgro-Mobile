@@ -89,8 +89,11 @@ non-scrollable-родитель `SingleChildScrollView`) при colCount > 1.
 Load-more индикатор (текущий `CircularProgressIndicator` последним элементом списка) в grid-
 режиме — на всю ширину под сеткой (`Column: [Grid, LoadMoreIndicator]`), не как элемент сетки.
 
-**Column count**: 2 при `Responsive.isMedium` (600–840dp — типичный planшет portrait),
-3 при `Responsive.isExpanded`+ (840dp+ — planшет landscape).
+**Column count**: 2 при `Responsive.isMedium` (600–1200dp — типичный planшет portrait и
+многие landscape),
+3 при `Responsive.isExpanded`+ (1200dp+ — крупный planшет landscape). Разные пороги для
+grid (600dp, `!isCompact`) и для навигации/карты (1200dp, `shouldShowSidebar`) — намеренно:
+плотность контента (списки) уместна раньше, чем перестройка структуры навигации.
 
 ### 5. Формы — ограничение ширины, не многоколоночность
 

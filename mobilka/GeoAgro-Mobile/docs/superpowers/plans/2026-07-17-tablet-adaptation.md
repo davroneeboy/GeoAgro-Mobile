@@ -146,7 +146,7 @@ EOF
 - Modify: `lib/src/feature/home/view/pages/home_page.dart:155-260` (метод `build`)
 
 **Interfaces:**
-- Consumes: `Responsive.shouldShowSidebar(BuildContext)` — уже существует в `lib/design_system/utils/responsive.dart:128-130`, возвращает `bool` (true для `isExpanded`/`isLarge`/`isExtraLarge`, т.е. width >= 840dp).
+- Consumes: `Responsive.shouldShowSidebar(BuildContext)` — уже существует в `lib/design_system/utils/responsive.dart:128-130`, возвращает `bool` (true для `isExpanded`/`isLarge`/`isExtraLarge`, т.е. width >= 1200dp — `Responsive.expanded`).
 - Produces: ничего нового наружу — `HomePage` остаётся тем же публичным виджетом.
 
 Текущий `build()` (строки 155-260, уже прочитан) строит `Scaffold` с `body: IndexedStack(...)` и `bottomNavigationBar: Container(...NavigationBar...)`. `_selectedIndex`, `_builtTabs`, `onDestinationSelected` callback (устанавливает `_selectedIndex`, добавляет в `_builtTabs`, зовёт `_loadTabData(index)`) — используются как есть, без изменений сигнатур.
@@ -394,7 +394,7 @@ Expected: `No issues found!`
 
 - [ ] **Step 6: Проверить на телефоне и планшете**
 
-Телефон (`emulator-5554`) — `NavigationBar` внизу без изменений. Планшет landscape (`Pixel_Tablet`, ширина ~1280dp >= 840 expanded) — `NavigationRail` слева, переключение вкладок работает, `_builtTabs`/`_loadTabData` логика не сломана (фермеры/статистика/профиль по-прежнему грузятся при первом посещении). Планшет portrait (~800dp, medium — НЕ expanded) — остаётся `NavigationBar` внизу (это ожидаемо: `shouldShowSidebar` требует expanded+).
+Телефон (`emulator-5554`) — `NavigationBar` внизу без изменений. Планшет landscape (`Pixel_Tablet`, ширина ~1280dp >= 1200 expanded) — `NavigationRail` слева, переключение вкладок работает, `_builtTabs`/`_loadTabData` логика не сломана (фермеры/статистика/профиль по-прежнему грузятся при первом посещении). Планшет portrait (~800dp, medium — НЕ expanded) — остаётся `NavigationBar` внизу (это ожидаемо: `shouldShowSidebar` требует expanded+, т.е. >= 1200dp).
 
 - [ ] **Step 7: Commit**
 
@@ -407,8 +407,12 @@ feat: use NavigationRail instead of bottom nav on wide screens
 HomePage always used a bottom NavigationBar, wasting vertical space on
 tablets in landscape. Responsive.shouldShowSidebar (existing, unused
 until now) now switches to a side NavigationRail with the same 4
-destinations/selection logic on expanded+ width (>=840dp). Phone and
+destinations/selection logic on expanded+ width (>=1200dp). Phone and
 tablet-portrait layouts are unchanged.
+
+Note: the actual committed message for this task (4ecfadd) says
+">=840dp" — a documentation inaccuracy caught during final review,
+fixed here in the plan but not rewritten in git history.
 EOF
 )"
 ```
