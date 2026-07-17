@@ -17,6 +17,7 @@ import 'package:agro_employee_public/design_system/tokens/radii.dart';
 import 'package:agro_employee_public/design_system/tokens/spacing.dart';
 import 'package:agro_employee_public/design_system/tokens/typography.dart';
 import 'package:agro_employee_public/src/feature/fermers/vm/fermer_vm.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 
 import '../widgets/fermer_page_card_widget.dart';
 
@@ -408,24 +409,50 @@ class _FarmersList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...List.generate(
-          vm.fermersList.length + (vm.isFetchingMore ? 1 : 0),
-          (index) {
-            if (index == vm.fermersList.length) {
-              return Padding(
-                padding: REdgeInsets.all(16.0),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: design_colors.AppColors.accentGreen,
+        if (Responsive.isCompact(context))
+          ...List.generate(
+            vm.fermersList.length + (vm.isFetchingMore ? 1 : 0),
+            (index) {
+              if (index == vm.fermersList.length) {
+                return Padding(
+                  padding: REdgeInsets.all(16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: design_colors.AppColors.accentGreen,
+                    ),
                   ),
+                );
+              }
+
+              final farmer = vm.fermersList[index];
+              return Padding(
+                padding: EdgeInsets.only(bottom: AppSpacing.md),
+                child: FermerPageCardWidget(
+                  onPressed: () {
+                    context.push(
+                      "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}",
+                      extra: farmer.id,
+                    );
+                  },
+                  fermerModel: farmer,
                 ),
               );
-            }
-
-            final farmer = vm.fermersList[index];
-            return Padding(
-              padding: EdgeInsets.only(bottom: AppSpacing.md),
-              child: FermerPageCardWidget(
+            },
+          )
+        else ...[
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: Responsive.getGridColumns(context),
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 1.6,
+            ),
+            itemCount: vm.fermersList.length,
+            itemBuilder: (context, index) {
+              final farmer = vm.fermersList[index];
+              return FermerPageCardWidget(
                 onPressed: () {
                   context.push(
                     "/${AppRouteNames.farmers}/${AppRouteNames.googleMaps}",
@@ -433,10 +460,19 @@ class _FarmersList extends StatelessWidget {
                   );
                 },
                 fermerModel: farmer,
+              );
+            },
+          ),
+          if (vm.isFetchingMore)
+            Padding(
+              padding: REdgeInsets.all(16.0),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: design_colors.AppColors.accentGreen,
+                ),
               ),
-            );
-          },
-        ),
+            ),
+        ],
       ],
     );
   }
