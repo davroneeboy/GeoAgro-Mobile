@@ -342,18 +342,10 @@ class CreateMapPageVm extends ChangeNotifier {
     try {
       final data = await _appRepositoryImpl.getUserPlantationsForMap();
 
-      debugPrint('User plantations API response: $data');
-
       if (data != null && data.isNotEmpty) {
         try {
           userPlantations = formeMapModelFromJson(data);
           debugPrint('Loaded ${userPlantations.length} plantations');
-
-          // Логируем информацию о каждой плантации
-          for (final plantation in userPlantations) {
-            debugPrint(
-                'Plantation ${plantation.id}: ${plantation.getDisplayFarmerName()}, coordinates: ${plantation.coordinates.length}, checked: ${plantation.isChecked}, area: ${plantation.getDisplayArea()}, kontur: ${plantation.getDisplayKonturNumbers()}');
-          }
 
           _updateUserPlantationsPolygons();
         } catch (jsonError) {

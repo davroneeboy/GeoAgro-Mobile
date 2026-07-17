@@ -19,7 +19,9 @@ class AreaBreakdown {
   });
 
   factory AreaBreakdown.fromJson(Map<String, dynamic> json) => AreaBreakdown(
-        farmerCount: json["farmer_count"] as int? ?? 0,
+        farmerCount: json["farmer_count"] is int
+            ? json["farmer_count"] as int
+            : int.tryParse(json["farmer_count"]?.toString() ?? "") ?? 0,
         totalArea: (json["total_area"] as num?)?.toDouble() ?? 0,
         plantedArea: (json["planted_area"] as num?)?.toDouble() ?? 0,
         economicInefficientArea:
@@ -49,7 +51,9 @@ class DistrictAreaStat {
 
   factory DistrictAreaStat.fromJson(Map<String, dynamic> json) =>
       DistrictAreaStat(
-        districtId: json["district_id"] as int? ?? 0,
+        districtId: json["district_id"] is int
+            ? json["district_id"] as int
+            : int.tryParse(json["district_id"]?.toString() ?? "") ?? 0,
         districtName: json["district_name"] as String? ?? "",
         total: AreaBreakdown.fromJson(
             Map<String, dynamic>.from(json["total"] as Map? ?? {})),
