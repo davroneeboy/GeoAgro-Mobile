@@ -29,6 +29,7 @@ import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
@@ -152,6 +153,37 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
+  static const List<NavigationDestination> _navDestinations = [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home_rounded),
+      label: "Uy",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.agriculture_outlined),
+      selectedIcon: Icon(Icons.agriculture),
+      label: "Fermerlar",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.bar_chart_outlined),
+      selectedIcon: Icon(Icons.bar_chart),
+      label: "Statistika",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person),
+      label: "Profil",
+    ),
+  ];
+
+  void _onNavSelect(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _builtTabs.add(index);
+    });
+    _loadTabData(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(homePageVM);
@@ -166,6 +198,48 @@ class _HomePageState extends ConsumerState<HomePage> {
           ? const ProfileSettingsPage()
           : const SizedBox.shrink(),
     ];
+
+    final showSidebar = Responsive.shouldShowSidebar(context);
+
+    if (showSidebar) {
+      return Scaffold(
+        backgroundColor: context.colors.background,
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onNavSelect,
+              labelType: NavigationRailLabelType.all,
+              backgroundColor: context.colors.surfaceVariant,
+              selectedIconTheme: IconThemeData(
+                color: design_colors.AppColors.accentGreen,
+              ),
+              selectedLabelTextStyle: TextStyle(
+                color: design_colors.AppColors.accentGreen,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelTextStyle: TextStyle(
+                color: context.colors.textTertiary,
+              ),
+              destinations: _navDestinations
+                  .map((d) => NavigationRailDestination(
+                        icon: d.icon,
+                        selectedIcon: d.selectedIcon,
+                        label: Text(d.label),
+                      ))
+                  .toList(),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: tabs,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -229,35 +303,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: NavigationBar(
               height: 64,
               selectedIndex: _selectedIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                  _builtTabs.add(index);
-                });
-                _loadTabData(index);
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: "Uy",
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.agriculture_outlined),
-                  selectedIcon: Icon(Icons.agriculture),
-                  label: "Fermerlar",
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.bar_chart_outlined),
-                  selectedIcon: Icon(Icons.bar_chart),
-                  label: "Statistika",
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person),
-                  label: "Profil",
-                ),
-              ],
+              onDestinationSelected: _onNavSelect,
+              destinations: _navDestinations,
             ),
           ),
         ),
