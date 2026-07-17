@@ -55,3 +55,4 @@ app.*.map.json
 
 # Server files (update server)
 /server/
+.worktrees/
