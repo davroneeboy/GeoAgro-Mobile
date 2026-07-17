@@ -300,7 +300,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               elevation: 0,
             ),
             child: NavigationBar(
-              height: 64,
+              // Фиксированная 64 не масштабировалась вместе с iconTheme/
+              // labelTextStyle внутри (оба .sp) — на планшете (scale
+              // клэмпится к ~1.6) иконки+подписи физически перерастали
+              // высоту контейнера и визуально прижимались к верху.
+              height: 64.h,
               selectedIndex: _selectedIndex,
               onDestinationSelected: _onNavSelect,
               destinations: _navDestinations,
