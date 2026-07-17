@@ -25,6 +25,7 @@ import 'package:intl/intl.dart';
 import '../pages/home_page.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 
 final plantationViewVM = ChangeNotifierProvider.autoDispose
     .family<_PlantationViewVm, int>((ref, id) {
@@ -581,23 +582,30 @@ class _PlantationViewPageState extends ConsumerState<PlantationViewPage> {
             )
           : isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (summaryCard != null) ...[
-                        summaryCard,
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
-                      if (sections.isNotEmpty)
-                        ...sections.map((section) => Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: AppSpacing.lg,
-                              ),
-                              child: _buildSectionWidget(context, section),
-                            )),
-                    ],
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: Responsive.getMaxContentWidth(context),
+                    ),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (summaryCard != null) ...[
+                            summaryCard,
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
+                          if (sections.isNotEmpty)
+                            ...sections.map((section) => Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.lg,
+                                  ),
+                                  child: _buildSectionWidget(context, section),
+                                )),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
     );
