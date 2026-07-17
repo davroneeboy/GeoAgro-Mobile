@@ -315,10 +315,21 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildLegendCard(context),
+            Text(
+              'Boshqaruv',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: context.colors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 16),
-            if (vm.drawingPoints.isNotEmpty && vm.drawingPoints.length >= 3)
+            _buildLegendCard(context),
+            if (vm.drawingPoints.isNotEmpty &&
+                vm.drawingPoints.length >= 3) ...[
+              const SizedBox(height: 16),
               _buildAreaCard(context, vm),
+            ],
             if (vm.isLoadingNearby) ...[
               const SizedBox(height: 16),
               Row(
@@ -339,7 +350,15 @@ class _CreateMapPageState extends ConsumerState<CreateMapPage> {
               ),
             ],
             const SizedBox(height: 24),
-            CreateMapPageButtonWidgets(vm: vm),
+            Divider(color: context.colors.divider),
+            const SizedBox(height: 16),
+            // Кнопки — набор круглых FloatingActionButton, спроектированных
+            // для позиционирования поверх карты (floatingActionButton
+            // слот). Внутри плоской панели без выравнивания они прижимались
+            // к левому краю растянутой колонки — оборачиваем в Center,
+            // чтобы сохранить их собственное центрирование по горизонтали
+            // независимо от того, что панель crossAxisAlignment.stretch.
+            Center(child: CreateMapPageButtonWidgets(vm: vm)),
           ],
         ),
       ),
