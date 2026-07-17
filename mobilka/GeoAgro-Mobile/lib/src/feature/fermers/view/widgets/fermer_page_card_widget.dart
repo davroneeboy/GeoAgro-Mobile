@@ -50,31 +50,38 @@ class FermerPageCardWidget extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            _navigateToEditPage(context, ref);
-                          },
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  fermerModel.name ?? "Noma'lum fermer",
-                                  style: AppTypography.title(context).copyWith(
-                                    fontSize: 20.sp,
-                                    fontWeight: FontWeight.w700,
-                                    color: context.colors.textPrimary,
-                                    height: 1.25,
-                                  ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                fermerModel.name ?? "Noma'lum fermer",
+                                style: AppTypography.title(context).copyWith(
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.colors.textPrimary,
+                                  height: 1.25,
                                 ),
                               ),
-                              SizedBox(width: AppSpacing.xs),
-                              Icon(
-                                Icons.edit_outlined,
-                                size: 18.sp,
-                                color: design_colors.AppColors.accentGreen,
+                            ),
+                            SizedBox(width: AppSpacing.xs),
+                            GestureDetector(
+                              onTap: () {
+                                _navigateToEditPage(context, ref);
+                              },
+                              child: Padding(
+                                // Расширяет тап-зону вокруг маленькой иконки
+                                // (сама иконка 22sp — ниже рекомендуемого
+                                // 44dp минимума хитбокса), не увеличивая
+                                // визуальный размер самой иконки.
+                                padding: EdgeInsets.all(AppSpacing.sm),
+                                child: Icon(
+                                  Icons.edit_outlined,
+                                  size: 22.sp,
+                                  color: design_colors.AppColors.accentGreen,
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                         SizedBox(height: AppSpacing.xs.h),
                         if (fermerModel.inn != null) ...[
