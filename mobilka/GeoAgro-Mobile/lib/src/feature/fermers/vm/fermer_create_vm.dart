@@ -218,11 +218,9 @@ class FermerCreateVm extends ChangeNotifier {
         if (result.directorName?.isNotEmpty ?? false) {
           directorName.text = result.directorName!;
         }
-        if (result.phoneNumber?.isNotEmpty ?? false) {
-          // Конкатенация, не форматтер: UzbekPhoneFormatter — InputFormatter
-          // для живого ввода, не предназначен для программной установки.
-          phoneNumber.text = '+998${result.phoneNumber}';
-        }
+        // Телефон намеренно не автозаполняется — orginfo.uz отдаёт
+        // контактный номер организации, не обязательно фермера, вводившего
+        // ИНН; автоподстановка перетирала бы уже введённый юзером номер.
       }
     } on OrginfoParseException {
       // Разметка orginfo.uz поменялась либо сайт недоступен — не молчим,

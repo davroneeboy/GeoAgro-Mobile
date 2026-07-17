@@ -249,9 +249,9 @@ class FermerEditVm extends ChangeNotifier {
         if (result.directorName?.isNotEmpty ?? false) {
           directorName.text = result.directorName!;
         }
-        if (result.phoneNumber?.isNotEmpty ?? false) {
-          phoneNumber.text = '+998${result.phoneNumber}';
-        }
+        // Телефон намеренно не автозаполняется — orginfo.uz отдаёт
+        // контактный номер организации, не обязательно фермера, вводившего
+        // ИНН; автоподстановка перетирала бы уже введённый юзером номер.
       }
     } on OrginfoParseException {
       orgInfoError =
