@@ -5,12 +5,13 @@ import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
 import '../../../design_system/tokens/typography.dart';
 
 /// Modern app bar that adapts to light/dark theme.
-class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppBarWidget extends StatelessWidget
+    implements PreferredSizeWidget {
   final String title;
   final bool canPop;
   final List<Widget>? actions;
   final VoidCallback? onBackPressed;
-  
+
   const CustomAppBarWidget({
     super.key,
     required this.title,
@@ -60,6 +61,14 @@ class CustomAppBarWidget extends StatelessWidget implements PreferredSizeWidget 
     );
   }
 
+  // preferredSize резервирует место под AppBar в Scaffold layout — раньше
+  // была захардкожена в 69 (const), не масштабируясь вместе с
+  // toolbarHeight: 68.h. На широком экране (планшет, scale > 1)
+  // реальная высота тулбара превышала зарезервированное пространство,
+  // из-за чего содержимое AppBar (заголовок, кнопки в actions вроде
+  // "Chiqish" на странице профиля) визуально сжималось/обрезалось —
+  // AppBar был самым используемым виджетом в проекте, баг проявлялся
+  // почти на каждом экране.
   @override
-  Size get preferredSize => const Size.fromHeight(69);
+  Size get preferredSize => Size.fromHeight(68.h + 0.5);
 }
