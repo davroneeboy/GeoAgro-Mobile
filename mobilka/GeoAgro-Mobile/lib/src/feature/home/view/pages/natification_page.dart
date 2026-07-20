@@ -9,6 +9,7 @@ import '../../../../core/routes/app_route_names.dart';
 import '../../../../data/model/notification/notification_models.dart';
 import '../../../home/vm/notifications_vm.dart';
 import '../../../../data/repository/app_repository_impl.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 
 final notificationsVM = ChangeNotifierProvider<NotificationsVm>((ref) {
   return NotificationsVm(AppRepositoryImpl());
@@ -69,45 +70,59 @@ class _NatificationPageState extends ConsumerState<NatificationPage> {
                                 style: TextStyle(fontSize: 16.sp))),
                       ],
                     )
-                  : ListView.separated(
-                      controller: _controller,
-                      padding:
-                          REdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      itemBuilder: (context, index) {
-                        if (index == vm.notifications.length) {
-                          return Padding(
-                            padding: REdgeInsets.symmetric(vertical: 16),
-                            child: ElevatedButton(
-                              onPressed: vm.isFetchingMore
-                                  ? null
-                                  : () => ref.read(notificationsVM).fetchMore(),
-                              child: vm.isFetchingMore
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))
-                                  : const Text("Yana yuklash"),
-                            ),
-                          );
-                        }
-                        final item = vm.notifications[index];
-                        return _NotificationTile(
-                          item: item,
-                          onRead: () =>
-                              ref.read(notificationsVM).markAsRead(item.id),
-                          onDelete: () =>
-                              ref.read(notificationsVM).delete(item.id),
-                          onOpenPlantation: item.hasDeepLink
-                              ? () => context.go(
-                                    "${AppRouteNames.home}${AppRouteNames.plantationView}",
-                                    extra: item.plantationId,
-                                  )
-                              : null,
-                        );
-                      },
-                      separatorBuilder: (_, __) => 12.verticalSpace,
-                      itemCount: vm.notifications.length + (vm.hasMore ? 1 : 0),
+                  // На широком экране список уведомлений (ListTile во всю
+                  // ширину) выглядел растянутой тонкой строкой — тот же
+                  // паттерн ограничения ширины, что у форм (Task 5), не
+                  // grid: уведомления по природе — вертикальный лог
+                  // событий, не набор самостоятельных карточек.
+                  : Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: Responsive.getMaxContentWidth(context),
+                        ),
+                        child: ListView.separated(
+                          controller: _controller,
+                          padding: REdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
+                          itemBuilder: (context, index) {
+                            if (index == vm.notifications.length) {
+                              return Padding(
+                                padding: REdgeInsets.symmetric(vertical: 16),
+                                child: ElevatedButton(
+                                  onPressed: vm.isFetchingMore
+                                      ? null
+                                      : () =>
+                                          ref.read(notificationsVM).fetchMore(),
+                                  child: vm.isFetchingMore
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2))
+                                      : const Text("Yana yuklash"),
+                                ),
+                              );
+                            }
+                            final item = vm.notifications[index];
+                            return _NotificationTile(
+                              item: item,
+                              onRead: () =>
+                                  ref.read(notificationsVM).markAsRead(item.id),
+                              onDelete: () =>
+                                  ref.read(notificationsVM).delete(item.id),
+                              onOpenPlantation: item.hasDeepLink
+                                  ? () => context.go(
+                                        "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                                        extra: item.plantationId,
+                                      )
+                                  : null,
+                            );
+                          },
+                          separatorBuilder: (_, __) => 12.verticalSpace,
+                          itemCount:
+                              vm.notifications.length + (vm.hasMore ? 1 : 0),
+                        ),
+                      ),
                     ),
             ),
     );

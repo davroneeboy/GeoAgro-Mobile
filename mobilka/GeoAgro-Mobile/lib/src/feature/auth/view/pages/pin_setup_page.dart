@@ -155,53 +155,70 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
               ],
             ),
           ),
-          child: Column(
-            children: [
-              const Spacer(flex: 1),
-              // Логотип
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  Assets.gerbImg,
-                  semanticLabel: "GeoAgro gerbi",
-                  height: 72.h,
-                  fit: BoxFit.contain,
+          // Тот же overflow-риск, что был на pin_lock_page.dart: на низком
+          // landscape-экране (планшет landscape) фиксированная сетка
+          // PinInputWidget + Spacer-ы не помещаются по высоте. Column со
+          // Spacer заменена на прокручиваемый контент с MainAxisAlignment
+          // .center внутри LayoutBuilder — сохраняет прежнее визуальное
+          // центрирование на нормальной высоте, скроллится вместо
+          // переполнения на тесной.
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Логотип
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.asset(
+                          Assets.gerbImg,
+                          semanticLabel: "GeoAgro gerbi",
+                          height: 72.h,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      // Заголовок
+                      Text(
+                        _isConfirmStep
+                            ? "PIN-kodni tasdiqlang"
+                            : "PIN-kod o'rnating",
+                        style: AppTypography.headline2(context).copyWith(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.w700,
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        _isConfirmStep
+                            ? "PIN-kodni qaytadan kiriting"
+                            : "Ilova xavfsizligi uchun 4 raqamli\nPIN-kod yarating",
+                        textAlign: TextAlign.center,
+                        style: AppTypography.bodySmall(context).copyWith(
+                          fontSize: 14.sp,
+                          color: context.colors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                      SizedBox(height: 32.h),
+                      // Ввод PIN
+                      PinInputWidget(
+                        pinLength: PinService.pinLength,
+                        currentLength: _enteredPin.length,
+                        onDigitPressed: _onDigitPressed,
+                        onBackspace: _onBackspace,
+                        errorMessage: _errorMessage,
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: 20.h),
-              // Заголовок
-              Text(
-                _isConfirmStep ? "PIN-kodni tasdiqlang" : "PIN-kod o'rnating",
-                style: AppTypography.headline2(context).copyWith(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w700,
-                  color: context.colors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                _isConfirmStep
-                    ? "PIN-kodni qaytadan kiriting"
-                    : "Ilova xavfsizligi uchun 4 raqamli\nPIN-kod yarating",
-                textAlign: TextAlign.center,
-                style: AppTypography.bodySmall(context).copyWith(
-                  fontSize: 14.sp,
-                  color: context.colors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-              SizedBox(height: 32.h),
-              // Ввод PIN
-              PinInputWidget(
-                pinLength: PinService.pinLength,
-                currentLength: _enteredPin.length,
-                onDigitPressed: _onDigitPressed,
-                onBackspace: _onBackspace,
-                errorMessage: _errorMessage,
-              ),
-              const Spacer(flex: 2),
-              SizedBox(height: 16.h),
-            ],
+            ),
           ),
         ),
       ),
