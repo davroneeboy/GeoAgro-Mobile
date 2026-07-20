@@ -27,6 +27,7 @@ import 'package:agro_employee_public/src/feature/fermers/view/pages/fermers_page
     show fermerPageVM;
 import 'package:agro_employee_public/src/feature/home/view/pages/home_page.dart'
     show homePageVM;
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 import 'package:agro_employee_public/src/feature/home/view/pages/natification_page.dart'
     show notificationsVM;
 
@@ -241,38 +242,45 @@ class _ProfileSettingsPageState extends ConsumerState<ProfileSettingsPage> {
               onRefresh: _loadUserInfo,
               color: design_colors.AppColors.accentGreen,
               backgroundColor: colors.surface,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.lg,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProfileHeader(colors),
-                    SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Shaxsiy ma'lumotlar", colors),
-                    SizedBox(height: AppSpacing.sm.h),
-                    _buildPersonalInfoCard(colors),
-                    SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Mavzu", colors),
-                    SizedBox(height: AppSpacing.sm.h),
-                    _buildThemeCard(colors),
-                    SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Ruxsatlar", colors),
-                    SizedBox(height: AppSpacing.sm.h),
-                    _buildPermissionsCard(colors),
-                    SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Qurilmalar", colors),
-                    SizedBox(height: AppSpacing.sm.h),
-                    _buildDevicesCard(colors),
-                    SizedBox(height: AppSpacing.xl.h),
-                    _buildSectionTitle("Qo'llab-quvvatlash", colors),
-                    SizedBox(height: AppSpacing.sm.h),
-                    _buildSupportCard(colors),
-                    SizedBox(height: AppSpacing.xl.h),
-                  ],
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: Responsive.getMaxContentWidth(context),
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileHeader(colors),
+                        SizedBox(height: AppSpacing.xl.h),
+                        _buildSectionTitle("Shaxsiy ma'lumotlar", colors),
+                        SizedBox(height: AppSpacing.sm.h),
+                        _buildPersonalInfoCard(colors),
+                        SizedBox(height: AppSpacing.xl.h),
+                        _buildSectionTitle("Mavzu", colors),
+                        SizedBox(height: AppSpacing.sm.h),
+                        _buildThemeCard(colors),
+                        SizedBox(height: AppSpacing.xl.h),
+                        _buildSectionTitle("Ruxsatlar", colors),
+                        SizedBox(height: AppSpacing.sm.h),
+                        _buildPermissionsCard(colors),
+                        SizedBox(height: AppSpacing.xl.h),
+                        _buildSectionTitle("Qurilmalar", colors),
+                        SizedBox(height: AppSpacing.sm.h),
+                        _buildDevicesCard(colors),
+                        SizedBox(height: AppSpacing.xl.h),
+                        _buildSectionTitle("Qo'llab-quvvatlash", colors),
+                        SizedBox(height: AppSpacing.sm.h),
+                        _buildSupportCard(colors),
+                        SizedBox(height: AppSpacing.xl.h),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
