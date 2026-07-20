@@ -209,21 +209,35 @@ class _BiometricLockPageState extends State<BiometricLockPage>
               ],
             ),
           ),
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              _buildLogo(),
-              SizedBox(height: 24.h),
-              _buildTitle(),
-              const Spacer(flex: 1),
-              _buildAuthButton(),
-              SizedBox(height: 20.h),
-              _buildHintText(),
-              if (_errorMessage != null) _buildErrorSection(),
-              const Spacer(flex: 2),
-              _buildLogoutButton(),
-              SizedBox(height: 24.h),
-            ],
+          // Column со Spacer-ами не помещалась по высоте на низком
+          // landscape-экране (тот же класс overflow-бага, что был на
+          // pin_lock_page.dart) — заменена на прокручиваемый контент,
+          // центрированный на нормальной высоте через MainAxisAlignment
+          // внутри LayoutBuilder-измеренного минимума высоты.
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildLogo(),
+                      SizedBox(height: 24.h),
+                      _buildTitle(),
+                      SizedBox(height: 16.h),
+                      _buildAuthButton(),
+                      SizedBox(height: 20.h),
+                      _buildHintText(),
+                      if (_errorMessage != null) _buildErrorSection(),
+                      SizedBox(height: 16.h),
+                      _buildLogoutButton(),
+                      SizedBox(height: 24.h),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

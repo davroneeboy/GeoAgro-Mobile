@@ -12,7 +12,6 @@ import '../../../../core/version/version_check_service.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/search_bar_widget.dart';
-import '../../../../data/model/plantation/plantations_list_model.dart';
 import '../../../../data/repository/app_repository_impl.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../fermers/view/pages/fermers_page.dart'
@@ -29,6 +28,7 @@ import '../pages/natification_page.dart' show notificationsVM;
 import 'package:agro_employee_public/design_system/tokens/colors.dart'
     as design_colors;
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/pin_service.dart';
 import '../../../../core/setting/setup.dart' as app_setup;
@@ -152,6 +152,37 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
+  static const List<NavigationDestination> _navDestinations = [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home_rounded),
+      label: "Uy",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.agriculture_outlined),
+      selectedIcon: Icon(Icons.agriculture),
+      label: "Fermerlar",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.bar_chart_outlined),
+      selectedIcon: Icon(Icons.bar_chart),
+      label: "Statistika",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person),
+      label: "Profil",
+    ),
+  ];
+
+  void _onNavSelect(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _builtTabs.add(index);
+    });
+    _loadTabData(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(homePageVM);
@@ -166,6 +197,48 @@ class _HomePageState extends ConsumerState<HomePage> {
           ? const ProfileSettingsPage()
           : const SizedBox.shrink(),
     ];
+
+    final showSidebar = Responsive.shouldShowSidebar(context);
+
+    if (showSidebar) {
+      return Scaffold(
+        backgroundColor: context.colors.background,
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onNavSelect,
+              labelType: NavigationRailLabelType.all,
+              backgroundColor: context.colors.surfaceVariant,
+              selectedIconTheme: IconThemeData(
+                color: design_colors.AppColors.accentGreen,
+              ),
+              selectedLabelTextStyle: TextStyle(
+                color: design_colors.AppColors.accentGreen,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelTextStyle: TextStyle(
+                color: context.colors.textTertiary,
+              ),
+              destinations: _navDestinations
+                  .map((d) => NavigationRailDestination(
+                        icon: d.icon,
+                        selectedIcon: d.selectedIcon,
+                        label: Text(d.label),
+                      ))
+                  .toList(),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: tabs,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -227,37 +300,14 @@ class _HomePageState extends ConsumerState<HomePage> {
               elevation: 0,
             ),
             child: NavigationBar(
-              height: 64,
+              // Фиксированная 64 не масштабировалась вместе с iconTheme/
+              // labelTextStyle внутри (оба .sp) — на планшете (scale
+              // клэмпится к ~1.6) иконки+подписи физически перерастали
+              // высоту контейнера и визуально прижимались к верху.
+              height: 64.h,
               selectedIndex: _selectedIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                  _builtTabs.add(index);
-                });
-                _loadTabData(index);
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: "Uy",
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.agriculture_outlined),
-                  selectedIcon: Icon(Icons.agriculture),
-                  label: "Fermerlar",
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.bar_chart_outlined),
-                  selectedIcon: Icon(Icons.bar_chart),
-                  label: "Statistika",
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person),
-                  label: "Profil",
-                ),
-              ],
+              onDestinationSelected: _onNavSelect,
+              destinations: _navDestinations,
             ),
           ),
         ),
@@ -444,70 +494,111 @@ class _HomePageState extends ConsumerState<HomePage> {
               },
               color: design_colors.AppColors.accentGreen,
               backgroundColor: context.colors.surface,
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                controller: _scrollController,
-                separatorBuilder: (_, __) => 16.verticalSpace,
-                padding: REdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: vm.plantationsList.length +
-                    ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == vm.plantationsList.length && !vm.isSearching) {
-                    return Container(
-                      margin: REdgeInsets.symmetric(vertical: 16),
-                      child: ElevatedButton(
-                        onPressed: vm.isFetchingMore
-                            ? null
-                            : () {
-                                vm.getPlantationsModel(isLoadMore: true);
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: design_colors.AppColors.accentGreen,
-                          foregroundColor: Colors.white,
-                          padding: REdgeInsets.symmetric(
-                              vertical: 16, horizontal: 32),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+              child: Responsive.isCompact(context)
+                  ? ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      controller: _scrollController,
+                      separatorBuilder: (_, __) => 16.verticalSpace,
+                      padding:
+                          REdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      itemCount: vm.plantationsList.length +
+                          ((vm.canLoadNext && !vm.isSearching) ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == vm.plantationsList.length &&
+                            !vm.isSearching) {
+                          return _buildLoadMoreButton(vm);
+                        }
+                        final plantation = vm.plantationsList[index];
+                        return Padding(
+                          padding: REdgeInsets.symmetric(horizontal: 4),
+                          child: HomePageCardWidget(
+                            plantation: plantation,
+                            showEditButton: true,
+                            onDeleteSuccess: () {
+                              ref
+                                  .read(homePageVM)
+                                  .getPlantationsModel(isLoadMore: false);
+                            },
                           ),
-                        ),
-                        child: vm.isFetchingMore
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 20.w,
-                                    height: 20.h,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  8.horizontalSpace,
-                                  Text("Yuklanmoqda...",
-                                      style: TextStyle(fontSize: 16.sp)),
-                                ],
-                              )
-                            : Text("Qolganlarini ko'rish",
-                                style: TextStyle(fontSize: 16.sp)),
-                      ),
-                    );
-                  }
-                  Result plantation = vm.plantationsList[index];
-                  return Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 4),
-                    child: HomePageCardWidget(
-                      plantation: plantation,
-                      showEditButton: true,
-                      onDeleteSuccess: () {
-                        ref
-                            .read(homePageVM)
-                            .getPlantationsModel(isLoadMore: false);
+                        );
                       },
+                    )
+                  : SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding:
+                          REdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      child: Column(
+                        children: [
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount:
+                                  Responsive.getGridColumns(context),
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 1.4,
+                            ),
+                            itemCount: vm.plantationsList.length,
+                            itemBuilder: (context, index) {
+                              final plantation = vm.plantationsList[index];
+                              return HomePageCardWidget(
+                                plantation: plantation,
+                                showEditButton: true,
+                                onDeleteSuccess: () {
+                                  ref
+                                      .read(homePageVM)
+                                      .getPlantationsModel(isLoadMore: false);
+                                },
+                              );
+                            },
+                          ),
+                          if (vm.canLoadNext && !vm.isSearching)
+                            _buildLoadMoreButton(vm),
+                        ],
+                      ),
                     ),
-                  );
-                },
-              ),
             ),
+    );
+  }
+
+  Widget _buildLoadMoreButton(HomePageVm vm) {
+    return Container(
+      margin: REdgeInsets.symmetric(vertical: 16),
+      child: ElevatedButton(
+        onPressed: vm.isFetchingMore
+            ? null
+            : () {
+                vm.getPlantationsModel(isLoadMore: true);
+              },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: design_colors.AppColors.accentGreen,
+          foregroundColor: Colors.white,
+          padding: REdgeInsets.symmetric(vertical: 16, horizontal: 32),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: vm.isFetchingMore
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 20.w,
+                    height: 20.h,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                  8.horizontalSpace,
+                  Text("Yuklanmoqda...", style: TextStyle(fontSize: 16.sp)),
+                ],
+              )
+            : Text("Qolganlarini ko'rish", style: TextStyle(fontSize: 16.sp)),
+      ),
     );
   }
 }

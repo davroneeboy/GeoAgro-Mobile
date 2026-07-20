@@ -293,21 +293,29 @@ class _PinLockPageState extends State<PinLockPage> with WidgetsBindingObserver {
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        PinInputWidget(
-                          pinLength: PinService.pinLength,
-                          currentLength: _enteredPin.length,
-                          onDigitPressed: _onDigitPressed,
-                          onBackspace: _onBackspace,
-                          errorMessage: lockedOut ? null : _errorMessage,
-                          isLoading: _isVerifying,
-                          onBiometricPressed: _tryBiometric,
-                          biometricEnabled: _biometricAvailable,
-                          keypadDisabled: lockedOut,
-                        ),
-                      ],
+                    // На низком landscape-экране (планшет в landscape,
+                    // мало вертикального пространства) фиксированная
+                    // сетка PIN-клавиатуры не помещалась в Expanded и
+                    // переполнялась (RenderFlex overflow) — заворачиваем
+                    // в скролл, чтобы контент оставался доступным вместо
+                    // обрезки/визуального краша рендера.
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          PinInputWidget(
+                            pinLength: PinService.pinLength,
+                            currentLength: _enteredPin.length,
+                            onDigitPressed: _onDigitPressed,
+                            onBackspace: _onBackspace,
+                            errorMessage: lockedOut ? null : _errorMessage,
+                            isLoading: _isVerifying,
+                            onBiometricPressed: _tryBiometric,
+                            biometricEnabled: _biometricAvailable,
+                            keypadDisabled: lockedOut,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

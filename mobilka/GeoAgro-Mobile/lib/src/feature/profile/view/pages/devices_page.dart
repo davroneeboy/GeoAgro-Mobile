@@ -15,6 +15,7 @@ import '../../../../core/services/fcm_service.dart';
 import '../../../../core/storage/app_storage.dart';
 import '../../../../core/widgets/custom_app_bar_widget.dart';
 import '../../../../data/repository/app_repository_impl.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 
 final _devicesVmProvider =
     ChangeNotifierProvider.autoDispose<_DevicesVm>((ref) {
@@ -135,11 +136,18 @@ class DevicesPage extends ConsumerWidget {
         title: "Ulangan qurilmalar",
         canPop: true,
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(_devicesVmProvider.notifier).load(),
-        color: design_colors.AppColors.accentGreen,
-        backgroundColor: context.colors.surface,
-        child: _buildBody(context, ref, vm),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.getMaxContentWidth(context),
+          ),
+          child: RefreshIndicator(
+            onRefresh: () => ref.read(_devicesVmProvider.notifier).load(),
+            color: design_colors.AppColors.accentGreen,
+            backgroundColor: context.colors.surface,
+            child: _buildBody(context, ref, vm),
+          ),
+        ),
       ),
     );
   }

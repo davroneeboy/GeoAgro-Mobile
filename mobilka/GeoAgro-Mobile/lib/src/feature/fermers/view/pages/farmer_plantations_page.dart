@@ -14,6 +14,7 @@ import '../../../../../design_system/theme/typography.dart';
 import '../widgets/farmer_plantation_card.dart';
 import '../../vm/farmer_plantations_vm.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 
 final farmerPlantationsVm =
     ChangeNotifierProvider.autoDispose<FarmerPlantationsVm>((ref) {
@@ -157,19 +158,26 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
           ),
         ),
 
-        // Plantations list
-        SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final plantation = vm.plantations[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: AppSpacing.md),
-                  child: FarmerPlantationCard(
+        // Plantations list/grid — одна колонка на compact/portrait
+        // (узкий экран, список читабельнее), сетка на expanded+
+        // (landscape-планшет — широкий экран, список тянулся во всю
+        // ширину без пользы от простора).
+        if (Responsive.shouldShowSidebar(context))
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: Responsive.getGridColumns(context),
+                mainAxisSpacing: AppSpacing.md,
+                crossAxisSpacing: AppSpacing.md,
+                childAspectRatio: 1.3,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final plantation = vm.plantations[index];
+                  return FarmerPlantationCard(
                     plantation: plantation,
                     onTap: () {
-                      // Navigate to plantation detail page
                       if (plantation.id > 0) {
                         context.go(
                           "${AppRouteNames.home}${AppRouteNames.plantationView}",
@@ -177,13 +185,39 @@ class _FarmerPlantationsPageState extends ConsumerState<FarmerPlantationsPage> {
                         );
                       }
                     },
-                  ),
-                );
-              },
-              childCount: vm.plantations.length,
+                  );
+                },
+                childCount: vm.plantations.length,
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final plantation = vm.plantations[index];
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: AppSpacing.md),
+                    child: FarmerPlantationCard(
+                      plantation: plantation,
+                      onTap: () {
+                        // Navigate to plantation detail page
+                        if (plantation.id > 0) {
+                          context.go(
+                            "${AppRouteNames.home}${AppRouteNames.plantationView}",
+                            extra: plantation.id,
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+                childCount: vm.plantations.length,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

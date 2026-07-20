@@ -21,6 +21,7 @@ import '../../../../../design_system/tokens/spacing.dart';
 import '../../../../../design_system/tokens/typography.dart';
 import '../../vm/farmers_statistics_vm.dart';
 import 'package:agro_employee_public/design_system/tokens/adaptive_colors.dart';
+import 'package:agro_employee_public/design_system/utils/responsive.dart';
 import '../../../../../localization/app_strings.dart';
 
 final farmersStatisticsVM =
@@ -791,15 +792,26 @@ class _SummaryGrid extends StatelessWidget {
       ),
     ];
 
+    // На широком экране (планшет) фиксированные 2 колонки давали
+    // слишком широкие карточки относительно их фиксированной высоты
+    // (childAspectRatio не учитывал реальный простор) — контент
+    // (иконка+значение+заголовок) либо переполнял карточку, либо
+    // карточки выглядели непропорционально большими. Колонки теперь
+    // растут вместе с шириной экрана (Responsive.getGridColumns), а
+    // aspectRatio чуть увеличен на некомпактных экранах — карточка
+    // площе, ближе к пропорциям исходного 2-колоночного дизайна на
+    // телефоне вместо растягивания вширь.
+    final columns = Responsive.getGridColumns(context);
+    final aspectRatio = Responsive.isCompact(context) ? 1.25 : 1.6;
     return GridView.builder(
       shrinkWrap: true,
       itemCount: items.length,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
         mainAxisSpacing: AppSpacing.md,
         crossAxisSpacing: AppSpacing.md,
-        childAspectRatio: 1.25,
+        childAspectRatio: aspectRatio,
       ),
       itemBuilder: (context, index) => _SummaryCard(item: items[index]),
     );
