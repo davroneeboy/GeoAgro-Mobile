@@ -1,0 +1,37 @@
+# API endpoints проекта GeoAgro Mobile
+
+- `/api/login/`
+- `/api/plantations/`
+- `/api/plantations/forme/`
+- `/api/plantations/forme/map/`
+- `/api/plantations/forme/rejected/`
+- `/api/plantations/forme/approved/`
+- `/api/plantations/forme/pending/`
+- `/api/plantations/create/`
+- `/api/plantations/{id}/`
+- `/api/plantations/{id}/related-map/`
+- `/api/plantations/nearby/`
+- `/api/plantations/{id}/mobile-update/`
+- `/api/plantations/{id}/delete/`
+- `/api/plantations/{id}/images/`
+- `/api/plantations/{id}/images/update/`
+- `/api/plantations/{plantationId}/images/{imageId}/`
+- `/api/farmers/`
+- `/api/mymap/plantations/?farmer_inn={inn}`
+- `/api/regions/`
+- `/api/common/districts/`
+- `/api/common/fruits`
+- `/api/common/fruits/{fruitId}/varieties/`
+- `/api/common/rootstocks`
+- `/api/statistics/farmers`
+- `/api/statistics/regions/{regionId}/pending/`
+- `/api/users/profile/`
+- `/api/users/`
+- `/api/users/{id}/`
+- `/api/notifications/`
+- `/api/notifications/{id}/`
+- `/api/notifications/unread-count/`
+- `/api/device-tokens/`
+- `/api/device-tokens/{token}/`
+- `/api/plantations/{plantationId}/comments/`
+- `https://orginfo.uz/ru/search/organizations/`
